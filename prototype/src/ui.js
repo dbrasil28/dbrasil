@@ -394,8 +394,10 @@ export class UI {
   showResult(game, perfSummary, settings, meta, adsSummary) {
     const s = game.summary();
     const win = game.over === 'victory';
-    $('result-title').textContent = win ? 'TURNO CONCLUÍDO' : 'FIM DO TURNO';
-    $('result-headline').textContent = win
+    $('result-title').textContent = game.delivered ? 'ENTREGA FEITA' : win ? 'TURNO CONCLUÍDO' : 'FIM DO TURNO';
+    $('result-headline').textContent = game.delivered
+      ? 'ENTREGA FEITA NO ALTO DO MORRO: UMA PIZZA DE CALABRESA. GORJETA: NENHUMA'
+      : win
       ? 'ESPECULADOR SOFRE DESPEJO. TERRENO VOLTA A SER... DE NINGUÉM'
       : 'ENTREGADOR NÃO RESISTE. APP DESCONTA A ENTREGA';
     const verdict = verdictFor(game.corruption);

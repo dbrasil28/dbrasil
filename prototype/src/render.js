@@ -3,6 +3,10 @@
 import { ENEMIES, WAKE } from './config.js';
 import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
+import {
+  entityDepth, drawPlatform, drawStair, drawObject, drawPlace, drawGate, drawGroundArrows, drawEdgeArrow,
+  drawAim, drawBullet, drawHeal,
+} from './render_mundo.js';
 
 const pt = { x: 0, y: 0 };
 const pt2 = { x: 0, y: 0 };
@@ -135,15 +139,37 @@ export class Renderer {
     }
 
     this.drawZones(ctx, game, ppu);
+    if (game.world) drawGroundArrows(ctx, game, cam, ppu, game.t); // seta pintada no chão até a saída liberada
 
     // lista de desenho com ordenação por profundidade
     const list = [];
     cam.visibleWorldBounds(3, bounds);
     for (const pr of game.propsInBounds(bounds, propsTmp)) list.push({ d: cam.depth(pr.x, pr.y), k: 'prop', o: pr });
     for (const g of game.gems) list.push({ d: cam.depth(g.x, g.y) - 0.5, k: 'gem', o: g });
-    for (const p of game.pickups) list.push({ d: cam.depth(p.x, p.y) - 0.4, k: 'pickup', o: p });
-    for (const e of game.enemies) list.push({ d: cam.depth(e.x, e.y), k: 'enemy', o: e });
-    list.push({ d: cam.depth(game.player.x, game.player.y), k: 'player', o: game.player });
+    for (const p of game.pickups) {
+      list.push({ d: p.plat ? cam.depth(p.x, p.plat.y1) + 0.002 : cam.depth(p.x, p.y) - 0.4, k: 'pickup', o: p, z: p.plat ? p.plat.h : 0 });
+    }
+    for (const e of game.enemies) list.push({ d: entityDepth(cam, e), k: 'enemy', o: e });
+    list.push({ d: entityDepth(cam, game.player), k: 'player', o: game.player });
+    const w = game.world;
+    if (w) {
+      // lajes com escada, boteco, objetos de cena e o tapume da escadaria
+      for (const P of w.platforms) {
+        if (P.y0 > bounds.maxY + 4 || P.y1 < bounds.minY - 4) continue;
+        list.push({ d: cam.depth(P.x0, P.y1), k: 'plat', o: P, x: (P.x0 + P.x1) / 2, y: P.y1 });
+        list.push({ d: cam.depth(P.x0, P.stair.y0) - 0.001, k: 'stair', o: P, x: (P.x0 + P.x1) / 2, y: P.y1 });
+      }
+      for (const pl of w.places) {
+        if (pl.kind !== 'boteco' || pl.y0 > bounds.maxY + 4 || pl.y1 < bounds.minY - 4) continue;
+        list.push({ d: cam.depth(pl.x0, pl.counter.y1), k: 'place', o: pl, x: pl.x0, y: pl.counter.y1 });
+      }
+      for (const s of w.slots) {
+        const ob = s.obj;
+        if (!ob || ob.y > bounds.maxY + 2 || ob.y < bounds.minY - 2) continue;
+        list.push({ d: ob.plat ? cam.depth(ob.x, ob.plat.y1) + 0.002 : cam.depth(ob.x, ob.y), k: 'obj', o: ob, z: ob.plat ? ob.plat.h : 0 });
+      }
+      if (!w.gateOpen) list.push({ d: cam.depth(w.gate.x0, w.orlaTop + 0.3), k: 'gate', o: w, x: w.gate.x0, y: w.orlaTop });
+    }
     for (const p of game.projectiles) list.push({ d: cam.depth(p.x, p.y) + 0.3, k: 'proj', o: p });
     for (const s of game.enemyShots) list.push({ d: cam.depth(s.x, s.y) + 0.3, k: 'shot', o: s });
     for (const b of game.bribes) list.push({ d: cam.depth(b.x, b.y) + 0.3, k: 'bribe', o: b });
@@ -152,9 +178,33 @@ export class Renderer {
     const t = game.t;
     for (const it of list) {
       const o = it.o;
-      cam.toScreen(o.x, o.y, pt);
-      if (pt.x < -80 || pt.x > this.w + 80 || pt.y < -120 || pt.y > this.h + 120) continue;
+      cam.toScreen(it.x ?? o.x, it.y ?? o.y, pt);
+      if (it.x === undefined && (pt.x < -80 || pt.x > this.w + 80 || pt.y < -120 || pt.y > this.h + 120)) continue;
+      const zz = it.z ?? o.z; // altura (laje, escada) em metros: o personagem sobe na tela
+      if (zz) pt.y -= zz * ppu;
       switch (it.k) {
+        case 'plat':
+          drawPlatform(ctx, o, cam, ppu);
+          break;
+        case 'stair':
+          drawStair(ctx, o, cam, ppu);
+          break;
+        case 'place':
+          drawPlace(ctx, o, cam, ppu);
+          break;
+        case 'gate':
+          drawGate(ctx, o, cam, ppu, game.player.level);
+          break;
+        case 'obj': {
+          // objeto solto: sombra e o objeto; pulsa de leve para mostrar que dá para pegar
+          const s = playerPx * 0.42;
+          ctx.fillStyle = 'rgba(0,0,0,0.3)';
+          ctx.beginPath();
+          ctx.ellipse(pt.x, pt.y, s * 0.3, s * 0.1, 0, 0, Math.PI * 2);
+          ctx.fill();
+          drawObject(ctx, o.kind, pt.x, pt.y, s * (1 + Math.sin(t * 4 + o.x) * 0.04));
+          break;
+        }
         case 'prop':
           if (o.type === 'poste' && images.poste) drawImageProp(ctx, images.poste, pt, ppu * 4.6);
           else if (o.type === 'cone' && images.cone) drawImageProp(ctx, images.cone, pt, ppu * 0.75);
@@ -254,6 +304,7 @@ export class Renderer {
             ctx.fillText('!', pt.x, pt.y - h * 1.25 - 4); // acima do carimbo erguido na fúria
           }
           if (o.elite && !o.boss) drawHpPip(ctx, pt, h, o.hp / o.maxHp);
+          if (o.type === 'traficante' && o.aimT > 0) drawAim(ctx, o, cam, pt, h, ppu, t); // aviso antes do tiro
           break;
         }
         case 'player': {
@@ -267,13 +318,15 @@ export class Renderer {
           ctx.stroke();
           this.drawPlayer(ctx, game, pt, playerPx, 1);
           if (o.paperT > 0) drawStuckPapers(ctx, pt, playerPx, o.paperT, game.t);
+          if (o.carry) drawObject(ctx, o.carry.kind, pt.x, pt.y - playerPx * 0.95, playerPx * 0.4, Math.sin(t * 9) * 0.08); // carregando acima da cabeça
           break;
         }
         case 'proj':
           drawProjectile(ctx, o, pt, ppu, cam, playerPx);
           break;
         case 'shot':
-          drawPaper(ctx, pt, ppu, o.spin, playerPx);
+          if (o.kind === 'bala') drawBullet(ctx, o, pt, ppu, playerPx);
+          else drawPaper(ctx, pt, ppu, o.spin, playerPx);
           break;
         case 'bribe':
           drawBribe(ctx, o, pt, ppu, playerPx);
@@ -285,9 +338,11 @@ export class Renderer {
 
     // silhueta do protagonista por cima de quem estiver na frente dele
     cam.toScreen(game.player.x, game.player.y, pt);
+    pt.y -= game.player.z * ppu;
     this.drawPlayer(ctx, game, pt, playerPx, 0.38);
 
     this.drawFx(ctx, game, ppu, playerPx);
+    if (game.world) drawEdgeArrow(ctx, game, cam, this.dpr, game.t); // seta na borda quando a saída está fora da tela
     this.drawLotsLabels(ctx, game);
 
     if (game.map.bounded) {
@@ -571,7 +626,9 @@ export class Renderer {
         ctx.restore();
         continue;
       }
-      ctx.fillStyle = q.kind === 'glitch' ? COLORS.neon : q.kind === 'static' ? (q.x * 7 % 1 > 0.5 ? '#ffffff' : COLORS.hypno) : COLORS.blood;
+      ctx.fillStyle = q.kind === 'glitch' ? COLORS.neon : q.kind === 'static' ? (q.x * 7 % 1 > 0.5 ? '#ffffff' : COLORS.hypno)
+        : q.kind === 'debris' ? (q.x * 13 % 1 > 0.5 ? '#ecebe6' : '#8a6a4a')
+        : q.kind === 'fogo' ? FOGO_COLORS[Math.floor(q.vx * 97 + q.vy * 31) & 3] : COLORS.blood;
       const s = Math.max(2, playerPx * 0.05);
       ctx.fillRect(pt.x - s / 2, pt.y - q.z * ppu - s / 2, s, s);
     }
@@ -703,6 +760,10 @@ function drawPuppet(g, kind, variant, W, H, flash) {
     case 'fiscal':
       shirt = '#ff7a1a'; // colete laranja
       pants = '#2f3a2f';
+      break;
+    case 'traficante':
+      shirt = '#2e6b45'; // camiseta de time genérica, sem escudo
+      pants = '#2b2d33';
       break;
     case 'golpista':
       shirt = COLORS.golpista;
@@ -964,6 +1025,14 @@ function drawBribe(ctx, b, pt, ppu, playerPx) {
 }
 
 function drawPickup(ctx, k, pt, ppu, t) {
+  if (k.kind === 'coco' || k.kind === 'marmita') {
+    ctx.fillStyle = COLORS.shadow;
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y, ppu * 0.3, ppu * 0.1, 0, 0, Math.PI * 2);
+    ctx.fill();
+    drawHeal(ctx, k.kind, pt.x, pt.y - Math.abs(Math.sin(t * 3)) * 3, ppu * 0.9);
+    return;
+  }
   if (k.kind === 'propina' && images.politico_aberta) {
     // maleta aberta cheia de dinheiro, parada no chão (pegar é escolha: cura e aumenta a Corrupção)
     const im = images.politico_aberta;
@@ -990,7 +1059,19 @@ function drawPickup(ctx, k, pt, ppu, t) {
   drawIconAt(ctx, k.kind, pt.x, y, s * 1.6);
 }
 
+const FOGO_COLORS = ['#ffd21f', '#ff5a3d', '#7fd6ff', '#ffffff'];
+
 function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
+  if (o.kind === 'thrown') {
+    // objeto de cena arremessado: sombra no chão e o objeto girando no arco
+    const s = playerPx * 0.42;
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y, s * 0.28, s * 0.09, 0, 0, Math.PI * 2);
+    ctx.fill();
+    drawObject(ctx, o.obj, pt.x, pt.y - o.h * ppu - playerPx * 0.3, s, o.t * 12);
+    return;
+  }
   const artId = o.kind === 'boomerang' ? 'w_capacete' : o.kind === 'slipper' ? 'w_chinelo' : o.kind === 'lob' ? 'w_maleta' : null;
   const art = artId && images[artId];
   if (art) {

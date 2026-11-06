@@ -74,6 +74,16 @@ export const ENEMIES = {
     hp: 300, speed: 1.9, dmg: 18, radius: 0.45, size: 1.2 / 0.75, xp: 25,
     behavior: 'chase', elite: true,
   },
+  // Subida do Morro (D21): armado, mira com aviso (linha vermelha) antes de atirar; a mira trava no
+  // ponto onde o Juninho estava, então dá para sair. Ao ver o Juninho pela primeira vez, solta fogos
+  // e chama moradores hipnotizados.
+  traficante: {
+    name: 'Traficante do PCC do Morro',
+    hp: 45, speed: 1.7, dmg: 8, radius: 0.32, size: 1.05, xp: 5,
+    behavior: 'shooter', range: 9, keepM: 5.5, aimS: 0.6, fireEvery: 2.6,
+    bullet: { speed: 16, life: 1.0, radius: 0.18, dmg: 9 },
+    fogosM: 12, fogosPack: 6,
+  },
   especulador: {
     name: 'Especulador Imobiliário',
     hp: 3000, speed: 1.45, dmg: 26, radius: 0.85, size: 1.9 / 0.75, xp: 0,
@@ -107,6 +117,51 @@ export const MAPS = {
   },
   aberto: { name: 'Arena aberta (teste)', bounded: false, groundTileM: 10 },
 };
+
+// Rota contínua (docs/design/CARREIRA_E_ROTA.md): a Orla tem fim; a escadaria do pé do morro abre no
+// nível da meta e leva direto à Subida do Morro, sem corte. Pedaços do morro de baixo para cima.
+export const ROUTE = {
+  orla: { blocks: 8, startY: 44, unlockLevel: 15, gate: { x0: -12.8, x1: -8.6, len: 8 } },
+  morro: {
+    unlockLevel: 25, // nível para fazer a entrega na laje do topo
+    stairSlow: 0.75, // escadaria: todo mundo sobe mais devagar
+    pieces: [
+      { kind: 'viela', x0: -13, x1: -8, len: 24 },
+      { kind: 'laje', x0: -18, x1: -4, len: 14 },
+      { kind: 'viela', x0: -7, x1: -2, len: 26 },
+      { kind: 'escadaria', x0: -6.5, x1: -2.5, len: 14 },
+      { kind: 'laje', x0: -12, x1: 2, len: 16 },
+      { kind: 'viela', x0: -11, x1: -6, len: 26 },
+      { kind: 'escadaria', x0: -10.5, x1: -6.5, len: 14 },
+      { kind: 'viela', x0: -17, x1: -7, len: 10 },
+      { kind: 'viela', x0: -18, x1: -13, len: 24 },
+      { kind: 'laje', x0: -23, x1: -9, len: 16 },
+      { kind: 'escadaria', x0: -17, x1: -13, len: 14 },
+      { kind: 'laje', x0: -24, x1: -4, len: 22 }, // laje do topo: arena e lugar da entrega
+    ],
+  },
+};
+
+// Lugares de cada quarteirão da Orla (índice 0 = quarteirão do começo) e altura das lajes (m).
+export const PLACES = {
+  orla: ['boteco', 'predio', 'boteco', 'nada', 'predio', 'boteco', 'nada', 'boteco', 'predio'],
+  praia: ['quiosque', 'salva_vidas', 'quiosque', 'nada', 'salva_vidas', 'quiosque', 'nada', 'salva_vidas', 'quiosque'],
+  terracoH: 3.6, // terraço do prédio com escada de incêndio
+  salvaVidasH: 2.8, // torre do salva-vidas
+  lajeH: 3.2, // casa com laje no morro
+};
+
+// Objetos de cena: o Juninho pega sozinho ao passar perto e arremessa no inimigo mais próximo
+// (docs/design/MAPAS_CARACTERIZACAO.md). Cada lugar repõe os seus depois de um tempo, fora da tela.
+export const INTERACT = { pickR: 1.0, holdS: 0.25, throwRange: 8, flightS: 0.5, arcM: 2.4, respawnS: 35, respawnMinDistM: 14 };
+export const THROWABLES = {
+  cadeira: { name: 'Cadeira de plástico', dmg: 28, radius: 1.3 },
+  mesa: { name: 'Mesa de plástico', dmg: 45, radius: 1.8 },
+  cadeira_praia: { name: 'Cadeira de praia', dmg: 32, radius: 1.5 },
+  engradado: { name: 'Engradado', dmg: 36, radius: 1.5 },
+  botijao: { name: 'Botijão de gás', dmg: 90, radius: 2.8, selfDmg: 16, explosive: true }, // machuca o Juninho se estiver perto
+};
+export const HEALS = { coco: 20, marmita: 35 }; // coco gelado do quiosque, marmita esquecida no terraço
 
 // Diretor de spawn guiado pelo Índice de Caos (0–100).
 export const CAOS_BANDS = [
@@ -143,6 +198,11 @@ export const DIRECTOR = {
   ],
   castTestFirstElite: 12, // com o elenco completo, o primeiro Político chega aos 12 s
   castTestEliteEvery: 35,
+  // Subida do Morro: moradores hipnotizados e traficantes do PCC (vale com ou sem o elenco completo)
+  morroComposition: [
+    { type: 'telespectador', w: 1 },
+    { type: 'traficante', w: 0.22 },
+  ],
   maxBurocratas: 22,
   eliteEvery: (caos) => (caos >= 60 ? 40 : 60),
 };
@@ -325,6 +385,12 @@ export const TV = {
   burocrata: ['NOVA EXIGÊNCIA: FORMULÁRIO EM TRÊS VIAS'],
   fiscal: ['ENTREGADOR MULTADO POR EXCESSO DE ESFORÇO', 'FISCAL APLICA MULTA. MOTIVO: "SIM"'],
   elite: ['POLÍTICO APARECE PARA FOTO. TRAZ MALETA'],
+  unlock: ['MAPA LIBERADO: SUBIDA DO MORRO. PEDIDO NO ALTO DA LAJE', 'ENTREGADOR LIBERADO PARA SUBIR O MORRO. GPS DESISTE'],
+  morro: ['ENTREGADOR COMEÇA A SUBIDA. APP CALCULA 3 MINUTOS (MENTIRA)'],
+  fogos: ['FOGOS NO MORRO: CHEGOU ENCOMENDA', 'SOLTARAM FOGOS. O MORRO INTEIRO SABE QUE ELE CHEGOU'],
+  botijao: ['BOTIJÃO VOA NA ORLA. PREÇO DO GÁS SOBE DE NOVO', 'EXPLOSÃO DE BOTIJÃO. GOVERNO PROMETE "VALE-GÁS" PARA 2040'],
+  objeto: ['ENTREGADOR ARREMESSA CADEIRA DE BOTECO. DONO COBRA A MESA'],
+  entrega: ['ENTREGA FEITA NO ALTO DO MORRO: UMA PIZZA DE CALABRESA. GORJETA: NENHUMA'],
   maleta: ['POLÍTICO ARREMESSA MALETA. ASSESSORIA FALA EM "DOAÇÃO ESPONTÂNEA"', 'MALETA VOANDO NA ORLA. DONO NÃO SE IDENTIFICA'],
   lure: ['PLATEIA ESQUECE A NOVELA E CORRE ATRÁS DO DINHEIRO', 'MALETA ABERTA NO CALÇADÃO. HIPNOSE SUSPENSA POR TEMPO INDETERMINADO'],
   propina: ['ENTREGADOR É FLAGRADO COM DINHEIRO VIVO. "ERA GORJETA", DIZ'],

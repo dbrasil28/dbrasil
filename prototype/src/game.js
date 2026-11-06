@@ -4,7 +4,9 @@ import { SpatialHash } from './spatial.js';
 import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
+  ROUTE, INTERACT, THROWABLES, HEALS,
 } from './config.js';
+import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones } from './weapons.js';
 import { rollOptions, applyOption, playerStats } from './upgrades.js';
 
@@ -12,6 +14,19 @@ const CHUNK = 10; // metros por chunk de cenário
 const tmp = [];
 const pt = { x: 0, y: 0 };
 const vb = {};
+const rt = { x: 0, y: 0 };
+
+/** Topo da escada de uma laje (onde se chega lá em cima). */
+function stairTopOf(P, out) {
+  const S = P.stair;
+  const cx = (S.x0 + S.x1) / 2;
+  const cy = (S.y0 + S.y1) / 2;
+  if (S.dir === 'n') { out.x = cx; out.y = S.y0 + 0.3; }
+  else if (S.dir === 's') { out.x = cx; out.y = S.y1 - 0.3; }
+  else if (S.dir === 'e') { out.x = S.x1 - 0.3; out.y = cy; }
+  else { out.x = S.x0 + 0.3; out.y = cy; }
+  return out;
+}
 
 export class Game {
   constructor(settings, { seed = Date.now() % 1e9, viewW = 390, viewH = 844, playTop = 96, playBottom = 760 } = {}) {
@@ -42,6 +57,8 @@ export class Game {
       faceX: 1, faceY: 0, moving: false, slowT: 0, paperT: 0, hurtT: 0, invulnT: 0, bonusDmg: 0, vx: 0, vy: 0,
       // animação do arremesso (atlas de teste): tempo desde o disparo / desde a pegada, capacetes em voo e mira
       throwT: 9, catchT: 9, helmetsOut: 0, aimX: 1, aimY: 0, walkPhase: 0,
+      // mundo da rota: laje em que está (e nível 0/1 e altura z em m), pedaço da rota e objeto carregado
+      plat: null, lvl: 0, z: 0, ri: 0, carry: null,
     };
     this.reviveUsed = false;
     this.rerollsLeft = this.settings.ads ? ADS.rerollsPerRun : 0;
@@ -76,6 +93,22 @@ export class Game {
     this.bossWarned = false;
     this.tvCooldown = {};
     this.chunks = new Map();
+
+    // mundo da rota (só no mapa da orla): trechos ligados, lajes com escada, lugares e objetos
+    this.world = this.map.bounded ? buildWorld(this.map) : null;
+    this.segment = 'orla';
+    this.delivered = false;
+    this.exitWarnT = 0;
+    if (this.world) {
+      for (const h of this.world.heals) this.pickups.push({ kind: h.kind, x: h.x, y: h.y, t: 0, plat: h.plat });
+      if (this.settings.trecho === 'morro') {
+        // atalho de teste: começa no pé do morro, com a escadaria já aberta
+        const g = this.world.gate;
+        this.world.gateOpen = true;
+        this.player.x = (g.x0 + g.x1) / 2;
+        this.player.y = g.y0 - 1;
+      }
+    }
 
     this.metrics = {
       seed: this.seed,
@@ -173,6 +206,10 @@ export class Game {
   clampToMap(e) {
     const m = this.map;
     if (!m.bounded) return;
+    if (this.world) {
+      constrain(this.world, e);
+      return;
+    }
     if (e.x < m.minX + e.r) e.x = m.minX + e.r;
     else if (e.x > m.maxX - e.r) e.x = m.maxX - e.r;
   }
@@ -181,12 +218,63 @@ export class Game {
   fitSpawn(p, marginM = 1.5) {
     const m = this.map;
     if (!m.bounded) return p;
+    if (this.world) return this.fitSpawnWorld(p, marginM);
     p.x = clamp(p.x, m.minX + 0.6, m.maxX - 0.6);
     const cam = this.camera;
     cam.toScreen(p.x, p.y, pt);
     if (pt.x > -24 && pt.x < cam.viewW + 24 && pt.y > cam.playTop - 40 && pt.y < cam.viewH + 40) {
       cam.visibleWorldBounds(marginM, vb);
       p.y = p.y < this.player.y ? vb.minY : vb.maxY;
+    }
+    return p;
+  }
+
+  onScreen(x, y) {
+    const cam = this.camera;
+    cam.toScreen(x, y, pt);
+    return pt.x > -24 && pt.x < cam.viewW + 24 && pt.y > cam.playTop - 40 && pt.y < cam.viewH + 40;
+  }
+
+  /** Nascimento no mundo da rota: dentro das áreas de andar e fora da tela (nas vielas, pelas juntas). */
+  fitSpawnWorld(p, marginM) {
+    const w = this.world;
+    const probe = { x: p.x, y: p.y, r: 0.4, ri: -1 };
+    constrain(w, probe);
+    if (!this.onScreen(probe.x, probe.y)) {
+      p.x = probe.x;
+      p.y = probe.y;
+      return p;
+    }
+    this.camera.visibleWorldBounds(marginM, vb);
+    const pl = this.player;
+    const ahead = p.y < pl.y;
+    for (const top of [ahead, !ahead]) {
+      probe.x = p.x;
+      probe.y = top ? vb.minY - 0.5 : vb.maxY + 0.5;
+      constrain(w, probe);
+      if (!this.onScreen(probe.x, probe.y)) {
+        p.x = probe.x;
+        p.y = probe.y;
+        return p;
+      }
+    }
+    // viela em zigue-zague: usa uma junta da rota perto, fora da tela
+    let best = null;
+    let bd = Infinity;
+    for (const j of w.joints) {
+      const d = Math.abs(j.y - pl.y);
+      if (d < 8 || this.onScreen(j.x, j.y)) continue;
+      if (d < bd) {
+        bd = d;
+        best = j;
+      }
+    }
+    if (best) {
+      p.x = best.x;
+      p.y = best.y;
+    } else {
+      p.x = probe.x;
+      p.y = probe.y;
     }
     return p;
   }
@@ -224,6 +312,7 @@ export class Game {
         }
       }
     }
+    if (this.world) collideSolids(this.world, ent);
   }
 
   // ---------- spawn ----------
@@ -259,14 +348,20 @@ export class Game {
       dmg: def.dmg, behavior: def.behavior, elite: !!def.elite, boss: !!def.boss,
       kx: 0, ky: 0, flash: 0, slowT: 0, slowF: 1, phase: this.rng() * 6.28, fireT: 1 + this.rng() * 2, windup: 0,
       split: false, ttl: def.ttl || 0, dead: false, tint: Math.floor(this.rng() * 8), walk: this.rng() * 10,
+      plat: null, lvl: 0, z: 0, ri: -1,
       ...extra,
     };
+    if (this.world) {
+      constrain(this.world, e);
+      applyLevels(this.world, e);
+    }
     this.enemies.push(e);
     return e;
   }
 
   spawnCommon() {
-    const comp = this.settings.elenco ? DIRECTOR.castTestComposition : DIRECTOR.composition(this.caos);
+    const comp = this.segment === 'morro' ? DIRECTOR.morroComposition
+      : this.settings.elenco ? DIRECTOR.castTestComposition : DIRECTOR.composition(this.caos);
     let pick = weightedPick(this.rng, comp).type;
     if (pick === 'burocrata' && this.countType('burocrata') >= DIRECTOR.maxBurocratas) pick = 'telespectador';
     const ang = this.rng() * Math.PI * 2;
@@ -632,6 +727,8 @@ export class Game {
 
     if (!this.over) {
       this.updatePlayer(dt, input);
+      this.updateInteract(dt);
+      this.updateRoute(dt);
       this.updateDirector(dt);
       this.updateWeapons(dt);
     }
@@ -688,7 +785,8 @@ export class Game {
     if (p.moving) p.walkPhase += dt * 8; // um ciclo de 6 quadros (2 passos) a cada ~0,8 s
     if (p.slowT > 0) p.slowT -= dt;
     if (p.paperT > 0) p.paperT -= dt;
-    const speed = PLAYER.speed * st.speedMul * (p.slowT > 0 ? PLAYER.slowMul : 1);
+    const stairs = this.world ? slowAt(this.world, p.x, p.y, p.ri) : 1; // escadaria do morro
+    const speed = PLAYER.speed * st.speedMul * (p.slowT > 0 ? PLAYER.slowMul : 1) * stairs;
     p.vx = mx * speed;
     p.vy = my * speed;
     const onSand = this.map.bounded && p.x > this.map.sandX;
@@ -696,6 +794,7 @@ export class Game {
     p.y += p.vy * dt * (onSand ? this.map.sandSpeedMul : 1);
     this.collideProps(p);
     this.clampToMap(p);
+    if (this.world) applyLevels(this.world, p);
     if (p.hurtT > 0) p.hurtT -= dt;
     if (p.invulnT > 0) p.invulnT -= dt;
     p.throwT += dt;
@@ -707,6 +806,7 @@ export class Game {
     let worstDmg = 0;
     for (const e of tmp) {
       if (e.dead || e.dmg <= 0) continue;
+      if (Math.abs((e.z || 0) - p.z) > 1) continue; // um em cima da laje, outro no chão: não encosta
       const rr = p.r + e.r + 0.05;
       if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 > rr * rr) continue;
       const d = e.dmg * dt;
@@ -787,11 +887,11 @@ export class Game {
     }
     if (this.pendingWave && this.t >= this.pendingWave.at) this.releaseWave();
 
-    if (this.t >= this.nextEliteAt && this.t < SESSION.bossAt) {
+    if (this.t >= this.nextEliteAt && this.t < SESSION.bossAt && this.segment === 'orla') { // elites da Orla
       this.nextEliteAt += this.settings.elenco ? DIRECTOR.castTestEliteEvery : DIRECTOR.eliteEvery(this.caos);
       this.spawnElite('politico');
     }
-    if (this.rivalAt > 0 && this.t >= this.rivalAt) {
+    if (this.rivalAt > 0 && this.t >= this.rivalAt && this.segment === 'orla') {
       this.rivalAt = -1;
       this.spawnElite('rival');
     }
@@ -799,7 +899,7 @@ export class Game {
       this.bossWarned = true;
       this.tv('bossWarn');
     }
-    if (!this.boss && this.t >= SESSION.bossAt && !this.bossSpawned) {
+    if (!this.boss && this.t >= SESSION.bossAt && !this.bossSpawned && this.segment === 'orla') {
       this.bossSpawned = true;
       this.spawnBoss();
     }
@@ -829,11 +929,33 @@ export class Game {
           continue;
         }
       }
-      const dx = p.x - e.x;
-      const dy = p.y - e.y;
-      const d = Math.hypot(dx, dy) || 1;
-      const ux = dx / d;
-      const uy = dy / d;
+      // alvo: o Juninho; no mundo da rota, pela escada (lajes) e pelas juntas das vielas
+      let tx = p.x;
+      let ty = p.y;
+      if (this.world) {
+        if (e.plat !== p.plat) {
+          if (e.plat) stairFoot(e.plat, rt); // descer da laje pela escada
+          else stairFoot(p.plat, rt); // ir até o pé da escada da laje do Juninho
+          if (e.plat && e.lvl === 1 && !inside(e.plat.stair, e.x, e.y)) stairTopOf(e.plat, rt);
+          tx = rt.x;
+          ty = rt.y;
+        } else if (e.plat && e.lvl === 0 && p.lvl === 1) {
+          stairTopOf(e.plat, rt); // está na escada: termina de subir
+          tx = rt.x;
+          ty = rt.y;
+        }
+        routeTarget(this.world, e, tx, ty, p.ri, rt);
+        tx = rt.x;
+        ty = rt.y;
+      }
+      const dpx = p.x - e.x;
+      const dpy = p.y - e.y;
+      const d = Math.hypot(dpx, dpy) || 1;
+      const dtx = tx - e.x;
+      const dty = ty - e.y;
+      const dl = Math.hypot(dtx, dty) || 1;
+      const ux = dtx / dl;
+      const uy = dty / dl;
       const spd = e.speed * (e.slowT > 0 ? e.slowF : 1) * (this.over ? 0.2 : 1);
       let mx = ux;
       let my = uy;
@@ -869,6 +991,42 @@ export class Game {
           if (e.fireT <= 0) {
             e.fireT = def.fireEvery;
             e.windup = def.windupS;
+          }
+        }
+      } else if (e.behavior === 'shooter') {
+        // Traficante: fica a uma distância, mira com aviso (a mira trava no ponto) e atira
+        const def = ENEMIES.traficante;
+        if (!e.saw && d < def.fogosM && !this.over) {
+          e.saw = true;
+          this.fogos(e);
+        }
+        if (d < def.keepM) {
+          mx = -ux * 0.7;
+          my = -uy * 0.7;
+        } else if (d < def.range) {
+          const side = e.id & 1 ? 1 : -1;
+          mx = -uy * 0.35 * side;
+          my = ux * 0.35 * side;
+        }
+        if (e.aimT > 0) {
+          e.aimT -= dt;
+          mx *= 0.1;
+          my *= 0.1;
+          if (e.aimT <= 0) {
+            const b = def.bullet;
+            const ax = e.ax - e.x;
+            const ay = e.ay - e.y;
+            const al = Math.hypot(ax, ay) || 1;
+            this.enemyShots.push({ kind: 'bala', x: e.x, y: e.y, vx: (ax / al) * b.speed, vy: (ay / al) * b.speed, life: b.life, r: b.radius, dmg: b.dmg, spin: 0 });
+            e.throwT = 0.2;
+          }
+        } else if (d < def.range && !this.over) {
+          e.fireT -= dt;
+          if (e.fireT <= 0) {
+            e.fireT = def.fireEvery;
+            e.aimT = def.aimS;
+            e.ax = p.x;
+            e.ay = p.y;
           }
         }
       } else if (e.behavior === 'intercept') {
@@ -924,10 +1082,12 @@ export class Game {
       }
       e.mx = mx; // direção em que anda (o desenho vira o corpo para ela)
       e.my = my;
-      const sandMul = this.map.bounded && e.x > this.map.sandX ? this.map.enemySandMul : 1;
+      const sandMul = (this.map.bounded && e.x > this.map.sandX ? this.map.enemySandMul : 1)
+        * (this.world ? slowAt(this.world, e.x, e.y, e.ri) : 1);
       e.x += (mx * spd * sandMul + e.kx) * dt;
       e.y += (my * spd * sandMul + e.ky) * dt;
       this.clampToMap(e);
+      if (this.world) applyLevels(this.world, e);
       const decay = Math.exp(-9 * dt);
       e.kx *= decay;
       e.ky *= decay;
@@ -946,7 +1106,7 @@ export class Game {
       if (e.dead) continue;
       this.hash.query(e.x, e.y, e.r * 2 + 0.2, tmp);
       for (const o of tmp) {
-        if (o === e || o.dead || o.id < e.id) continue;
+        if (o === e || o.dead || o.id < e.id || o.plat !== e.plat) continue;
         const dx = o.x - e.x;
         const dy = o.y - e.y;
         const rr = (e.r + o.r) * 0.9;
@@ -1085,6 +1245,145 @@ export class Game {
     }
   }
 
+  // ---------- objetos de cena e rota ----------
+  /** Pega sozinho o objeto solto mais perto e arremessa no inimigo mais próximo; repõe as vagas. */
+  updateInteract(dt) {
+    const w = this.world;
+    if (!w) return;
+    const p = this.player;
+    const I = INTERACT;
+    for (const s of w.slots) {
+      if (s.obj) continue;
+      s.emptyT += dt;
+      if (s.emptyT >= I.respawnS && (s.x - p.x) ** 2 + (s.y - p.y) ** 2 > I.respawnMinDistM ** 2 && !this.onScreen(s.x, s.y)) {
+        s.obj = { kind: s.kind, x: s.x, y: s.y, plat: s.plat };
+        s.emptyT = 0;
+      }
+    }
+    const myPlat = p.plat && p.lvl === 1 ? p.plat : null;
+    if (!p.carry) {
+      if (p.plat && p.lvl === 0 && p.z > 0.5) return; // no meio da escada
+      let best = null;
+      let bd = I.pickR * I.pickR;
+      for (const s of w.slots) {
+        const o = s.obj;
+        if (!o || o.plat !== myPlat) continue;
+        const d2 = (o.x - p.x) ** 2 + (o.y - p.y) ** 2;
+        if (d2 < bd) {
+          bd = d2;
+          best = s;
+        }
+      }
+      if (best) {
+        p.carry = { kind: best.obj.kind, t: 0 };
+        best.obj = null;
+        best.emptyT = 0;
+        this.emit('pick', { kind: p.carry.kind });
+      }
+      return;
+    }
+    p.carry.t += dt;
+    if (p.carry.t < I.holdS) return;
+    this.hash.query(p.x, p.y, I.throwRange, tmp);
+    let target = null;
+    let td = I.throwRange * I.throwRange;
+    for (const e of tmp) {
+      if (e.dead || e.type === 'isca') continue;
+      const d2 = (e.x - p.x) ** 2 + (e.y - p.y) ** 2;
+      if (d2 < td) {
+        td = d2;
+        target = e;
+      }
+    }
+    if (!target) return;
+    const T = THROWABLES[p.carry.kind];
+    this.projectiles.push({
+      kind: 'thrown', obj: p.carry.kind, sx: p.x, sy: p.y, x: p.x, y: p.y, tx: target.x, ty: target.y,
+      t: 0, dur: I.flightS, h: 0, dmg: T.dmg * this.stats.dmgMul, radius: T.radius, src: 'objeto',
+    });
+    const l = Math.sqrt(td) || 1;
+    p.aimX = (target.x - p.x) / l;
+    p.aimY = (target.y - p.y) / l;
+    p.throwT = 0;
+    p.carry = null;
+    this.metrics.objetos = (this.metrics.objetos || 0) + 1;
+    this.tv('objeto', 45);
+  }
+
+  /** Objeto arremessado caiu: acerta todos em volta e quebra; o botijão explode e machuca quem estiver perto. */
+  objectLands(pr) {
+    const T = THROWABLES[pr.obj];
+    this.explode(pr.x, pr.y, pr.radius, pr.dmg, 'objeto');
+    this.burst(pr.x, pr.y, 10, 'debris');
+    if (T.explosive) {
+      this.burst(pr.x, pr.y, 22, 'fogo');
+      this.shake(0.5);
+      this.emit('flash', {});
+      this.tv('botijao', 25);
+      const p = this.player;
+      if ((p.x - pr.x) ** 2 + (p.y - pr.y) ** 2 < T.radius * T.radius) this.hurtPlayer(T.selfDmg, 'botijao');
+    }
+  }
+
+  /** Rota: abre a escadaria no nível da meta, detecta a chegada ao morro e a entrega no topo. */
+  updateRoute() {
+    const w = this.world;
+    if (!w) return;
+    const p = this.player;
+    if (!w.gateOpen && p.level >= ROUTE.orla.unlockLevel) {
+      w.gateOpen = true;
+      this.emit('unlock', { name: 'SUBIDA DO MORRO' });
+      this.tv('unlock');
+      this.shake(0.3);
+    }
+    if (this.segment === 'orla' && p.y < w.orlaTop - 1) {
+      this.segment = 'morro';
+      this.metrics.morroAt = Math.round(this.t);
+      this.emit('segment', { name: 'SUBIDA DO MORRO' });
+      this.tv('morro');
+    }
+    if (this.segment !== 'morro') return;
+    w.exitOpen = p.level >= ROUTE.morro.unlockLevel;
+    const top = w.top;
+    if (inside(top, p.x, p.y) && p.y < (top.y0 + top.y1) / 2) {
+      if (w.exitOpen) this.deliver();
+      else if (this.exitWarnT <= this.t) {
+        this.exitWarnT = this.t + 6;
+        this.emit('exitLocked', { level: ROUTE.morro.unlockLevel });
+      }
+    }
+  }
+
+  deliver() {
+    this.delivered = true;
+    this.metrics.entregaAt = Math.round(this.t);
+    this.tv('entrega');
+    this.shake(0.6);
+    this.emit('flash', {});
+    for (const o of this.enemies) {
+      if (o.dead) continue;
+      o.dead = true;
+      if (ENEMIES[o.type].wakes) this.wake(o);
+    }
+    this.finish('victory');
+  }
+
+  /** Traficante viu o Juninho: fogos no céu e moradores hipnotizados chegando. */
+  fogos(e) {
+    const def = ENEMIES.traficante;
+    this.emit('fogos', { x: e.x, y: e.y });
+    this.tv('fogos', 20);
+    const parts = this.fx.particles;
+    for (let i = 0; i < 18 && parts.length < 260; i++) {
+      const a = (i / 18) * Math.PI * 2;
+      parts.push({ x: e.x, y: e.y, z: 7, vx: Math.cos(a) * 2.2, vy: Math.sin(a) * 2.2, vz: 1.5, t: 0, life: 1.1, kind: 'fogo' });
+    }
+    for (let i = 0; i < def.fogosPack; i++) {
+      const sp = this.fitSpawn(this.edgePoint(this.rng() * Math.PI * 2, 40));
+      this.spawnEnemy('telespectador', sp.x, sp.y);
+    }
+  }
+
   updateEnemyShots(dt) {
     const p = this.player;
     const list = this.enemyShots;
@@ -1096,7 +1395,10 @@ export class Game {
       s.spin += dt * 8;
       const rr = s.r + p.r;
       let remove = s.life <= 0;
-      if (!remove && !this.over && (s.x - p.x) ** 2 + (s.y - p.y) ** 2 < rr * rr) {
+      if (!remove && !this.over && s.kind === 'bala' && (s.x - p.x) ** 2 + (s.y - p.y) ** 2 < rr * rr) {
+        this.hurtPlayer(s.dmg, 'traficante');
+        remove = true;
+      } else if (!remove && !this.over && (s.x - p.x) ** 2 + (s.y - p.y) ** 2 < rr * rr) {
         const sh = ENEMIES.burocrata.shot;
         if (!(p.paperT > 0)) this.emit('paper', {});
         this.hurtPlayer(sh.dmg, 'burocrata');
@@ -1124,8 +1426,12 @@ export class Game {
         }
       }
       if (this.over || d2 > 0.6 * 0.6) continue;
+      if (k.plat && (p.plat !== k.plat || p.lvl !== 1)) continue; // marmita do terraço: só lá em cima
       k.dead = true;
-      if (k.kind === 'pastel') {
+      if (HEALS[k.kind]) {
+        p.hp = Math.min(this.stats.maxHp, p.hp + HEALS[k.kind]);
+        this.emit('pickup', { kind: k.kind });
+      } else if (k.kind === 'pastel') {
         p.hp = Math.min(this.stats.maxHp, p.hp + 30);
         this.emit('pickup', { kind: 'pastel' });
       } else if (k.kind === 'propina') {
@@ -1154,7 +1460,7 @@ export class Game {
       q.t += dt;
       q.x += q.vx * dt;
       q.y += q.vy * dt;
-      q.vz -= (q.kind === 'money' ? 4 : 12) * dt; // nota de dinheiro cai flutuando
+      q.vz -= (q.kind === 'money' ? 4 : q.kind === 'fogo' ? 3 : 12) * dt; // nota de dinheiro e faísca de fogos caem devagar
       q.z = Math.max(0, q.z + q.vz * dt);
       if (q.z === 0) {
         q.vx *= 0.8;

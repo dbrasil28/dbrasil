@@ -61,8 +61,126 @@ function dirt(ctx, x, y, w, h, alpha = 0.32) {
   ctx.restore();
 }
 
-/** Desenha o chão do mapa da orla (pedra portuguesa, ciclovia, areia, mar, calçada do morro, ruas). */
+/**
+ * Chão do mapa no mundo da rota: a Orla entre o começo (startY) e o topo (orlaTop); acima, a Subida
+ * do Morro; abaixo do começo, a área fechada. Sem mundo (arena aberta), só a Orla.
+ */
 export function drawOrlaGround(r, ctx, game, b) {
+  const w = game.world;
+  if (!w) return drawOrlaOnly(r, ctx, game, b);
+  const cam = game.camera;
+  const yTop = w.orlaTop;
+  const yBot = w.orla.y1;
+  const clipY = (y0, y1, fn) => {
+    if (y1 <= y0) return;
+    cam.toScreen(b.minX - 6, y0, pt);
+    cam.toScreen(b.maxX + 6, y1, pt2);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
+    ctx.clip();
+    fn({ minX: b.minX, maxX: b.maxX, minY: y0, maxY: y1 });
+    ctx.restore();
+  };
+  clipY(Math.max(b.minY, yTop), Math.min(b.maxY, yBot), (bb) => drawOrlaOnly(r, ctx, game, bb));
+  clipY(b.minY, Math.min(b.maxY, yTop), (bb) => drawMorroGround(ctx, cam, w, bb));
+  clipY(Math.max(b.minY, yBot), b.maxY, (bb) => {
+    // começo da orla: obra fechando o calçadão
+    cam.toScreen(bb.minX - 6, bb.minY, pt);
+    cam.toScreen(bb.maxX + 6, bb.maxY, pt2);
+    ctx.fillStyle = '#2d2620';
+    ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
+    dirt(ctx, pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y, 0.5);
+  });
+}
+
+/** Subida do Morro: paredes de casas com janelas acesas pela TV e, por cima, as vielas, escadarias e lajes. */
+function drawMorroGround(ctx, cam, w, b) {
+  const ppu = cam.ppu;
+  const k = cam.k;
+  cam.toScreen(b.minX - 6, b.minY, pt);
+  cam.toScreen(b.maxX + 6, b.maxY, pt2);
+  ctx.fillStyle = '#3a2f29';
+  ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
+  // casas vistas de cima: lajes e telhados de cores gastas, com janelas azuladas de TV
+  const C = 3.2;
+  for (let gy = Math.floor(b.minY / C); gy <= Math.ceil(b.maxY / C); gy++) {
+    for (let gx = Math.floor((b.minX - 6) / C); gx <= Math.ceil((b.maxX + 6) / C); gx++) {
+      const h = hash2(gx, gy, 71);
+      cam.toScreen(gx * C + 0.15, gy * C + 0.15, pt);
+      cam.toScreen(gx * C + C - 0.15, gy * C + C - 0.15, pt2);
+      ctx.fillStyle = shade(HOUSE_COLORS[Math.floor(h * HOUSE_COLORS.length)], 0.38 + hash2(gx, gy, 72) * 0.14); // fundo escuro: quem aparece é a horda
+      ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
+      if (h > 0.55) {
+        // caixa d'água azul na laje
+        ctx.fillStyle = '#2f6f9a';
+        ctx.beginPath();
+        ctx.ellipse((pt.x + pt2.x) / 2, (pt.y + pt2.y) / 2, ppu * 0.45, ppu * 0.45 * k, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (h < 0.3) {
+        ctx.fillStyle = 'rgba(120,170,255,0.55)'; // janela com luz de TV
+        ctx.fillRect(pt.x + (pt2.x - pt.x) * 0.2, pt.y + (pt2.y - pt.y) * 0.62, (pt2.x - pt.x) * 0.25, (pt2.y - pt.y) * 0.22);
+      }
+    }
+  }
+  // caminhos: viela (cimento), escadaria (degraus) e laje (concreto claro)
+  for (const r of w.path) {
+    if (r.kind === 'orla' || r.y1 < b.minY - 1 || r.y0 > b.maxY + 1) continue;
+    cam.toScreen(r.x0, r.y0, pt);
+    cam.toScreen(r.x1, r.y1, pt2);
+    const x = pt.x;
+    const y = pt.y;
+    const wd = pt2.x - pt.x;
+    const ht = pt2.y - pt.y;
+    // sombra das paredes em volta
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillRect(x - ppu * 0.25, y, wd + ppu * 0.5, ht);
+    ctx.fillStyle = r.kind === 'laje' ? '#8b857c' : r.kind === 'escadaria' ? '#7a736b' : '#6f6a63';
+    ctx.fillRect(x, y, wd, ht);
+    dirt(ctx, x, y, wd, ht, 0.55);
+    if (r.kind === 'escadaria') {
+      ctx.strokeStyle = 'rgba(30,24,20,0.55)';
+      ctx.lineWidth = Math.max(1, ppu * 0.05);
+      for (let yy = r.y0 + 0.45; yy < r.y1; yy += 0.45) {
+        cam.toScreen(r.x0, yy, pt);
+        ctx.beginPath();
+        ctx.moveTo(x, pt.y);
+        ctx.lineTo(x + wd, pt.y);
+        ctx.stroke();
+      }
+      // corrimão de cano
+      ctx.strokeStyle = 'rgba(190,190,195,0.7)';
+      ctx.lineWidth = Math.max(1.5, ppu * 0.07);
+      ctx.beginPath();
+      ctx.moveTo(x + ppu * 0.15, y);
+      ctx.lineTo(x + ppu * 0.15, y + ht);
+      ctx.stroke();
+    } else if (r.kind === 'viela') {
+      // rachaduras e o rego de água no meio
+      ctx.strokeStyle = 'rgba(30,25,22,0.4)';
+      ctx.lineWidth = Math.max(1, ppu * 0.04);
+      cam.toScreen((r.x0 + r.x1) / 2, r.y0, pt);
+      ctx.beginPath();
+      ctx.moveTo(pt.x, y);
+      ctx.lineTo(pt.x, y + ht);
+      ctx.stroke();
+    } else if (r.kind === 'laje') {
+      ctx.strokeStyle = 'rgba(40,34,30,0.35)';
+      ctx.lineWidth = Math.max(1, ppu * 0.03);
+      ctx.strokeRect(x + 1, y + 1, wd - 2, ht - 2);
+    }
+  }
+  if (!w.gateOpen) {
+    // escadaria fechada: o tapume é desenhado na cena; aqui só escurece o vão
+    cam.toScreen(w.gate.x0, w.gate.y0, pt);
+    cam.toScreen(w.gate.x1, w.gate.y1, pt2);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
+  }
+}
+
+/** Desenha o chão do mapa da orla (pedra portuguesa, ciclovia, areia, mar, calçada do morro, ruas). */
+function drawOrlaOnly(r, ctx, game, b) {
   const cam = game.camera;
   const m = game.map;
   const k = cam.k;
@@ -198,7 +316,7 @@ export class OrlaLayer {
   draw(ctx, game, vb, dpr) {
     const cam = game.camera;
     const m = game.map;
-    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}`;
+    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}|${game.world && game.world.gateOpen ? 1 : 0}`;
     if (key !== this.key) {
       this.tiles.clear();
       this.key = key;
@@ -242,7 +360,7 @@ export class OrlaLayer {
     tc.anchorY = 0;
     tc.x = x0;
     tc.y = j * TILE_M;
-    const fake = { camera: tc, map: game.map, isStreet: (y) => game.isStreet(y) };
+    const fake = { camera: tc, map: game.map, world: game.world, isStreet: (y) => game.isStreet(y) };
     const b = { minX: x0, maxX: x1, minY: j * TILE_M - 0.5, maxY: (j + 1) * TILE_M + 0.5 };
     drawOrlaGround(null, g, fake, b);
     // decoração com base neste bloco e nos 12 m abaixo (objetos altos invadem o bloco de cima)
@@ -259,10 +377,12 @@ export class OrlaLayer {
 /** Decoração das bordas (desenhada na camada estática). */
 export function orlaDecor(game, b, out) {
   const m = game.map;
+  const w = game.world;
   const j0 = Math.floor(b.minY / SEG) - 1;
   const j1 = Math.ceil(b.maxY / SEG) + 1;
   for (let j = j0; j <= j1; j++) {
     const y = j * SEG;
+    if (w && (y < w.orlaTop || y > w.orla.y1)) continue; // decoração da orla só no trecho da orla
     const street = game.isStreet(y + SEG / 2) || game.isStreet(y);
     // lado do morro: casas da favela em 2 fileiras
     for (let row = 0; row < 3; row++) {

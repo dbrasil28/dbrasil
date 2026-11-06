@@ -121,6 +121,9 @@ function drainOutbox(now) {
     else if (ev.type === 'boss') ui.warn(-Math.PI / 2, 2500, now, 'CHEFE');
     else if (ev.type === 'fine') ui.toast(`MULTA: −${ev.amount} XP`, now);
     else if (ev.type === 'paper') ui.toast('PAPELADA! VOCÊ FICOU LENTO', now);
+    else if (ev.type === 'unlock') ui.toast(`MAPA LIBERADO: ${ev.name} · SIGA A SETA`, now);
+    else if (ev.type === 'segment') ui.toast(ev.name, now);
+    else if (ev.type === 'exitLocked') ui.toast(`CHEGUE AO NÍVEL ${ev.level} PARA ENTREGAR`, now);
   }
   game.outbox.length = 0;
 }

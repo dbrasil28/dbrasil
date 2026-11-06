@@ -1,5 +1,6 @@
 // Comportamento das armas automáticas e dos projéteis. Tudo em metros/segundos.
 import { weaponStats } from './upgrades.js';
+import { INTERACT } from './config.js';
 
 const tmp = [];
 
@@ -216,6 +217,17 @@ export function updateProjectiles(game, dt) {
       pr.h = Math.sin(k * Math.PI) * 2.2;
       if (k >= 1) {
         game.explode(pr.x, pr.y, pr.radius, pr.dmg, pr.src);
+        remove = true;
+      }
+    } else if (pr.kind === 'thrown') {
+      // objeto de cena arremessado (mesa, cadeira, botijão...): arco e impacto em área
+      pr.t += dt;
+      const k = Math.min(1, pr.t / pr.dur);
+      pr.x = pr.sx + (pr.tx - pr.sx) * k;
+      pr.y = pr.sy + (pr.ty - pr.sy) * k;
+      pr.h = Math.sin(k * Math.PI) * INTERACT.arcM;
+      if (k >= 1) {
+        game.objectLands(pr);
         remove = true;
       }
     }
