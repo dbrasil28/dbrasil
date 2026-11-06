@@ -119,30 +119,49 @@ function placeOrla(w, map) {
 
 /** Subida do Morro: botecos nas lajes, botijões nas vielas e casas com laje para subir. */
 function placeMorro(w) {
-  for (const k of w.path) {
+  const path = w.path;
+  path.forEach((k, i) => {
     if (k.kind === 'laje') {
       const cx = (k.x0 + k.x1) / 2;
       const cy = (k.y0 + k.y1) / 2;
-      // boteco do morro
+      // casa com laje encostada no fundo da pracinha, do lado oposto à passagem para o pedaço de cima
+      // (antes ficava sempre à direita e, em duas lajes, fechava a passagem)
+      let side = 0; // -1: casa à esquerda, 1: à direita, 0: sem casa
+      if (k.x1 - k.x0 >= 13 && k !== w.top) side = houseSide(k, path[i + 1]);
+      const m = side === -1 ? -1 : 1; // o boteco fica espelhado do lado livre
       for (const [dx, dy] of [[-3, -1.5], [2.5, 1.5]]) {
-        addSlot(w, 'mesa', cx + dx, cy + dy);
-        addSlot(w, 'cadeira', cx + dx - 0.85, cy + dy);
-        addSlot(w, 'cadeira', cx + dx + 0.85, cy + dy);
+        addSlot(w, 'mesa', cx + dx * m, cy + dy);
+        addSlot(w, 'cadeira', cx + dx * m - 0.85, cy + dy);
+        addSlot(w, 'cadeira', cx + dx * m + 0.85, cy + dy);
       }
-      addSlot(w, 'botijao', k.x0 + 0.9, k.y0 + 1.2);
-      addSlot(w, 'engradado', k.x1 - 1.0, k.y1 - 1.4);
-      // casa com laje: escada lateral até o telhado, encostada no fundo da pracinha
-      if (k.x1 - k.x0 >= 13 && k !== w.top) {
-        const x = k.x1 - 5.5;
+      addSlot(w, 'botijao', m === 1 ? k.x0 + 0.9 : k.x1 - 0.9, k.y0 + 1.2);
+      addSlot(w, 'engradado', m === 1 ? k.x1 - 1.0 : k.x0 + 1.0, k.y1 - 1.4);
+      if (side) {
         const y = k.y0 + 0.6;
-        const st = rect(x - 1.3, y, x, y + 5, { dir: 'n' });
+        const x = side === 1 ? k.x1 - 5.5 : k.x0 + 0.5;
+        const st = side === 1 ? rect(x - 1.3, y, x, y + 5, { dir: 'n' }) : rect(x + 5, y, x + 6.3, y + 5, { dir: 'n' });
         const P = addPlatform(w, x, y, x + 5, y + 5, PLACES.lajeH, st, 'laje_casa');
         addSlot(w, 'botijao', x + 2.5, y + 1.0, P);
       }
     } else if (k.kind === 'viela') {
       addSlot(w, 'botijao', k.x0 + 0.6, (k.y0 + k.y1) / 2);
     }
-  }
+  });
+}
+
+/**
+ * De que lado da laje a casa (5 m + escada de 1,3 m, no fundo) deixa a passagem para cima mais livre.
+ * Devolve -1 (esquerda), 1 (direita) ou 0 se nenhum lado deixa pelo menos 2,5 m livres.
+ */
+function houseSide(k, up) {
+  if (!up) return 1;
+  const o0 = Math.max(k.x0, up.x0);
+  const o1 = Math.min(k.x1, up.x1);
+  const free = (a0, a1) => Math.max(0, o1 - o0 - Math.max(0, Math.min(o1, a1) - Math.max(o0, a0)));
+  const right = free(k.x1 - 6.8 - 0.4, k.x1);
+  const left = free(k.x0, k.x0 + 6.8 + 0.4);
+  const best = right >= left ? 1 : -1;
+  return Math.max(right, left) >= 2.5 ? best : 0;
 }
 
 /** Retângulo da rota que contém o ponto (ou -1). Usa o índice guardado na entidade, se ainda vale. */
