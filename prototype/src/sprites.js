@@ -3,8 +3,9 @@
 
 export const IMAGES = {
   juninho: 'assets/personagens/juninho.png',
-  // TESTE: atlas de arremesso do Juninho, 16 direções (linhas, 0° = de frente, 90° = direita) × 6 quadros
+  // Juninho: atlas de arremesso e de caminhada, 16 direções (linhas; 0° = de frente, 90° = direita) × 6 quadros
   juninho_atlas: 'assets/personagens/juninho_ataque_atlas.webp',
+  juninho_walk_atlas: 'assets/personagens/juninho_caminhada_atlas.webp',
   telespectador_a: 'assets/personagens/telespectador_a.png',
   telespectador_c: 'assets/personagens/telespectador_c.png',
   telespectador_d: 'assets/personagens/telespectador_d.png',
@@ -91,7 +92,8 @@ export function loadImages(onEach) {
     im.decoding = 'async';
     im.onload = () => {
       images[id] = im;
-      if (id === 'juninho_atlas') sliceAtlas(im);
+      if (id === 'juninho_atlas') sliceAtlas(im, 'ja');
+      if (id === 'juninho_walk_atlas') sliceAtlas(im, 'jw');
       pending--;
       onEach?.(id);
       resolve();
@@ -108,13 +110,13 @@ export const imagesReady = () => pending === 0;
 
 export const ATLAS = { cols: 6, rows: 16, cw: 200, ch: 160, figureH: 155, hipFrac: 0.585, pivotFrac: 0.53 }; // figura ≈ 155 px numa célula de 160; cintura a 58,5% da altura
 
-/** Corta o atlas em 96 células (canvas) registradas como imagens `ja_<direção>_<quadro>`. */
-function sliceAtlas(im) {
+/** Corta um atlas em 96 células (canvas) registradas como imagens `<prefixo>_<direção>_<quadro>`. */
+function sliceAtlas(im, prefix) {
   for (let r = 0; r < ATLAS.rows; r++) {
     for (let f = 0; f < ATLAS.cols; f++) {
       const c = canvas(ATLAS.cw, ATLAS.ch);
       c.getContext('2d').drawImage(im, f * ATLAS.cw, r * ATLAS.ch, ATLAS.cw, ATLAS.ch, 0, 0, ATLAS.cw, ATLAS.ch);
-      images[`ja_${r}_${f}`] = c;
+      images[`${prefix}_${r}_${f}`] = c;
     }
   }
 }
@@ -136,7 +138,10 @@ export function prewarm(cache, playerPx, enemyPx, sizeOf) {
     if (flip) continue;
     for (let r = 0; r < ATLAS.rows; r++) {
       for (let f = 0; f < ATLAS.cols; f++) {
-        for (const mode of ['', 'hurt']) jobs.push(() => cache.get(`ja_${r}_${f}`, playerPx * (ATLAS.ch / ATLAS.figureH), { mode, noShadow: true }));
+        for (const mode of ['', 'hurt']) {
+          jobs.push(() => cache.get(`ja_${r}_${f}`, playerPx * (ATLAS.ch / ATLAS.figureH), { mode, noShadow: true }));
+          jobs.push(() => cache.get(`jw_${r}_${f}`, playerPx * (ATLAS.ch / ATLAS.figureH), { mode, noShadow: true }));
+        }
       }
     }
     for (const id of CROWD) {

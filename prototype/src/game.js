@@ -680,7 +680,7 @@ export class Game {
       p.faceY = pt.y;
     }
     p.moving = mag > 0.05;
-    if (p.moving) p.walkPhase += dt * 9.5; // ~1,5 passos por segundo
+    if (p.moving) p.walkPhase += dt * 8; // um ciclo de 6 quadros (2 passos) a cada ~0,8 s
     if (p.slowT > 0) p.slowT -= dt;
     const speed = PLAYER.speed * st.speedMul * (p.slowT > 0 ? 0.6 : 1);
     p.vx = mx * speed;

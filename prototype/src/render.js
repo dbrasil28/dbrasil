@@ -269,21 +269,23 @@ export class Renderer {
     const hurtBlink = p.hurtT > 0 && Math.floor(game.t * 16) % 2 === 0;
     let img = null;
     if (images.ja_0_0) {
-      // TESTE do atlas: direção pela mira durante o arremesso, senão pelo movimento
-      const aiming = p.throwT < 0.6 || p.catchT < 0.25 || p.helmetsOut > 0;
+      // direção: pela mira durante o arremesso e a pegada; andando, pelo movimento
+      const inThrow = p.throwT < 0.2 || p.catchT < 0.22;
+      const aiming = inThrow || (!p.moving && (p.throwT < 0.6 || p.catchT < 0.4));
       const fx = aiming ? p.aimX : p.faceX;
       const fy = aiming ? p.aimY : p.faceY;
       const cam = game.camera;
       cam.toScreen(p.x + fx, p.y + fy, pt2);
       const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
-      let frame = 0; // parado: capacete na mão
-      if (p.throwT < 0.08) frame = 1; // arma o braço
-      else if (p.throwT < 0.2) frame = 2; // solta
-      else if (p.catchT < 0.09) frame = 4; // estende para pegar
-      else if (p.catchT < 0.22) frame = 5; // pegou
-      else if (p.helmetsOut > 0) frame = 3; // mãos livres, capacete em voo
-      else if (p.moving) frame = Math.floor((p.walkPhase / (Math.PI * 2)) * 6) % 6; // andando: cicla os 6 quadros da folha
-      img = this.cache.get(`ja_${row}_${frame}`, playerPx * (ATLAS.ch / ATLAS.figureH), {
+      let id;
+      if (p.throwT < 0.08) id = `ja_${row}_1`; // arma o braço
+      else if (p.throwT < 0.2) id = `ja_${row}_2`; // solta
+      else if (p.catchT < 0.09) id = `ja_${row}_4`; // estende para pegar
+      else if (p.catchT < 0.22) id = `ja_${row}_5`; // pegou
+      else if (p.moving && images.jw_0_0) id = `jw_${row}_${Math.floor((p.walkPhase / (Math.PI * 2)) * 6) % 6}`; // caminhada (fase mantida ao virar)
+      else if (p.helmetsOut > 0) id = `ja_${row}_3`; // parado, capacete em voo
+      else id = `ja_${row}_0`; // parado, capacete na mão
+      img = this.cache.get(id, playerPx * (ATLAS.ch / ATLAS.figureH), {
         mode: hurtBlink ? 'hurt' : '', tint: game.corruption >= 50 ? [232, 182, 44, 0.22] : null, noShadow: true,
       });
       if (img) {
@@ -321,8 +323,7 @@ export class Renderer {
     ctx.beginPath();
     ctx.ellipse(pt.x, pt.y - 1, shW, shW * 0.32, 0, 0, Math.PI * 2);
     ctx.fill();
-    const bob = p.moving ? Math.abs(Math.cos(p.walkPhase)) * h * 0.02 : 0;
-    ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy - bob, spr.cssW, spr.cssH);
+    ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy, spr.cssW, spr.cssH);
   }
 
   drawGround(ctx, game) {

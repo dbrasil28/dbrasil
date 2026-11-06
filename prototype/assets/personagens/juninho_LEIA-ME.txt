@@ -1,0 +1,23 @@
+JUNINHO — PACOTE COMPLETO v3
+
+CAMINHADA: 4 folhas PNG 1536x1024; 16 direcoes x 6 quadros = 96 sprites PNG 256x256.
+ATAQUE: 4 folhas PNG 1536x1024; 16 direcoes x 6 quadros = 96 sprites PNG 256x256.
+A folha 4 de ataque usa a correcao v2 da mao direita.
+
+Cada acao possui:
+- folhas/: as quatro folhas originais, com alfa preservado.
+- sprites/: 16 pastas, cada uma com quadro_00.png a quadro_05.png.
+- previas/: 16 PNGs animados (APNG), um por direcao.
+- previa_todas_direcoes.png: os 16 personagens animados em conjunto.
+- manifesto.json: correspondencia exata de angulo, folha, linha e quadro.
+
+0 graus = frente; 90 = direita; 180 = costas; 270 = esquerda.
+Os quadros de tempo sao as COLUNAS da folha. As LINHAS mudam a direcao.
+Caminhada: reproduzir 00,01,02,03,04,05 e repetir. Manter fase ao mudar direcao.
+Ataque: pronto, preparacao, lancamento, continuacao, espera, recuperado.
+No ataque o capacete em voo e um projetil separado. Aguardar retorno antes do quadro05.
+APNG precisa de visualizador que suporte animacao; as folhas sao imagens estaticas.
+
+LIMITACOES DA ARTE
+Este pacote organiza as imagens existentes; nao redesenha os ciclos.
+Existem variacoes de alinhamento e desenho entre quadros. A sequencia de passada e sua fluidez ainda precisam de aprovacao no motor do jogo. Os recortes nao devem ser confundidos com novos quadros corrigidos.
