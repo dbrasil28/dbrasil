@@ -1,94 +1,90 @@
-# Elenco v0.3 — cara de Brasil
+# Elenco v0.3 — estereótipos do Brasil
 
-Proposta que substitui os arquétipos genéricos da v0.2 ("Fanático Explorador", "Bloco Gelatina", "Militante de Algoritmo") por tipos que qualquer brasileiro reconhece em um segundo.
+Lista do autor (06/11/2026), encaixada nos papéis do jogo. Substitui os arquétipos genéricos da v0.2 ("Fanático Explorador", "Bloco Gelatina", "Militante de Algoritmo"), que não tinham cara de Brasil.
 
-**Princípio da sátira:** o herói é gente comum; o inimigo é quem engana, explora ou manda; a horda é o povo hipnotizado pela TV, que acorda em vez de morrer (MECH-001). A piada sempre mira o golpe, o abuso ou o poder, nunca a pessoa pobre, a fé, a cor, o sotaque ou a região.
+**Princípio:** o herói é gente comum; o inimigo é quem engana, explora, abusa ou manda; a horda é o povo hipnotizado pela TV, que acorda em vez de morrer (MECH-001).
 
-**Continua valendo:** nomes fictícios; nada de partido, igreja, emissora, banco, clube ou marca reais (a camisa do C é a exceção registrada em D17).
+## Como cada item entra
 
-## Jogáveis (gente comum)
-
-| Personagem | Quem é | Arma e especial | Situação |
-| --- | --- | --- | --- |
-| Juninho, o Motoboy de App | Entregador de aplicativo, capacete vermelho, mochila térmica | Capacete bumerangue; Entrega Expressa | Arte pronta |
-| Dona Cida, a Indignada | Senhora de bairro, bobe e chinelo na mão | Chinelo voador; "Vou contar até três" (onda de choque) | Falta arte |
-| Márcia, a Servidora | Funcionária pública de crachá e pilha de processos | Carimbo; "Volte amanhã" (paralisa) | Falta arte |
-| Seu Nonato, o Vendedor de Mate | Ambulante da praia com galões de mate nas costas | Jato de mate gelado em área; "Olha o mate!" (atordoa) | Novo |
-| Tia Neide, a Professora | Professora da rede pública, giz e apagador | Giz arremessado; "SILÊNCIO!" (para a horda) | Novo |
-| Deputado Godofredo, o Intocável | Anti-herói: joga com o próprio sistema | Maletas; Foro Privilegiado (invulnerável) | Falta arte (precisa ser outra pessoa, não o Político inimigo) |
-
-## Horda: Telespectador Hipnotizado
-
-O mesmo inimigo, com roupas de tipos brasileiros. Cada roupa é um pacote de caminhada em 16 direções.
-
-| Roupa | Situação |
-| --- | --- |
-| A — camiseta amarela e bermuda | Arte pronta |
-| B — regata cinza | Arte pronta |
-| C — camisa rubro-negra e chinelo | Arte pronta |
-| D — tiozão de pochete, meia e sandália | Novo |
-| E — senhora de bobe e roupão, controle remoto na mão | Novo |
-| F — rato de academia, regata e garrafão de água | Novo |
-| G — atendente de telemarketing com headset | Novo |
-| H — trabalhador de macacão de obra | Novo |
-
-## Inimigos comuns
-
-| Personagem | Comportamento | Situação |
+| Item da lista | Papel | Como funciona no jogo |
 | --- | --- | --- |
-| Golpista do Pix (era Golpista Digital) | Zigue-zague; solta o "Clone do Zap" ("Oi, mãe, troquei de número"), que atrai a mira | Arte pronta; só muda o nome |
-| Burocrata-Monstro | Papelada que deixa lento; "Volte amanhã" | Arte pronta |
-| Fiscal do Impossível | Corta caminho e multa (tira XP) | Arte pronta |
-| Tio do Zap (substitui o Militante de Algoritmo) | Vem em bando quando chega uma corrente; joga "áudio de 8 minutos" que embaralha o controle por 1 s | Novo |
-| Coach Quântico | Palestra em área que deixa lento; "Acorda pra vida, campeão!" | Novo |
-| Influencer da Bet | Espalha "bônus" no chão; quem pega perde XP ("a casa sempre ganha") | Novo |
-| Agiota | Marca o Juninho: perde XP por segundo até derrubar o Agiota | Novo |
-| Laranja | Carrega o dinheiro do Político e apanha no lugar dele; quando cai, solta notas | Novo |
-| Assessor Aspone | Anda colado no Político e o protege | Novo |
-| Profeta do Pix (substitui o Fanático Explorador) | Cura os inimigos em volta e chama mais gente; pede "oferta via Pix" | Novo. A piada é o golpe do Pix: sem cruz, igreja ou roupa religiosa reais |
+| Funkeiro | Jogável: **MC do Paredão** | Arma: o grave do paredão, onda que empurra a horda. Especial: "Solta o batidão", e a horda para para dançar |
+| Cachorro caramelo | Companheiro: **Caramelo** | Melhoria que faz o vira-lata seguir o Juninho e morder quem chega perto. Nunca leva dano |
+| Jogador de futebol | Jogável: **Craque da Várzea** | Bola que ricocheteia entre os inimigos. Especial: "Golaço", um chute que atravessa a tela |
+| Vendedor de picolé | Jogável: **Seu Nonato do Picolé e do Mate** | Isopor de picolé: o gelo deixa a horda lenta. Grito "Olha o picolé!" atordoa |
+| Encostado do INSS | Inimigo: **Malandro do Atestado** | Anda de colar cervical e muleta, devagar. Quando o Juninho vira de costas, sai correndo. A piada é a fraude, não a deficiência |
+| Laranja | Inimigo | Carrega o dinheiro do Político e apanha no lugar dele. Quando cai, solta notas |
+| Agiota | Inimigo | Marca o Juninho, que perde XP por segundo até derrubar o Agiota ("juros") |
+| Coach picareta | Inimigo: **Coach Quântico** | Palestra em área que deixa lento: "Acorda pra vida, campeão!" |
+| Pastor evangélico | Inimigo: **Pastor da Prosperidade** | Cura os inimigos em volta e chama mais gente. Pede "oferta no Pix" e vende "carnê da bênção". A piada é o golpe do picareta, não a fé: sem igreja real, Bíblia ou símbolo religioso real |
+| Rato de academia | Horda e inimigo: **Marombeiro** | Na horda, uma roupa. Como inimigo, dá investida em linha reta e empurra |
+| 2 caras numa moto | Inimigo em dupla | Passam rasgando pela rua e levam as gemas de XP do chão. Se o Juninho estiver no caminho, atropelam |
+| Trombadinha | Inimigo, adulto: **Ladrão de Celular** | De bicicleta: encosta, rouba XP e foge. Adulto, porque criança como inimigo não passa na loja |
+| Faria Limer | Inimigo: **Faria Limer** | Colete acolchoado sem marca e crachá. Espalha "cripto" no chão, e quem pega vê o XP desvalorizar |
+| Playboy | Inimigo: **Filhinho de Papai** | Carro importado que cruza a rua acelerando. Se bate, chama o pai advogado e sai ileso |
+| Candidato a político | Elite: **Candidato do Santinho** | Chuva de santinhos que tapa a visão. Vem atrás de quem recusou o patrocínio |
+| Bicheiro | Elite | Patrono de escola de samba. Chama apontadores e aposta no bicho: se o Juninho pegar o bicho certo, ganha bônus |
+| Rainha de escola de samba | Evento: **Desfile** | Passa com a bateria e a horda sai sambando atrás. Vem junto do Bicheiro |
+| Mulher de biquíni minúsculo | Horda: **Banhista da Orla** | Roupa da horda na praia, com o **Tiozão de Sunga** ao lado. Mesmo tratamento para os dois, sem pose sensual (classificação etária da loja) |
+| Político de estimação (Lula e Bolsonaro) | Chefe de Acordópolis: **Os Salvadores da Pátria** | Dois políticos fictícios, um de vermelho e um de verde e amarelo. Brigam na TV e dividem a maleta fora dela. No meio da luta se juntam em um só, **O Acordão**. Sem rosto, nome ou partido reais: a Apple proíbe inimigo que mire pessoa ou governo real |
+| Traficante e chefe do tráfico | Inimigo **Olheiro** e chefe **Dono do Morro** | O **Olheiro** fica na laje e solta fogos quando vê o Juninho, chamando a horda para ele. O **Dono do Morro**, de cordão de ouro e rádio, manda da favela do mapa 1 (Rio). Decreta "toque de recolher", que fecha as ruas do morro, e ataca com rojões. A firma dele é fictícia, sem PCC, CV, TCP ou outra facção real, e sem fuzil nem arma realista. Os moradores são a horda, as vítimas dele |
+| Cracudo | Não entra | Seria bater em doente e em gente de rua, o oposto da sátira do jogo, e as lojas restringem |
 
-## Elites
+## O resto do elenco
 
-| Personagem | Comportamento | Situação |
-| --- | --- | --- |
-| Político Corrupto | Joga a maleta de dinheiro; a horda corre atrás | Arte pronta |
-| Candidato Patrocinado (era Rival Patrocinado) | Vem atrás de quem recusou o patrocínio; joga santinhos | Falta arte (hoje é o Político tingido) |
-| Segurança do Bairro | Cobra "taxa de proteção", vende gás e gatonet; fecha passagens | Novo. Sem farda, distintivo ou sigla |
-| Bicheiro | Patrono de escola de samba; chama apontadores; aposta no Juninho | Novo |
+**Já têm arte:**
+- Juninho, o Motoboy de App
+- Telespectadores A, B e C
+- Golpista do Pix (era o Golpista Digital): "Oi, mãe, troquei de número", com o Clone do Zap
+- Burocrata-Monstro
+- Fiscal do Impossível
+- Político Corrupto, com a maleta
 
-## Chefes por mapa
+**Jogáveis que continuam:**
+- Dona Cida, a do chinelo: "vou contar até três"
+- Márcia, a Servidora: "volte amanhã"
+- Tia Neide, a Professora: giz e "SILÊNCIO!"
+- Deputado Godofredo, o anti-herói
 
-| Mapa | Chefe | O que faz | Situação |
-| --- | --- | --- | --- |
-| 1. Orla do Desespero (Rio) | Especulador Imobiliário | Vende pedaços do calçadão e fecha a arena | Falta arte (recorte antigo) |
-| 2. Centro do Desespero (São Paulo) | O Rapa | Fiscal gigante que recolhe tudo e todos | Falta arte |
-| 3. Acordópolis (capital) | O Acordão (substitui o Bloco Gelatina) | Bancada de deputados que se juntam num só e trocam de lado no meio da luta | Novo |
-| 4. Paraíso à Venda (Nordeste) | Barão do Guarda-Sol (substitui o Dono da Orla) | Cobra cadeira, guarda-sol e pedágio para andar na areia | Novo |
-| 5. Rede do Pânico (TV) | O Apresentador do Plantão | Âncora de programa policial da tarde; muda as regras ao vivo conforme a audiência | Já aparece no HUD; falta arte de chefe |
+**Inimigos que continuam:**
+- Tio do Zap, com corrente e áudio de 8 minutos
+- Influencer da Bet
+- Assessor Aspone
+- Segurança do Bairro: gás, gatonet e "taxa de proteção", sem farda
 
-## Gente da rua que ajuda
+**Roupas da horda:**
+- Tiozão de pochete e sandália com meia
+- Senhora de bobe e controle remoto
+- Atendente de telemarketing
+- Peão de obra
+- Banhista e Tiozão de Sunga, na praia
 
-Não são inimigos: dão cura ou bônus e deixam o mapa com cara de Brasil.
+**Chefes:**
+- Especulador da orla, no Rio
+- O Rapa, em São Paulo
+- Os Salvadores da Pátria, que viram O Acordão, em Acordópolis
+- Barão do Guarda-Sol, no Nordeste
+- Apresentador do Plantão Policial, na TV
 
-- **Vendedor de mate e biscoito de polvilho** na orla: cura.
-- **Barraca de pastel** (o pastel já é item de cura).
-- **Barraca de açaí** e **carrinho de milho**: bônus curto de velocidade.
-- **Barraca de acarajé** no mapa do Nordeste: cura forte.
-
-## Coisas do Brasil que viram evento na partida
+## Coisas do Brasil que viram evento
 
 | Evento | O que acontece |
 | --- | --- |
-| Carro do ovo ("olha o ovo!") | Passa na rua com o alto-falante; a horda se distrai e vai atrás |
-| Carro de som de campanha | Jingle no último volume: a horda dança parada por alguns segundos |
+| Carro do ovo ("olha o ovo!") | Passa com o alto-falante; a horda vai atrás |
+| Carro de som de campanha | Jingle no último volume: a horda dança parada |
 | Jogo da seleção na TV | Todo mundo para para assistir; o Juninho ganha uns segundos |
-| Bloco de carnaval | Um cordão de foliões atravessa a tela e arrasta quem estiver no caminho |
-| Apagão | A tela escurece; só o halo das TVs mostra a horda |
-| Toró de verão | O calçadão alaga e todo mundo fica mais lento |
+| Desfile e bloco de carnaval | A bateria passa e arrasta a horda |
+| Paredão do funk | O MC solta o batidão e a horda dança |
+| Apagão | Escurece; só o halo das TVs mostra a horda |
+| Toró de verão | O calçadão alaga e todo mundo fica lento |
 | Horário eleitoral | A TV Caos troca o programa e a horda muda de comportamento |
 
-## O que não entra
+Gente da rua que ajuda, sem ser inimiga: barracas de pastel, açaí, milho, mate e acarajé, que dão cura ou bônus.
 
-- **Piadas de identidade:** cor, sotaque, região, religião em si ou pobreza como defeito.
-- **Inimigos vulneráveis:** criança ou gente vulnerável no papel de inimigo.
-- **Nomes reais:** pessoas, partidos, igrejas, emissoras, bancos, clubes ou marcas reais (exceção D17).
+## O que não entra e por quê
+
+- **Pessoas e organizações reais:** políticos, partidos, facções criminosas, igrejas, clubes e marcas reais. A Apple proíbe inimigo que mire pessoa ou governo real, e a rede de anúncios restringe violência contra pessoas reais. A exceção já registrada é a camisa do C (D17).
+- **Crianças como inimigo:** não entram.
+- **Arma de fogo realista:** não entra. Ela sobe a classificação etária e afasta anunciante. Os ataques são de objeto do dia a dia: capacete, chinelo, papelada, maleta e rojão.
+- **Gente vulnerável como saco de pancada:** dependente químico, pessoa em situação de rua ou deficiente, de verdade.
+- **Piadas de identidade:** cor, sotaque, região ou fé.
