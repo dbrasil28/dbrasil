@@ -1,13 +1,15 @@
-# Atlas de caminhada de um telespectador (16 direções × 6 quadros, célula 200×160, tronco no centro,
-# pés na base) a partir das 4 folhas 6×4 do pacote, mais a pose de acordado com 320 px de altura.
+# Atlas de caminhada de um personagem (16 direções × 6 quadros, célula 200×160, tronco no centro,
+# pés na base) a partir das 4 folhas 6×4 do pacote. Se o pacote tiver extras/telespectador_acordado.png,
+# grava também a pose de acordado com 320 px de altura (só a horda acorda).
 # As folhas nem sempre respeitam a grade de 256 px: mãos invadem a célula do lado e cabeças ou pés
 # passam alguns px para a linha de cima ou de baixo. Por isso cada figura é separada por componentes
 # conectados na folha inteira e recortada pela própria máscara. A névoa de alfa baixo fora da figura
 # é zerada.
 # Requer Python 3 com Pillow, numpy e opencv-python (fora do jogo; o protótipo continua sem dependências).
-# uso: python3 -I tools/montar-atlas-telespectador.py <pacote com folhas/ e extras/> \
-#        prototype/assets/personagens/telespectador_x <pasta de trabalho nova> <prefixo das prévias>
-# Grava caminhada_atlas.webp, acordado.png e atlas_meta.json (figureH vai para CROWD_ANIM em sprites.js).
+# uso: python3 -I tools/montar-atlas.py <pacote com folhas/> prototype/assets/personagens/<pasta> \
+#        <pasta de trabalho nova> <prefixo das prévias>
+# Grava caminhada_atlas.webp, atlas_meta.json e, na horda, acordado.png. O figureH de atlas_meta.json
+# vai para WALK_ATLAS em prototype/src/sprites.js.
 import sys, os, json
 import numpy as np, cv2
 from PIL import Image, ImageDraw
@@ -121,7 +123,12 @@ full = Image.new('RGBA', atlas.size, (70, 70, 70, 255))
 full.alpha_composite(atlas)
 full.convert('RGB').resize((atlas.width // 2, atlas.height // 2)).save(f'{ref}/{tag}_atlas.jpg', quality=85)
 
-ac = Image.open(os.path.join(pkg, 'extras', 'telespectador_acordado.png')).convert('RGBA')
+json.dump({'figureH': figH, 'top': TOP, 'feet': FEET}, open(os.path.join(dst, 'atlas_meta.json'), 'w'))
+acp = os.path.join(pkg, 'extras', 'telespectador_acordado.png')
+if not os.path.exists(acp):
+    print('sem pose de acordado no pacote')
+    sys.exit(0)
+ac = Image.open(acp).convert('RGBA')
 arr = np.array(ac)
 n, lab, st, _ = cv2.connectedComponentsWithStats((arr[:, :, 3] > TH).astype(np.uint8), connectivity=8)
 main = 1 + int(np.argmax(st[1:, 4]))
@@ -133,4 +140,3 @@ ac = ac.crop(bb)
 ac = ac.resize((round(ac.width * 320 / ac.height), 320), Image.LANCZOS)
 ac.save(os.path.join(dst, 'acordado.png'), optimize=True)
 print('acordado', ac.size, os.path.getsize(os.path.join(dst, 'acordado.png')) // 1024, 'KB; componentes', n - 1)
-json.dump({'figureH': figH, 'top': TOP, 'feet': FEET}, open(os.path.join(dst, 'atlas_meta.json'), 'w'))

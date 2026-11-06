@@ -6,14 +6,15 @@ export const IMAGES = {
   // Juninho: atlas de arremesso e de caminhada, 16 direções (linhas; 0° = de frente, 90° = direita) × 6 quadros
   juninho_atlas: 'assets/personagens/juninho_ataque_atlas.webp',
   juninho_walk_atlas: 'assets/personagens/juninho_caminhada_atlas.webp',
-  // Telespectadores Hipnotizados com caminhada em 16 direções × 6 quadros + pose de acordado
-  // (atlas montados por tools/montar-atlas-telespectador.py)
+  // Caminhada em 16 direções × 6 quadros (atlas montados por tools/montar-atlas.py; ver WALK_ATLAS)
+  // Telespectadores Hipnotizados, com pose de acordado
   tele_a_walk_atlas: 'assets/personagens/telespectador_a/caminhada_atlas.webp', // A: camisa amarela
   tele_a_acordado: 'assets/personagens/telespectador_a/acordado.png',
   tele_b_walk_atlas: 'assets/personagens/telespectador_b/caminhada_atlas.webp', // B: regata cinza
   tele_b_acordado: 'assets/personagens/telespectador_b/acordado.png',
   tele_c_walk_atlas: 'assets/personagens/telespectador_c/caminhada_atlas.webp', // C: camisa rubro-negra e chinelos
   tele_c_acordado: 'assets/personagens/telespectador_c/acordado.png',
+  golpista_walk_atlas: 'assets/personagens/golpista/caminhada_atlas.webp', // Golpista Digital (e o Perfil Falso)
   telespectador_a: 'assets/personagens/telespectador_a.png',
   telespectador_c: 'assets/personagens/telespectador_c.png',
   telespectador_d: 'assets/personagens/telespectador_d.png',
@@ -62,19 +63,30 @@ export const CROWD_SETS = [
 export const CROWD = [...new Set(CROWD_SETS.flatMap((s) => [...s.front, ...s.back]))];
 
 /**
- * Telespectadores com atlas de caminhada: imagem do atlas, prefixo das 96 células e altura da figura
- * na célula de 160 px (atlas_meta.json de cada pasta).
+ * Atlas de caminhada: imagem, prefixo das 96 células (`<prefixo>_<direção>_<quadro>`) e altura da
+ * figura na célula de 160 px (atlas_meta.json de cada pasta).
  */
+export const WALK_ATLAS = {
+  ta: { atlas: 'tele_a_walk_atlas', prefix: 'ta', figureH: 158 },
+  tb: { atlas: 'tele_b_walk_atlas', prefix: 'tb', figureH: 158 },
+  tc: { atlas: 'tele_c_walk_atlas', prefix: 'tc', figureH: 158 },
+  gd: { atlas: 'golpista_walk_atlas', prefix: 'gd', figureH: 157 },
+};
+
+/** O atlas, se já carregou; senão null (o jogo usa o recorte de pose única). */
+export const walkReady = (w) => (w && images[`${w.prefix}_0_0`] ? w : null);
+
+/** Telespectadores animados: atlas de caminhada e pose de acordado de cada roupa. */
 export const CROWD_ANIM = {
-  a: { atlas: 'tele_a_walk_atlas', prefix: 'ta', acordado: 'tele_a_acordado', figureH: 158 },
-  b: { atlas: 'tele_b_walk_atlas', prefix: 'tb', acordado: 'tele_b_acordado', figureH: 158 },
-  c: { atlas: 'tele_c_walk_atlas', prefix: 'tc', acordado: 'tele_c_acordado', figureH: 158 },
+  a: { walk: WALK_ATLAS.ta, acordado: 'tele_a_acordado' },
+  b: { walk: WALK_ATLAS.tb, acordado: 'tele_b_acordado' },
+  c: { walk: WALK_ATLAS.tc, acordado: 'tele_c_acordado' },
 };
 
 /** Atlas animado da roupa (tint), quando ela tem um e ele já carregou; senão null (usa o recorte). */
 export function crowdAnim(tint) {
   const a = CROWD_ANIM[CROWD_SETS[tint % CROWD_SETS.length].anim];
-  return a && images[`${a.prefix}_0_0`] ? a : null;
+  return a && walkReady(a.walk) ? a : null;
 }
 
 /** Imagem da pessoa da horda conforme a roupa (tint), o indivíduo (id) e a direção. */
@@ -87,8 +99,8 @@ export function crowdImage(tint, id, front) {
 
 /** Tipo de inimigo -> imagem e tratamentos aplicados no cache. */
 export const ENEMY_ART = {
-  golpista: { img: 'golpista' },
-  isca: { img: 'golpista', tint: [54, 240, 224, 0.55] },
+  golpista: { img: 'golpista', walk: WALK_ATLAS.gd },
+  isca: { img: 'golpista', walk: WALK_ATLAS.gd, tint: [54, 240, 224, 0.55] },
   burocrata: { img: 'burocrata', front: 'burocrata_frente', papers: true },
   fiscal: { img: 'fiscal', vest: true },
   politico: { img: 'politico' },
@@ -120,7 +132,7 @@ export function loadImages(onEach) {
       images[id] = im;
       if (id === 'juninho_atlas') sliceAtlas(im, 'ja');
       if (id === 'juninho_walk_atlas') sliceAtlas(im, 'jw');
-      for (const a of Object.values(CROWD_ANIM)) if (id === a.atlas) sliceAtlas(im, a.prefix);
+      for (const w of Object.values(WALK_ATLAS)) if (id === w.atlas) sliceAtlas(im, w.prefix);
       pending--;
       onEach?.(id);
       resolve();
@@ -171,28 +183,41 @@ export function prewarm(cache, playerPx, enemyPx, sizeOf) {
         }
       }
     }
+    // o brilho de dano dos inimigos é desenhado na hora (render.js), então não há cópia "flash" aqui
     for (const id of CROWD) {
-      for (const flash of [false, true]) jobs.push(() => cache.get(id, enemyPx, { flip, flash, hypno: true }));
+      jobs.push(() => cache.get(id, enemyPx, { flip, hypno: true }));
       jobs.push(() => cache.get(id, enemyPx, { mode: 'woken', flip }));
     }
     for (const a of Object.values(CROWD_ANIM)) {
       jobs.push(() => cache.get(a.acordado, enemyPx, { flip }));
       if (flip) continue;
       for (let r = 0; r < ATLAS.rows; r++) {
-        for (let f = 0; f < ATLAS.cols; f++) {
-          for (const flash of [false, true]) jobs.push(() => cache.get(`${a.prefix}_${r}_${f}`, enemyPx * (ATLAS.ch / a.figureH), { flash, hypno: true, shadowScale: 0.6 }));
-        }
+        for (let f = 0; f < ATLAS.cols; f++) jobs.push(() => cache.get(`${a.walk.prefix}_${r}_${f}`, enemyPx * (ATLAS.ch / a.walk.figureH), CROWD_WALK_OPTS));
       }
     }
     for (const [type, art] of Object.entries(ENEMY_ART)) {
       const h = enemyPx * sizeOf(type);
-      for (const img of [art.img, art.front].filter(Boolean)) {
-        for (const flash of [false, true]) jobs.push(() => cache.get(img, h, { ...art, flip, flash }));
+      for (const img of [art.img, art.front].filter(Boolean)) jobs.push(() => cache.get(img, h, { ...art, flip }));
+      if (flip || !art.walk) continue;
+      for (let r = 0; r < ATLAS.rows; r++) {
+        for (let f = 0; f < ATLAS.cols; f++) jobs.push(() => cache.get(`${art.walk.prefix}_${r}_${f}`, h * (ATLAS.ch / art.walk.figureH), enemyWalkOpts(art)));
       }
     }
   }
   return jobs;
 }
+
+/** Opções de cache dos quadros animados (as mesmas no prewarm e no render, senão a chave muda). */
+export const CROWD_WALK_OPTS = { hypno: true, shadowScale: 0.6 };
+const walkOpts = new Map();
+export function enemyWalkOpts(art) {
+  let o = walkOpts.get(art);
+  if (!o) walkOpts.set(art, (o = { tint: art.tint, shadowScale: 0.6 }));
+  return o;
+}
+
+/** Máximo de sprites prontos guardados; acima disso saem os mais antigos (ordem de inserção). */
+const CACHE_MAX = 1600;
 
 function canvas(w, h) {
   const c = document.createElement('canvas');
@@ -225,7 +250,13 @@ export class SpriteCache {
     let c = this.map.get(key);
     if (c) return c;
     c = this.build(im, heightCss, opts);
-    if (this.map.size > 600) this.map.clear();
+    if (this.map.size >= CACHE_MAX) {
+      let n = CACHE_MAX >> 3;
+      for (const k of this.map.keys()) {
+        this.map.delete(k);
+        if (--n <= 0) break;
+      }
+    }
     this.map.set(key, c);
     return c;
   }

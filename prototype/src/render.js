@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE } from './config.js';
-import { images, SpriteCache, crowdImage, crowdAnim, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
+import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
 
 const pt = { x: 0, y: 0 };
@@ -57,7 +57,9 @@ export class Renderer {
     this.canvas.style.width = `${w}px`;
     this.canvas.style.height = `${h}px`;
     this.sprites.clear();
-    this.cache.clear(dpr);
+    // os sprites prontos dependem só da densidade de pixels (o tamanho entra na chave do cache);
+    // limpar a cada partida nova jogava fora o preparo feito no menu e travava o começo da partida
+    if (dpr !== this.cache.dpr) this.cache.clear(dpr);
     this.orla.clear();
     this.vignette = null;
   }
@@ -177,23 +179,29 @@ export class Renderer {
           if (o.flipFix === undefined) o.flipFix = ((o.id * 2654435761) >>> 0) % 2 === 0;
           let spr = null;
           let animated = false;
+          const art = ENEMY_ART[o.type];
           const anim = o.type === 'telespectador' ? crowdAnim(o.tint) : null;
-          if (anim) {
-            // atlas de caminhada: direção para onde anda (o jogador), quadro pela distância andada
-            cam.toScreen(game.player.x, game.player.y, pt2);
+          const walk = anim ? anim.walk : walkReady(art && art.walk);
+          if (walk) {
+            // atlas de caminhada: linha pela direção em que anda, quadro pela distância andada
+            cam.toScreen(o.x + (o.mx ?? game.player.x - o.x), o.y + (o.my ?? game.player.y - o.y), pt2);
             const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
             const frame = Math.floor((o.walk / (Math.PI * 2)) * 6) % 6;
-            spr = this.cache.get(`${anim.prefix}_${row}_${frame}`, h * (ATLAS.ch / anim.figureH), { flash: o.flash > 0, hypno: true, shadowScale: 0.6 });
+            spr = this.cache.get(`${walk.prefix}_${row}_${frame}`, h * (ATLAS.ch / walk.figureH), anim ? CROWD_WALK_OPTS : enemyWalkOpts(art));
             animated = !!spr;
           }
           if (!spr && o.type === 'telespectador') {
-            spr = this.cache.get(crowdImage(o.tint, o.id, o.front), h, { flip: o.flipFix, flash: o.flash > 0, hypno: true });
-          } else if (!spr && ENEMY_ART[o.type]) {
-            const art = ENEMY_ART[o.type];
+            spr = this.cache.get(crowdImage(o.tint, o.id, o.front), h, { flip: o.flipFix, hypno: true });
+          } else if (!spr && art) {
             const img = o.front && art.front && images[art.front] ? art.front : art.img;
-            spr = this.cache.get(img, h, { ...art, flip: o.flipFix, flash: o.flash > 0 });
+            spr = this.cache.get(img, h, { ...art, flip: o.flipFix });
           }
-          if (!spr) spr = this.sprite(o.type === 'isca' ? 'golpista' : o.type, variant, h, o.flash > 0);
+          // o boneco desenhado em código já vem com o brilho de dano; os sprites ganham o brilho em blit()
+          let flash = o.flash > 0;
+          if (!spr) {
+            spr = this.sprite(o.type === 'isca' ? 'golpista' : o.type, variant, h, flash);
+            flash = false;
+          }
           o.stepPhase = o.stepPhase ?? (o.id % 7) * 0.9;
           const bob = Math.abs(Math.sin(o.walk)) * h * 0.035;
           if (o.type === 'isca' || o.type === 'golpista') {
@@ -202,7 +210,7 @@ export class Renderer {
           }
           if (o.elite) drawEliteRing(ctx, pt, ppu, cam.k, o, t);
           if (animated) {
-            ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy, spr.cssW, spr.cssH);
+            blit(ctx, spr, pt.x, pt.y, flash);
           } else {
             // passada mecânica: o corpo balança a partir dos pés (recortes de pose única)
             const sw = Math.sin(o.walk * 1.6 + o.stepPhase);
@@ -210,7 +218,7 @@ export class Renderer {
             ctx.translate(pt.x, pt.y - bob);
             ctx.rotate(sw * (o.boss ? 0.03 : 0.075));
             ctx.scale(1, 1 + Math.abs(sw) * 0.03);
-            ctx.drawImage(spr, -spr.ox, -spr.oy, spr.cssW, spr.cssH);
+            blit(ctx, spr, 0, 0, flash);
             ctx.restore();
           }
           ctx.globalAlpha = 1;
@@ -604,6 +612,21 @@ function roundRect(g, x, y, w, h, r) {
 }
 
 // Boneco genérico: sombra, pernas, tronco, cabeça + acessório da família.
+/**
+ * Desenha um sprite pronto com os pés em (x, y). Com flash (golpe recebido), desenha de novo somando
+ * a cor: o boneco clareia sem precisar de uma cópia branca de cada quadro no cache.
+ */
+function blit(ctx, spr, x, y, flash) {
+  ctx.drawImage(spr, x - spr.ox, y - spr.oy, spr.cssW, spr.cssH);
+  if (!flash) return;
+  const a = ctx.globalAlpha;
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = a * 0.85;
+  ctx.drawImage(spr, x - spr.ox, y - spr.oy, spr.cssW, spr.cssH);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = a;
+}
+
 function drawPuppet(g, kind, variant, W, H, flash) {
   const shadowW = W * 0.42;
   g.fillStyle = COLORS.shadow;

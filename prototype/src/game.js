@@ -875,6 +875,8 @@ export class Game {
         this.updateBoss(e, dt);
       }
 
+      e.mx = mx; // direção em que anda (o desenho vira o corpo para ela)
+      e.my = my;
       const sandMul = this.map.bounded && e.x > this.map.sandX ? this.map.enemySandMul : 1;
       e.x += (mx * spd * sandMul + e.kx) * dt;
       e.y += (my * spd * sandMul + e.ky) * dt;

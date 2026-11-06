@@ -26,8 +26,8 @@ npm test                                   # testes de unidade + partidas simula
 npm start                                  # servidor local (mostra o endereço para o celular)
 node tools/balance-report.mjs 20 alternar  # 20 partidas com o bot (aceitar | recusar, --reviver, --sem-desvio)
 node tools/build-single.mjs                # gera dist/brasil-estado-de-caos.html (arquivo único)
-python3 -I tools/montar-atlas-telespectador.py <pacote> prototype/assets/personagens/telespectador_x <pasta-nova> x
-                                           # atlas 16×6 + pose de acordado de um telespectador (Pillow, numpy, opencv)
+python3 -I tools/montar-atlas.py <pacote> prototype/assets/personagens/<pasta> <pasta-nova> x
+                                           # atlas 16×6 de caminhada (+ pose de acordado na horda); Pillow, numpy, opencv
 ```
 
 Rode `npm test` antes de qualquer commit.

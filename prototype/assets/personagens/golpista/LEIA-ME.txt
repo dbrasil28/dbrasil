@@ -1,0 +1,11 @@
+GOLPISTA DIGITAL — LOCOMOCAO
+
+4folhas PNG1536x1024,grade6x4,celulas256x256.
+96sprites individuais,16direcoes x6quadros.
+16previas APNG e1previa geral,6quadros em loop.
+0frente;90direita;180costas;270esquerda.
+Reproduzir colunas00a05 em ciclo; linhas selecionam direcao. Manter fase ao trocar direcao.
+Celular na mao direita; braco esquerdo acompanha passada.
+Zigue-zague e Perfil Falso sao controlados no codigo do jogo.
+Extrair os3ZIPs na mesma pasta.
+Arte possui pequenas variacoes de registro e nao foi testada no motor.
