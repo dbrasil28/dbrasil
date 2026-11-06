@@ -381,6 +381,8 @@ Objeto de cenário em vista 3/4 de cima (~50°), base do objeto embaixo e centra
 
 #### Cenário vivo (pedido de 06/11/2026) · Leva 2
 
+**Já pintado em canvas (06/11/2026):** carros (branco, prata, vermelho com "vende-se", preto com pneu furado, táxi, azul amassado), ônibus (azul e verde), banca de jornal, carrinhos de milho e de picolé, bancos, lixeiras, orelhões (laranja e azul), muros pichados (um com a bandeira, um com grafite), tapumes com cartazes e as barracas de açaí, pastelaria e boteco. Os PNG transparentes (128 px por metro, câmera a 55°) estão em `docs/arte/cenario_orla/`, com a prancha `prancha.png`; o jogo usa a versão WebP de `prototype/assets/cenario/orla/`. Para trocar por arte do ChatGPT, gere a imagem com o mesmo enquadramento e as medidas de `prototype/src/arte_cenario.js` e salve por cima do WebP. O ateliê fica em `tools/arte/`.
+
 Já está no jogo desenhado em código; estas imagens substituem o provisório. Mesmo prompt base acima. Onde há texto (letreiro, placa, cartaz), peça **sem texto**: o jogo escreve por cima.
 
 | Arquivo | Altura no jogo | `[OBJETO]` |

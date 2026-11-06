@@ -4,6 +4,7 @@
 // Cada objeto vira um bitmap guardado (o desenho não muda com a posição); sai quando a arte chegar.
 import { CANDIDATOS, PIXOS, FIGURAS, lowerBound } from './cenario.js';
 import { images } from './sprites.js';
+import { ART, ART_S, artKey, artFile } from './arte_cenario.js';
 import { hash2 } from './math.js';
 
 const FONT = '"Barlow Semi Condensed", "Arial Narrow", sans-serif';
@@ -63,6 +64,18 @@ function sprite(p, ppu, k, dpr) {
 export function drawCenario(ctx, p, cam, ppu, dpr, t, alpha = 1, playerPx = 0) {
   cam.toScreen(p.x0, p.y1, pt);
   if (DIRECT.has(p.kind)) return drawOverhead(ctx, p, cam, ppu, t);
+  // arte pintada (PNG do ateliê), quando existe: mesma origem (canto da frente, à esquerda, no chão)
+  const A = ART[p.kind];
+  if (A) {
+    const im = images[artKey(p.kind, artFile(p.kind, p.v))];
+    if (im) {
+      const k = ((p.x1 - p.x0) / A.w) * (ppu / ART_S);
+      if (alpha < 1) ctx.globalAlpha = alpha;
+      ctx.drawImage(im, pt.x - A.padX * ART_S * k, pt.y - A.top * ART_S * k, im.width * k, im.height * k);
+      if (alpha < 1) ctx.globalAlpha = 1;
+      return;
+    }
+  }
   let q = p;
   if (FIGURAS.has(p.kind) && playerPx) {
     // figuras no tamanho dos personagens (que seguem a altura do Juninho na tela, não o metro)

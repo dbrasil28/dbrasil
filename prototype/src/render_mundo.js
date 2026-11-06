@@ -2,6 +2,8 @@
 // tapume da escadaria, setas da rota, mira do traficante e balas. Sai quando a arte do guia chegar.
 import { ROUTE } from './config.js';
 import { inside, deliveryPoint } from './mundo.js';
+import { images } from './sprites.js';
+import { ART, ART_S, artKey } from './arte_cenario.js';
 
 const a = { x: 0, y: 0 };
 const b = { x: 0, y: 0 };
@@ -210,6 +212,25 @@ export function drawPlace(ctx, pl, cam, ppu) {
   const look = PLACE_LOOK[pl.kind];
   if (!look || !pl.counter) return;
   const k = pl.counter;
+  // barraca solta no meio do calçadão com arte pintada: a imagem e o nome na placa do toldo
+  const art = pl.side === 'meio' ? ART[`barraca_${pl.kind}`] : null;
+  const im = art && images[artKey(`barraca_${pl.kind}`, art.files[0])];
+  if (im) {
+    cam.toScreen(k.x0, k.y1, a);
+    const s = ((k.x1 - k.x0) / art.w) * (ppu / ART_S);
+    ctx.drawImage(im, a.x - art.padX * ART_S * s, a.y - art.top * ART_S * s, im.width * s, im.height * s);
+    const label = pl.sign || pl.kind.toUpperCase();
+    const fs = Math.max(8, ppu * 0.3);
+    ctx.font = `900 ${fs}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = look.letra;
+    const cx = a.x + ((k.x1 - k.x0) / 2) * ppu;
+    const cy = a.y + 0.36 * ppu * cam.k - 2.77 * ppu;
+    ctx.fillText(label, cx, cy, 1.9 * ppu);
+    ctx.textBaseline = 'alphabetic';
+    return;
+  }
   const hp = 1.1 * ppu;
   cam.toScreen(k.x0, k.y1, a);
   cam.toScreen(k.x1, k.y1, b);
