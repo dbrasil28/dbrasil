@@ -44,7 +44,7 @@ export const ENEMIES = {
   },
   burocrata: {
     name: 'Burocrata-Monstro',
-    hp: 24, speed: 1.4, dmg: 7, radius: 0.32, size: 1.05, xp: 3,
+    hp: 24, speed: 1.4, dmg: 7, radius: 0.32, size: 1.25, xp: 3, // maior que a horda, menor que os elites
     behavior: 'ranged', range: 5.5, fireEvery: 3.2,
     windupS: 0.45, // mira parado, com a pose de ataque e o "!", antes de soltar
     throwPoseS: 0.25, // a pose de ataque continua este tempo depois de soltar
