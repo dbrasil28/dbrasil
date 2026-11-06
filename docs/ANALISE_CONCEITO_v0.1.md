@@ -41,7 +41,7 @@ O pacote diz "não transformar vítimas reais em piada" e "humor deve mirar abus
 - **Plateia hipnotizada:** a horda são *Telespectadores Hipnotizados* pela TV Caos ou pela Fake News. As armas os "desligam" (caem, piscam, acordam e saem andando) em vez de explodir. O gore fica reservado para políticos, especuladores e burocratas-monstro, que são as estruturas.
 - **Horda institucional:** a horda base vira agentes do sistema, como fiscais, seguranças privados, robôs de aplicativo e cabos eleitorais pagos. O cidadão aparece só como *vítima a proteger*, e isso também pode virar mecânica.
 
-O protótipo mantém o "Cidadão Revoltado" para seguir o documento. Trocar é só mudar nome e visual em `prototype/src/config.js`.
+**Decidido em 06/11/2026:** adotada a plateia hipnotizada. O Telespectador Hipnotizado acorda em vez de morrer (spec em `docs/design/MECH-001_telespectador.md`).
 
 ### 2. Nomes e referências reais (lojas e jurídico)
 
@@ -56,14 +56,14 @@ As regras da App Store proíbem que os inimigos de um jogo tenham como alvo excl
 | Termo **"Fatality"** | Associado a uma marca de jogos de luta | "Finalização", "Despejo", "Execução Sumária" |
 | "Mortal Kombat" como referência | Só pode ser referência interna | Não usar o nome em loja, trailer ou material de imprensa |
 
-No protótipo, a arma aparece como "Chinelo Voador" e o termo "Fatality" não é usado. Os pontos jurídicos merecem uma conversa com advogado antes de qualquer material público.
+**Decidido em 06/11/2026:** todas as trocas da tabela foram adotadas, mais "Deputado Valdemar" virando "Deputado Godofredo". Ver `docs/design/ELENCO_E_NOMES_v0.2.md`. Os pontos jurídicos ainda merecem uma conversa com advogado antes de qualquer material público.
 
 ### 3. Retrato: menos tempo de reação nas laterais
 
 A tela de **Ajustes de teste** do protótipo mostra a área visível e o tempo de reação calculados para o aparelho. Num iPhone 13 (390×844 pt), com o protagonista em 10%, a câmera a 55° e as ruas retas:
 
 - área visível: **13,7 m de largura × 22,0 m de profundidade**;
-- um Cidadão Revoltado leva **3,4 s** da borda lateral até o jogador e **5,9 s** do topo.
+- um inimigo comum leva **3,4 s** da borda lateral até o jogador e **5,9 s** do topo.
 
 Se os inimigos surgem igualmente de todos os lados, os golpes vão vir principalmente das laterais. Opções para testar:
 
@@ -135,7 +135,7 @@ O spike H06 deveria comparar **1 personagem** em dois pipelines (3D pré-renderi
 | P2 | Audiência avançada | Só o número no ticker |
 | P2 | Finalização de chefe | Não; há só um "despejo" simples com flash |
 
-O conteúdo segue o escopo do MVP: 4 famílias (Cidadão Revoltado, Golpista Digital com Perfis Falsos, Burocrata-Monstro, Fiscal do Impossível), 1 elite (Político Corrupto, que larga Propina e uma Maleta de melhoria), o Rival Patrocinado (consequência de recusar o patrocínio) e o chefe Especulador Imobiliário, que reduz a área útil vendendo lotes.
+O conteúdo segue o escopo do MVP: 4 famílias (Telespectador Hipnotizado, antes Cidadão Revoltado; Golpista Digital com Perfis Falsos, Burocrata-Monstro, Fiscal do Impossível), 1 elite (Político Corrupto, que larga Propina e uma Maleta de melhoria), o Rival Patrocinado (consequência de recusar o patrocínio) e o chefe Especulador Imobiliário, que reduz a área útil vendendo lotes.
 
 ## Descobertas do protótipo
 

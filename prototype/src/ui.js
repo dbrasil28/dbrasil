@@ -404,7 +404,7 @@ export class UI {
     const rows = [
       ['Tempo', formatTime(game.t)],
       ['Nível', String(s.nivel)],
-      ['Abates', s.abates.toLocaleString('pt-BR')],
+      ['Derrubados', s.abates.toLocaleString('pt-BR')],
       ['Caos final', `${s.caos_final}%`],
       ['1ª melhoria', s.primeira_melhoria_s == null ? '—' : `${fmt(s.primeira_melhoria_s)} s`],
       ['Causa', win ? '—' : SOURCE_NAMES[s.causa_da_derrota] || '—'],

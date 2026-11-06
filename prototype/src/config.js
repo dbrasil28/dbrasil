@@ -24,10 +24,12 @@ export const PLAYER = {
 // Famílias de inimigos (4) + elite + chefe. `size` é relativo ao protagonista e
 // multiplicado pelo ajuste "escala dos inimigos" (padrão 75%, faixa 60–80% do GDD).
 export const ENEMIES = {
-  cidadao: {
-    name: 'Cidadão Revoltado',
+  // MECH-001 (docs/design/MECH-001_telespectador.md): horda base hipnotizada pela TV Caos.
+  // Ao ser derrotado ele ACORDA e vai embora; não morre e não sangra.
+  telespectador: {
+    name: 'Telespectador Hipnotizado',
     hp: 10, speed: 2.0, dmg: 9, radius: 0.3, size: 1.0, xp: 1,
-    behavior: 'chase',
+    behavior: 'chase', wakes: true,
   },
   golpista: {
     name: 'Golpista Digital',
@@ -66,6 +68,15 @@ export const ENEMIES = {
   },
 };
 
+// MECH-001: o que acontece quando um telespectador acorda.
+export const WAKE = {
+  walkSpeed: 1.6, // m/s, se afastando do jogador
+  fadeS: 1.4, // s até sumir
+  maxFx: 60, // limite de "acordados" na tela (desempenho)
+  audienceLoss: 0.0008, // milhões de audiência perdidos por telespectador acordado
+  audienceFloor: 0.1, // a audiência nunca cai abaixo disso
+};
+
 // Diretor de spawn guiado pelo Índice de Caos (0–100).
 export const CAOS_BANDS = [
   { min: 0, name: 'NORMALIDADE SUSPEITA' },
@@ -86,7 +97,7 @@ export const DIRECTOR = {
   spawnPerSec: (caos) => 2.2 + caos * 0.2,
   hpScale: (t) => 1 + (t / 600) * 2.2,
   composition(caos) {
-    const list = [{ type: 'cidadao', w: 1 }];
+    const list = [{ type: 'telespectador', w: 1 }];
     if (caos >= 8) list.push({ type: 'golpista', w: 0.16 });
     if (caos >= 28) list.push({ type: 'burocrata', w: 0.14 });
     if (caos >= 45) list.push({ type: 'fiscal', w: 0.1 });
@@ -267,15 +278,15 @@ export function verdictFor(corruption) {
 // Falas da TV Caos (emissora fictícia). A sátira mira estruturas, não vítimas.
 export const TV = {
   start: ['MAIS UM DIA NORMAL NO CENTRO DO DESESPERO', 'ENTREGADOR INICIA TURNO. APP PROMETE "FLEXIBILIDADE"'],
-  firstKill: ['ENTREGADOR REAGE. ESPECIALISTAS DIVIDIDOS'],
-  multikill: ['ENTREGADOR ABRE CAMINHO NA MULTIDÃO. TRÂNSITO MELHORA 3%', 'É PRODUTIVIDADE OU IRREGULARIDADE? VOTE NO NOSSO APP'],
+  firstKill: ['TELESPECTADOR ACORDA E MUDA DE CANAL. EMISSORA CHAMA DE "INCIDENTE ISOLADO"'],
+  multikill: ['ENTREGADOR DESLIGA A PLATEIA INTEIRA. EMISSORA PEDE CALMA', 'AUDIÊNCIA EM QUEDA: ENTREGADOR ACORDA MAIS UM QUARTEIRÃO'],
   lowHp: ['AO VIVO: ENTREGADOR À BEIRA DO COLAPSO. AUDIÊNCIA DISPARA', 'APP AVISA: ATRASO PODE GERAR PUNIÇÃO'],
   levelUp: ['ENTREGADOR SE ESPECIALIZA. MERCADO EXIGE MAIS', 'NOVA HABILIDADE! AINDA SEM CARTEIRA ASSINADA'],
   burocrata: ['NOVA EXIGÊNCIA: FORMULÁRIO EM TRÊS VIAS'],
   fiscal: ['ENTREGADOR MULTADO POR EXCESSO DE ESFORÇO', 'FISCAL APLICA MULTA. MOTIVO: "SIM"'],
   elite: ['POLÍTICO APARECE PARA FOTO. TRAZ MALETA'],
   propina: ['ENTREGADOR É FLAGRADO COM DINHEIRO VIVO. "ERA GORJETA", DIZ'],
-  wave: (dir) => [`MANIFESTAÇÃO SE APROXIMA PELO ${dir}`],
+  wave: (dir) => [`PLATEIA HIPNOTIZADA SE APROXIMA PELO ${dir}`, `FIM DA NOVELA: TELESPECTADORES SAEM PELO ${dir}`],
   bossWarn: ['URGENTE: ESPECULADOR ANUNCIA "REVITALIZAÇÃO" DA ÁREA'],
   boss: ['MORADORES? QUE MORADORES? ESPECULADOR CHEGA AO CENTRO'],
   lot: ['LOTE VENDIDO. ÁREA AGORA É PRIVADA', 'MAIS UM TERRENO "REVITALIZADO"'],

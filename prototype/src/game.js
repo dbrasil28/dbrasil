@@ -3,7 +3,7 @@ import { Camera } from './camera.js';
 import { SpatialHash } from './spatial.js';
 import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
-  SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, xpToNext, caosBand,
+  SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, xpToNext, caosBand,
 } from './config.js';
 import { fireWeapon, updateProjectiles, updateZones } from './weapons.js';
 import { rollOptions, applyOption, playerStats } from './upgrades.js';
@@ -51,7 +51,7 @@ export class Game {
     this.lots = [];
     this.gems = [];
     this.pickups = [];
-    this.fx = { particles: [], rings: [], numbers: [], decals: [] };
+    this.fx = { particles: [], rings: [], numbers: [], decals: [], woken: [] };
     this.outbox = [];
 
     this.caos = 0;
@@ -217,7 +217,7 @@ export class Game {
   spawnCommon() {
     const comp = DIRECTOR.composition(this.caos);
     let pick = weightedPick(this.rng, comp).type;
-    if (pick === 'burocrata' && this.countType('burocrata') >= DIRECTOR.maxBurocratas) pick = 'cidadao';
+    if (pick === 'burocrata' && this.countType('burocrata') >= DIRECTOR.maxBurocratas) pick = 'telespectador';
     const ang = this.rng() * Math.PI * 2;
     const p = this.edgePoint(ang, 30 + this.rng() * 60);
     this.spawnEnemy(pick, p.x, p.y);
@@ -251,7 +251,7 @@ export class Game {
       if (this.enemies.length >= this.settings.maxEnemies + 60) break;
       const a = this.rng() * Math.PI * 2;
       const r = Math.sqrt(this.rng()) * 3.2;
-      const e = this.spawnEnemy('cidadao', base.x + Math.cos(a) * r, base.y + Math.sin(a) * r);
+      const e = this.spawnEnemy('telespectador', base.x + Math.cos(a) * r, base.y + Math.sin(a) * r);
       e.speed *= 1.15;
     }
   }
@@ -319,24 +319,40 @@ export class Game {
     this.kills++;
     this.metrics.killsByType[e.type] = (this.metrics.killsByType[e.type] || 0) + 1;
     this.recentKills.push(this.t);
-    this.audience += e.elite ? 0.05 : 0.0012;
+    const def = ENEMIES[e.type];
+    // a TV ganha audiência com espetáculo (elites) e perde cada telespectador que acorda
+    if (def.wakes) this.audience = Math.max(WAKE.audienceFloor, this.audience - WAKE.audienceLoss);
+    else this.audience += e.elite ? 0.05 : 0.0012;
     if (this.kills === 1) this.tv('firstKill');
 
-    const def = ENEMIES[e.type];
     if (def.xp) this.dropGem(e.x, e.y, def.xp);
-    if (e.type === 'cidadao' && this.rng() < 0.012 && this.pickups.filter((p) => p.kind === 'pastel').length < 3) {
+    if (e.type === 'telespectador' && this.rng() < 0.012 && this.pickups.filter((p) => p.kind === 'pastel').length < 3) {
       this.pickups.push({ kind: 'pastel', x: e.x, y: e.y, t: 0 });
     }
     if (e.elite && !e.boss) {
       this.pickups.push({ kind: 'propina', x: e.x + 0.6, y: e.y, t: 0 });
       this.pickups.push({ kind: 'maleta', x: e.x - 0.6, y: e.y, t: 0, magnet: true });
     }
-    this.burst(e.x, e.y, e.elite ? 26 : 9, 'blood');
-    if (this.settings.gore && this.fx.decals.length < 140) {
-      this.fx.decals.push({ x: e.x, y: e.y, r: (e.elite ? 0.8 : 0.4) * (0.7 + this.rng() * 0.6), t: 0, rot: this.rng() * 6 });
+    if (def.wakes) this.wake(e);
+    else {
+      this.burst(e.x, e.y, e.elite ? 26 : 9, 'blood');
+      if (this.settings.gore && this.fx.decals.length < 140) {
+        this.fx.decals.push({ x: e.x, y: e.y, r: (e.elite ? 0.8 : 0.4) * (0.7 + this.rng() * 0.6), t: 0, rot: this.rng() * 6 });
+      }
     }
 
     if (e.boss) this.bossDefeated();
+  }
+
+  /** MECH-001: o telespectador acorda, para de lutar e vai embora (efeito visual, sem colisão). */
+  wake(e) {
+    this.burst(e.x, e.y, 6, 'static');
+    if (this.fx.woken.length >= WAKE.maxFx) this.fx.woken.shift();
+    const p = this.player;
+    const dx = e.x - p.x;
+    const dy = e.y - p.y;
+    const l = Math.hypot(dx, dy) || 1;
+    this.fx.woken.push({ x: e.x, y: e.y, vx: (dx / l) * WAKE.walkSpeed, vy: (dy / l) * WAKE.walkSpeed, t: 0, tint: e.tint, walk: e.walk });
   }
 
   bossDefeated() {
@@ -346,7 +362,8 @@ export class Game {
     for (const o of this.enemies) {
       if (!o.dead) {
         o.dead = true;
-        this.burst(o.x, o.y, 4, 'blood');
+        if (ENEMIES[o.type].wakes) this.wake(o);
+        else this.burst(o.x, o.y, 4, 'blood');
       }
     }
     this.tv('victory');
@@ -860,7 +877,7 @@ export class Game {
       const off = this.rng() * Math.PI * 2;
       for (let i = 0; i < n; i++) {
         const a = off + (i / n) * Math.PI * 2;
-        this.spawnEnemy('cidadao', p.x + Math.cos(a) * 6.5, p.y + Math.sin(a) * 6.5);
+        this.spawnEnemy('telespectador', p.x + Math.cos(a) * 6.5, p.y + Math.sin(a) * 6.5);
       }
     }
   }
@@ -931,6 +948,13 @@ export class Game {
 
   updateFx(dt) {
     const fx = this.fx;
+    for (const w of fx.woken) {
+      w.t += dt;
+      w.x += w.vx * dt;
+      w.y += w.vy * dt;
+      w.walk += dt * 5;
+    }
+    if (fx.woken.length && fx.woken[0].t >= WAKE.fadeS) fx.woken = fx.woken.filter((w) => w.t < WAKE.fadeS);
     for (const q of fx.particles) {
       q.t += dt;
       q.x += q.vx * dt;

@@ -16,6 +16,7 @@ Status: **pré-produção, Fase 0** (protótipo de arena cinza).
 | `docs/MONETIZACAO_ANUNCIOS.md` | Modelo de publicidade: onde entram os anúncios, regras de frequência, políticas das redes e pilha técnica |
 | `docs/SKILLS_EQUIPE_GAMES.md` | Pesquisa de skills de Claude Code para construtor, designer e QA de games |
 | `docs/DECISOES.md` | Registro de decisões |
+| `docs/design/` | Specs de mecânica (MECH-001) e elenco com os nomes v0.2 |
 | `.claude/` | Skills e agentes de game dev instalados no projeto (ver `CLAUDE.md`) |
 | `prototype/` | Protótipo jogável (HTML + JavaScript, sem dependências) |
 | `tools/` | Servidor local, empacotador em arquivo único e relatório de balanceamento |
@@ -37,7 +38,7 @@ node tools/build-single.mjs                 # gera dist/brasil-estado-de-caos.ht
 
 - Partida de **10 minutos** no Centro do Desespero: a TV avisa do chefe aos 07:50 e o **Especulador Imobiliário** chega aos 08:00, vendendo lotes que fecham a arena.
 - **Juninho** com 6 armas (Capacete Bumerangue, Chinelo Voador, Boleto Atrasado, Carimbo Oficial, Maleta de Dinheiro, Microfone de TV), 6 passivas e 1 evolução (**Entrega Expressa**).
-- 4 famílias de inimigos (Cidadão Revoltado, Golpista Digital e seus Perfis Falsos, Burocrata-Monstro, Fiscal do Impossível), a elite Político Corrupto e o Rival Patrocinado.
+- 4 famílias de inimigos (Telespectador Hipnotizado, que acorda em vez de morrer; Golpista Digital e seus Perfis Falsos, Burocrata-Monstro, Fiscal do Impossível), a elite Político Corrupto e o Rival Patrocinado.
 - **Índice de Caos** como diretor de hordas, com quatro faixas: Normalidade Suspeita, Crise, Colapso Institucional e Estado de Calamidade.
 - **Corrupção:** 3 propostas com ganho e custo explícitos, Propina opcional e um veredito no fim ("Inocente (por enquanto)" … "Virou o sistema").
 - **TV Caos:** ticker com manchetes contextuais e a Audiência como número.

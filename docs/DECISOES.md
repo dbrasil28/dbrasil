@@ -14,9 +14,10 @@ Continua o registro do pacote de conceito (`docs/concept-v0.1/06_Decisoes_e_Ques
 | D08 | 06/11/2026 | Referência visual | Último mockup em retrato é a melhor direção atual | Decidido (conceito) |
 | D09 | 06/11/2026 | Negócio | Gratuito com publicidade, nos moldes do Marble Division. Detalhes em `MONETIZACAO_ANUNCIOS.md` | Decidido |
 | D10 | 06/11/2026 | Pilha técnica | Jogo web empacotado com Capacitor e AdMob, a mesma pilha do Marble Division | Proposta: confirmar depois do teste de desempenho no Capacitor |
+| D12 | 06/11/2026 | Horda base | Telespectador Hipnotizado, que acorda em vez de morrer; gore só para inimigos do sistema. Spec: `design/MECH-001_telespectador.md` | Adotado (recomendação seguida com "siga"); falta o AC-8 em playtest |
+| D13 | 06/11/2026 | Nomes | Todos os nomes fictícios; trocas em `design/ELENCO_E_NOMES_v0.2.md` | Adotado (recomendação seguida com "siga") |
 | D11 | 06/11/2026 | Ferramentas | Skills de game dev instaladas no projeto (GameForge + agentes de design do Claude Code Game Studios), sem hooks | Feito |
 
-## Pendentes (precisam de decisão do autor)
+## Pendentes
 
-- Quem é a horda base (ponto 1 da análise).
-- Troca dos nomes que apontam para coisas reais (ponto 2 da análise).
+- Confirmar a pilha técnica (D10) depois do teste de desempenho no Capacitor.

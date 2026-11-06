@@ -12,7 +12,7 @@ const killPlayer = (game) => {
 
 test('morte oferece segunda chance uma vez; assistir revive com 50% e invulnerável', () => {
   const game = new Game({ ...defaultSettings() }, { seed: 2 });
-  for (let i = 0; i < 5; i++) game.spawnEnemy('cidadao', game.player.x + 1, game.player.y);
+  for (let i = 0; i < 5; i++) game.spawnEnemy('telespectador', game.player.x + 1, game.player.y);
   killPlayer(game);
   assert.equal(game.modal?.kind, 'revive');
   assert.equal(game.over, null);
@@ -23,7 +23,7 @@ test('morte oferece segunda chance uma vez; assistir revive com 50% e invulnerá
   assert.ok(game.player.invulnT > 0);
   assert.equal(game.enemies.filter((e) => !e.dead && !e.elite).length, 0, 'inimigos em volta deveriam cair');
   const hp = game.player.hp;
-  game.hurtPlayer(50, 'cidadao');
+  game.hurtPlayer(50, 'telespectador');
   assert.equal(game.player.hp, hp, 'tomou dano invulnerável');
   // segunda morte: sem nova oferta
   game.player.invulnT = 0;

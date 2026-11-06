@@ -1,6 +1,6 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES } from './config.js';
+import { ENEMIES, WAKE } from './config.js';
 
 const pt = { x: 0, y: 0 };
 const pt2 = { x: 0, y: 0 };
@@ -15,7 +15,8 @@ const COLORS = {
   player: '#e5252f',
   playerDark: '#8f1018',
   skin: '#c98d64',
-  cidadao: ['#9a8a5a', '#6f7f62', '#7d6a8a', '#8a6f5e'],
+  telespectador: ['#9a8a5a', '#6f7f62', '#7d6a8a', '#8a6f5e'],
+  hypno: '#8fb4ff', // brilho de tela no rosto
   burocrata: '#5f6f86',
   golpista: '#2b2633',
   neon: '#36f0e0',
@@ -92,6 +93,7 @@ export class Renderer {
     const ppu = cam.ppu;
     const playerPx = settings.playerPct / 100 * (cam.playBottom - cam.playTop);
     const enemyMul = settings.enemyPct / 100;
+    this.enemyMul = enemyMul;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     let sx = 0;
@@ -152,7 +154,7 @@ export class Renderer {
         case 'enemy': {
           const def = ENEMIES[o.type];
           const h = playerPx * def.size * enemyMul;
-          const variant = o.type === 'cidadao' ? o.tint : 0;
+          const variant = o.type === 'telespectador' ? o.tint : 0;
           const spr = this.sprite(o.type === 'isca' ? 'golpista' : o.type, variant, h, o.flash > 0);
           const bob = Math.abs(Math.sin(o.walk)) * h * 0.035;
           if (o.type === 'isca' || o.type === 'golpista') {
@@ -377,11 +379,26 @@ export class Renderer {
 
   drawFx(ctx, game, ppu, playerPx) {
     const cam = game.camera;
+    const enemyH = playerPx * ENEMIES.telespectador.size * (this.enemyMul || 0.75);
+    for (const w of game.fx.woken) {
+      cam.toScreen(w.x, w.y, pt);
+      const spr = this.sprite('acordado', w.tint || 0, enemyH, false);
+      ctx.globalAlpha = Math.max(0, 1 - w.t / WAKE.fadeS) * 0.85;
+      const bob = Math.abs(Math.sin(w.walk)) * enemyH * 0.03;
+      ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy - bob, spr.cssW, spr.cssH);
+      if (w.t < 0.6) {
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `900 ${Math.max(12, enemyH * 0.32)}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('?', pt.x + enemyH * 0.25, pt.y - enemyH - 2);
+      }
+    }
+    ctx.globalAlpha = 1;
     for (const q of game.fx.particles) {
       cam.toScreen(q.x, q.y, pt);
       const a = 1 - q.t / q.life;
       ctx.globalAlpha = a;
-      ctx.fillStyle = q.kind === 'glitch' ? COLORS.neon : COLORS.blood;
+      ctx.fillStyle = q.kind === 'glitch' ? COLORS.neon : q.kind === 'static' ? (q.x * 7 % 1 > 0.5 ? '#ffffff' : COLORS.hypno) : COLORS.blood;
       const s = Math.max(2, playerPx * 0.05);
       ctx.fillRect(pt.x - s / 2, pt.y - q.z * ppu - s / 2, s, s);
     }
@@ -484,8 +501,9 @@ function drawPuppet(g, kind, variant, W, H, flash) {
       shirt = COLORS.player;
       pants = '#25222a';
       break;
-    case 'cidadao':
-      shirt = COLORS.cidadao[variant % 4];
+    case 'telespectador':
+    case 'acordado':
+      shirt = COLORS.telespectador[variant % 4];
       pants = '#3c3a40';
       break;
     case 'burocrata':
@@ -575,22 +593,37 @@ function drawPuppet(g, kind, variant, W, H, flash) {
     roundRect(g, bodyW * 0.3, -legH - torsoH * 1.05, bodyW * 0.32, torsoH * 0.5, 2);
     g.fill();
   }
-  if (kind === 'cidadao') {
-    // punho levantado
+  if (kind === 'telespectador') {
+    // braços esticados para a frente, andar de sonâmbulo
     g.fillStyle = COLORS.skin;
-    g.beginPath();
-    g.arc(bodyW * 0.62, -legH - torsoH * 1.15, headR * 0.55, 0, Math.PI * 2);
-    g.fill();
-    g.fillRect(bodyW * 0.5, -legH - torsoH * 1.1, bodyW * 0.18, torsoH * 0.6);
+    g.fillRect(bodyW * 0.3, -legH - torsoH * 0.92, bodyW * 0.62, torsoH * 0.16);
+    g.fillRect(bodyW * 0.3, -legH - torsoH * 0.68, bodyW * 0.56, torsoH * 0.16);
+  }
+  if (kind === 'acordado') {
+    // mão na cabeça: "onde eu estou?"
+    g.fillStyle = COLORS.skin;
+    g.fillRect(bodyW * 0.32, -legH - torsoH * 1.25, bodyW * 0.18, torsoH * 0.7);
   }
 
   // cabeça
   const hy = -legH - torsoH - headR * 0.9;
+  if (kind === 'telespectador') {
+    // halo azul de tela em volta da cabeça
+    g.fillStyle = 'rgba(143,180,255,0.35)';
+    g.beginPath();
+    g.arc(0, hy, headR * 1.7, 0, Math.PI * 2);
+    g.fill();
+  }
   g.fillStyle = COLORS.skin;
   g.beginPath();
   g.arc(0, hy, headR, 0, Math.PI * 2);
   g.fill();
   g.stroke();
+  if (kind === 'telespectador') {
+    // olhos vidrados (faixa azul brilhante)
+    g.fillStyle = COLORS.hypno;
+    g.fillRect(-headR * 0.75, hy - headR * 0.25, headR * 1.5, headR * 0.38);
+  }
 
   if (kind === 'player' || kind === 'playerGold') {
     // capacete vermelho com viseira

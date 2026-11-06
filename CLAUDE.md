@@ -13,6 +13,7 @@ Responda e escreva documentos em **português do Brasil**.
 | Decisões tomadas (registro único) | `docs/DECISOES.md` |
 | Publicidade: pontos de anúncio, regras, políticas | `docs/MONETIZACAO_ANUNCIOS.md` |
 | Roteiro de playtest | `docs/PLAYTEST_FASE0.md` |
+| Specs de mecânica (MECH-xxx) e elenco/nomes | `docs/design/` |
 | Protótipo (HTML + JS, sem dependências) | `prototype/` |
 | Conteúdo e todos os números de balanceamento | `prototype/src/config.js` |
 | Simulação (sem DOM, roda no Node) | `prototype/src/game.js` |

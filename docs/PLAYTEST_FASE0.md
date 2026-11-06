@@ -30,6 +30,7 @@ Ao fim de **cada** partida, toque em **Copiar métricas do teste** e cole numa p
 - [ ] Consegue dizer, olhando a tela, quem é o Juninho, quem é inimigo e o que é item?
 - [ ] Viu o "!" do Burocrata antes da papelada? Conseguiu desviar?
 - [ ] Entendeu por que perdeu XP quando o Fiscal encostou?
+- [ ] Como descreve a horda sem explicação? (MECH-001, AC-8: esperado "hipnotizados pela TV" ou parecido; anote se alguém disser que matou pessoas comuns)
 - [ ] Algum toque acidental nas cartas de melhoria?
 
 **Ritmo e decisões**
