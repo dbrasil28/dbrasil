@@ -3,6 +3,8 @@
 
 export const IMAGES = {
   juninho: 'assets/personagens/juninho.png',
+  // TESTE: atlas de arremesso do Juninho, 16 direções (linhas, 0° = de frente, 90° = direita) × 6 quadros
+  juninho_atlas: 'assets/personagens/juninho_ataque_atlas.webp',
   telespectador_a: 'assets/personagens/telespectador_a.png',
   telespectador_c: 'assets/personagens/telespectador_c.png',
   telespectador_d: 'assets/personagens/telespectador_d.png',
@@ -89,6 +91,7 @@ export function loadImages(onEach) {
     im.decoding = 'async';
     im.onload = () => {
       images[id] = im;
+      if (id === 'juninho_atlas') sliceAtlas(im);
       pending--;
       onEach?.(id);
       resolve();
@@ -103,6 +106,26 @@ export function loadImages(onEach) {
 
 export const imagesReady = () => pending === 0;
 
+export const ATLAS = { cols: 6, rows: 16, cw: 200, ch: 160, figureH: 155 }; // figura ≈ 155 px numa célula de 160
+
+/** Corta o atlas em 96 células (canvas) registradas como imagens `ja_<direção>_<quadro>`. */
+function sliceAtlas(im) {
+  for (let r = 0; r < ATLAS.rows; r++) {
+    for (let f = 0; f < ATLAS.cols; f++) {
+      const c = canvas(ATLAS.cw, ATLAS.ch);
+      c.getContext('2d').drawImage(im, f * ATLAS.cw, r * ATLAS.ch, ATLAS.cw, ATLAS.ch, 0, 0, ATLAS.cw, ATLAS.ch);
+      images[`ja_${r}_${f}`] = c;
+    }
+  }
+}
+
+/** Linha do atlas para uma direção na tela (dx para a direita, dy para baixo). */
+export function atlasRow(dx, dy) {
+  let deg = (Math.atan2(dx, dy) * 180) / Math.PI; // 0 = para baixo (de frente), 90 = direita
+  if (deg < 0) deg += 360;
+  return Math.round(deg / 22.5) % ATLAS.rows;
+}
+
 /** Monta de antemão todas as variações usadas na partida, para não travar no meio dela. */
 export function prewarm(cache, playerPx, enemyPx, sizeOf) {
   // devolve uma fila de tarefas pequenas, feitas aos poucos entre os quadros (sem congelar a tela)
@@ -110,6 +133,12 @@ export function prewarm(cache, playerPx, enemyPx, sizeOf) {
   for (const flip of [false, true]) {
     jobs.push(() => cache.get('juninho', playerPx, { flip, mode: '' }));
     jobs.push(() => cache.get('juninho', playerPx, { flip, mode: 'hurt' }));
+    if (flip) continue;
+    for (let r = 0; r < ATLAS.rows; r++) {
+      for (let f = 0; f < ATLAS.cols; f++) {
+        for (const mode of ['', 'hurt']) jobs.push(() => cache.get(`ja_${r}_${f}`, playerPx * (ATLAS.ch / ATLAS.figureH), { mode, shadowScale: 0.62 }));
+      }
+    }
     for (const id of CROWD) {
       for (const flash of [false, true]) jobs.push(() => cache.get(id, enemyPx, { flip, flash, hypno: true }));
       jobs.push(() => cache.get(id, enemyPx, { mode: 'woken', flip }));
@@ -151,7 +180,7 @@ export class SpriteCache {
     if (!im) return null;
     const flip = opts.flip ? 1 : 0;
     const flash = opts.flash ? 1 : 0;
-    const key = `${imgId}|${Math.round(heightCss)}|${flip}|${flash}|${opts.mode || ''}|${opts.tint ? opts.tint.join() : ''}`;
+    const key = `${imgId}|${Math.round(heightCss)}|${flip}|${flash}|${opts.mode || ''}|${opts.tint ? opts.tint.join() : ''}|${opts.shadowScale || ''}`;
     let c = this.map.get(key);
     if (c) return c;
     c = this.build(im, heightCss, opts);
@@ -166,6 +195,7 @@ export class SpriteCache {
     const w = (im.width / im.height) * h;
     const pad = Math.ceil(4 * s) + (opts.hypno ? Math.ceil(h * 0.12) : 0);
     const shadowH = Math.max(4, h * 0.1);
+    const shadowW = w * 0.42 * (opts.shadowScale || 1);
     const c = canvas(w + pad * 2, h + pad * 2 + shadowH * 0.5);
     const g = c.getContext('2d');
     const footY = pad + h;
@@ -174,7 +204,7 @@ export class SpriteCache {
     // sombra no chão
     g.fillStyle = 'rgba(0,0,0,0.38)';
     g.beginPath();
-    g.ellipse(cx, footY - shadowH * 0.15, w * 0.42, shadowH * 0.5, 0, 0, Math.PI * 2);
+    g.ellipse(cx, footY - shadowH * 0.15, shadowW, shadowH * 0.5, 0, 0, Math.PI * 2);
     g.fill();
 
     // camada do personagem (com espelhamento e tratamentos)

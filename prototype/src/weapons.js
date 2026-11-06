@@ -37,6 +37,14 @@ export function fireWeapon(game, w, ps) {
     case 'entrega': {
       const targets = nearestEnemies(game, p.x, p.y, 9, st.count);
       if (!targets.length) break;
+      // animação: arma o braço na direção do primeiro alvo
+      const adx = targets[0].x - p.x;
+      const ady = targets[0].y - p.y;
+      const al = Math.hypot(adx, ady) || 1;
+      p.aimX = adx / al;
+      p.aimY = ady / al;
+      p.throwT = 0;
+      p.helmetsOut += st.count;
       for (let i = 0; i < st.count; i++) {
         const t = targets[i % targets.length];
         let ang = Math.atan2(t.y - p.y, t.x - p.x);
@@ -144,7 +152,10 @@ export function updateProjectiles(game, dt) {
         const dx = p.x - pr.x;
         const dy = p.y - pr.y;
         const d = Math.hypot(dx, dy);
-        if (d < 0.5) remove = true;
+        if (d < 0.5) {
+          remove = true;
+          game.helmetBack();
+        }
         else {
           const sp = pr.speed * 1.15;
           pr.vx = (dx / d) * sp;
@@ -174,7 +185,10 @@ export function updateProjectiles(game, dt) {
         }
       }
       // segurança: nunca deixar um capacete perdido para sempre
-      if (Math.hypot(p.x - pr.x, p.y - pr.y) > 30) remove = true;
+      if (Math.hypot(p.x - pr.x, p.y - pr.y) > 30) {
+        remove = true;
+        game.helmetBack();
+      }
     } else if (pr.kind === 'slipper') {
       pr.spin += dt * 22;
       pr.life -= dt;

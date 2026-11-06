@@ -1,0 +1,62 @@
+[
+  {
+    "arquivo": "juninho_ataque_000-067.png",
+    "dimensoes": [
+      1536,
+      1024
+    ],
+    "fracao_alpha_zero": 0.6214,
+    "fracao_alpha_250_ou_mais": 0.2292,
+    "alpha_cantos": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "arquivo": "juninho_ataque_090-157.png",
+    "dimensoes": [
+      1536,
+      1024
+    ],
+    "fracao_alpha_zero": 0.6869,
+    "fracao_alpha_250_ou_mais": 0.1914,
+    "alpha_cantos": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "arquivo": "juninho_ataque_180-247.png",
+    "dimensoes": [
+      1536,
+      1024
+    ],
+    "fracao_alpha_zero": 0.6286,
+    "fracao_alpha_250_ou_mais": 0.2164,
+    "alpha_cantos": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "arquivo": "juninho_ataque_270-337.png",
+    "dimensoes": [
+      1536,
+      1024
+    ],
+    "fracao_alpha_zero": 0.5801,
+    "fracao_alpha_250_ou_mais": 0.2056,
+    "alpha_cantos": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+]

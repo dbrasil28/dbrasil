@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE } from './config.js';
-import { images, SpriteCache, crowdImage, ENEMY_ART, ICON_ART, drawFit } from './sprites.js';
+import { images, SpriteCache, crowdImage, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
 
 const pt = { x: 0, y: 0 };
@@ -267,9 +267,30 @@ export class Renderer {
     const p = game.player;
     // ao levar dano, pisca em vermelho (não em branco, para não sumir na horda)
     const hurtBlink = p.hurtT > 0 && Math.floor(game.t * 16) % 2 === 0;
-    const img = this.cache.get('juninho', playerPx, {
-      flip: p.faceX < 0, mode: hurtBlink ? 'hurt' : '', tint: game.corruption >= 50 ? [232, 182, 44, 0.22] : null,
-    });
+    let img = null;
+    if (images.ja_0_0) {
+      // TESTE do atlas: direção pela mira durante o arremesso, senão pelo movimento
+      const aiming = p.throwT < 0.6 || p.catchT < 0.25 || p.helmetsOut > 0;
+      const fx = aiming ? p.aimX : p.faceX;
+      const fy = aiming ? p.aimY : p.faceY;
+      const cam = game.camera;
+      cam.toScreen(p.x + fx, p.y + fy, pt2);
+      const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+      let frame = 0; // capacete na mão
+      if (p.throwT < 0.08) frame = 1; // arma o braço
+      else if (p.throwT < 0.2) frame = 2; // solta
+      else if (p.catchT < 0.09) frame = 4; // estende para pegar
+      else if (p.catchT < 0.22) frame = 5; // pegou
+      else if (p.helmetsOut > 0) frame = 3; // mãos livres, capacete em voo
+      img = this.cache.get(`ja_${row}_${frame}`, playerPx * (ATLAS.ch / ATLAS.figureH), {
+        mode: hurtBlink ? 'hurt' : '', tint: game.corruption >= 50 ? [232, 182, 44, 0.22] : null, shadowScale: 0.62,
+      });
+    }
+    if (!img) {
+      img = this.cache.get('juninho', playerPx, {
+        flip: p.faceX < 0, mode: hurtBlink ? 'hurt' : '', tint: game.corruption >= 50 ? [232, 182, 44, 0.22] : null,
+      });
+    }
     const spr = img || this.sprite(game.corruption >= 50 ? 'playerGold' : 'player', p.faceX < 0 ? 1 : 0, playerPx, hurtBlink);
     const bob = p.moving ? Math.abs(Math.sin(game.t * 11)) * playerPx * 0.04 : 0;
     const invulnBlink = p.invulnT > 0 && Math.floor(game.t * 12) % 2 === 0 ? 0.45 : 1;

@@ -40,6 +40,8 @@ export class Game {
       x: 0, y: 0, r: PLAYER.radius, hp: PLAYER.hp, level: 1, xp: 0, xpNext: xpToNext(1),
       weapons: [{ id: 'capacete', level: 1, cd: 0.4 }], passives: [],
       faceX: 1, faceY: 0, moving: false, slowT: 0, hurtT: 0, invulnT: 0, bonusDmg: 0, vx: 0, vy: 0,
+      // animação do arremesso (atlas de teste): tempo desde o disparo / desde a pegada, capacetes em voo e mira
+      throwT: 9, catchT: 9, helmetsOut: 0, aimX: 1, aimY: 0,
     };
     this.reviveUsed = false;
     this.rerollsLeft = this.settings.ads ? ADS.rerollsPerRun : 0;
@@ -552,6 +554,13 @@ export class Game {
     this.shake(0.4);
   }
 
+  /** Um capacete voltou para a mão (animação de pegar). */
+  helmetBack() {
+    const p = this.player;
+    p.helmetsOut = Math.max(0, p.helmetsOut - 1);
+    p.catchT = 0;
+  }
+
   /** Troca as 3 cartas da escolha atual (anúncio recompensado). */
   rerollOptions() {
     const m = this.modal;
@@ -682,6 +691,8 @@ export class Game {
     this.clampToMap(p);
     if (p.hurtT > 0) p.hurtT -= dt;
     if (p.invulnT > 0) p.invulnT -= dt;
+    p.throwT += dt;
+    p.catchT += dt;
 
     // dano por contato
     this.hash.query(p.x, p.y, p.r + 1.2, tmp);
