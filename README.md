@@ -15,6 +15,8 @@ Status: **pré-produção, Fase 0** (protótipo de arena cinza).
 | `docs/PLAYTEST_FASE0.md` | Roteiro de teste em aparelho real e critérios para sair da Fase 0 |
 | `docs/MONETIZACAO_ANUNCIOS.md` | Modelo de publicidade: onde entram os anúncios, regras de frequência, políticas das redes e pilha técnica |
 | `docs/SKILLS_EQUIPE_GAMES.md` | Pesquisa de skills de Claude Code para construtor, designer e QA de games |
+| `docs/DECISOES.md` | Registro de decisões |
+| `.claude/` | Skills e agentes de game dev instalados no projeto (ver `CLAUDE.md`) |
 | `prototype/` | Protótipo jogável (HTML + JavaScript, sem dependências) |
 | `tools/` | Servidor local, empacotador em arquivo único e relatório de balanceamento |
 

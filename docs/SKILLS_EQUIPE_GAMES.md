@@ -1,6 +1,8 @@
 # Skills de "equipe de games" para Claude Code
 
-Pesquisa feita em 06/11/2026 para três papéis: **Construtor** (programação), **Designer** (GDD, sistemas, balanceamento) e **QA** (testes, playtest, regressão). Estrelas, licenças e datas foram conferidas na API de busca do GitHub. O conteúdo das skills foi lido nos READMEs e em alguns arquivos SKILL.md de amostra. **Nada foi instalado nem executado.**
+> **Instalado em 06/11/2026:** as skills do GameForge e os 3 agentes de design do Game Studios estão em `.claude/`, sem hooks. Origem e alterações em `.claude/README.md`; uso em `CLAUDE.md`.
+
+Pesquisa feita em 06/11/2026 para três papéis: **Construtor** (programação), **Designer** (GDD, sistemas, balanceamento) e **QA** (testes, playtest, regressão). Estrelas, licenças e datas foram conferidas na API de busca do GitHub. O conteúdo das skills foi lido nos READMEs e em alguns arquivos SKILL.md de amostra.
 
 ## Ranking
 
