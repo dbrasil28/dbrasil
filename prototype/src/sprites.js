@@ -20,6 +20,10 @@ export const IMAGES = {
   burocrata_poses_atlas: 'assets/personagens/burocrata/poses_atlas.webp', // ataque e fúria em 16 direções
   burocrata_papel: 'assets/personagens/burocrata/papel.png', // folha solta da pose de ataque: o projétil
   fiscal_walk_atlas: 'assets/personagens/fiscal/caminhada_atlas.webp', // Fiscal do Impossível
+  politico_walk_atlas: 'assets/personagens/politico/caminhada_atlas.webp', // Político Corrupto (e o Rival, tingido)
+  politico_attack_atlas: 'assets/personagens/politico/ataque_atlas.webp', // arremesso da maleta (quadros 0–3)
+  politico_maleta: 'assets/personagens/politico/maleta_voo.png', // maleta fechada em voo
+  politico_aberta: 'assets/personagens/politico/aberta_dinheiro.png', // maleta aberta com dinheiro: Propina no chão
   telespectador_a: 'assets/personagens/telespectador_a.png',
   telespectador_c: 'assets/personagens/telespectador_c.png',
   telespectador_d: 'assets/personagens/telespectador_d.png',
@@ -75,6 +79,8 @@ export const WALK_ATLAS = {
   gd: { atlas: 'golpista_walk_atlas', prefix: 'gd', figureH: 157 },
   bm: { atlas: 'burocrata_walk_atlas', prefix: 'bm', figureH: 158 },
   fi: { atlas: 'fiscal_walk_atlas', prefix: 'fi', figureH: 158 },
+  pc: { atlas: 'politico_walk_atlas', prefix: 'pc', figureH: 158 },
+  pa: { atlas: 'politico_attack_atlas', prefix: 'pa', figureH: 158 }, // mesma escala da caminhada
 };
 
 /**
@@ -118,8 +124,10 @@ export const ENEMY_ART = {
   // poses: fúria enquanto mira e ataque ao soltar, nas 16 direções; attack/attackH: pose única de reserva
   burocrata: { img: 'burocrata', front: 'burocrata_frente', papers: true, walk: WALK_ATLAS.bm, poses: POSE_ATLAS.bp, attack: 'burocrata_ataque', attackH: 0.92 },
   fiscal: { img: 'fiscal', vest: true, walk: WALK_ATLAS.fi }, // vest pinta o colete só no recorte antigo
-  politico: { img: 'politico' },
-  rival: { img: 'politico', tint: [240, 122, 26, 0.32] },
+  // throwAnim: quadros 0–2 na preparação, 3 ao soltar a maleta
+  politico: { img: 'politico', walk: WALK_ATLAS.pc, throwAnim: WALK_ATLAS.pa },
+  // Rival: o Político tingido de laranja até chegar a arte dele; aparece pouco, então não é preparado antes
+  rival: { img: 'politico', tint: [240, 122, 26, 0.32], walk: WALK_ATLAS.pc, lazy: true },
   especulador: { img: 'especulador', hardhat: true },
 };
 
@@ -221,9 +229,12 @@ export function prewarm(cache, playerPx, enemyPx, sizeOf) {
           for (let c = 0; c < P.cols; c++) jobs.push(() => cache.get(`${P.prefix}_${r}_${c}`, h * (P.ch / P.figureH), POSE_OPTS));
         }
       }
-      if (flip || !art.walk) continue;
+      if (flip || !art.walk || art.lazy) continue;
       for (let r = 0; r < ATLAS.rows; r++) {
         for (let f = 0; f < ATLAS.cols; f++) jobs.push(() => cache.get(`${art.walk.prefix}_${r}_${f}`, h * (ATLAS.ch / art.walk.figureH), enemyWalkOpts(art)));
+        if (art.throwAnim) {
+          for (let f = 0; f < 4; f++) jobs.push(() => cache.get(`${art.throwAnim.prefix}_${r}_${f}`, h * (ATLAS.ch / art.throwAnim.figureH), enemyWalkOpts(art)));
+        }
       }
     }
   }

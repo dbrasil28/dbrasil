@@ -14,7 +14,11 @@ import sys, os, json
 import numpy as np, cv2
 from PIL import Image, ImageDraw
 
-pkg, dst, work, tag = sys.argv[1:5]
+# opções: --near=N (px até onde um pedaço solto, como a maleta no ar, entra na figura; padrão 12)
+#         --like=<atlas_meta.json> (usa o mesmo recorte e a mesma escala de outro atlas, ex.: o de caminhada)
+#         --out=nome (grava nome_atlas.webp e nome_meta.json; padrão: caminhada_atlas.webp e atlas_meta.json)
+flags = dict(a[2:].split('=', 1) for a in sys.argv[1:] if a.startswith('--'))
+pkg, dst, work, tag = [a for a in sys.argv[1:] if not a.startswith('--')][:4]
 os.makedirs(dst, exist_ok=True)
 os.makedirs(work, exist_ok=False)  # pasta nova sempre
 ref = os.path.join(os.path.dirname(os.path.abspath(work)), 'ref')
@@ -22,7 +26,7 @@ os.makedirs(ref, exist_ok=True)
 
 TH = 24          # alfa mínimo para pertencer à figura
 GROW = 3         # px de borda antisserrilhada mantidos em volta da máscara
-NEAR = 12        # fragmento solto (dedo) só entra se estiver a até 12 px da figura
+NEAR = int(flags.get('near', 12))  # fragmento solto (dedo) só entra se estiver a até NEAR px da figura
 PAD = 16         # margem de transparência em volta da folha, para recortes que passam da borda
 CW, CH = 200, 160
 GROUPS = [(1, 0), (2, 90), (3, 180), (4, 270)]
@@ -37,7 +41,8 @@ for sheet, base in GROUPS:
     cwid = (im.shape[1] - 2 * PAD) // 6
     a = im[:, :, 3]
     n, lab, st, _ = cv2.connectedComponentsWithStats((a > TH).astype(np.uint8), connectivity=8)
-    big = [i for i in range(1, n) if st[i, 4] > 2000]
+    # as 24 maiores manchas são as figuras; o resto (dedos, maleta no ar, notas) é pedaço solto
+    big = sorted((i for i in range(1, n) if st[i, 4] > 2000), key=lambda i: -st[i, 4])[:24]
     assert len(big) == 24, (sheet, len(big))
     rows = {}
     for i in big:
@@ -52,8 +57,11 @@ for sheet, base in GROUPS:
         def gap(j):
             X0, Y0, W, H = st[j, 0], st[j, 1], st[j, 2], st[j, 3]
             return max(X0 - (x0 + w), x0 - (X0 + W), 0) + max(Y0 - (y0 + h), y0 - (Y0 + H), 0)
-        j = min(big, key=gap)
-        if gap(j) <= NEAR:
+        # prefere a figura da mesma célula da folha (a maleta no ar é do quadro em que ela está)
+        cell = lambda k: (int((st[k, 0] + st[k, 2] / 2 - PAD) // cwid), int((st[k, 1] + st[k, 3] / 2 - PAD) // rh))
+        same = [j for j in big if cell(j) == cell(i) and gap(j) <= NEAR * 2]
+        j = same[0] if same else min(big, key=gap)
+        if same or gap(j) <= NEAR:
             masks[j] |= lab == i
     for row in range(4):
         ang = base + row * 22.5
@@ -73,6 +81,10 @@ angs = sorted({k[0] for k in figs})
 top = min(v['top'] for v in figs.values())
 feet = max(v['feet'] for v in figs.values())
 TOP, FEET = top - 2, feet + 2  # relativos ao topo da linha da folha; podem passar dela
+if 'like' in flags:
+    like = json.load(open(flags['like']))
+    TOP, FEET = like['top'], like['feet']
+    print(f"recorte e escala de {flags['like']}: y {TOP}..{FEET}")
 scale = CH / (FEET - TOP)
 half = CW / 2 / scale  # meia largura da célula em px da folha
 atlas = Image.new('RGBA', (CW * 6, CH * 16), (0, 0, 0, 0))
@@ -99,9 +111,11 @@ for ri, a in enumerate(angs):
     print(f'{a:6.1f}°  topo-pés {line}')
 for s in notes:
     print('aviso:', s)
-out = os.path.join(dst, 'caminhada_atlas.webp')
+OUT = flags.get('out', 'caminhada')
+out = os.path.join(dst, f'{OUT}_atlas.webp')
+META = os.path.join(dst, 'atlas_meta.json' if OUT == 'caminhada' else f'{OUT}_meta.json')
 atlas.save(out, 'WEBP', quality=86, method=6)
-figH = round((feet - top) * scale)
+figH = round((feet - top) * scale) if 'like' not in flags else like['figureH']
 print(f'recorte y {TOP}..{FEET} da linha; figura ≈ {figH} px na célula de {CH}; atlas {atlas.size} '
       f'{os.path.getsize(out) // 1024} KB; figuras que passam da célula: {clip}')
 
@@ -123,7 +137,7 @@ full = Image.new('RGBA', atlas.size, (70, 70, 70, 255))
 full.alpha_composite(atlas)
 full.convert('RGB').resize((atlas.width // 2, atlas.height // 2)).save(f'{ref}/{tag}_atlas.jpg', quality=85)
 
-json.dump({'figureH': figH, 'top': TOP, 'feet': FEET}, open(os.path.join(dst, 'atlas_meta.json'), 'w'))
+json.dump({'figureH': figH, 'top': TOP, 'feet': FEET}, open(META, 'w'))
 # poses extras (extras/<personagem>_<pose>.png, ex.: telespectador_acordado, burocrata_ataque) viram
 # <pose>.png com 320 px de altura. Ficam os pedaços grandes (papéis soltos, por exemplo); somem os pontinhos.
 exdir = os.path.join(pkg, 'extras')

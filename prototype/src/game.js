@@ -51,6 +51,8 @@ export class Game {
     this.enemies = [];
     this.projectiles = [];
     this.enemyShots = [];
+    this.bribes = []; // maletas do Político em voo
+    this.lures = []; // maletas abertas que atraem a horda por um instante
     this.zones = [];
     this.lots = [];
     this.gems = [];
@@ -67,7 +69,7 @@ export class Game {
     this.spawnAcc = 0;
     this.nextWaveAt = SESSION.firstWaveAt;
     this.pendingWave = null;
-    this.nextEliteAt = SESSION.firstEliteAt;
+    this.nextEliteAt = this.settings.elenco ? DIRECTOR.castTestFirstElite : SESSION.firstEliteAt;
     this.eventIndex = 0;
     this.rivalAt = -1;
     this.boss = null;
@@ -548,6 +550,8 @@ export class Game {
       }
     }
     this.enemyShots.length = 0;
+    this.bribes.length = 0;
+    this.lures.length = 0;
     this.fx.rings.push({ x: p.x, y: p.y, r0: 0.3, r1: r, t: 0, dur: 0.45, color: 'mic' });
     this.metrics.causeOfDeath = null;
     this.tv('revive');
@@ -635,6 +639,7 @@ export class Game {
     updateProjectiles(this, dt);
     updateZones(this, dt);
     this.updateEnemyShots(dt);
+    this.updateBribes(dt);
     this.updateLots(dt);
     this.updatePickups(dt);
     this.updateFx(dt);
@@ -783,7 +788,7 @@ export class Game {
     if (this.pendingWave && this.t >= this.pendingWave.at) this.releaseWave();
 
     if (this.t >= this.nextEliteAt && this.t < SESSION.bossAt) {
-      this.nextEliteAt += DIRECTOR.eliteEvery(this.caos);
+      this.nextEliteAt += this.settings.elenco ? DIRECTOR.castTestEliteEvery : DIRECTOR.eliteEvery(this.caos);
       this.spawnElite('politico');
     }
     if (this.rivalAt > 0 && this.t >= this.rivalAt) {
@@ -878,7 +883,45 @@ export class Game {
       } else if (e.behavior === 'boss') {
         this.updateBoss(e, dt);
       }
+      const td = e.elite ? ENEMIES[e.type].throw : null;
+      if (td && !this.over) {
+        // Político: para, prepara (windup) e arremessa a maleta; fica parado um instante depois
+        if (e.throwT > 0) e.throwT -= dt;
+        if (e.windup > 0) {
+          e.windup -= dt;
+          if (e.windup <= 0) this.throwBriefcase(e, td);
+        } else if (d < td.range) {
+          e.fireT -= dt;
+          if (e.fireT <= 0) {
+            e.fireT = td.every;
+            e.windup = td.windupS;
+          }
+        }
+        if (e.windup > 0 || e.throwT > 0) {
+          mx *= 0.1;
+          my *= 0.1;
+        }
+      }
 
+      if (this.lures.length && !e.elite) {
+        // maleta aberta por perto: corre atrás do dinheiro em vez do Juninho
+        const L = ENEMIES.politico.lure;
+        let best = null;
+        let bd = L.radiusM * L.radiusM;
+        for (const q of this.lures) {
+          const qd = (q.x - e.x) ** 2 + (q.y - e.y) ** 2;
+          if (qd < bd) {
+            bd = qd;
+            best = q;
+          }
+        }
+        if (best) {
+          const ql = Math.sqrt(bd) || 1;
+          const k = ql > L.reachM ? L.speedMul / ql : 0;
+          mx = (best.x - e.x) * k;
+          my = (best.y - e.y) * k;
+        }
+      }
       e.mx = mx; // direção em que anda (o desenho vira o corpo para ela)
       e.my = my;
       const sandMul = this.map.bounded && e.x > this.map.sandX ? this.map.enemySandMul : 1;
@@ -963,6 +1006,60 @@ export class Game {
         this.shake(0.15);
       }
     }
+  }
+
+  throwBriefcase(e, td) {
+    const p = this.player;
+    this.bribes.push({ x0: e.x, y0: e.y, x1: p.x, y1: p.y, x: e.x, y: e.y, h: 0, s: 0, t: 0 });
+    e.throwT = td.releaseS;
+    this.tv('maleta', 35);
+  }
+
+  /** Maletas em voo: arco até onde o Juninho estava; acerto em cheio machuca; onde cai vira Propina. */
+  updateBribes(dt) {
+    const td = ENEMIES.politico.throw;
+    const p = this.player;
+    const list = this.bribes;
+    for (let i = list.length - 1; i >= 0; i--) {
+      const b = list[i];
+      b.t += dt;
+      b.s = Math.min(1, b.t / td.flightS);
+      b.x = b.x0 + (b.x1 - b.x0) * b.s;
+      b.y = b.y0 + (b.y1 - b.y0) * b.s;
+      b.h = 4 * td.arcM * b.s * (1 - b.s);
+      let land = b.s >= 1;
+      const rr = td.hitR + p.r;
+      if (!land && !this.over && b.s > 0.25 && b.h < PLAYER.heightM && (b.x - p.x) ** 2 + (b.y - p.y) ** 2 < rr * rr) {
+        this.hurtPlayer(td.dmg, 'politico');
+        land = true;
+      }
+      if (!land) continue;
+      // abre longe dos pés do Juninho: pegar a Propina tem que ser escolha, não acidente
+      let dx = b.x1 - b.x0;
+      let dy = b.y1 - b.y0;
+      const l = Math.hypot(dx, dy) || 1;
+      dx /= l;
+      dy /= l;
+      let x = b.x;
+      let y = b.y;
+      const gap = Math.hypot(x - p.x, y - p.y);
+      if (gap < td.dropGapM) {
+        const along = (x - p.x) * dx + (y - p.y) * dy;
+        const push = Math.sqrt(Math.max(0, td.dropGapM ** 2 - (gap ** 2 - along ** 2))) - along;
+        x += dx * push;
+        y += dy * push;
+      }
+      const thrown = this.pickups.filter((k) => k.thrown);
+      if (thrown.length >= td.maxOnGround) thrown[0].dead = true;
+      this.pickups.push({ kind: 'propina', x, y, t: 0, thrown: true });
+      this.lures.push({ x, y, t: 0 });
+      this.tv('lure', 30);
+      list[i] = list[list.length - 1];
+      list.pop();
+    }
+    const L = ENEMIES.politico.lure;
+    for (const q of this.lures) q.t += dt;
+    if (this.lures.length && this.lures[0].t >= L.durS) this.lures = this.lures.filter((q) => q.t < L.durS);
   }
 
   updateEnemyShots(dt) {

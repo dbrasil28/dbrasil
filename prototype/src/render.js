@@ -146,6 +146,7 @@ export class Renderer {
     list.push({ d: cam.depth(game.player.x, game.player.y), k: 'player', o: game.player });
     for (const p of game.projectiles) list.push({ d: cam.depth(p.x, p.y) + 0.3, k: 'proj', o: p });
     for (const s of game.enemyShots) list.push({ d: cam.depth(s.x, s.y) + 0.3, k: 'shot', o: s });
+    for (const b of game.bribes) list.push({ d: cam.depth(b.x, b.y) + 0.3, k: 'bribe', o: b });
     list.sort((a, b) => a.d - b.d);
 
     const t = game.t;
@@ -194,6 +195,17 @@ export class Renderer {
             // reserva: a pose única de frente, espelhada para o lado do Juninho
             if (!spr) spr = this.cache.get(art.attack, h * art.attackH, attackOpts(pt2.x < pt.x));
             animated = !!spr;
+          }
+          if (!spr && art && art.throwAnim && walk && (o.windup > 0 || o.throwT > 0)) {
+            // Político arremessando a maleta, virado para o Juninho: preparação em 3 quadros, depois a soltura
+            const A = walkReady(art.throwAnim);
+            if (A) {
+              cam.toScreen(game.player.x, game.player.y, pt2);
+              const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+              const f = o.windup > 0 ? Math.min(2, Math.floor((1 - o.windup / def.throw.windupS) * 3)) : 3;
+              spr = this.cache.get(`${A.prefix}_${row}_${f}`, h * (ATLAS.ch / A.figureH), enemyWalkOpts(art));
+              animated = !!spr;
+            }
           }
           if (!spr && walk) {
             // atlas de caminhada: linha pela direção em que anda, quadro pela distância andada
@@ -262,6 +274,9 @@ export class Renderer {
           break;
         case 'shot':
           drawPaper(ctx, pt, ppu, o.spin, playerPx);
+          break;
+        case 'bribe':
+          drawBribe(ctx, o, pt, ppu, playerPx);
           break;
         default:
           break;
@@ -909,7 +924,40 @@ function drawGem(ctx, g, pt, ppu, t) {
   ctx.stroke();
 }
 
+/** Maleta do Político em voo: sombra no chão e a maleta fechada girando no alto do arco. */
+function drawBribe(ctx, b, pt, ppu, playerPx) {
+  const w = Math.max(14, playerPx * 0.3);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(pt.x, pt.y, w * 0.45, w * 0.14, 0, 0, Math.PI * 2);
+  ctx.fill();
+  const y = pt.y - b.h * ppu - playerPx * 0.45 * (1 - b.s); // sai da altura da mão e cai no chão
+  const im = images.politico_maleta;
+  if (!im) {
+    drawIconAt(ctx, 'maleta', pt.x, y - w * 0.5, w);
+    return;
+  }
+  const h = (w * im.height) / im.width;
+  ctx.save();
+  ctx.translate(pt.x, y - h * 0.5);
+  ctx.rotate(b.t * 7);
+  ctx.drawImage(im, -w / 2, -h / 2, w, h);
+  ctx.restore();
+}
+
 function drawPickup(ctx, k, pt, ppu, t) {
+  if (k.kind === 'propina' && images.politico_aberta) {
+    // maleta aberta cheia de dinheiro, parada no chão (pegar é escolha: cura e aumenta a Corrupção)
+    const im = images.politico_aberta;
+    const z = Math.max(22, ppu * 1.05);
+    const zh = (z * im.height) / im.width;
+    ctx.fillStyle = COLORS.shadow;
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y, z * 0.5, z * 0.16, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.drawImage(im, pt.x - z / 2, pt.y - zh * 0.9, z, zh);
+    return;
+  }
   const s = Math.max(9, ppu * 0.38);
   const y = pt.y - s - Math.abs(Math.sin(t * 3)) * 3;
   ctx.fillStyle = COLORS.shadow;

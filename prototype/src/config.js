@@ -60,6 +60,11 @@ export const ENEMIES = {
     name: 'Político Corrupto',
     hp: 190, speed: 1.6, dmg: 16, radius: 0.45, size: 1.15 / 0.75, xp: 15,
     behavior: 'chase', elite: true,
+    // arremessa a maleta de dinheiro em arco: machuca se acertar em cheio; onde cai, abre e vira
+    // Propina no chão (pegar continua sendo escolha do jogador: cura e aumenta a Corrupção)
+    throw: { range: 7, every: 4.5, windupS: 0.42, releaseS: 0.16, flightS: 0.8, arcM: 1.8, dmg: 10, hitR: 0.5, dropGapM: 1.3, maxOnGround: 6 },
+    // quando a maleta cai aberta, quem está perto (horda e inimigos comuns) corre atrás do dinheiro por um instante
+    lure: { radiusM: 7, durS: 2.5, speedMul: 1.35, reachM: 0.7 },
   },
   rival: {
     name: 'Rival Patrocinado',
@@ -133,6 +138,8 @@ export const DIRECTOR = {
     { type: 'burocrata', w: 0.25 },
     { type: 'fiscal', w: 0.25 },
   ],
+  castTestFirstElite: 12, // com o elenco completo, o primeiro Político chega aos 12 s
+  castTestEliteEvery: 35,
   maxBurocratas: 22,
   eliteEvery: (caos) => (caos >= 60 ? 40 : 60),
 };
@@ -315,6 +322,8 @@ export const TV = {
   burocrata: ['NOVA EXIGÊNCIA: FORMULÁRIO EM TRÊS VIAS'],
   fiscal: ['ENTREGADOR MULTADO POR EXCESSO DE ESFORÇO', 'FISCAL APLICA MULTA. MOTIVO: "SIM"'],
   elite: ['POLÍTICO APARECE PARA FOTO. TRAZ MALETA'],
+  maleta: ['POLÍTICO ARREMESSA MALETA. ASSESSORIA FALA EM "DOAÇÃO ESPONTÂNEA"', 'MALETA VOANDO NA ORLA. DONO NÃO SE IDENTIFICA'],
+  lure: ['PLATEIA ESQUECE A NOVELA E CORRE ATRÁS DO DINHEIRO', 'MALETA ABERTA NO CALÇADÃO. HIPNOSE SUSPENSA POR TEMPO INDETERMINADO'],
   propina: ['ENTREGADOR É FLAGRADO COM DINHEIRO VIVO. "ERA GORJETA", DIZ'],
   wave: (dir) => [`PLATEIA HIPNOTIZADA SE APROXIMA PELO ${dir}`, `FIM DA NOVELA: TELESPECTADORES SAEM PELO ${dir}`],
   bossWarn: ['URGENTE: ESPECULADOR ANUNCIA "REVITALIZAÇÃO" DA ÁREA'],
