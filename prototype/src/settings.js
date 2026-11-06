@@ -10,7 +10,7 @@ export const SETTINGS_SCHEMA = [
   { id: 'joystick', label: 'Controle', type: 'select', options: [['floating', 'Joystick flutuante (toque em qualquer lugar)'], ['fixed', 'Joystick fixo (canto inferior esquerdo)']], def: 'floating', hint: 'Hipótese H07' },
   { id: 'maxEnemies', label: 'Limite de inimigos simultâneos', type: 'range', min: 100, max: 800, step: 50, def: 300, hint: 'Pergunta aberta 5' },
   { id: 'spawnMul', label: 'Intensidade das hordas', type: 'range', min: 0.5, max: 2, step: 0.1, def: 1 },
-  { id: 'obstacles', label: 'Obstáculos (bancas, postes, cones)', type: 'toggle', def: true },
+  { id: 'obstacles', label: 'Obstáculos (carros, barracas, postes)', type: 'toggle', def: true },
   { id: 'ads', label: 'Anúncios simulados', type: 'toggle', def: true, hint: 'Reviver e trocar cartas por anúncio; intervalo entre partidas' },
   { id: 'adLength', label: 'Duração do anúncio simulado', type: 'select', options: [['5', '5 s (teste rápido)'], ['15', '15 s'], ['30', '30 s (realista)']], def: '5' },
   { id: 'noAds', label: 'Simular compra "Sem anúncios"', type: 'toggle', def: false, hint: 'Tira intervalos e banner; vídeos com recompensa continuam opcionais' },

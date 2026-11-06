@@ -379,6 +379,42 @@ Objeto de cenário em vista 3/4 de cima (~50°), base do objeto embaixo e centra
 | `escadaria_morro` | Escadaria de concreto estreita subindo o morro, corrimão de cano, paredes pintadas com grafite colorido sem texto |
 | `van_kombi` | Van ou kombi branca velha de transporte alternativo, vista de lado, sem texto |
 
+#### Cenário vivo (pedido de 06/11/2026) · Leva 2
+
+Já está no jogo desenhado em código; estas imagens substituem o provisório. Mesmo prompt base acima. Onde há texto (letreiro, placa, cartaz), peça **sem texto**: o jogo escreve por cima.
+
+| Arquivo | Altura no jogo | `[OBJETO]` |
+| --- | --- | --- |
+| `carro_parado_a.png` … `_d` | 1,5 m | Carro popular brasileiro velho estacionado, visto de lado e de cima, sem marca e sem placa. Quatro cores: branco, prata, vermelho, preto; um com papel "vende-se" em branco no vidro e um com pneu furado |
+| `taxi.png` | 1,5 m | Táxi amarelo com faixa azul e luminoso no teto em branco, sem marca |
+| `onibus_parado.png` | 3,0 m | Ônibus urbano velho parado, de lado, letreiro em branco, pichado na lateral |
+| `camburao.png` | 2,1 m | Furgão de polícia genérico branco com faixa azul e vermelha, giroflex no teto e grade no compartimento de trás, marcas de tiro na lataria. Sem brasão, sem sigla e sem texto |
+| `policial_parado_16.png` | 1,8 m (altura do Juninho) | Folha 4×4 do mesmo policial genérico parado de guarda em 16 direções, uniforme azul-escuro, colete preto, capacete, fuzil atravessado no peito. Sem brasão nem sigla. Como as folhas de pose do elenco |
+| `garota_esquina_a/b/c_16.png` | 0,94 × Juninho | Folha 4×4 de mulher parada na esquina em 16 direções, roupa curta e chamativa, bota, bolsa, mão na cintura. Sem nudez e sem pose sexual. Três variações de pele, cabelo e roupa |
+| `barraca_acai.png` | 2,6 m | Barraca de açaí com toldo roxo listrado, balcão com potes, banquinhos de plástico. Letreiro em branco |
+| `pastelaria.png` | 2,6 m | Barraca de pastel e caldo de cana com toldo amarelo e vermelho, vitrine com pastéis. Letreiro em branco |
+| `boteco_esquina.png` | 2,6 m | Boteco de esquina com toldo vermelho e branco, balcão com garrafas sem rótulo. Letreiro em branco |
+| `carrinho_milho.png` | 2,2 m | Carrinho de milho cozido com panela fumegando e guarda-sol verde e amarelo |
+| `carrinho_picole.png` | 2,1 m | Carrinho de picolé branco e azul com guarda-sol, sem marca |
+| `banco_praca.png` | 0,9 m | Banco de praça de madeira com pés de concreto, pichado |
+| `orelhao.png` | 2,1 m | Orelhão brasileiro (concha laranja ou azul) com telefone, pichado |
+| `muro_pichado_a/b/c.png` | 2,4 m × 4,4 m | Muro de terreno baldio com reboco caído, caco de vidro no alto, pichação em letra de pixo e um espaço vazio para cartaz. Um com a bandeira do Brasil pintada |
+| `tapume_cartazes.png` | 2,2 m × 4,6 m | Tapume de obra parada coberto de cartazes eleitorais repetidos (rostos inventados, sem texto) e pichação |
+| `cartaz_candidato.png` | 0,8 m | Cartaz eleitoral de candidato inventado e caricato sorrindo, faixa de cor no alto, sem texto (o jogo escreve VOTE, nome e número) |
+| `bandeira_mastro.png` | 3,4 m | Mastro de cano com a bandeira do Brasil inteira, sem mudar forma nem cores |
+| `bandeirinhas.png` | faixa repetível | Fio com bandeirinhas triangulares verdes e amarelas, de frente, para repetir na horizontal |
+| `gato_de_luz.png` | faixa repetível | Fios emaranhados de gato de luz com uma pipa presa, para repetir na horizontal |
+| `moto_parada.png` | 1,1 m | Moto popular estacionada, de lado; variação com baú de entrega vermelho |
+| `caixa_dagua.png` | 1,3 m | Caixa d'água azul de fibra, pichada |
+| `sinuca.png` | 0,9 m | Mesa de sinuca de boteco de laje, pano verde gasto, bolas e taco |
+| `churrasqueira_tambor.png` | 1,0 m | Churrasqueira feita de tambor cortado, brasa e fumaça |
+| `varal_laje.png` | 1,9 m | Varal com camisa amarela de futebol sem escudo, bermuda e toalha |
+| `barricada.png` | 1,0 m × 2,4 m | Barricada de viela: pneus, tambor enferrujado e dois trilhos cruzados |
+| `tambor_fogo.png` | 1,4 m | Tambor de óleo enferrujado com fogo saindo |
+| `entulho.png`, `pneus.png` | 0,7 m | Monte de entulho com tijolos; pilha de três pneus velhos |
+
+Decalques de chão novos (vista de cima, transparentes, folha 4×4): sacos de lixo pretos, latinhas, garrafas, papelão, bitucas, poça, mancha de óleo, bueiro, buraco no asfalto e **santinhos** de candidato espalhados.
+
 ### 6.4 Itens e projéteis · Leva 2
 
 **Prompt base:** troque `[ITEM]` pela descrição.

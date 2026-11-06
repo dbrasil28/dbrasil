@@ -3,6 +3,7 @@
 import { ENEMIES, WAKE, GORE } from './config.js';
 import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
+import { drawCenario, cenarioInRange } from './render_cenario.js';
 import {
   entityDepth, drawPlatform, drawStair, drawObject, drawPlace, drawGate, drawGroundArrows, drawEdgeArrow,
   drawAim, drawBullet, drawHeal,
@@ -12,6 +13,7 @@ const pt = { x: 0, y: 0 };
 const pt2 = { x: 0, y: 0 };
 const bounds = {};
 const propsTmp = [];
+const cenTmp = [];
 
 const COLORS = {
   groundA: '#3a383d',
@@ -175,8 +177,14 @@ export class Renderer {
         list.push({ d: cam.depth(P.x0, P.y1), k: 'plat', o: P, x: (P.x0 + P.x1) / 2, y: P.y1 });
         list.push({ d: cam.depth(P.x0, P.stair.y0) - 0.001, k: 'stair', o: P, x: (P.x0 + P.x1) / 2, y: P.y1 });
       }
+      // cenário vivo: carros, barracas, bancos, postes, placas, muros, bandeiras (ordem pela frente do objeto)
+      if (settings.obstacles !== false) {
+        for (const c of cenarioInRange(w, bounds.minY - 3, bounds.maxY + 7, cenTmp)) {
+          list.push({ d: cam.depth(c.x, c.y), k: 'cen', o: c, x: c.x0, y: c.y });
+        }
+      }
       for (const pl of w.places) {
-        if (pl.kind !== 'boteco' || pl.y0 > bounds.maxY + 4 || pl.y1 < bounds.minY - 4) continue;
+        if (!pl.counter || pl.y0 > bounds.maxY + 4 || pl.y1 < bounds.minY - 4) continue;
         list.push({ d: cam.depth(pl.x0, pl.counter.y1), k: 'place', o: pl, x: pl.x0, y: pl.counter.y1 });
       }
       for (const s of w.slots) {
@@ -209,6 +217,13 @@ export class Renderer {
         case 'place':
           drawPlace(ctx, o, cam, ppu);
           break;
+        case 'cen': {
+          // o Juninho atrás de um objeto alto: o objeto fica meio transparente para não sumir com ele
+          const pl = game.player;
+          const al = o.solid && o.h >= 1.4 && pl.x > o.x0 - 0.4 && pl.x < o.x1 + 0.4 && pl.y < o.y0 + 0.05 && pl.y > o.y0 - o.h / cam.k - 0.3 ? 0.45 : 1;
+          drawCenario(ctx, o, cam, ppu, this.dpr, t, al, playerPx);
+          break;
+        }
         case 'gate':
           drawGate(ctx, o, cam, ppu, game.player.level);
           break;
@@ -325,6 +340,13 @@ export class Renderer {
           break;
         }
         case 'player': {
+          if (o.acaiT > 0) {
+            // açaí: rastro roxo enquanto corre mais
+            ctx.fillStyle = `rgba(122,47,160,${0.25 + 0.15 * Math.sin(t * 12)})`;
+            ctx.beginPath();
+            ctx.ellipse(pt.x - o.vx * ppu * 0.08, pt.y - o.vy * ppu * cam.k * 0.08, (o.r + 0.6) * ppu, (o.r + 0.6) * ppu * cam.k, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
           // anel no chão: separa o protagonista da multidão (GDD 04, §5)
           ctx.fillStyle = 'rgba(229,37,47,0.22)';
           ctx.strokeStyle = 'rgba(255,74,82,0.95)';
@@ -1055,7 +1077,7 @@ function drawBribe(ctx, b, pt, ppu, playerPx) {
 }
 
 function drawPickup(ctx, k, pt, ppu, t) {
-  if (k.kind === 'coco' || k.kind === 'marmita') {
+  if (k.kind === 'coco' || k.kind === 'marmita' || k.kind === 'acai' || k.kind === 'pastel' || k.kind === 'milho') {
     ctx.fillStyle = COLORS.shadow;
     ctx.beginPath();
     ctx.ellipse(pt.x, pt.y, ppu * 0.3, ppu * 0.1, 0, 0, Math.PI * 2);

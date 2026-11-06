@@ -174,6 +174,23 @@ export function drawObject(ctx, kind, x, y, s, rot = 0) {
       ctx.fillStyle = 'rgba(255,255,255,0.35)';
       ctx.fillRect(-u * 1.0, -u * 3.2, u * 0.4, u * 1.8);
       break;
+    case 'banquinho':
+      ctx.fillStyle = '#d8402a';
+      ctx.fillRect(-u * 1.3, -u * 2.4, u * 2.6, u * 0.6);
+      ctx.strokeRect(-u * 1.3, -u * 2.4, u * 2.6, u * 0.6);
+      ctx.fillRect(-u * 1.1, -u * 1.8, u * 0.4, u * 1.8);
+      ctx.fillRect(u * 0.7, -u * 1.8, u * 0.4, u * 1.8);
+      break;
+    case 'pneu':
+      ctx.fillStyle = '#1a1a1c';
+      ctx.beginPath();
+      ctx.ellipse(0, -u * 2, u * 2, u * 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#4a4a4e';
+      ctx.beginPath();
+      ctx.ellipse(0, -u * 2, u * 0.9, u * 0.9, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
     default:
       ctx.fillStyle = '#999';
       ctx.fillRect(-u, -u * 2, u * 2, u * 2);
@@ -181,33 +198,89 @@ export function drawObject(ctx, kind, x, y, s, rot = 0) {
   ctx.restore();
 }
 
-/** Boteco: balcão com engradado, toldo listrado e a placa. */
+// toldo e balcão de cada tipo de lugar
+const PLACE_LOOK = {
+  boteco: { toldo: ['#c8342b', '#f1ece0'], balcao: '#6e4a2c', tampo: '#9a6d43', letra: '#ffd21f' },
+  acai: { toldo: ['#5a1f7a', '#8a3fb0'], balcao: '#3a1450', tampo: '#6a2a8a', letra: '#f2e6ff' },
+  pastelaria: { toldo: ['#e8b020', '#c8342b'], balcao: '#8a5a22', tampo: '#d9a040', letra: '#fff6d0' },
+};
+
+/** Boteco, açaí ou pastelaria: balcão, toldo listrado, letreiro e o que fica em cima do balcão. */
 export function drawPlace(ctx, pl, cam, ppu) {
-  if (pl.kind !== 'boteco') return;
+  const look = PLACE_LOOK[pl.kind];
+  if (!look || !pl.counter) return;
   const k = pl.counter;
   const hp = 1.1 * ppu;
   cam.toScreen(k.x0, k.y1, a);
   cam.toScreen(k.x1, k.y1, b);
   c.x = b.x; c.y = b.y - hp; d.x = a.x; d.y = a.y - hp;
-  quad(ctx, '#6e4a2c', 'rgba(0,0,0,0.6)');
+  quad(ctx, look.balcao, 'rgba(0,0,0,0.6)');
+  // frente do balcão: faixa com o produto
+  if (pl.kind === 'acai') {
+    ctx.fillStyle = '#7a2fa0';
+    ctx.fillRect(a.x + 2, a.y - hp * 0.62, b.x - a.x - 4, hp * 0.3);
+  } else if (pl.kind === 'pastelaria') {
+    ctx.fillStyle = '#f2c94c';
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.arc(a.x + (b.x - a.x) * (0.25 + i * 0.25), a.y - hp * 0.35, ppu * 0.16, Math.PI, 0);
+      ctx.fill();
+    }
+  }
   cam.toScreen(k.x0, k.y0, a); cam.toScreen(k.x1, k.y0, b); cam.toScreen(k.x1, k.y1, c); cam.toScreen(k.x0, k.y1, d);
   a.y -= hp; b.y -= hp; c.y -= hp; d.y -= hp;
-  quad(ctx, '#9a6d43', 'rgba(0,0,0,0.5)');
+  quad(ctx, look.tampo, 'rgba(0,0,0,0.5)');
+  // em cima do balcão: garrafas, potes de açaí ou a vitrine de pastel
+  const tx = (a.x + b.x) / 2;
+  const ty = (a.y + c.y) / 2;
+  if (pl.kind === 'boteco') {
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = i === 1 ? '#7a4a1a' : '#3f7a3a';
+      ctx.fillRect(tx - ppu * 0.3 + i * ppu * 0.25, ty - ppu * 0.45, ppu * 0.1, ppu * 0.38);
+    }
+  } else if (pl.kind === 'acai') {
+    for (let i = 0; i < 2; i++) {
+      ctx.fillStyle = '#4a1a5e';
+      ctx.fillRect(tx - ppu * 0.35 + i * ppu * 0.45, ty - ppu * 0.3, ppu * 0.3, ppu * 0.26);
+      ctx.fillStyle = '#e8c890';
+      ctx.fillRect(tx - ppu * 0.35 + i * ppu * 0.45, ty - ppu * 0.32, ppu * 0.3, ppu * 0.06);
+    }
+  } else {
+    ctx.fillStyle = 'rgba(220,235,240,0.55)';
+    ctx.fillRect(tx - ppu * 0.5, ty - ppu * 0.45, ppu * 1.0, ppu * 0.4);
+    ctx.fillStyle = '#e8b04a';
+    ctx.fillRect(tx - ppu * 0.4, ty - ppu * 0.25, ppu * 0.8, ppu * 0.14);
+  }
   // toldo listrado em cima do balcão
   const th = 2.6 * ppu;
-  cam.toScreen(k.x0, k.y0 - 0.4, a);
-  cam.toScreen(k.x1 + 1.2, k.y1 + 0.4, c);
+  const meio = pl.side === 'meio';
+  cam.toScreen(k.x0 - (meio ? 0.4 : 0), k.y0 - 0.4, a);
+  cam.toScreen(k.x1 + (meio ? 0.4 : 1.2), k.y1 + 0.4, c);
   const wd = c.x - a.x;
-  for (let i = 0; i < 6; i++) {
-    ctx.fillStyle = i % 2 ? '#f1ece0' : '#c8342b';
-    ctx.fillRect(a.x + (wd * i) / 6, a.y - th, wd / 6 + 0.5, (c.y - a.y) * 0.5);
+  const n = Math.max(4, Math.round(wd / (ppu * 0.6)));
+  for (let i = 0; i < n; i++) {
+    ctx.fillStyle = look.toldo[i % 2];
+    ctx.fillRect(a.x + (wd * i) / n, a.y - th, wd / n + 0.5, (c.y - a.y) * 0.5);
   }
   ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  ctx.lineWidth = 1.5;
   ctx.strokeRect(a.x, a.y - th, wd, (c.y - a.y) * 0.5);
-  ctx.fillStyle = '#ffd21f';
-  ctx.font = `900 ${Math.max(9, ppu * 0.5)}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
+  if (meio) {
+    // barraca solta: estacas do toldo
+    ctx.fillStyle = '#8a8b90';
+    cam.toScreen(k.x0 - 0.4, k.y1 + 0.4, d);
+    ctx.fillRect(d.x, d.y - th, 3, th);
+    ctx.fillRect(c.x - 3, c.y - th, 3, th);
+  }
+  const label = pl.sign || pl.kind.toUpperCase();
+  const fs = Math.max(9, ppu * 0.42);
+  ctx.font = `900 ${fs}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
   ctx.textAlign = 'center';
-  ctx.fillText('BOTECO', a.x + wd / 2, a.y - th - 3);
+  const lw = Math.min(wd + ppu, ctx.measureText(label).width + fs);
+  ctx.fillStyle = 'rgba(20,16,14,0.85)';
+  ctx.fillRect(a.x + wd / 2 - lw / 2, a.y - th - fs * 1.25, lw, fs * 1.2);
+  ctx.fillStyle = look.letra;
+  ctx.fillText(label, a.x + wd / 2, a.y - th - fs * 0.32, wd + ppu);
 }
 
 /** Tapume que fecha a escadaria do pé do morro até o nível da meta. */
@@ -391,6 +464,54 @@ export function drawHeal(ctx, kind, x, y, s) {
     ctx.moveTo(u * 0.3, -u * 3.4);
     ctx.lineTo(u * 1.4, -u * 5.2);
     ctx.stroke();
+  } else if (kind === 'acai') {
+    // copo de açaí com granola e banana
+    ctx.fillStyle = '#4a1a5e';
+    ctx.beginPath();
+    ctx.moveTo(-u * 1.6, -u * 4.2);
+    ctx.lineTo(u * 1.6, -u * 4.2);
+    ctx.lineTo(u * 1.1, 0);
+    ctx.lineTo(-u * 1.1, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#7a2fa0';
+    ctx.beginPath();
+    ctx.ellipse(0, -u * 4.3, u * 1.7, u * 0.8, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = '#e8c890';
+    ctx.fillRect(-u * 1.0, -u * 4.9, u * 0.5, u * 0.4);
+    ctx.fillRect(u * 0.3, -u * 5.0, u * 0.6, u * 0.4);
+    ctx.fillStyle = '#f2e27a';
+    ctx.beginPath();
+    ctx.arc(-u * 0.1, -u * 5.0, u * 0.45, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (kind === 'pastel') {
+    ctx.fillStyle = '#e8b04a';
+    ctx.beginPath();
+    ctx.arc(0, -u * 0.8, u * 2.4, Math.PI, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(140,80,20,0.7)';
+    ctx.beginPath();
+    for (let i = -2; i <= 2; i++) {
+      ctx.moveTo(i * u * 0.9, -u * 0.8);
+      ctx.lineTo(i * u * 0.9, -u * 1.3);
+    }
+    ctx.stroke();
+  } else if (kind === 'milho') {
+    ctx.fillStyle = '#f2c94c';
+    ctx.beginPath();
+    ctx.ellipse(0, -u * 2.6, u * 0.9, u * 2.4, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#7aa83a';
+    ctx.beginPath();
+    ctx.moveTo(-u * 0.6, -u * 0.6);
+    ctx.lineTo(-u * 1.8, -u * 3.4);
+    ctx.lineTo(-u * 0.2, -u * 1.4);
+    ctx.fill();
   } else {
     ctx.fillStyle = '#c9cbd0';
     ctx.fillRect(-u * 2, -u * 2.6, u * 4, u * 2.2);

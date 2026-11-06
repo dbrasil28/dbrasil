@@ -3,6 +3,7 @@
 import { hash2 } from './math.js';
 import { images } from './sprites.js';
 import { Camera } from './camera.js';
+import { drawLitter, drawFachada, pixo, cartaz, bandeira } from './render_cenario.js';
 
 const pt = { x: 0, y: 0 };
 const pt2 = { x: 0, y: 0 };
@@ -363,6 +364,7 @@ export class OrlaLayer {
     const fake = { camera: tc, map: game.map, world: game.world, isStreet: (y) => game.isStreet(y) };
     const b = { minX: x0, maxX: x1, minY: j * TILE_M - 0.5, maxY: (j + 1) * TILE_M + 0.5 };
     drawOrlaGround(null, g, fake, b);
+    if (game.world) drawLitter(g, game.world, tc, b); // sujeira do chão
     // decoração com base neste bloco e nos 12 m abaixo (objetos altos invadem o bloco de cima)
     const list = orlaDecor(fake, { minX: x0, maxX: x1, minY: j * TILE_M - 1, maxY: (j + 1) * TILE_M + 12 }, []);
     list.sort((a, b2) => a.y - b2.y);
@@ -378,6 +380,8 @@ export class OrlaLayer {
 export function orlaDecor(game, b, out) {
   const m = game.map;
   const w = game.world;
+  // fachadas viradas para a câmera no alto de cada pedaço da rota (pichação, cartazes, bandeira)
+  if (w && w.fachadas) for (const f of w.fachadas) if (f.y >= b.minY && f.y <= b.maxY) out.push({ kind: 'fachada', x: f.x0, y: f.y, f });
   const j0 = Math.floor(b.minY / SEG) - 1;
   const j1 = Math.ceil(b.maxY / SEG) + 1;
   for (let j = j0; j <= j1; j++) {
@@ -412,6 +416,7 @@ export function orlaDecor(game, b, out) {
 export function drawDecor(ctx, d, p, ppu, k) {
   switch (d.kind) {
     case 'casa': return drawCasa(ctx, d, p, ppu, k);
+    case 'fachada': return drawFachada(ctx, d.f, p, ppu);
     case 'banca_pastel': return drawBancaPastel(ctx, p, ppu, k);
     case 'ponto_onibus': return drawPonto(ctx, p, ppu, k);
     case 'poste': return drawImageProp(ctx, images.poste, p, ppu * 5.0);
@@ -491,6 +496,10 @@ function drawCasa(ctx, d, p, ppu, k) {
   ctx.strokeStyle = 'rgba(15,10,12,0.5)';
   ctx.lineWidth = 1;
   ctx.strokeRect(x + 0.5, p.y - hWall - depth + 0.5, w - 1, hWall + depth - 1);
+  // pichação na fachada, cartaz de candidato e bandeira do Brasil pendurada na janela
+  pixo(ctx, ['VIDA LOKA', 'FÉ', 'OS CRIA', 'XIS', 'PAZ', 'NÓS'][Math.floor(s * 61) % 6], x + w * 0.08, p.y - hWall * 0.1, ppu * 0.36, s * 17 % 1 > 0.7 ? '#c8342b' : '#141012', 0, 1.5);
+  if (s * 19 % 1 > 0.55) cartaz(ctx, x + w * 0.66, p.y - hWall * 0.62, ppu * 0.5, ppu * 0.68, Math.floor(s * 29));
+  if (floors > 1 && s * 23 % 1 > 0.6) bandeira(ctx, x + w * 0.18, p.y - hWall * 0.92, ppu * 1.0, ppu * 0.68);
   // caixa d'água azul
   if (s * 7 % 1 > 0.25) {
     const cx = x + w * (0.25 + (s * 13 % 1) * 0.5);

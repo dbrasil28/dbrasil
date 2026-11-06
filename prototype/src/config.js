@@ -171,8 +171,38 @@ export const THROWABLES = {
   cadeira_praia: { name: 'Cadeira de praia', dmg: 32, radius: 1.5 },
   engradado: { name: 'Engradado', dmg: 36, radius: 1.5 },
   botijao: { name: 'Botijão de gás', dmg: 90, radius: 2.8, selfDmg: 16, explosive: true }, // machuca o Juninho se estiver perto
+  banquinho: { name: 'Banquinho de plástico', dmg: 22, radius: 1.2 },
+  pneu: { name: 'Pneu velho', dmg: 30, radius: 1.5 },
 };
-export const HEALS = { coco: 20, marmita: 35 }; // coco gelado do quiosque, marmita esquecida no terraço
+// Curas dos lugares: coco do quiosque, marmita do terraço, açaí, pastel e milho das barracas.
+// Voltam depois de um tempo, fora da tela. O açaí também deixa o Juninho mais rápido por uns segundos.
+export const HEALS = { coco: 20, marmita: 35, acai: 15, pastel: 30, milho: 12 };
+export const HEAL_RESPAWN_S = 45;
+export const ACAI_BUFF = { speedMul: 1.25, s: 6 };
+
+// Cenário vivo da rota (docs/design/MAPAS_CARACTERIZACAO.md): carros parados, barracas, bancos, postes,
+// placas e lixo no meio do caminho. Tudo determinístico (a mesma rota em toda partida).
+export const CENARIO = {
+  // carros estacionados nas duas faixas de cada rua transversal (vagas: começo de cada carro em x)
+  carros: { vagaX: [-5.5, -0.7, 4.1, 8.9], chance: 0.6, len: 4.0, larg: 1.8, h: 1.45, onibusChance: 0.3, onibusLen: 8.8, onibusLarg: 2.5, onibusH: 3.0 },
+  buracoChance: 0.4, // buraco no meio da rua, com cones em volta
+  livreInicioM: 7, // área livre em volta do começo da partida
+  livreJuntaM: 3, // nada sólido perto das passagens entre pedaços da rota
+  // por quarteirão da Orla (índice 0 = começo): barraca do meio do calçadão, segunda loja do lado do morro
+  // e o carrinho perto da rua
+  meio: ['acai', 'pastelaria', 'boteco', 'pastelaria', 'acai', 'boteco', 'pastelaria', 'acai', 'boteco'],
+  esquerda2: ['pastelaria', 'acai', 'boteco', 'acai', 'pastelaria', 'boteco', 'acai', 'boteco', 'pastelaria'],
+  carrinho: ['milho', 'banca', 'picole', 'milho', 'banca', 'milho', 'picole', 'banca', 'milho'],
+  posteCadaM: 12, // postes nas duas fileiras do calçadão
+  lixoPorQuarteirao: 34, // sujeira no chão (só desenho): manchas, latinhas, papel, sacos, poças
+  santinhos: 10, // santinhos de candidato no chão, por rua e por quarteirão
+  bandeirinhasChance: 0.6, // bandeirinhas verde-amarelas atravessando a rua
+  bandeirinhasAteX: 14,
+  morro: { motosPorViela: 2, lixoPorPedaco: 14 },
+  // polícia na favela (ambiente): camburão no pé do morro (começo em x) e nas primeiras lajes,
+  // policiais na entrada das vielas indicadas (índice do pedaço da rota), barricada numa viela
+  policia: { peX0: -7.4, len: 4.6, larg: 2.0, h: 2.1, lajesComCamburao: 2, vielas: [2, 7, 10], barricadaViela: 7 },
+};
 
 // Carreira (docs/design/CARREIRA_E_ROTA.md). Gorjetas: ganhas em toda partida, mesmo perdendo;
 // compram melhorias permanentes das habilidades básicas, para voltar um pouco mais forte.
@@ -453,6 +483,7 @@ export const TV = {
   fogos: ['FOGOS NO MORRO: CHEGOU ENCOMENDA', 'SOLTARAM FOGOS. O MORRO INTEIRO SABE QUE ELE CHEGOU'],
   botijao: ['BOTIJÃO VOA NA ORLA. PREÇO DO GÁS SOBE DE NOVO', 'EXPLOSÃO DE BOTIJÃO. GOVERNO PROMETE "VALE-GÁS" PARA 2040'],
   objeto: ['ENTREGADOR ARREMESSA CADEIRA DE BOTECO. DONO COBRA A MESA'],
+  acai: ['ENTREGADOR PARA PARA TOMAR AÇAÍ NO MEIO DO APOCALIPSE', 'AÇAÍ COM GRANOLA: O ÚNICO SERVIÇO PÚBLICO QUE FUNCIONA'],
   entrega: ['ENTREGA FEITA NO ALTO DO MORRO: UMA PIZZA DE CALABRESA. GORJETA: NENHUMA'],
   maleta: ['POLÍTICO ARREMESSA MALETA. ASSESSORIA FALA EM "DOAÇÃO ESPONTÂNEA"', 'MALETA VOANDO NA ORLA. DONO NÃO SE IDENTIFICA'],
   lure: ['PLATEIA ESQUECE A NOVELA E CORRE ATRÁS DO DINHEIRO', 'MALETA ABERTA NO CALÇADÃO. HIPNOSE SUSPENSA POR TEMPO INDETERMINADO'],

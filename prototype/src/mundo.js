@@ -4,6 +4,7 @@
 // Plano: docs/design/CARREIRA_E_ROTA.md e docs/design/MAPAS_CARACTERIZACAO.md.
 import { ROUTE, PLACES } from './config.js';
 import { clamp } from './math.js';
+import { placeCenario, SOLID_CELL } from './cenario.js';
 
 const rect = (x0, y0, x1, y1, extra = {}) => ({ x0, y0, x1, y1, ...extra });
 export const inside = (k, x, y) => x >= k.x0 && x <= k.x1 && y >= k.y0 && y <= k.y1;
@@ -49,6 +50,7 @@ export function buildWorld(map) {
   }
   placeOrla(w, map);
   placeMorro(w);
+  placeCenario(w, map); // carros, barracas, bancos, postes, placas e lixo
   return w;
 }
 
@@ -77,7 +79,7 @@ function placeOrla(w, map) {
       const yb = y0 + 14;
       const counter = rect(x, yb, x + 1.4, yb + 4.2, { kind: 'balcao' });
       w.solids.push(counter);
-      w.places.push({ kind: 'boteco', x0: x, y0: yb - 1.2, x1: x + 6.5, y1: yb + 5.4, counter });
+      w.places.push({ kind: 'boteco', side: 'esq', sign: 'BOTECO', x0: x, y0: yb - 1.2, x1: x + 6.5, y1: yb + 5.4, counter });
       for (const [mx, my] of [[x + 3.6, yb + 0.9], [x + 4.4, yb + 3.6]]) {
         addSlot(w, 'mesa', mx, my);
         addSlot(w, 'cadeira', mx - 0.85, my);
@@ -221,12 +223,13 @@ export function stairFoot(P, out) {
   return out;
 }
 
+/** Empurra para fora do retângulo pelo lado mais perto. Devolve 0 (não encostou), 1 (lado em x) ou 2 (lado em y). */
 function pushOut(k, e, r) {
   const x0 = k.x0 - r;
   const x1 = k.x1 + r;
   const y0 = k.y0 - r;
   const y1 = k.y1 + r;
-  if (e.x <= x0 || e.x >= x1 || e.y <= y0 || e.y >= y1) return false;
+  if (e.x <= x0 || e.x >= x1 || e.y <= y0 || e.y >= y1) return 0;
   const dl = e.x - x0;
   const dr = x1 - e.x;
   const dt = e.y - y0;
@@ -236,7 +239,7 @@ function pushOut(k, e, r) {
   else if (m === dr) e.x = x1;
   else if (m === dt) e.y = y0;
   else e.y = y1;
-  return true;
+  return m === dl || m === dr ? 1 : 2;
 }
 
 function clampInto(k, e, r) {
@@ -308,11 +311,31 @@ export function applyLevels(w, e) {
   }
 }
 
-/** Empurra para fora dos sólidos do chão (balcão do boteco). Só vale para quem está no chão. */
-export function collideSolids(w, e) {
+const CORNER_M = 0.45; // perto da ponta do sólido: o jogador escorrega pela quina
+const CORNER_SLIDE = 0.035;
+
+/**
+ * Empurra para fora dos sólidos do chão (balcões, carros, barracas, postes). Só vale para quem está no
+ * chão. slide > 0 (inimigos): ao bater de frente, escorrega para a ponta mais perto e contorna.
+ */
+export function collideSolids(w, e, slide = 0) {
   if (e.lvl === 1 || e.plat) return;
   const r = e.r || 0.3;
-  for (const k of w.solids) pushOut(k, e, r);
+  const list = w.solidGrid ? w.solidGrid.get(Math.floor(e.y / SOLID_CELL)) : w.solids;
+  if (!list) return;
+  for (const k of list) {
+    const side = pushOut(k, e, r);
+    if (!side) continue;
+    if (slide) {
+      if (side === 2) e.x += e.x < (k.x0 + k.x1) / 2 ? -slide : slide;
+      else e.y += e.y < (k.y0 + k.y1) / 2 ? -slide : slide;
+    } else if (side === 2) {
+      // quina: encostou perto da ponta, escorrega para fora (não enrosca no canto do carro)
+      if (e.x < k.x0 + CORNER_M) e.x -= CORNER_SLIDE;
+      else if (e.x > k.x1 - CORNER_M) e.x += CORNER_SLIDE;
+    } else if (e.y < k.y0 + CORNER_M) e.y -= CORNER_SLIDE;
+    else if (e.y > k.y1 - CORNER_M) e.y += CORNER_SLIDE;
+  }
 }
 
 /** Onde a entidade está, para a ordem de desenho: na laje, conta como em cima da frente dela. */

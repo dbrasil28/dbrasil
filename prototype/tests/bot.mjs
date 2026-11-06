@@ -43,6 +43,21 @@ export function botInput(game) {
       n += 2;
     }
   }
+  // não se encurralar: foge também dos obstáculos (carros, barracas, balcões) que estão perto
+  const w = game.world;
+  if (w && w.solidGrid) {
+    const near = w.solidGrid.get(Math.floor(p.y / 6)) || [];
+    for (const k of near) {
+      const qx = Math.max(k.x0, Math.min(p.x, k.x1));
+      const qy = Math.max(k.y0, Math.min(p.y, k.y1));
+      const d2 = (qx - p.x) ** 2 + (qy - p.y) ** 2;
+      if (d2 > 2.5 * 2.5) continue;
+      const wgt = 0.6 / Math.max(0.2, d2);
+      cx += (qx - p.x) * wgt;
+      cy += (qy - p.y) * wgt;
+      n += wgt;
+    }
+  }
   const a = game.t * 0.35;
   let wx = Math.cos(a) * 0.3;
   let wy = Math.sin(a) * 0.3;

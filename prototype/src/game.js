@@ -4,7 +4,7 @@ import { SpatialHash } from './spatial.js';
 import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, HEALS, GORJETAS, MELHORIAS, GORE,
+  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE,
 } from './config.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones } from './weapons.js';
@@ -56,7 +56,7 @@ export class Game {
     this.player = {
       x: 0, y: 0, r: PLAYER.radius, hp: PLAYER.hp, level: 1, xp: 0, xpNext: xpToNext(1),
       weapons: [{ id: 'capacete', level: 1, cd: 0.4 }], passives: [],
-      faceX: 1, faceY: 0, moving: false, slowT: 0, paperT: 0, hurtT: 0, invulnT: 0, bonusDmg: 0, vx: 0, vy: 0,
+      faceX: 1, faceY: 0, moving: false, slowT: 0, paperT: 0, acaiT: 0, hurtT: 0, invulnT: 0, bonusDmg: 0, vx: 0, vy: 0,
       // animação do arremesso (atlas de teste): tempo desde o disparo / desde a pegada, capacetes em voo e mira
       throwT: 9, catchT: 9, helmetsOut: 0, aimX: 1, aimY: 0, walkPhase: 0,
       // mundo da rota: laje em que está (e nível 0/1 e altura z em m), pedaço da rota e objeto carregado
@@ -113,7 +113,10 @@ export class Game {
     this.delivered = false;
     this.exitWarnT = 0;
     if (this.world) {
-      for (const h of this.world.heals) this.pickups.push({ kind: h.kind, x: h.x, y: h.y, t: 0, plat: h.plat });
+      for (const h of this.world.heals) {
+        h.emptyT = 0;
+        this.pickups.push({ kind: h.kind, x: h.x, y: h.y, t: 0, plat: h.plat, src: h });
+      }
       if (this.settings.aberta) this.world.gateOpen = true; // versão aberta: a escadaria já começa aberta
       if (this.startTrecho === 'morro') {
         // começa no pé do morro, com a escadaria já aberta e o nível de quando entrou nele (ponto de controle)
@@ -182,8 +185,9 @@ export class Game {
     arr = [];
     const m = this.map;
     if (m.bounded) {
-      // 1 obstáculo raro por pedaço, só no meio do calçadão e fora das transversais
-      if (hash2(cx, cy, 1) < m.propChance) {
+      // com o mundo da rota, o cenário (postes, cones, carros) vem de cenario.js
+      // sem ele: 1 obstáculo raro por pedaço, só no meio do calçadão e fora das transversais
+      if (!this.world && hash2(cx, cy, 1) < m.propChance) {
         const x = cx * CHUNK + hash2(cx, cy, 10) * CHUNK;
         const y = cy * CHUNK + hash2(cx, cy, 20) * CHUNK;
         const inSide = x > m.minX + 3 && x < m.sandX - 3;
@@ -327,7 +331,7 @@ export class Game {
         }
       }
     }
-    if (this.world) collideSolids(this.world, ent);
+    if (this.world) collideSolids(this.world, ent, ent === this.player ? 0 : 0.05); // inimigo contorna o carro
   }
 
   // ---------- spawn ----------
@@ -828,7 +832,9 @@ export class Game {
     if (p.slowT > 0) p.slowT -= dt;
     if (p.paperT > 0) p.paperT -= dt;
     const stairs = this.world ? slowAt(this.world, p.x, p.y, p.ri) : 1; // escadaria do morro
-    const speed = PLAYER.speed * st.speedMul * (p.slowT > 0 ? PLAYER.slowMul : 1) * stairs;
+    if (p.acaiT > 0) p.acaiT -= dt;
+    const acai = p.acaiT > 0 ? ACAI_BUFF.speedMul : 1; // açaí: corre mais por uns segundos
+    const speed = PLAYER.speed * st.speedMul * (p.slowT > 0 ? PLAYER.slowMul : 1) * stairs * acai;
     p.vx = mx * speed;
     p.vy = my * speed;
     const onSand = this.map.bounded && p.x > this.map.sandX;
@@ -1302,6 +1308,16 @@ export class Game {
         s.emptyT = 0;
       }
     }
+    // curas dos lugares (açaí, pastel, milho, coco, marmita) voltam fora da tela
+    for (const h of w.heals) {
+      if (!(h.emptyT > 0)) continue;
+      h.emptyT -= dt;
+      if (h.emptyT <= 0) {
+        if ((h.x - p.x) ** 2 + (h.y - p.y) ** 2 > I.respawnMinDistM ** 2 && !this.onScreen(h.x, h.y)) {
+          this.pickups.push({ kind: h.kind, x: h.x, y: h.y, t: 0, plat: h.plat, src: h });
+        } else h.emptyT = 2;
+      }
+    }
     const myPlat = p.plat && p.lvl === 1 ? p.plat : null;
     if (!p.carry) {
       if (p.plat && p.lvl === 0 && p.z > 0.5) return; // no meio da escada
@@ -1472,12 +1488,14 @@ export class Game {
       if (this.over || d2 > 0.6 * 0.6) continue;
       if (k.plat && (p.plat !== k.plat || p.lvl !== 1)) continue; // marmita do terraço: só lá em cima
       k.dead = true;
+      if (k.src) k.src.emptyT = HEAL_RESPAWN_S; // cura de lugar: o dono repõe depois
       if (HEALS[k.kind]) {
         p.hp = Math.min(this.stats.maxHp, p.hp + HEALS[k.kind]);
+        if (k.kind === 'acai') {
+          p.acaiT = ACAI_BUFF.s;
+          this.tv('acai', 40);
+        }
         this.emit('pickup', { kind: k.kind });
-      } else if (k.kind === 'pastel') {
-        p.hp = Math.min(this.stats.maxHp, p.hp + 30);
-        this.emit('pickup', { kind: 'pastel' });
       } else if (k.kind === 'propina') {
         // não é puxada pelo ímã: pegar é uma escolha do jogador
         p.hp = Math.min(this.stats.maxHp, p.hp + 15);
