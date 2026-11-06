@@ -33,7 +33,7 @@ export function eligibleEvolutions(player) {
  * Retorna até `n` opções distintas. Evolução elegível sempre aparece primeiro,
  * para que o jogador veja a única evolução do MVP dentro dos 10 minutos.
  */
-export function rollOptions(player, rng, n = 3) {
+export function rollOptions(player, rng, n = 3, segment = 'orla') {
   const opts = [];
   for (const evo of eligibleEvolutions(player)) {
     opts.push({ kind: 'evolution', id: evo.to, from: evo.from, title: WEAPONS[evo.to].name, desc: WEAPONS[evo.to].role, tag: 'EVOLUÇÃO' });
@@ -58,7 +58,10 @@ export function rollOptions(player, rng, n = 3) {
       if (player.weapons.some((w) => w.id === id)) continue;
       // a arma evoluída ocupa o lugar da original: não oferecer a original de novo
       if (EVOLUTIONS.some((e) => e.from === id && player.weapons.some((w) => w.id === e.to))) continue;
-      pool.push({ kind: 'weapon', id, level: 1, title: WEAPONS[id].name, desc: WEAPONS[id].role, tag: 'NOVA', w: 1.4 });
+      const only = WEAPONS[id].onlyIn;
+      if (only && only !== segment) continue; // habilidade exclusiva: só aparece no trecho dela
+      const tag = only === 'orla' ? 'SÓ NA ORLA' : only === 'morro' ? 'SÓ NO MORRO' : 'NOVA';
+      pool.push({ kind: 'weapon', id, level: 1, title: WEAPONS[id].name, desc: WEAPONS[id].role, tag, w: only ? 2.4 : 1.4 });
     }
   }
   if (player.passives.length < SLOTS.passives) {

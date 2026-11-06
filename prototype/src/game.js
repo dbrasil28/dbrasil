@@ -4,7 +4,7 @@ import { SpatialHash } from './spatial.js';
 import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, HEALS, GORJETAS, MELHORIAS,
+  ROUTE, INTERACT, THROWABLES, HEALS, GORJETAS, MELHORIAS, GORE,
 } from './config.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones } from './weapons.js';
@@ -85,7 +85,8 @@ export class Game {
     this.lots = [];
     this.gems = [];
     this.pickups = [];
-    this.fx = { particles: [], rings: [], numbers: [], decals: [], woken: [] };
+    this.fx = { particles: [], rings: [], numbers: [], decals: [], woken: [], gibs: [] };
+    this.fxRng = makeRng((this.seed ^ 0x9e3779b9) >>> 0); // sorteio só dos efeitos: não mexe no da partida
     this.outbox = [];
 
     this.caos = 0;
@@ -494,15 +495,41 @@ export class Game {
       this.pickups.push({ kind: 'propina', x: e.x + 0.6, y: e.y, t: 0 });
       this.pickups.push({ kind: 'maleta', x: e.x - 0.6, y: e.y, t: 0, magnet: true });
     }
-    if (def.wakes) this.wake(e);
-    else {
-      this.burst(e.x, e.y, e.elite ? 26 : 9, 'blood');
-      if (this.settings.gore && this.fx.decals.length < 140) {
-        this.fx.decals.push({ x: e.x, y: e.y, r: (e.elite ? 0.8 : 0.4) * (0.7 + this.rng() * 0.6), t: 0, rot: this.rng() * 6 });
-      }
-    }
+    if (def.wakes && !this.settings.gore) this.wake(e); // sem sangue: a horda acorda (MECH-001)
+    else this.gib(e, source);
 
     if (e.boss) this.bossDefeated();
+  }
+
+  /** Jogo de zumbi: sangue, poça no chão e pedaços que voam, quicam e param (com o gore ligado). */
+  gib(e, source) {
+    const G = GORE;
+    const r = this.fxRng;
+    if (!this.settings.gore) {
+      this.burst(e.x, e.y, e.elite ? 12 : 5, 'blood');
+      return;
+    }
+    const heavy = source === 'objeto' || source === 'mototaxi' || source === 'maleta' || source === 'botijao';
+    this.burst(e.x, e.y, e.elite ? G.blood.elite : G.blood.comum, 'blood');
+    this.splat(e.x, e.y, (e.elite ? 0.9 : 0.5) * (0.7 + r() * 0.6), 'poca');
+    const parts = ['cabeca', 'braco', 'perna', 'tronco', 'braco', 'perna', 'tripa', 'tronco', 'cabeca'];
+    const n = (e.elite ? G.gibs.elite : G.gibs.comum) + (heavy ? G.gibs.pesado : 0);
+    const gibs = this.fx.gibs;
+    for (let i = 0; i < n; i++) {
+      const a = r() * Math.PI * 2;
+      const s = (heavy ? 4 : 2.2) + r() * 3.5;
+      gibs.push({
+        kind: parts[i % parts.length], x: e.x, y: e.y, z: 0.7 + r() * 0.7, vx: Math.cos(a) * s + e.kx * 0.3, vy: Math.sin(a) * s + e.ky * 0.3,
+        vz: 3 + r() * 4.5, rot: r() * 6.28, vr: (r() - 0.5) * 20, t: 0, trail: 0, type: e.type, tint: e.tint, landed: false, size: e.elite ? 1.4 : 1,
+      });
+    }
+    if (gibs.length > G.maxGibs) gibs.splice(0, gibs.length - G.maxGibs);
+  }
+
+  splat(x, y, rr, kind = 'mancha') {
+    const d = this.fx.decals;
+    d.push({ x, y, r: rr, t: 0, rot: this.fxRng() * 6.28, kind });
+    if (d.length > GORE.decalMax) d.shift();
   }
 
   /** MECH-001: o telespectador acorda, para de lutar e vai embora (efeito visual, sem colisão). */
@@ -600,13 +627,13 @@ export class Game {
       return;
     }
     if (this.pendingChests > 0) {
-      this.modal = { kind: 'chest', options: rollOptions(this.player, this.rng, 3) };
+      this.modal = { kind: 'chest', options: rollOptions(this.player, this.rng, 3, this.segment) };
       if (this.rerollsLeft > 0) this.metrics.ads.ofertas.trocar_cartas++;
       this.emit('modal', {});
       return;
     }
     if (this.pendingLevels > 0) {
-      this.modal = { kind: 'levelup', level: this.player.level - this.pendingLevels + 1, options: rollOptions(this.player, this.rng, 3) };
+      this.modal = { kind: 'levelup', level: this.player.level - this.pendingLevels + 1, options: rollOptions(this.player, this.rng, 3, this.segment) };
       if (this.rerollsLeft > 0) this.metrics.ads.ofertas.trocar_cartas++;
       this.emit('modal', {});
     }
@@ -680,7 +707,7 @@ export class Game {
     if (!m || !m.options || this.rerollsLeft <= 0) return false;
     this.rerollsLeft--;
     this.metrics.ads.aceitos.trocar_cartas++;
-    m.options = rollOptions(this.player, this.rng, 3);
+    m.options = rollOptions(this.player, this.rng, 3, this.segment);
     return true;
   }
 
@@ -1486,10 +1513,39 @@ export class Game {
     for (const r of fx.rings) r.t += dt;
     for (const n of fx.numbers) n.t += dt;
     for (const d of fx.decals) d.t += dt;
+    // pedaços: voam, deixam rastro de sangue, quicam no chão e param com uma mancha
+    for (const g of fx.gibs) {
+      g.t += dt;
+      if (g.landed) continue;
+      g.vz -= 18 * dt;
+      g.x += g.vx * dt;
+      g.y += g.vy * dt;
+      g.z += g.vz * dt;
+      g.rot += g.vr * dt;
+      g.trail -= dt;
+      if (g.trail <= 0 && fx.particles.length < 240) {
+        g.trail = 0.06;
+        fx.particles.push({ x: g.x, y: g.y, z: g.z, vx: 0, vy: 0, vz: 0, t: 0, life: 0.35, kind: 'blood' });
+      }
+      if (g.z <= 0) {
+        g.z = 0;
+        if (Math.abs(g.vz) > 3) {
+          g.vz = -g.vz * 0.32;
+          g.vx *= 0.55;
+          g.vy *= 0.55;
+          g.vr *= 0.5;
+          this.splat(g.x, g.y, 0.18 + this.fxRng() * 0.14);
+        } else {
+          g.landed = true;
+          this.splat(g.x, g.y, 0.22 + this.fxRng() * 0.16);
+        }
+      }
+    }
+    if (fx.gibs.length && fx.gibs[0].t > GORE.gibLife) fx.gibs = fx.gibs.filter((g) => g.t <= GORE.gibLife);
     fx.particles = fx.particles.filter((q) => q.t < q.life);
     fx.rings = fx.rings.filter((r) => r.t < r.dur);
     fx.numbers = fx.numbers.filter((n) => n.t < 0.7);
-    fx.decals = fx.decals.filter((d) => d.t < 10);
+    fx.decals = fx.decals.filter((d) => d.t < GORE.decalLife);
   }
 
   compact() {
@@ -1505,7 +1561,7 @@ export class Game {
   /** Sobe n níveis na hora, com cartas sorteadas (ponto de controle do trecho). */
   autoLevels(n) {
     for (let i = 0; i < n; i++) {
-      const opts = rollOptions(this.player, this.rng, 3);
+      const opts = rollOptions(this.player, this.rng, 3, this.segment);
       applyOption(this.player, opts[Math.floor(this.rng() * opts.length)]);
       this.player.level++;
     }
@@ -1532,7 +1588,7 @@ export class Game {
     if (target <= 0) return;
     const levels = Math.floor(target / 20);
     for (let i = 0; i < levels; i++) {
-      const opts = rollOptions(this.player, this.rng, 3);
+      const opts = rollOptions(this.player, this.rng, 3, this.segment);
       applyOption(this.player, opts[Math.floor(this.rng() * opts.length)]);
       this.player.level++;
     }

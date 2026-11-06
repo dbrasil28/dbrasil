@@ -76,3 +76,16 @@ test('no topo do morro, a entrega só vale no nível da meta', () => {
   assert.equal(g.delivered, true);
   assert.equal(g.over, 'victory');
 });
+
+test('habilidade exclusiva: o Picolé só aparece na Orla e o Mototáxi só no Morro', async () => {
+  const { rollOptions } = await import('../src/upgrades.js');
+  const { makeRng } = await import('../src/math.js');
+  const rng = makeRng(9);
+  const player = { weapons: [{ id: 'capacete', level: 1 }], passives: [] };
+  const seen = { orla: new Set(), morro: new Set() };
+  for (let i = 0; i < 300; i++) {
+    for (const seg of ['orla', 'morro']) for (const o of rollOptions(player, rng, 3, seg)) seen[seg].add(o.id);
+  }
+  assert.ok(seen.orla.has('picole') && !seen.orla.has('mototaxi'));
+  assert.ok(seen.morro.has('mototaxi') && !seen.morro.has('picole'));
+});

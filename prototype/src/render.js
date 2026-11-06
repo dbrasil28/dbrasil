@@ -1,6 +1,6 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE } from './config.js';
+import { ENEMIES, WAKE, GORE } from './config.js';
 import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
 import {
@@ -126,14 +126,30 @@ export class Renderer {
 
     // manchas no chão
     if (settings.gore) {
-      ctx.fillStyle = COLORS.bloodDark;
+      // respingos: mancha principal, gotas em volta e, na poça, o centro mais vivo
       for (const d of game.fx.decals) {
         cam.toScreen(d.x, d.y, pt);
-        const a = d.t > 7 ? 1 - (d.t - 7) / 3 : 1;
-        ctx.globalAlpha = a;
+        const left = GORE.decalLife - d.t;
+        ctx.globalAlpha = Math.max(0, Math.min(1, left / 3));
+        const rx = d.r * ppu;
+        const ry = d.r * ppu * cam.k * 0.8;
+        ctx.fillStyle = COLORS.bloodDark;
         ctx.beginPath();
-        ctx.ellipse(pt.x, pt.y, d.r * ppu, d.r * ppu * cam.k * 0.8, 0, 0, Math.PI * 2);
+        ctx.ellipse(pt.x, pt.y, rx, ry, d.rot * 0.2, 0, Math.PI * 2);
         ctx.fill();
+        for (let i = 0; i < 4; i++) {
+          const a = d.rot + i * 1.7;
+          const dd = rx * (1.1 + ((i * 37 + d.rot * 10) % 5) * 0.12);
+          ctx.beginPath();
+          ctx.ellipse(pt.x + Math.cos(a) * dd, pt.y + Math.sin(a) * dd * cam.k * 0.8, rx * 0.22, ry * 0.22, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        if (d.kind === 'poca') {
+          ctx.fillStyle = 'rgba(150,10,18,0.75)';
+          ctx.beginPath();
+          ctx.ellipse(pt.x, pt.y, rx * 0.6, ry * 0.6, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       ctx.globalAlpha = 1;
     }
@@ -173,6 +189,7 @@ export class Renderer {
     for (const p of game.projectiles) list.push({ d: cam.depth(p.x, p.y) + 0.3, k: 'proj', o: p });
     for (const s of game.enemyShots) list.push({ d: cam.depth(s.x, s.y) + 0.3, k: 'shot', o: s });
     for (const b of game.bribes) list.push({ d: cam.depth(b.x, b.y) + 0.3, k: 'bribe', o: b });
+    if (settings.gore) for (const g of game.fx.gibs) list.push({ d: cam.depth(g.x, g.y) + (g.landed ? -0.45 : 0.25), k: 'gib', o: g });
     list.sort((a, b) => a.d - b.d);
 
     const t = game.t;
@@ -331,6 +348,9 @@ export class Renderer {
         case 'bribe':
           drawBribe(ctx, o, pt, ppu, playerPx);
           break;
+        case 'gib':
+          drawGib(ctx, o, pt, playerPx);
+          break;
         default:
           break;
       }
@@ -484,9 +504,9 @@ export class Renderer {
       if (z.kind === 'boleto') {
         const a = z.t < 0.2 ? z.t / 0.2 : z.t > z.dur - 0.4 ? Math.max(0, (z.dur - z.t) / 0.4) : 1;
         ctx.globalAlpha = a;
-        ctx.fillStyle = 'rgba(255,210,31,0.18)';
-        ctx.strokeStyle = 'rgba(255,210,31,0.75)';
-        ctx.lineWidth = 2;
+        ctx.fillStyle = `rgba(255,210,31,${0.2 + 0.08 * Math.sin(z.t * 8)})`; // pulsa enquanto cobra os juros
+        ctx.strokeStyle = 'rgba(255,210,31,0.9)';
+        ctx.lineWidth = 3.5;
         ctx.beginPath();
         ctx.ellipse(pt.x, pt.y, z.r * ppu, z.r * ppu * cam.k, 0, 0, Math.PI * 2);
         ctx.fill();
@@ -505,7 +525,7 @@ export class Renderer {
         const k = Math.min(1, z.t / z.delay);
         ctx.globalAlpha = z.done ? Math.max(0, 1 - (z.t - z.delay) / (z.life - z.delay)) : 0.35 + k * 0.4;
         ctx.strokeStyle = '#e5252f';
-        ctx.lineWidth = z.done ? 4 : 2;
+        ctx.lineWidth = z.done ? 6 : 3; // carimbo bem marcado no chão
         ctx.fillStyle = z.done ? 'rgba(229,37,47,0.22)' : 'rgba(229,37,47,0.08)';
         pathQuad(ctx, quad);
         ctx.fill();
@@ -628,6 +648,7 @@ export class Renderer {
       }
       ctx.fillStyle = q.kind === 'glitch' ? COLORS.neon : q.kind === 'static' ? (q.x * 7 % 1 > 0.5 ? '#ffffff' : COLORS.hypno)
         : q.kind === 'debris' ? (q.x * 13 % 1 > 0.5 ? '#ecebe6' : '#8a6a4a')
+        : q.kind === 'gelo' ? (q.x * 11 % 1 > 0.5 ? '#ffffff' : '#9fe6ff')
         : q.kind === 'fogo' ? FOGO_COLORS[Math.floor(q.vx * 97 + q.vy * 31) & 3] : COLORS.blood;
       const s = Math.max(2, playerPx * 0.05);
       ctx.fillRect(pt.x - s / 2, pt.y - q.z * ppu - s / 2, s, s);
@@ -638,11 +659,20 @@ export class Renderer {
       const k = r.t / r.dur;
       const rad = (r.r0 + (r.r1 - r.r0) * k) * ppu;
       ctx.globalAlpha = 1 - k;
-      ctx.strokeStyle = r.color === 'mic' ? '#bfe9ff' : '#ffb02e';
-      ctx.lineWidth = r.color === 'mic' ? 3 : 5;
+      ctx.strokeStyle = r.color === 'gelo' ? '#9fe6ff' : r.color === 'mic' ? '#bfe9ff' : '#ffb02e';
+      ctx.lineWidth = r.color === 'gelo' ? 6 : r.color === 'mic' ? 5 : 7;
       ctx.beginPath();
       ctx.ellipse(pt.x, pt.y, rad, rad * cam.k, 0, 0, Math.PI * 2);
       ctx.stroke();
+      if (r.color === 'mic' || r.color === 'gelo') {
+        // segunda onda por dentro: o alcance da arma fica legível
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(pt.x, pt.y, rad * 0.72, rad * 0.72 * cam.k, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = r.color === 'gelo' ? 'rgba(159,230,255,0.12)' : 'rgba(191,233,255,0.1)';
+        ctx.fill();
+      }
       if (r.color === 'blast') {
         ctx.fillStyle = 'rgba(255,176,46,0.25)';
         ctx.fill();
@@ -1061,7 +1091,132 @@ function drawPickup(ctx, k, pt, ppu, t) {
 
 const FOGO_COLORS = ['#ffd21f', '#ff5a3d', '#7fd6ff', '#ffffff'];
 
+// pedaços de zumbi: cor da roupa por tipo (telespectador pela roupa do conjunto) e da pele por pessoa
+const GIB_SHIRT = {
+  golpista: '#2b2a33', burocrata: '#e8e4da', fiscal: '#f07a1a', politico: '#1f2a4a', rival: '#c86a1d',
+  traficante: '#2e6b45', especulador: '#e2b52a', isca: '#36f0e0',
+};
+const TELE_SHIRT = ['#d9a92a', '#8a8c90', '#a8262b'];
+const GIB_PANTS = { telespectador: '#3b4250', burocrata: '#5a6170', politico: '#1f2a4a', traficante: '#2b2d33' };
+const SKIN = ['#c08a62', '#9a6a48', '#7a5236', '#d6a07a'];
+
+/** Pedaço: cabeça, braço, perna, tronco ou tripa, girando no ar e parado no chão, com a ponta cortada vermelha. */
+function drawGib(ctx, g, pt, P) {
+  const s = g.size || 1;
+  const left = GORE.gibLife - g.t;
+  ctx.globalAlpha = Math.max(0, Math.min(1, left));
+  if (g.z > 0.05) {
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y + g.z * P * 0.55, P * 0.06 * s, P * 0.025 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  const shirt = g.type === 'telespectador' ? TELE_SHIRT[(g.tint || 0) % 3] : GIB_SHIRT[g.type] || '#777';
+  const pants = GIB_PANTS[g.type] || '#3a3a40';
+  const skin = SKIN[(g.tint || 0) % 4];
+  const blood = '#8e0d14';
+  ctx.save();
+  ctx.translate(pt.x, pt.y - P * 0.05);
+  ctx.rotate(g.rot);
+  ctx.scale(s, s);
+  ctx.strokeStyle = 'rgba(20,10,10,0.85)';
+  ctx.lineWidth = Math.max(1, P * 0.012);
+  switch (g.kind) {
+    case 'cabeca':
+      ctx.fillStyle = skin;
+      ctx.beginPath();
+      ctx.arc(0, 0, P * 0.075, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#1c1714'; // cabelo
+      ctx.beginPath();
+      ctx.arc(0, -P * 0.01, P * 0.075, Math.PI * 1.05, Math.PI * 1.95);
+      ctx.fill();
+      ctx.fillStyle = blood; // pescoço
+      ctx.beginPath();
+      ctx.arc(0, P * 0.06, P * 0.035, 0, Math.PI);
+      ctx.fill();
+      break;
+    case 'braco':
+      ctx.fillStyle = skin;
+      ctx.fillRect(-P * 0.1, -P * 0.028, P * 0.2, P * 0.056);
+      ctx.strokeRect(-P * 0.1, -P * 0.028, P * 0.2, P * 0.056);
+      ctx.fillStyle = shirt; // manga
+      ctx.fillRect(-P * 0.1, -P * 0.03, P * 0.07, P * 0.06);
+      ctx.fillStyle = blood;
+      ctx.fillRect(-P * 0.115, -P * 0.03, P * 0.025, P * 0.06);
+      break;
+    case 'perna':
+      ctx.fillStyle = pants;
+      ctx.fillRect(-P * 0.12, -P * 0.035, P * 0.17, P * 0.07);
+      ctx.strokeRect(-P * 0.12, -P * 0.035, P * 0.17, P * 0.07);
+      ctx.fillStyle = skin;
+      ctx.fillRect(P * 0.05, -P * 0.028, P * 0.05, P * 0.056);
+      ctx.fillStyle = '#1b1b1f'; // pé
+      ctx.fillRect(P * 0.09, -P * 0.035, P * 0.05, P * 0.075);
+      ctx.fillStyle = blood;
+      ctx.fillRect(-P * 0.135, -P * 0.035, P * 0.025, P * 0.07);
+      break;
+    case 'tronco':
+      ctx.fillStyle = shirt;
+      ctx.fillRect(-P * 0.09, -P * 0.075, P * 0.18, P * 0.15);
+      ctx.strokeRect(-P * 0.09, -P * 0.075, P * 0.18, P * 0.15);
+      ctx.fillStyle = blood;
+      ctx.beginPath();
+      ctx.ellipse(P * 0.02, -P * 0.07, P * 0.07, P * 0.03, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(-P * 0.03, P * 0.02, P * 0.03, P * 0.022, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    default: {
+      // tripa
+      ctx.strokeStyle = '#c9606a';
+      ctx.lineWidth = Math.max(2, P * 0.03);
+      ctx.beginPath();
+      ctx.moveTo(-P * 0.1, 0);
+      ctx.bezierCurveTo(-P * 0.04, -P * 0.07, P * 0.02, P * 0.07, P * 0.1, 0);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(90,10,15,0.8)';
+      ctx.lineWidth = Math.max(1, P * 0.01);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
 function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
+  if (o.kind === 'moto') {
+    // mototáxi provisório: moto vista de 3/4 com o piloto de colete, rastro de velocidade
+    const s = playerPx;
+    ctx.save();
+    ctx.translate(pt.x, pt.y);
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+    ctx.lineWidth = 2;
+    for (let i = -1; i <= 1; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * s * 0.12, s * 0.1);
+      ctx.lineTo(i * s * 0.12, s * 0.55);
+      ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, s * 0.18, s * 0.08, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#1b1b1f';
+    ctx.fillRect(-s * 0.06, -s * 0.12, s * 0.12, s * 0.12); // roda de trás
+    ctx.fillStyle = '#c8342b';
+    ctx.fillRect(-s * 0.1, -s * 0.42, s * 0.2, s * 0.32); // tanque e banco
+    ctx.fillStyle = '#ff7a1a';
+    ctx.fillRect(-s * 0.12, -s * 0.78, s * 0.24, s * 0.36); // colete do piloto
+    ctx.fillStyle = '#ffd21f';
+    ctx.beginPath();
+    ctx.arc(0, -s * 0.88, s * 0.1, 0, Math.PI * 2); // capacete
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
   if (o.kind === 'thrown') {
     // objeto de cena arremessado: sombra no chão e o objeto girando no arco
     const s = playerPx * 0.42;
@@ -1084,13 +1239,23 @@ function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
       ctx.ellipse(pt.x, pt.y, s * 0.4, s * 0.15, 0, 0, Math.PI * 2);
       ctx.fill();
     }
-    if (o.evolved) {
-      ctx.strokeStyle = 'rgba(255,210,31,0.5)';
-      ctx.lineWidth = 4;
+    if (o.kind !== 'lob' && (o.vx || o.vy)) {
+      // rastro de velocidade: deixa claro de onde a arma veio e para onde vai
+      const tail = o.evolved ? 0.09 : 0.065;
+      const tx = pt.x - o.vx * ppu * tail;
+      const ty = y - o.vy * ppu * cam.k * tail;
+      const g = ctx.createLinearGradient(pt.x, y, tx, ty);
+      const col = o.evolved ? '255,210,31' : o.kind === 'slipper' ? '255,200,60' : '255,90,80';
+      g.addColorStop(0, `rgba(${col},0.75)`);
+      g.addColorStop(1, `rgba(${col},0)`);
+      ctx.strokeStyle = g;
+      ctx.lineWidth = Math.max(3, s * 0.55);
+      ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(pt.x, y);
-      ctx.lineTo(pt.x - o.vx * ppu * 0.05, y - o.vy * ppu * cam.k * 0.05);
+      ctx.lineTo(tx, ty);
       ctx.stroke();
+      ctx.lineCap = 'butt';
     }
     ctx.save();
     ctx.translate(pt.x, y);
@@ -1367,6 +1532,27 @@ export function drawIcon(g, kind, S) {
         g.lineTo(S * 0.28 + i * S * 0.11, S * 0.45);
       }
       g.stroke();
+      break;
+    case 'picole':
+      g.fillStyle = '#e9e0c8';
+      g.fillRect(c - S * 0.04, c + S * 0.12, S * 0.08, S * 0.3);
+      g.fillStyle = '#7fd6ff';
+      g.beginPath();
+      g.roundRect?.(c - S * 0.16, c - S * 0.34, S * 0.32, S * 0.5, S * 0.12);
+      if (!g.roundRect) g.rect(c - S * 0.16, c - S * 0.34, S * 0.32, S * 0.5);
+      g.fill();
+      g.stroke();
+      break;
+    case 'mototaxi':
+      g.fillStyle = '#1b1b1f';
+      g.beginPath();
+      g.arc(c - S * 0.22, c + S * 0.16, S * 0.13, 0, Math.PI * 2);
+      g.arc(c + S * 0.22, c + S * 0.16, S * 0.13, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = '#c8342b';
+      g.fillRect(c - S * 0.26, c - S * 0.06, S * 0.52, S * 0.14);
+      g.fillStyle = '#ff7a1a';
+      g.fillRect(c - S * 0.06, c - S * 0.36, S * 0.16, S * 0.3);
       break;
     case 'pastel':
       g.fillStyle = '#e8b04a';

@@ -91,6 +91,17 @@ export const ENEMIES = {
   },
 };
 
+// Jogo de zumbi (D27): com "Respingos e manchas" ligado, todo inimigo morre explodindo em sangue e
+// pedaços; desligado, a horda volta a acordar (MECH-001), para versões com classificação menor.
+export const GORE = {
+  gibs: { comum: 5, elite: 9, pesado: 3 }, // pedaços por morte; "pesado": objeto, mototáxi, maleta, explosão
+  blood: { comum: 16, elite: 34 }, // gotas de sangue por morte
+  maxGibs: 160, // limite de pedaços na tela (desempenho)
+  gibLife: 6, // s até sumir
+  decalMax: 220, // manchas no chão
+  decalLife: 14, // s
+};
+
 // MECH-001: o que acontece quando um telespectador acorda.
 export const WAKE = {
   walkSpeed: 1.6, // m/s, se afastando do jogador
@@ -206,9 +217,9 @@ export function caosBand(caos) {
 
 export const DIRECTOR = {
   caosFromTime: (t) => 100 * Math.pow(Math.min(t, 600) / 600, 1.15) * 0.82,
-  targetAlive: (caos) => 20 + caos * 3.2,
+  targetAlive: (caos) => 26 + caos * 3.8,
   spawnPerSec: (caos) => 2.2 + caos * 0.2,
-  hpScale: (t) => 1 + (t / 600) * 2.2,
+  hpScale: (t) => 1 + (t / 600) * 3.2, // jogo bem difícil e justo (D25): bot sem melhorias ganha ~25%
   composition(caos) {
     const list = [{ type: 'telespectador', w: 1 }];
     if (caos >= 8) list.push({ type: 'golpista', w: 0.16 });
@@ -289,6 +300,31 @@ export const WEAPONS = {
       { radius: 0.4, desc: 'Explosão maior' },
       { count: 1, desc: '+1 maleta' },
       { cd: -0.6, dmg: 12, desc: 'Recarga menor, +12 de dano' },
+    ],
+  },
+  // Habilidades exclusivas de cada trecho (aparecem só nele; quem pega leva para os próximos)
+  picole: {
+    name: 'Isopor de Picolé',
+    role: 'Onda gelada em volta: a horda fica lenta',
+    onlyIn: 'orla',
+    levels: [
+      { dmg: 6, cd: 2.6, radius: 2.2, slow: 0.45, slowT: 1.6 },
+      { radius: 0.4, desc: 'Onda maior' },
+      { slowT: 0.8, desc: 'O gelo dura mais' },
+      { dmg: 6, cd: -0.4, desc: '+6 de dano e mais frequente' },
+      { radius: 0.5, slow: -0.1, desc: 'Onda maior e horda mais lenta' },
+    ],
+  },
+  mototaxi: {
+    name: 'Mototáxi Amigo',
+    role: 'A moto sobe a viela atropelando a horda',
+    onlyIn: 'morro',
+    levels: [
+      { dmg: 40, cd: 4.2, speed: 24, lenM: 22, width: 1.0, startM: 9, count: 1 },
+      { dmg: 15, desc: '+15 de dano' },
+      { width: 0.5, desc: 'Moto mais larga: atropela mais gente' },
+      { cd: -1.0, desc: 'Passa mais vezes' },
+      { count: 1, dmg: 15, desc: '+1 mototáxi e +15 de dano' },
     ],
   },
   microfone: {

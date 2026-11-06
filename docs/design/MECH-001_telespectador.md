@@ -1,5 +1,8 @@
 # MECH-001 Telespectador Hipnotizado
 
+> **Atualização (06/11/2026, D27):** o autor definiu que o jogo é de zumbi e sanguinário. No modo padrão, com o gore ligado, a horda explode em sangue e pedaços. Esta mecânica (acordar em vez de morrer) continua valendo com o ajuste "Respingos e manchas" desligado.
+
+
 **Status:** Implementado. Critérios AC-1 a AC-7 verificados; AC-8 aguarda playtest.
 
 **Fantasia:** a cidade está hipnotizada pela TV Caos. O Juninho não mata quem está na frente dele: ele *acorda* essas pessoas, uma por uma, e a audiência da emissora cai.

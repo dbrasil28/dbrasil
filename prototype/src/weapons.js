@@ -111,6 +111,34 @@ export function fireWeapon(game, w, ps) {
       }
       break;
     }
+    case 'picole': {
+      // Isopor de Picolé (só na Orla): onda gelada que machuca pouco e deixa a horda lenta
+      const r = st.radius * area;
+      game.hash.query(p.x, p.y, r + 0.6, tmp);
+      for (const e of tmp) {
+        if (e.dead) continue;
+        if (Math.hypot(e.x - p.x, e.y - p.y) > r + e.r) continue;
+        game.damageEnemy(e, st.dmg * dmgMul, w.id, 0, 0);
+        e.slowT = Math.max(e.slowT, st.slowT);
+        e.slowF = st.slow;
+      }
+      game.fx.rings.push({ x: p.x, y: p.y, r0: 0.3, r1: r, t: 0, dur: 0.5, color: 'gelo' });
+      game.burst(p.x, p.y, 12, 'gelo');
+      fired = true;
+      break;
+    }
+    case 'mototaxi': {
+      // Mototáxi Amigo (só no Morro): sobe a viela por baixo do Juninho, atropelando todos na linha
+      for (let i = 0; i < st.count; i++) {
+        const off = st.count > 1 ? (i - (st.count - 1) / 2) * 1.4 : 0;
+        game.projectiles.push({
+          kind: 'moto', x: p.x + off, y: p.y + st.startM, vx: 0, vy: -st.speed, life: st.lenM / st.speed,
+          dmg: st.dmg * dmgMul, width: st.width * area, hit: new Set(), src: w.id,
+        });
+      }
+      fired = true;
+      break;
+    }
     case 'microfone': {
       const r = st.radius * area;
       game.hash.query(p.x, p.y, r + 0.6, tmp);
@@ -219,6 +247,19 @@ export function updateProjectiles(game, dt) {
         game.explode(pr.x, pr.y, pr.radius, pr.dmg, pr.src);
         remove = true;
       }
+    } else if (pr.kind === 'moto') {
+      pr.x += pr.vx * dt;
+      pr.y += pr.vy * dt;
+      pr.life -= dt;
+      game.hash.query(pr.x, pr.y, pr.width + 1.2, tmp);
+      for (const e of tmp) {
+        if (e.dead || pr.hit.has(e.id)) continue;
+        const dx = e.x - pr.x;
+        if (Math.abs(dx) > pr.width + e.r || Math.abs(e.y - pr.y) > 1.1) continue;
+        pr.hit.add(e.id);
+        game.damageEnemy(e, pr.dmg, pr.src, (dx >= 0 ? 1 : -1) * 7, -3);
+      }
+      if (pr.life <= 0) remove = true;
     } else if (pr.kind === 'thrown') {
       // objeto de cena arremessado (mesa, cadeira, botijão...): arco e impacto em área
       pr.t += dt;

@@ -91,9 +91,9 @@ export function resolveModal(game, eventPolicy = (i) => i % 2 === 0) {
   game.chooseOption(best);
 }
 
-export function simulate({ seed = 7, seconds = 600, dt = 1 / 30, settings = {}, eventPolicy } = {}) {
+export function simulate({ seed = 7, seconds = 600, dt = 1 / 30, settings = {}, eventPolicy, meta = null } = {}) {
   const s = { ...defaultSettings(), elenco: false, ...settings }; // balanceamento mede o ritmo normal
-  const game = new Game(s, { seed });
+  const game = new Game(s, { seed, meta }); // meta: melhorias permanentes da carreira
   let guard = 0;
   while (!game.finished && game.t < seconds && guard++ < seconds * 200) {
     if (game.modal) {
