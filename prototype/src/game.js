@@ -41,7 +41,7 @@ export class Game {
       weapons: [{ id: 'capacete', level: 1, cd: 0.4 }], passives: [],
       faceX: 1, faceY: 0, moving: false, slowT: 0, hurtT: 0, invulnT: 0, bonusDmg: 0, vx: 0, vy: 0,
       // animação do arremesso (atlas de teste): tempo desde o disparo / desde a pegada, capacetes em voo e mira
-      throwT: 9, catchT: 9, helmetsOut: 0, aimX: 1, aimY: 0,
+      throwT: 9, catchT: 9, helmetsOut: 0, aimX: 1, aimY: 0, walkPhase: 0,
     };
     this.reviveUsed = false;
     this.rerollsLeft = this.settings.ads ? ADS.rerollsPerRun : 0;
@@ -680,6 +680,7 @@ export class Game {
       p.faceY = pt.y;
     }
     p.moving = mag > 0.05;
+    if (p.moving) p.walkPhase += dt * 9.5; // ~1,5 passos por segundo
     if (p.slowT > 0) p.slowT -= dt;
     const speed = PLAYER.speed * st.speedMul * (p.slowT > 0 ? 0.6 : 1);
     p.vx = mx * speed;

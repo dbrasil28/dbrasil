@@ -106,7 +106,7 @@ export function loadImages(onEach) {
 
 export const imagesReady = () => pending === 0;
 
-export const ATLAS = { cols: 6, rows: 16, cw: 200, ch: 160, figureH: 155 }; // figura ≈ 155 px numa célula de 160
+export const ATLAS = { cols: 6, rows: 16, cw: 200, ch: 160, figureH: 155, hipFrac: 0.585, pivotFrac: 0.53 }; // figura ≈ 155 px numa célula de 160; cintura a 58,5% da altura
 
 /** Corta o atlas em 96 células (canvas) registradas como imagens `ja_<direção>_<quadro>`. */
 function sliceAtlas(im) {
@@ -136,7 +136,7 @@ export function prewarm(cache, playerPx, enemyPx, sizeOf) {
     if (flip) continue;
     for (let r = 0; r < ATLAS.rows; r++) {
       for (let f = 0; f < ATLAS.cols; f++) {
-        for (const mode of ['', 'hurt']) jobs.push(() => cache.get(`ja_${r}_${f}`, playerPx * (ATLAS.ch / ATLAS.figureH), { mode, shadowScale: 0.62 }));
+        for (const mode of ['', 'hurt']) jobs.push(() => cache.get(`ja_${r}_${f}`, playerPx * (ATLAS.ch / ATLAS.figureH), { mode, noShadow: true }));
       }
     }
     for (const id of CROWD) {
@@ -180,7 +180,7 @@ export class SpriteCache {
     if (!im) return null;
     const flip = opts.flip ? 1 : 0;
     const flash = opts.flash ? 1 : 0;
-    const key = `${imgId}|${Math.round(heightCss)}|${flip}|${flash}|${opts.mode || ''}|${opts.tint ? opts.tint.join() : ''}|${opts.shadowScale || ''}`;
+    const key = `${imgId}|${Math.round(heightCss)}|${flip}|${flash}|${opts.mode || ''}|${opts.tint ? opts.tint.join() : ''}|${opts.shadowScale || ''}|${opts.noShadow ? 1 : 0}`;
     let c = this.map.get(key);
     if (c) return c;
     c = this.build(im, heightCss, opts);
@@ -201,11 +201,13 @@ export class SpriteCache {
     const footY = pad + h;
     const cx = c.width / 2;
 
-    // sombra no chão
-    g.fillStyle = 'rgba(0,0,0,0.38)';
-    g.beginPath();
-    g.ellipse(cx, footY - shadowH * 0.15, shadowW, shadowH * 0.5, 0, 0, Math.PI * 2);
-    g.fill();
+    // sombra no chão (opcional: o jogador desenha a dele à parte, porque as pernas mexem)
+    if (!opts.noShadow) {
+      g.fillStyle = 'rgba(0,0,0,0.38)';
+      g.beginPath();
+      g.ellipse(cx, footY - shadowH * 0.15, shadowW, shadowH * 0.5, 0, 0, Math.PI * 2);
+      g.fill();
+    }
 
     // camada do personagem (com espelhamento e tratamentos)
     const layer = canvas(w, h);

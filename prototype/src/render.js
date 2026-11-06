@@ -283,8 +283,15 @@ export class Renderer {
       else if (p.catchT < 0.22) frame = 5; // pegou
       else if (p.helmetsOut > 0) frame = 3; // mãos livres, capacete em voo
       img = this.cache.get(`ja_${row}_${frame}`, playerPx * (ATLAS.ch / ATLAS.figureH), {
-        mode: hurtBlink ? 'hurt' : '', tint: game.corruption >= 50 ? [232, 182, 44, 0.22] : null, shadowScale: 0.62,
+        mode: hurtBlink ? 'hurt' : '', tint: game.corruption >= 50 ? [232, 182, 44, 0.22] : null, noShadow: true,
       });
+      if (img) {
+        const invulnBlink = p.invulnT > 0 && Math.floor(game.t * 12) % 2 === 0 ? 0.45 : 1;
+        ctx.globalAlpha = alpha * invulnBlink;
+        this.drawPlayerAtlas(ctx, img, pt, playerPx * (ATLAS.ch / ATLAS.figureH), p, row, game);
+        ctx.globalAlpha = 1;
+        return;
+      }
     }
     if (!img) {
       img = this.cache.get('juninho', playerPx, {
@@ -304,6 +311,58 @@ export class Renderer {
       ctx.restore();
     } else ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy - bob, spr.cssW, spr.cssH);
     ctx.globalAlpha = 1;
+  }
+
+  /**
+   * Desenha o Juninho do atlas com passada mecânica: o sprite é cortado na cintura e cada perna
+   * gira a partir do quadril, em fases opostas. De frente/costas, as pernas alternam altura
+   * (joelho sobe) em vez de abrir para os lados. Provisório até existir a folha de caminhada.
+   */
+  drawPlayerAtlas(ctx, spr, pt, h, p, row, game) {
+    const shW = h * 0.26;
+    ctx.fillStyle = 'rgba(0,0,0,0.38)';
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y - 1, shW, shW * 0.32, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const x0 = pt.x - spr.ox;
+    const y0 = pt.y - spr.oy;
+    if (!p.moving) {
+      ctx.drawImage(spr, x0, y0, spr.cssW, spr.cssH);
+      return;
+    }
+    const top = pt.y - h; // topo da célula
+    const hipY = top + h * ATLAS.hipFrac;
+    const pivY = top + h * ATLAS.pivotFrac;
+    const ph = p.walkPhase;
+    const s = Math.sin(ph);
+    const sideness = Math.abs(Math.sin((row / 16) * Math.PI * 2)); // 1 = perfil, 0 = de frente/costas
+    const bob = Math.abs(Math.cos(ph)) * h * 0.035;
+    const legs = [[-1, s], [1, -s]]; // [lado, fase]
+    for (const [side, f] of legs) {
+      ctx.save();
+      ctx.beginPath();
+      // metade esquerda ou direita, da cintura até o chão (com folga)
+      ctx.rect(side < 0 ? x0 - 10 : pt.x, hipY, side < 0 ? pt.x - x0 + 10 : x0 + spr.cssW + 10 - pt.x, pt.y + h * 0.2 - hipY);
+      ctx.clip();
+      ctx.translate(pt.x + side * h * 0.05, pivY);
+      // de perfil: balança a partir do quadril; de frente: levanta o joelho (encurta a perna) e inclina pouco
+      ctx.rotate(f * (0.05 + 0.2 * sideness));
+      const lift = (1 - sideness) * Math.max(0, f) * 0.14;
+      ctx.scale(1, 1 - lift);
+      ctx.translate(-(pt.x + side * h * 0.05), -pivY);
+      ctx.drawImage(spr, x0, y0 - bob * 0.3, spr.cssW, spr.cssH);
+      ctx.restore();
+    }
+    // tronco (da cabeça à cintura), com balanço leve
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x0 - 10, y0 - 10, spr.cssW + 20, hipY - (y0 - 10) + 1);
+    ctx.clip();
+    ctx.translate(pt.x, hipY);
+    ctx.rotate(s * 0.035 * sideness);
+    ctx.translate(-pt.x, -hipY);
+    ctx.drawImage(spr, x0, y0 - bob, spr.cssW, spr.cssH);
+    ctx.restore();
   }
 
   drawGround(ctx, game) {
