@@ -17,6 +17,7 @@ Status: **pré-produção, Fase 0** (protótipo de arena cinza).
 | `docs/SKILLS_EQUIPE_GAMES.md` | Pesquisa de skills de Claude Code para construtor, designer e QA de games |
 | `docs/DECISOES.md` | Registro de decisões |
 | `docs/design/` | Specs de mecânica (MECH-001) e elenco com os nomes v0.2 |
+| `docs/arte/` | Guia de produção de arte (mapas, specs, prompts) e recortes do mockup usados como referência |
 | `.claude/` | Skills e agentes de game dev instalados no projeto (ver `CLAUDE.md`) |
 | `prototype/` | Protótipo jogável (HTML + JavaScript, sem dependências) |
 | `tools/` | Servidor local, empacotador em arquivo único e relatório de balanceamento |
