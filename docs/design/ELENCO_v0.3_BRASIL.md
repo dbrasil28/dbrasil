@@ -7,7 +7,7 @@ Lista do autor (06/11/2026), com os nomes e as decisões dele, encaixada nos pap
 | Personagem | Papel | Como funciona no jogo |
 | --- | --- | --- |
 | Funkeiro | Jogável | Arma: o grave do paredão, onda que empurra a horda. Especial: "Solta o batidão", e a horda para para dançar |
-| Cachorro Caramelo | Companheiro | Melhoria: o vira-lata segue o Juninho e morde quem chega perto. Nunca leva dano |
+| Cachorro Caramelo | Habilidade (carta de melhoria; qualquer jogável pega) | O vira-lata segue o personagem, corre até o inimigo mais perto, morde e volta. Nunca leva dano. Detalhes abaixo |
 | Jogador de Futebol | Jogável | Bola que ricocheteia entre os inimigos. Especial: "Golaço", um chute que atravessa a tela |
 | Vendedor de Picolé | Jogável | Isopor de picolé: o gelo deixa a horda lenta. Grito "Olha o picolé!" atordoa |
 | Encostado do INSS | Inimigo | Anda devagar de colar cervical e muleta. Quando o Juninho vira de costas, sai correndo |
@@ -28,6 +28,21 @@ Lista do autor (06/11/2026), com os nomes e as decisões dele, encaixada nos pap
 | Rainha de Escola de Samba | Evento: desfile | Passa com a bateria e a horda sai sambando atrás. Vem junto do Bicheiro |
 | Mulher de Biquíni Minúsculo | Horda da praia | Roupa da horda na orla, ao lado do Tiozão de Sunga |
 | Político de Estimação: **O Barbudo** e **O Capitão** | Chefe duplo de Acordópolis | Caricaturas genéricas, mas parecidas com Lula e Bolsonaro. Brigam entre si na TV e dividem a maleta fora dela. No meio da luta se juntam em um só, O Acordão |
+
+## Habilidade: Cachorro Caramelo
+
+Carta de arma que aparece ao subir de nível, como o Capacete e o Chinelo.
+
+| Nível | O que ganha |
+| --- | --- |
+| 1 | Um Caramelo segue o personagem, corre até o inimigo mais perto, morde e volta |
+| 2 | Mordida mais forte |
+| 3 | "AU AU!": um latido que faz a horda em volta recuar por um instante |
+| 4 | Chega um segundo Caramelo |
+| 5 | Os dois correm mais e mordem mais rápido |
+| Evolução | **Matilha do Bairro**: com o Caramelo no máximo e a Marmita da Mãe, o personagem divide a marmita com os vira-latas e vem a matilha inteira |
+
+Arte necessária: caminhada e corrida do Caramelo em 16 direções, uma pose de mordida e uma de latido.
 
 ## O resto do elenco
 
