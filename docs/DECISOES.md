@@ -19,6 +19,7 @@ Continua o registro do pacote de conceito (`docs/concept-v0.1/06_Decisoes_e_Ques
 | D13 | 06/11/2026 | Nomes | Todos os nomes fictícios; trocas em `design/ELENCO_E_NOMES_v0.2.md` | Adotado (recomendação seguida com "siga") |
 | D14 | 06/11/2026 | Mapas | Vários tipos de mapa, todos bem brasileiros e com formato de jogo diferente. O mapa 1 é a orla do Rio de Janeiro (Orla do Desespero): calçadão de ondas, praia, morro com favela. Plano em `arte/GUIA_DE_PRODUCAO_DE_ARTE.md` | Decidido (mapa 1); mapas 2 a 5 em proposta |
 | D15 | 06/11/2026 | Arte | A arte final sai do guia de produção, gerada com o ChatGPT pelo autor; o protótipo usa recortes do mockup como provisório | Decidido |
+| D16 | 06/11/2026 | Arte no protótipo | Pacote de recortes v1 (`prototype/assets/`, manifesto em `asset_manifest.json`) integrado; mapa 1 em corredor; Juninho em 8% da área jogável e inimigos em 90% do Juninho, como no mockup | Feito; arte final pendente do guia |
 
 ## Pendentes
 

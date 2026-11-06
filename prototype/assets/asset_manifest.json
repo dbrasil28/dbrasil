@@ -1,0 +1,466 @@
+{
+  "project": "BRASIL: ESTADO DE CAOS",
+  "date": "2026-11-06",
+  "version": "prototipo_recortes_v1",
+  "assets": [
+    {
+      "id": "personagens_juninho",
+      "file": "prototype/assets/personagens/juninho.png",
+      "source": "juninho.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        168,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Juninho original: entregador vermelho. Enquadramento original inclinado; so uma direcao."
+    },
+    {
+      "id": "personagens_telespectador_a",
+      "file": "prototype/assets/personagens/telespectador_a.png",
+      "source": "t_amarelo16.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        98,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Variação amarela, recorte de costas; olho hipnotizado nao visivel."
+    },
+    {
+      "id": "personagens_telespectador_b",
+      "file": "prototype/assets/personagens/telespectador_b.png",
+      "source": "t_semcamisa.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        134,
+        151
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Variação sem camisa, recorte de pose unica."
+    },
+    {
+      "id": "personagens_telespectador_c",
+      "file": "prototype/assets/personagens/telespectador_c.png",
+      "source": "t_bone.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        111,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Variação de bone, recorte de pose unica."
+    },
+    {
+      "id": "personagens_telespectador_d",
+      "file": "prototype/assets/personagens/telespectador_d.png",
+      "source": "t_amarelo19.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        94,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Variação amarela, pose unica."
+    },
+    {
+      "id": "personagens_telespectador_e",
+      "file": "prototype/assets/personagens/telespectador_e.png",
+      "source": "t_branca.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        100,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Variação branca, pose unica."
+    },
+    {
+      "id": "personagens_telespectador_f",
+      "file": "prototype/assets/personagens/telespectador_f.png",
+      "source": "t_rosa.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        88,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Variação rosa, pose unica."
+    },
+    {
+      "id": "personagens_telespectador_g",
+      "file": "prototype/assets/personagens/telespectador_g.png",
+      "source": "t_verde26.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        101,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Variação verde, pose unica."
+    },
+    {
+      "id": "personagens_telespectador_h",
+      "file": "prototype/assets/personagens/telespectador_h.png",
+      "source": "t_vinho.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        128,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Variação vinho, pose unica."
+    },
+    {
+      "id": "personagens_golpista",
+      "file": "prototype/assets/personagens/golpista.png",
+      "source": "golpista.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        83,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Pose unica original do mockup."
+    },
+    {
+      "id": "personagens_burocrata",
+      "file": "prototype/assets/personagens/burocrata.png",
+      "source": "burocrata.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        106,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Pose unica original do mockup."
+    },
+    {
+      "id": "personagens_fiscal",
+      "file": "prototype/assets/personagens/fiscal.png",
+      "source": "fiscal.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        85,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Pose unica original do mockup. Recorte mostra uniforme generico e deve ser revisado."
+    },
+    {
+      "id": "personagens_politico",
+      "file": "prototype/assets/personagens/politico.png",
+      "source": "politico.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        118,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Pose unica original do mockup."
+    },
+    {
+      "id": "personagens_especulador",
+      "file": "prototype/assets/personagens/especulador.png",
+      "source": "especulador.png",
+      "type": "personagem",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        160,
+        170
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Pose unica original do mockup. O recorte e temporario para o chefe."
+    },
+    {
+      "id": "cenario_cone",
+      "file": "prototype/assets/cenario/cone.png",
+      "source": "p_cone.png",
+      "type": "cenario",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        96,
+        115
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Cone recortado do mockup."
+    },
+    {
+      "id": "cenario_poste_cartaz",
+      "file": "prototype/assets/cenario/poste_cartaz.png",
+      "source": "p_poste.png",
+      "type": "cenario",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        236,
+        1035
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        1.0
+      ],
+      "notes": "Poste com cartaz no recorte: texto visivel; remover texto antes de producao final."
+    },
+    {
+      "id": "hud_w_capacete",
+      "file": "prototype/assets/hud/w_capacete.png",
+      "source": "w_capacete.png",
+      "type": "hud",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        224,
+        205
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "notes": "Recorte com borda/frame parcialmente embutidos."
+    },
+    {
+      "id": "hud_w_boleto",
+      "file": "prototype/assets/hud/w_boleto.png",
+      "source": "w_boleto.png",
+      "type": "hud",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        260,
+        204
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "notes": "Recorte com borda/frame parcialmente embutidos."
+    },
+    {
+      "id": "hud_w_chinelo",
+      "file": "prototype/assets/hud/w_chinelo.png",
+      "source": "w_chinelo.png",
+      "type": "hud",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        256,
+        207
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "notes": "Recorte com borda/frame parcialmente embutidos."
+    },
+    {
+      "id": "hud_w_megafone",
+      "file": "prototype/assets/hud/w_megafone.png",
+      "source": "w_megafone.png",
+      "type": "hud",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        246,
+        205
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "notes": "Recorte com borda/frame parcialmente embutidos."
+    },
+    {
+      "id": "hud_w_maleta",
+      "file": "prototype/assets/hud/w_maleta.png",
+      "source": "w_maleta.png",
+      "type": "hud",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        245,
+        211
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "notes": "Recorte com borda/frame parcialmente embutidos."
+    },
+    {
+      "id": "hud_logo",
+      "file": "prototype/assets/hud/logo.png",
+      "source": "logo.png",
+      "type": "hud",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        480,
+        262
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "notes": "Logo original do mockup."
+    },
+    {
+      "id": "hud_retrato_juninho",
+      "file": "prototype/assets/hud/retrato_juninho.png",
+      "source": "portrait.png",
+      "type": "hud",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        98,
+        126
+      ],
+      "alpha": false,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "notes": "Retrato extraido do mockup."
+    },
+    {
+      "id": "hud_tv_apresentador_ref",
+      "file": "prototype/assets/hud/tv_apresentador_ref.png",
+      "source": "tv.png",
+      "type": "hud",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        248,
+        130
+      ],
+      "alpha": false,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "notes": "Recorte de apresentador COM moldura: apenas referencia. Nao equivale a apresentador isolado."
+    },
+    {
+      "id": "hud_icone_eliminacoes",
+      "file": "prototype/assets/hud/icone_eliminacoes.png",
+      "source": "skull.png",
+      "type": "hud",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        66,
+        79
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "notes": "Icone auxiliar."
+    },
+    {
+      "id": "hud_icone_caos",
+      "file": "prototype/assets/hud/icone_caos.png",
+      "source": "fist.png",
+      "type": "hud",
+      "status": "TEMPORARIO_RECORTADO_MOCKUP",
+      "size_px": [
+        94,
+        101
+      ],
+      "alpha": true,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "notes": "Icone auxiliar."
+    },
+    {
+      "id": "pedra_portuguesa_ondas",
+      "file": "prototype/assets/chao/pedra_portuguesa_ondas.png",
+      "source": "textura gerada e adaptada para emenda",
+      "type": "chao",
+      "status": "TEXTURA_TESTE_VALIDAR_VISUALMENTE",
+      "size_px": [
+        1024,
+        1024
+      ],
+      "alpha": false,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "notes": "Feather de bordas para continuidade; verificar repeticao no motor e legibilidade no celular."
+    }
+  ]
+}

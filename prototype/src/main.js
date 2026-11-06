@@ -7,6 +7,7 @@ import { loadSettings, saveSettings, defaultSettings } from './settings.js';
 import { ENEMIES } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
+import { loadImages, images } from './sprites.js';
 
 const $ = (id) => document.getElementById(id);
 const STEP = 1 / 60;
@@ -303,6 +304,47 @@ document.addEventListener('contextmenu', (e) => e.preventDefault());
 window.__bec = { get game() { return game; }, get state() { return state; }, settings: () => settings, ads };
 
 $('fps').hidden = !settings.showFps;
+
+/** Troca os elementos desenhados em CSS pelas artes do mockup, quando carregam. */
+function applyHudArt() {
+  const put = (el, im, cls, alt = '') => {
+    if (!el || !im) return;
+    const tag = document.createElement('img');
+    tag.src = im.src;
+    tag.alt = alt;
+    tag.className = cls;
+    tag.draggable = false;
+    el.replaceChildren(tag);
+    el.classList.add('has-art');
+  };
+  put($('avatar'), images.retrato, 'hud-portrait');
+  put(document.querySelector('.kills .skull'), images.caveira, 'hud-skull');
+  if (images.punho && !document.querySelector('.hud-fist')) {
+    const f = document.createElement('img');
+    f.src = images.punho.src;
+    f.alt = '';
+    f.className = 'hud-fist';
+    document.querySelector('.caos-label')?.before(f);
+  }
+  put(document.querySelector('#ticker .tv-tag'), images.tv, 'hud-tv', 'TV Caos ao vivo');
+  const logo = document.querySelector('#screen-title .logo');
+  if (logo && images.logo && !logo.querySelector('img')) {
+    const tag = document.createElement('img');
+    tag.src = images.logo.src;
+    tag.alt = 'Brasil: Estado de Caos';
+    tag.className = 'logo-art';
+    logo.classList.add('has-art');
+    logo.prepend(tag);
+  }
+}
+
+loadImages(() => {
+  renderer.cache.clear(renderer.dpr);
+  renderer.groundPattern = null;
+  ui.iconCache.clear();
+  ui.last.slots = null;
+}).then(applyHudArt);
+
 layout();
 ui.show('screen-title');
 updateBanner();

@@ -37,7 +37,9 @@ node tools/build-single.mjs                 # gera dist/brasil-estado-de-caos.ht
 
 ## O que tem no protótipo
 
-- Partida de **10 minutos** no Centro do Desespero: a TV avisa do chefe aos 07:50 e o **Especulador Imobiliário** chega aos 08:00, vendendo lotes que fecham a arena.
+- **Mapa 1, Orla do Desespero (Rio):** corredor de calçadão de pedra portuguesa, com o morro e a favela à esquerda, a areia à direita (deixa mais lento) e ruas transversais a cada 48 m. A arena aberta antiga continua nos ajustes.
+- **Arte provisória do mockup aprovado:** personagens, ícones, retrato, TV e logo em PNG transparente (`prototype/assets/`). Casas, quiosques e areia ainda são desenhados em código.
+- Partida de **10 minutos**: a TV avisa do chefe aos 07:50 e o **Especulador Imobiliário** chega aos 08:00, vendendo lotes que fecham a arena.
 - **Juninho** com 6 armas (Capacete Bumerangue, Chinelo Voador, Boleto Atrasado, Carimbo Oficial, Maleta de Dinheiro, Microfone de TV), 6 passivas e 1 evolução (**Entrega Expressa**).
 - 4 famílias de inimigos (Telespectador Hipnotizado, que acorda em vez de morrer; Golpista Digital e seus Perfis Falsos, Burocrata-Monstro, Fiscal do Impossível), a elite Político Corrupto e o Rival Patrocinado.
 - **Índice de Caos** como diretor de hordas, com quatro faixas: Normalidade Suspeita, Crise, Colapso Institucional e Estado de Calamidade.

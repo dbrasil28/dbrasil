@@ -25,8 +25,19 @@ async function visit(rel) {
   for (const m of code.matchAll(/^import\s+[^;]*?from\s+'(\.[^']+)';/gm)) {
     await visit(path.posix.join(path.posix.dirname(id), m[1]));
   }
-  sources.set(id, code);
+  sources.set(id, await inlineAssets(code));
   order.push(id);
+}
+
+async function inlineAssets(code) {
+  const re = /'(assets\/[^']+\.(png|jpg|jpeg|webp))'/g;
+  const found = [...code.matchAll(re)];
+  for (const [whole, rel, ext] of found) {
+    const buf = await readFile(path.join(proto, rel));
+    const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+    code = code.replace(whole, `'data:${mime};base64,${buf.toString('base64')}'`);
+  }
+  return code;
 }
 
 function transform(id, code) {

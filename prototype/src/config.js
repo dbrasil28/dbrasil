@@ -77,6 +77,24 @@ export const WAKE = {
   audienceFloor: 0.1, // a audiência nunca cai abaixo disso
 };
 
+// Mapas (docs/arte/GUIA_DE_PRODUCAO_DE_ARTE.md, seção 2). Medidas em metros; x cresce para a direita.
+export const MAPS = {
+  orla: {
+    name: 'Orla do Desespero', bounded: true,
+    minX: -14, // fim do calçadão à esquerda: morro e favela (não dá para entrar)
+    sandX: 14, // começo da areia à direita
+    maxX: 20, // até onde dá para andar na areia
+    seaX: 26, // começo do mar (só visual)
+    sandSpeedMul: 0.6, // areia deixa o jogador mais lento
+    enemySandMul: 0.8,
+    blockLen: 48, // quarteirão: 40 m de calçadão + 8 m de rua transversal
+    streetLen: 8,
+    propChance: 0.28, // chance de um obstáculo por pedaço de 10×10 m no calçadão
+    groundTileM: 10, // a textura de pedra portuguesa cobre 10×10 m
+  },
+  aberto: { name: 'Arena aberta (teste)', bounded: false, groundTileM: 10 },
+};
+
 // Diretor de spawn guiado pelo Índice de Caos (0–100).
 export const CAOS_BANDS = [
   { min: 0, name: 'NORMALIDADE SUSPEITA' },
@@ -165,7 +183,7 @@ export const WEAPONS = {
     ],
   },
   microfone: {
-    name: 'Microfone de TV',
+    name: 'Megafone da TV',
     role: 'Onda sonora em volta, empurra a horda',
     levels: [
       { dmg: 6, cd: 1.0, radius: 1.9, knock: 3.2 },
@@ -277,7 +295,7 @@ export function verdictFor(corruption) {
 
 // Falas da TV Caos (emissora fictícia). A sátira mira estruturas, não vítimas.
 export const TV = {
-  start: ['MAIS UM DIA NORMAL NO CENTRO DO DESESPERO', 'ENTREGADOR INICIA TURNO. APP PROMETE "FLEXIBILIDADE"'],
+  start: ['MAIS UM DIA NORMAL NA ORLA DO DESESPERO. CALOR DE 41 GRAUS', 'ENTREGADOR INICIA TURNO. APP PROMETE "FLEXIBILIDADE"'],
   firstKill: ['TELESPECTADOR ACORDA E MUDA DE CANAL. EMISSORA CHAMA DE "INCIDENTE ISOLADO"'],
   multikill: ['ENTREGADOR DESLIGA A PLATEIA INTEIRA. EMISSORA PEDE CALMA', 'AUDIÊNCIA EM QUEDA: ENTREGADOR ACORDA MAIS UM QUARTEIRÃO'],
   lowHp: ['AO VIVO: ENTREGADOR À BEIRA DO COLAPSO. AUDIÊNCIA DISPARA', 'APP AVISA: ATRASO PODE GERAR PUNIÇÃO'],

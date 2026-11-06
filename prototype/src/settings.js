@@ -2,8 +2,9 @@
 const KEY = 'bec.settings.v1';
 
 export const SETTINGS_SCHEMA = [
-  { id: 'playerPct', label: 'Altura do protagonista (% da área jogável)', type: 'range', min: 6, max: 14, step: 0.5, def: 10, hint: 'GDD: 8–11%' },
-  { id: 'enemyPct', label: 'Inimigo comum (% do protagonista)', type: 'range', min: 50, max: 110, step: 5, def: 75, hint: 'GDD: 60–80%' },
+  { id: 'map', label: 'Mapa', type: 'select', options: [['orla', 'Orla do Desespero (Rio) — calçadão'], ['aberto', 'Arena aberta (teste antigo)']], def: 'orla' },
+  { id: 'playerPct', label: 'Altura do protagonista (% da área jogável)', type: 'range', min: 6, max: 14, step: 0.5, def: 8, hint: 'GDD: 8–11%; mockup aprovado: ~8%' },
+  { id: 'enemyPct', label: 'Inimigo comum (% do protagonista)', type: 'range', min: 50, max: 110, step: 5, def: 90, hint: 'GDD: 60–80%; no mockup os adultos têm a altura do Juninho' },
   { id: 'elevation', label: 'Inclinação da câmera (°)', type: 'range', min: 35, max: 80, step: 1, def: 55, hint: '90° = vista de cima' },
   { id: 'yaw', label: 'Rotação da câmera', type: 'select', options: [['0', '0° — ruas retas (mockups)'], ['45', '45° — isometria diamante']], def: '0' },
   { id: 'joystick', label: 'Controle', type: 'select', options: [['floating', 'Joystick flutuante (toque em qualquer lugar)'], ['fixed', 'Joystick fixo (canto inferior esquerdo)']], def: 'floating', hint: 'Hipótese H07' },

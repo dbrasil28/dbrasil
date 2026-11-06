@@ -1,6 +1,10 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE } from './config.js';
+import { images, SpriteCache, CROWD, ENEMY_ART, ICON_ART, drawFit } from './sprites.js';
+import { drawOrlaGround, orlaDecor, drawDecor, drawImageProp } from './mapa.js';
+
+const decorTmp = [];
 
 const pt = { x: 0, y: 0 };
 const pt2 = { x: 0, y: 0 };
@@ -42,6 +46,7 @@ export class Renderer {
     this.shakeT = 0;
     this.shakeAmp = 0;
     this.flashT = 0;
+    this.cache = new SpriteCache();
   }
 
   resize(w, h, dpr) {
@@ -53,6 +58,9 @@ export class Renderer {
     this.canvas.style.width = `${w}px`;
     this.canvas.style.height = `${h}px`;
     this.sprites.clear();
+    this.cache.clear(dpr);
+    this.groundPattern = null;
+    this.vignette = null;
   }
 
   addShake(amount, enabled) {
@@ -106,7 +114,10 @@ export class Renderer {
     }
     ctx.translate(sx, sy);
 
-    this.drawGround(ctx, game);
+    if (game.map.bounded) {
+      cam.visibleWorldBounds(3, bounds);
+      drawOrlaGround(this, ctx, game, bounds);
+    } else this.drawGround(ctx, game);
 
     // manchas no chão
     if (settings.gore) {
@@ -128,6 +139,7 @@ export class Renderer {
     const list = [];
     cam.visibleWorldBounds(3, bounds);
     for (const pr of game.propsInBounds(bounds, propsTmp)) list.push({ d: cam.depth(pr.x, pr.y), k: 'prop', o: pr });
+    if (game.map.bounded) for (const dc of orlaDecor(game, bounds, (decorTmp.length = 0, decorTmp))) list.push({ d: cam.depth(dc.x, dc.y), k: 'decor', o: dc });
     for (const g of game.gems) list.push({ d: cam.depth(g.x, g.y) - 0.5, k: 'gem', o: g });
     for (const p of game.pickups) list.push({ d: cam.depth(p.x, p.y) - 0.4, k: 'pickup', o: p });
     for (const e of game.enemies) list.push({ d: cam.depth(e.x, e.y), k: 'enemy', o: e });
@@ -143,7 +155,12 @@ export class Renderer {
       if (pt.x < -80 || pt.x > this.w + 80 || pt.y < -120 || pt.y > this.h + 120) continue;
       switch (it.k) {
         case 'prop':
-          drawProp(ctx, o, pt, ppu, cam.k);
+          if (o.type === 'poste' && images.poste) drawImageProp(ctx, images.poste, pt, ppu * 4.6);
+          else if (o.type === 'cone' && images.cone) drawImageProp(ctx, images.cone, pt, ppu * 0.75);
+          else drawProp(ctx, o, pt, ppu, cam.k);
+          break;
+        case 'decor':
+          drawDecor(ctx, o, pt, ppu, cam.k);
           break;
         case 'gem':
           drawGem(ctx, o, pt, ppu, t);
@@ -155,7 +172,18 @@ export class Renderer {
           const def = ENEMIES[o.type];
           const h = playerPx * def.size * enemyMul;
           const variant = o.type === 'telespectador' ? o.tint : 0;
-          const spr = this.sprite(o.type === 'isca' ? 'golpista' : o.type, variant, h, o.flash > 0);
+          // olha para o lado em que anda (com folga, para não ficar virando)
+          const dxp = game.player.x - o.x;
+          if (dxp < -0.4) o.faceL = true;
+          else if (dxp > 0.4) o.faceL = false;
+          let spr = null;
+          if (o.type === 'telespectador') {
+            spr = this.cache.get(CROWD[o.tint % CROWD.length], h, { flip: o.faceL, flash: o.flash > 0, hypno: true });
+          } else if (ENEMY_ART[o.type]) {
+            const art = ENEMY_ART[o.type];
+            spr = this.cache.get(art.img, h, { ...art, flip: o.faceL, flash: o.flash > 0 });
+          }
+          if (!spr) spr = this.sprite(o.type === 'isca' ? 'golpista' : o.type, variant, h, o.flash > 0);
           const bob = Math.abs(Math.sin(o.walk)) * h * 0.035;
           if (o.type === 'isca' || o.type === 'golpista') {
             // brilho de "perfil falso": original e iscas piscam igual
@@ -203,6 +231,16 @@ export class Renderer {
     this.drawFx(ctx, game, ppu, playerPx);
     this.drawLotsLabels(ctx, game);
 
+    if (game.map.bounded) {
+      if (!this.vignette) {
+        const vg = ctx.createRadialGradient(this.w / 2, this.h * 0.5, this.h * 0.25, this.w / 2, this.h * 0.5, this.h * 0.75);
+        vg.addColorStop(0, 'rgba(255,170,80,0)');
+        vg.addColorStop(1, 'rgba(30,10,20,0.45)');
+        this.vignette = vg;
+      }
+      ctx.fillStyle = this.vignette;
+      ctx.fillRect(-20, -20, this.w + 40, this.h + 40);
+    }
     if (this.flashT > 0) {
       this.flashT -= perf.dt;
       ctx.fillStyle = `rgba(255,255,255,${Math.max(0, this.flashT) * (this.flashStrong ? 1.6 : 0.5)})`;
@@ -218,11 +256,21 @@ export class Renderer {
     const p = game.player;
     // ao levar dano, pisca em vermelho (não em branco, para não sumir na horda)
     const hurtBlink = p.hurtT > 0 && Math.floor(game.t * 16) % 2 === 0;
-    const spr = this.sprite(game.corruption >= 50 ? 'playerGold' : 'player', p.faceX < 0 ? 1 : 0, playerPx, hurtBlink);
+    const img = this.cache.get('juninho', playerPx, {
+      flip: p.faceX < 0, mode: hurtBlink ? 'hurt' : '', tint: game.corruption >= 50 ? [232, 182, 44, 0.22] : null,
+    });
+    const spr = img || this.sprite(game.corruption >= 50 ? 'playerGold' : 'player', p.faceX < 0 ? 1 : 0, playerPx, hurtBlink);
     const bob = p.moving ? Math.abs(Math.sin(game.t * 11)) * playerPx * 0.04 : 0;
     const invulnBlink = p.invulnT > 0 && Math.floor(game.t * 12) % 2 === 0 ? 0.45 : 1;
     ctx.globalAlpha = alpha * invulnBlink;
-    ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy - bob, spr.cssW, spr.cssH);
+    if (img && p.moving) {
+      // passada: leve balanço do corpo a partir dos pés
+      ctx.save();
+      ctx.translate(pt.x, pt.y - bob);
+      ctx.rotate(Math.sin(game.t * 11) * 0.06);
+      ctx.drawImage(spr, -spr.ox, -spr.oy, spr.cssW, spr.cssH);
+      ctx.restore();
+    } else ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy - bob, spr.cssW, spr.cssH);
     ctx.globalAlpha = 1;
   }
 
@@ -382,7 +430,7 @@ export class Renderer {
     const enemyH = playerPx * ENEMIES.telespectador.size * (this.enemyMul || 0.75);
     for (const w of game.fx.woken) {
       cam.toScreen(w.x, w.y, pt);
-      const spr = this.sprite('acordado', w.tint || 0, enemyH, false);
+      const spr = this.cache.get(CROWD[(w.tint || 0) % CROWD.length], enemyH, { mode: 'woken', flip: w.vx < 0 }) || this.sprite('acordado', w.tint || 0, enemyH, false);
       ctx.globalAlpha = Math.max(0, 1 - w.t / WAKE.fadeS) * 0.85;
       const bob = Math.abs(Math.sin(w.walk)) * enemyH * 0.03;
       ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy - bob, spr.cssW, spr.cssH);
@@ -439,7 +487,9 @@ export class Renderer {
     const c = makeCanvas(size * this.dpr, size * this.dpr);
     const g = c.getContext('2d');
     g.scale(this.dpr, this.dpr);
-    drawIcon(g, kind, size);
+    const art = images[ICON_ART[kind]];
+    if (art) drawFit(g, art, 0, 0, size);
+    else drawIcon(g, kind, size);
     return c;
   }
 }
@@ -755,10 +805,42 @@ function drawPickup(ctx, k, pt, ppu, t) {
   ctx.beginPath();
   ctx.ellipse(pt.x, pt.y, s * 0.7, s * 0.25, 0, 0, Math.PI * 2);
   ctx.fill();
+  if (k.kind === 'maleta' && images.w_maleta) {
+    const z = s * 1.8;
+    drawFit(ctx, images.w_maleta, pt.x - z / 2, y - z / 2, z);
+    return;
+  }
   drawIconAt(ctx, k.kind, pt.x, y, s * 1.6);
 }
 
 function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
+  const artId = o.kind === 'boomerang' ? 'w_capacete' : o.kind === 'slipper' ? 'w_chinelo' : o.kind === 'lob' ? 'w_maleta' : null;
+  const art = artId && images[artId];
+  if (art) {
+    const s = Math.max(14, playerPx * (o.kind === 'slipper' ? 0.34 : 0.4));
+    const y = o.kind === 'lob' ? pt.y - o.h * ppu - s * 0.5 : pt.y - playerPx * 0.45;
+    if (o.kind === 'lob') {
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.beginPath();
+      ctx.ellipse(pt.x, pt.y, s * 0.4, s * 0.15, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (o.evolved) {
+      ctx.strokeStyle = 'rgba(255,210,31,0.5)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(pt.x, y);
+      ctx.lineTo(pt.x - o.vx * ppu * 0.05, y - o.vy * ppu * cam.k * 0.05);
+      ctx.stroke();
+    }
+    ctx.save();
+    ctx.translate(pt.x, y);
+    if (o.kind !== 'lob') ctx.rotate(o.spin);
+    if (o.evolved) ctx.filter = 'sepia(1) saturate(4) hue-rotate(5deg)';
+    ctx.drawImage(art, -s / 2, -s / 2, s, (s * art.height) / art.width);
+    ctx.restore();
+    return;
+  }
   if (o.kind === 'boomerang') {
     const s = Math.max(7, playerPx * 0.17);
     const y = pt.y - playerPx * 0.45;

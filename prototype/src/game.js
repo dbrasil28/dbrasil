@@ -3,7 +3,7 @@ import { Camera } from './camera.js';
 import { SpatialHash } from './spatial.js';
 import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
-  SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, xpToNext, caosBand,
+  SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
 } from './config.js';
 import { fireWeapon, updateProjectiles, updateZones } from './weapons.js';
 import { rollOptions, applyOption, playerStats } from './upgrades.js';
@@ -11,11 +11,13 @@ import { rollOptions, applyOption, playerStats } from './upgrades.js';
 const CHUNK = 10; // metros por chunk de cenário
 const tmp = [];
 const pt = { x: 0, y: 0 };
+const vb = {};
 
 export class Game {
   constructor(settings, { seed = Date.now() % 1e9, viewW = 390, viewH = 844, playTop = 96, playBottom = 760 } = {}) {
     this.settings = settings;
     this.seed = seed;
+    this.map = MAPS[settings.map] || MAPS.orla;
     this.camera = new Camera();
     this.view = { viewW, viewH, playTop, playBottom };
     this.hash = new SpatialHash(1.5);
@@ -126,6 +128,21 @@ export class Game {
     if (arr) return arr;
     if (this.chunks.size > 900) this.chunks.clear();
     arr = [];
+    const m = this.map;
+    if (m.bounded) {
+      // 1 obstáculo raro por pedaço, só no meio do calçadão e fora das transversais
+      if (hash2(cx, cy, 1) < m.propChance) {
+        const x = cx * CHUNK + hash2(cx, cy, 10) * CHUNK;
+        const y = cy * CHUNK + hash2(cx, cy, 20) * CHUNK;
+        const inSide = x > m.minX + 3 && x < m.sandX - 3;
+        if (inSide && !this.isStreet(y) && x * x + y * y > 36) {
+          const type = hash2(cx, cy, 30) < 0.6 ? 'poste' : 'cone';
+          arr.push({ type, x, y, r: type === 'poste' ? 0.22 : 0.24, seed: hash2(cx, cy, 40) });
+        }
+      }
+      this.chunks.set(key, arr);
+      return arr;
+    }
     const n = Math.floor(hash2(cx, cy, 1) * 3);
     for (let i = 0; i < n; i++) {
       const x = cx * CHUNK + hash2(cx, cy, 10 + i) * CHUNK;
@@ -138,6 +155,36 @@ export class Game {
     }
     this.chunks.set(key, arr);
     return arr;
+  }
+
+  /** Rua transversal (asfalto) do mapa da orla? */
+  isStreet(y) {
+    const m = this.map;
+    if (!m.bounded) return false;
+    const r = ((y % m.blockLen) + m.blockLen) % m.blockLen;
+    return r >= m.blockLen - m.streetLen;
+  }
+
+  /** Mantém uma entidade dentro da área jogável do mapa. */
+  clampToMap(e) {
+    const m = this.map;
+    if (!m.bounded) return;
+    if (e.x < m.minX + e.r) e.x = m.minX + e.r;
+    else if (e.x > m.maxX - e.r) e.x = m.maxX - e.r;
+  }
+
+  /** Ajusta um ponto de nascimento: dentro do mapa e nunca visível na tela. */
+  fitSpawn(p) {
+    const m = this.map;
+    if (!m.bounded) return p;
+    p.x = clamp(p.x, m.minX + 0.6, m.maxX - 0.6);
+    const cam = this.camera;
+    cam.toScreen(p.x, p.y, pt);
+    if (pt.x > -24 && pt.x < cam.viewW + 24 && pt.y > cam.playTop - 40 && pt.y < cam.viewH + 40) {
+      cam.visibleWorldBounds(1.2, vb);
+      p.y = p.y < this.player.y ? vb.minY : vb.maxY;
+    }
+    return p;
   }
 
   propsInBounds(b, out) {
@@ -207,7 +254,7 @@ export class Game {
       id: this.nextId++, type, x, y, r: def.radius, hp, maxHp: hp, speed: def.speed * (0.9 + this.rng() * 0.2),
       dmg: def.dmg, behavior: def.behavior, elite: !!def.elite, boss: !!def.boss,
       kx: 0, ky: 0, flash: 0, slowT: 0, slowF: 1, phase: this.rng() * 6.28, fireT: 1 + this.rng() * 2, windup: 0,
-      split: false, ttl: def.ttl || 0, dead: false, tint: Math.floor(this.rng() * 4), walk: this.rng() * 10,
+      split: false, ttl: def.ttl || 0, dead: false, tint: Math.floor(this.rng() * 8), walk: this.rng() * 10,
       ...extra,
     };
     this.enemies.push(e);
@@ -219,7 +266,7 @@ export class Game {
     let pick = weightedPick(this.rng, comp).type;
     if (pick === 'burocrata' && this.countType('burocrata') >= DIRECTOR.maxBurocratas) pick = 'telespectador';
     const ang = this.rng() * Math.PI * 2;
-    const p = this.edgePoint(ang, 30 + this.rng() * 60);
+    const p = this.fitSpawn(this.edgePoint(ang, 30 + this.rng() * 60));
     this.spawnEnemy(pick, p.x, p.y);
   }
 
@@ -236,7 +283,9 @@ export class Game {
       { name: 'LESTE', a: 0 },
       { name: 'OESTE', a: Math.PI },
     ];
-    const d = dirs[Math.floor(this.rng() * dirs.length)];
+    // no calçadão, as ondas vêm de cima ou de baixo (onde a tela mostra mais)
+    const pool = this.map.bounded ? dirs.slice(0, 2) : dirs;
+    const d = pool[Math.floor(this.rng() * pool.length)];
     this.pendingWave = { at: this.t + 3, dir: d };
     this.tv('wave', 0, d.name);
     this.emit('warn', { angle: d.a, dur: 3 });
@@ -246,7 +295,7 @@ export class Game {
     const { dir } = this.pendingWave;
     this.pendingWave = null;
     const n = Math.round((18 + this.caos * 0.32) * this.settings.spawnMul);
-    const base = this.edgePoint(dir.a, 60);
+    const base = this.fitSpawn(this.edgePoint(dir.a, 60));
     for (let i = 0; i < n; i++) {
       if (this.enemies.length >= this.settings.maxEnemies + 60) break;
       const a = this.rng() * Math.PI * 2;
@@ -257,14 +306,14 @@ export class Game {
   }
 
   spawnElite(type = 'politico') {
-    const p = this.edgePoint(this.rng() * Math.PI * 2, 50);
+    const p = this.fitSpawn(this.edgePoint(this.rng() * Math.PI * 2, 50));
     this.spawnEnemy(type, p.x, p.y);
     this.tv(type === 'rival' ? 'rival' : 'elite', type === 'rival' ? 0 : 25);
     this.emit('elite', { type });
   }
 
   spawnBoss() {
-    const p = this.edgePoint(-Math.PI / 2, 80);
+    const p = this.fitSpawn(this.edgePoint(-Math.PI / 2, 80));
     this.boss = this.spawnEnemy('especulador', p.x, p.y, { lotT: 3.5, despejoT: 9 });
     this.caosBonus += 10;
     this.tv('boss');
@@ -626,9 +675,11 @@ export class Game {
     const speed = PLAYER.speed * st.speedMul * (p.slowT > 0 ? 0.6 : 1);
     p.vx = mx * speed;
     p.vy = my * speed;
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
+    const onSand = this.map.bounded && p.x > this.map.sandX;
+    p.x += p.vx * dt * (onSand ? this.map.sandSpeedMul : 1);
+    p.y += p.vy * dt * (onSand ? this.map.sandSpeedMul : 1);
     this.collideProps(p);
+    this.clampToMap(p);
     if (p.hurtT > 0) p.hurtT -= dt;
     if (p.invulnT > 0) p.invulnT -= dt;
 
@@ -812,8 +863,10 @@ export class Game {
         this.updateBoss(e, dt);
       }
 
-      e.x += (mx * spd + e.kx) * dt;
-      e.y += (my * spd + e.ky) * dt;
+      const sandMul = this.map.bounded && e.x > this.map.sandX ? this.map.enemySandMul : 1;
+      e.x += (mx * spd * sandMul + e.kx) * dt;
+      e.y += (my * spd * sandMul + e.ky) * dt;
+      this.clampToMap(e);
       const decay = Math.exp(-9 * dt);
       e.kx *= decay;
       e.ky *= decay;
@@ -821,7 +874,7 @@ export class Game {
 
       if (!e.elite && d * d > recycle2) {
         // reposiciona quem ficou muito para trás (padrão do gênero)
-        const np = this.edgePoint(this.rng() * Math.PI * 2, 40);
+        const np = this.fitSpawn(this.edgePoint(this.rng() * Math.PI * 2, 40));
         e.x = np.x;
         e.y = np.y;
       }
