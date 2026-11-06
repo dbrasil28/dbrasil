@@ -163,6 +163,33 @@ export const THROWABLES = {
 };
 export const HEALS = { coco: 20, marmita: 35 }; // coco gelado do quiosque, marmita esquecida no terraço
 
+// Carreira (docs/design/CARREIRA_E_ROTA.md). Gorjetas: ganhas em toda partida, mesmo perdendo;
+// compram melhorias permanentes das habilidades básicas, para voltar um pouco mais forte.
+export const GORJETAS = { porMinuto: 5, porNivel: 2, porMilAbates: 10, liberarTrecho: 25, chefe: 60, entrega: 80 };
+export const MELHORIAS = {
+  vida: { name: 'Marmita reforçada', desc: '+10 de vida máxima', step: 10, custo: [40, 70, 110, 160, 230] },
+  dano: { name: 'Capacete de aço', desc: '+5% de dano', step: 0.05, custo: [50, 85, 130, 190, 270] },
+  velocidade: { name: 'Tênis de corrida', desc: '+3% de velocidade', step: 0.03, custo: [40, 70, 110, 160, 230] },
+  recarga: { name: 'Café de garrafa', desc: '−3% de recarga das armas', step: 0.03, custo: [50, 85, 130, 190, 270] },
+  ima: { name: 'Mochila maior', desc: '+10% de raio de coleta', step: 0.1, custo: [30, 55, 85, 125, 180] },
+};
+// Trechos da rota, de baixo para cima no Mapa da Rota. `jogavel`: já existe no protótipo.
+export const TRECHOS = [
+  { id: 'orla', nome: 'Orla do Desespero', onde: 'Rio · calçadão', jogavel: true,
+    estrelas: ['Liberar a Subida do Morro', 'Vencer o Especulador', 'Sem reviver'] },
+  { id: 'morro', nome: 'Subida do Morro', onde: 'Rio · favela', jogavel: true,
+    meta: `Chegue ao nível ${ROUTE.orla.unlockLevel} na Orla`,
+    estrelas: ['Fazer a entrega', 'Entregar antes de 9:00', 'Sem reviver'] },
+  { id: 'rodovia_sp', nome: 'Rodovia', onde: 'Rio → São Paulo', meta: 'Faça a entrega no alto do morro' },
+  { id: 'centro', nome: 'Centro do Desespero', onde: 'São Paulo', meta: 'Atravesse a rodovia' },
+  { id: 'rodovia_capital', nome: 'Rodovia', onde: 'São Paulo → capital', meta: 'Vença o Rapa' },
+  { id: 'acordopolis', nome: 'Acordópolis', onde: 'Capital', meta: 'Atravesse a rodovia' },
+  { id: 'rodovia_ne', nome: 'Rodovia', onde: 'Capital → Nordeste', meta: 'Vença O Acordão' },
+  { id: 'paraiso', nome: 'Paraíso à Venda', onde: 'Praia do Nordeste', meta: 'Atravesse a rodovia' },
+  { id: 'tv', nome: 'Rede do Pânico', onde: 'Estúdio de TV', meta: 'Vença o Barão do Guarda-Sol' },
+  { id: 'final', nome: 'Entrega Final', onde: 'Sede do aplicativo', meta: 'Vença o Apresentador' },
+];
+
 // Diretor de spawn guiado pelo Índice de Caos (0–100).
 export const CAOS_BANDS = [
   { min: 0, name: 'NORMALIDADE SUSPEITA' },

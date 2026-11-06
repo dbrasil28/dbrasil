@@ -1392,3 +1392,220 @@ button {
     transition: none !important;
   }
 }
+
+/* ---------- carreira: Mapa da Rota e Melhorias ---------- */
+.rota {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 22px;
+  display: flex;
+  flex-direction: column-reverse; /* a rota sobe: o primeiro trecho fica embaixo */
+  gap: 10px;
+  position: relative;
+}
+
+.rota::before {
+  /* a estrada que liga os trechos */
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(to bottom, var(--caution) 0 10px, transparent 10px 18px);
+  opacity: 0.55;
+}
+
+.rota-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.rota-item::before {
+  /* o ponto da rota */
+  content: "";
+  position: absolute;
+  left: -19px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--panel-2);
+  border: 3px solid var(--muted);
+  box-sizing: border-box;
+}
+
+.rota-item.is-open {
+  border-color: var(--caution);
+  cursor: pointer;
+}
+
+.rota-item.is-open::before {
+  background: var(--caution);
+  border-color: var(--caution);
+}
+
+.rota-item.is-locked {
+  opacity: 0.62;
+}
+
+.rota-name {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.rota-where {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.rota-goal {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  color: var(--caution);
+}
+
+.rota-goal.is-done {
+  color: var(--hp);
+}
+
+.rota-stars {
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+.rota-lock {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.rota-play {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: var(--caution);
+  border-radius: 4px;
+  padding: 3px 8px;
+}
+
+.tips-chip {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.tips-chip:empty {
+  display: none;
+}
+
+.tips-box {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--panel);
+  border-left: 4px solid var(--gold);
+  font-size: 14px;
+}
+
+.tips-box:empty {
+  display: none;
+}
+
+.tips-box b {
+  color: var(--gold);
+}
+
+.tips-total {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.tips-total b {
+  color: var(--gold);
+}
+
+.mel {
+  display: grid;
+  gap: 8px;
+}
+
+.mel-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+.mel-name {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.mel-desc {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.mel-pips {
+  display: flex;
+  gap: 3px;
+  grid-column: 1;
+}
+
+.mel-pips i {
+  width: 14px;
+  height: 6px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.mel-pips i.on {
+  background: var(--gold);
+}
+
+.mel-buy {
+  grid-row: 1 / span 3;
+  grid-column: 2;
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--gold);
+  background: transparent;
+  font-weight: 900;
+  color: var(--gold);
+}
+
+.mel-buy:disabled {
+  border-color: var(--line);
+  color: var(--muted);
+}

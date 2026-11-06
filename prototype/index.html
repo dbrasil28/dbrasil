@@ -71,7 +71,11 @@
       <p class="lede">Juninho, o entregador, precisa fechar o turno na orla, com a cidade hipnotizada pela TV. Arraste o dedo em qualquer lugar da tela para andar. Os ataques são automáticos.</p>
       <div class="actions">
         <button id="btn-start" class="btn btn-primary" type="button">Começar turno</button>
-        <button id="btn-title-settings" class="btn" type="button">Ajustes de teste</button>
+        <div class="actions actions-row">
+          <button id="btn-rota" class="btn" type="button">Mapa da Rota</button>
+          <button id="btn-melhorias" class="btn" type="button">Melhorias <span id="title-tips" class="tips-chip"></span></button>
+        </div>
+        <button id="btn-title-settings" class="btn btn-ghost" type="button">Ajustes de teste</button>
       </div>
       <p class="fine">Arte provisória: personagens e ícones recortados do mockup aprovado; casas, quiosques e areia ainda desenhados em código. A arte final sai do guia de produção. No computador, use WASD ou as setas.</p>
     </div>
@@ -95,6 +99,7 @@
       <h2 id="result-title" class="screen-title">FIM DO TURNO</h2>
       <p id="result-headline" class="headline"></p>
       <div class="verdict"><span id="result-verdict"></span><small id="result-corr"></small></div>
+      <div id="result-tips" class="tips-box"></div>
       <dl id="result-stats" class="stats"></dl>
       <div class="actions">
         <button id="btn-again" class="btn btn-primary" type="button">Jogar de novo</button>
@@ -103,6 +108,31 @@
       </div>
       <p id="copy-status" class="fine" role="status"></p>
       <textarea id="metrics-out" readonly hidden aria-label="Métricas em JSON"></textarea>
+    </div>
+  </section>
+
+  <section id="screen-rota" class="screen" hidden>
+    <div class="screen-inner">
+      <p class="eyebrow">CARREIRA · O TURNO DO JUNINHO</p>
+      <h2 class="screen-title">MAPA DA ROTA</h2>
+      <p class="fine">De baixo para cima: cada trecho termina onde começa o próximo. Toque num trecho liberado para jogar.</p>
+      <ol id="rota-list" class="rota"></ol>
+      <div class="actions">
+        <button id="btn-rota-back" class="btn btn-primary" type="button">Voltar</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-melhorias" class="screen" hidden>
+    <div class="screen-inner">
+      <p class="eyebrow">GORJETAS → MELHORIAS PERMANENTES</p>
+      <h2 class="screen-title">MELHORIAS</h2>
+      <p class="fine">Toda partida rende gorjeta, até a que você perde. Elas compram melhorias que valem para sempre: você volta um pouco mais forte. Dinheiro de verdade não compra nada disso.</p>
+      <p class="tips-total">Gorjetas: <b id="mel-total">0</b></p>
+      <div id="mel-list" class="mel"></div>
+      <div class="actions">
+        <button id="btn-mel-back" class="btn btn-primary" type="button">Voltar</button>
+      </div>
     </div>
   </section>
 

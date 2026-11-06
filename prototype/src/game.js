@@ -4,7 +4,7 @@ import { SpatialHash } from './spatial.js';
 import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, HEALS,
+  ROUTE, INTERACT, THROWABLES, HEALS, GORJETAS, MELHORIAS,
 } from './config.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones } from './weapons.js';
@@ -29,8 +29,10 @@ function stairTopOf(P, out) {
 }
 
 export class Game {
-  constructor(settings, { seed = Date.now() % 1e9, viewW = 390, viewH = 844, playTop = 96, playBottom = 760 } = {}) {
+  constructor(settings, { seed = Date.now() % 1e9, viewW = 390, viewH = 844, playTop = 96, playBottom = 760, meta = null } = {}) {
     this.settings = settings;
+    // carreira: melhorias permanentes compradas com gorjetas e o nível de entrada do trecho
+    this.meta = meta || { melhorias: {}, entryLevel: 1 };
     this.seed = seed;
     this.map = MAPS[settings.map] || MAPS.orla;
     this.camera = new Camera();
@@ -63,7 +65,16 @@ export class Game {
     this.reviveUsed = false;
     this.rerollsLeft = this.settings.ads ? ADS.rerollsPerRun : 0;
     this.mods = { dmgMul: 1, armor: 0, enemyHpMul: 1, bossHpMul: 1, eliteDmgMul: 1, speedMul: 1 };
+    const mel = this.meta.melhorias || {};
+    const lv = (id) => Math.min(mel[id] || 0, MELHORIAS[id].custo.length);
+    this.mods.maxHpAdd = lv('vida') * MELHORIAS.vida.step;
+    this.mods.dmgMul *= 1 + lv('dano') * MELHORIAS.dano.step;
+    this.mods.speedMul *= 1 + lv('velocidade') * MELHORIAS.velocidade.step;
+    this.mods.cdMul = 1 - lv('recarga') * MELHORIAS.recarga.step;
+    this.mods.magnetMul = 1 + lv('ima') * MELHORIAS.ima.step;
     this.stats = playerStats(this.player, this.mods);
+    this.player.hp = this.stats.maxHp;
+    this.bossKilled = false;
 
     this.enemies = [];
     this.projectiles = [];
@@ -96,17 +107,19 @@ export class Game {
 
     // mundo da rota (só no mapa da orla): trechos ligados, lajes com escada, lugares e objetos
     this.world = this.map.bounded ? buildWorld(this.map) : null;
+    this.startTrecho = this.meta.trecho || this.settings.trecho || 'orla'; // o Mapa da Rota escolhe o trecho
     this.segment = 'orla';
     this.delivered = false;
     this.exitWarnT = 0;
     if (this.world) {
       for (const h of this.world.heals) this.pickups.push({ kind: h.kind, x: h.x, y: h.y, t: 0, plat: h.plat });
-      if (this.settings.trecho === 'morro') {
-        // atalho de teste: começa no pé do morro, com a escadaria já aberta
+      if (this.startTrecho === 'morro') {
+        // começa no pé do morro, com a escadaria já aberta e o nível de quando entrou nele (ponto de controle)
         const g = this.world.gate;
         this.world.gateOpen = true;
         this.player.x = (g.x0 + g.x1) / 2;
         this.player.y = g.y0 - 1;
+        this.autoLevels((this.meta.entryLevel || 1) - 1);
       }
     }
 
@@ -505,6 +518,7 @@ export class Game {
 
   bossDefeated() {
     this.boss = null;
+    this.bossKilled = true;
     this.lots.length = 0;
     // "despejo" final: a horda visível vai embora junto
     for (const o of this.enemies) {
@@ -1332,6 +1346,7 @@ export class Game {
     const p = this.player;
     if (!w.gateOpen && p.level >= ROUTE.orla.unlockLevel) {
       w.gateOpen = true;
+      this.metrics.portaoAberto = Math.round(this.t);
       this.emit('unlock', { name: 'SUBIDA DO MORRO' });
       this.tv('unlock');
       this.shake(0.3);
@@ -1339,6 +1354,7 @@ export class Game {
     if (this.segment === 'orla' && p.y < w.orlaTop - 1) {
       this.segment = 'morro';
       this.metrics.morroAt = Math.round(this.t);
+      this.metrics.nivelNoMorro = p.level;
       this.emit('segment', { name: 'SUBIDA DO MORRO' });
       this.tv('morro');
     }
@@ -1486,6 +1502,32 @@ export class Game {
    * Atalho de teste: começa a partida em `target` segundos com uma build plausível
    * (1 melhoria a cada ~20 s, escolhida ao acaso). Propostas anteriores são puladas.
    */
+  /** Sobe n níveis na hora, com cartas sorteadas (ponto de controle do trecho). */
+  autoLevels(n) {
+    for (let i = 0; i < n; i++) {
+      const opts = rollOptions(this.player, this.rng, 3);
+      applyOption(this.player, opts[Math.floor(this.rng() * opts.length)]);
+      this.player.level++;
+    }
+    this.player.xpNext = xpToNext(this.player.level);
+    this.stats = playerStats(this.player, this.mods);
+    this.player.hp = this.stats.maxHp;
+  }
+
+  /** Gorjetas da partida (vêm até na derrota), com o motivo de cada parte. */
+  tips() {
+    const G = GORJETAS;
+    const parts = [
+      ['Tempo de turno', Math.round((this.t / 60) * G.porMinuto)],
+      ['Nível alcançado', this.player.level * G.porNivel],
+      ['Gente derrubada', Math.round((this.kills / 1000) * G.porMilAbates)],
+    ];
+    if (this.metrics.portaoAberto != null) parts.push(['Subida do Morro liberada', G.liberarTrecho]);
+    if (this.bossKilled) parts.push(['Chefe vencido', G.chefe]);
+    if (this.delivered) parts.push(['Entrega feita', G.entrega]);
+    return { total: parts.reduce((a, p) => a + p[1], 0), parts };
+  }
+
   fastForward(target) {
     if (target <= 0) return;
     const levels = Math.floor(target / 20);

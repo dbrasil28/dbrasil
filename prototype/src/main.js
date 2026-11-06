@@ -8,6 +8,7 @@ import { ENEMIES } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
 import { loadImages, images, prewarm } from './sprites.js';
+import { loadProgress, applyRun, buyUpgrade } from './progresso.js';
 
 const $ = (id) => document.getElementById(id);
 const STEP = 1 / 60;
@@ -92,8 +93,14 @@ function updateReadout() {
   );
 }
 
+// carreira: progresso no aparelho (gorjetas, melhorias, trechos) e o trecho da próxima partida
+const progress = loadProgress();
+let runTrecho = 'orla';
+let menuFrom = 'screen-title';
+
 function newGame() {
-  game = new Game(settings);
+  const meta = { melhorias: progress.melhorias, trecho: runTrecho, entryLevel: runTrecho === 'morro' ? progress.nivelNoMorro : 1 };
+  game = new Game(settings, { meta });
   layout();
   modalOpen = false;
   ui.closeModal();
@@ -160,7 +167,10 @@ function frame(now) {
       ui.closeModal();
       input.reset();
       ads.runEnded();
+      const res = applyRun(progress, game);
       ui.showResult(game, perfSummary(), settings, deviceMeta(), ads.summary());
+      ui.showTips(res, progress);
+      ui.setTitleTips(progress);
       updateBanner();
     }
   }
@@ -215,9 +225,41 @@ function applySetting(id, value) {
 
 // ---------- eventos da interface ----------
 ui.on('start', () => {
+  if (state !== 'paused') runTrecho = settings.trecho === 'morro' ? 'morro' : 'orla';
   start();
   updateBanner();
 });
+// Mapa da Rota e Melhorias (só nos menus)
+function openRota() {
+  ui.buildRota(progress, (id) => {
+    runTrecho = id;
+    start();
+    updateBanner();
+  });
+  ui.show('screen-rota');
+  const scr = document.getElementById('screen-rota');
+  scr.scrollTop = scr.scrollHeight; // a rota sobe: abre mostrando o começo, embaixo
+}
+function openMelhorias() {
+  const rebuild = () => ui.buildMelhorias(progress, (id) => {
+    if (buyUpgrade(progress, id)) {
+      ui.setTitleTips(progress);
+      rebuild();
+    }
+  });
+  rebuild();
+  ui.show('screen-melhorias');
+}
+ui.on('rota', () => {
+  menuFrom = 'screen-title';
+  openRota();
+});
+ui.on('melhorias', () => {
+  menuFrom = 'screen-title';
+  openMelhorias();
+});
+ui.on('back', () => ui.show(menuFrom));
+ui.setTitleTips(progress);
 ui.on('again', () => leaveResult(() => {
   start();
   updateBanner();

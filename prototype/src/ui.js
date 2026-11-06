@@ -1,5 +1,6 @@
 // Interface em DOM: HUD enxuto, TV Caos, cartas de melhoria, propostas e telas.
-import { WEAPONS, PASSIVES, SLOTS, ENEMIES, verdictFor } from './config.js';
+import { WEAPONS, PASSIVES, SLOTS, ENEMIES, verdictFor, TRECHOS, MELHORIAS } from './config.js';
+import { upgradeLevel, upgradeCost } from './progresso.js';
 import { SETTINGS_SCHEMA } from './settings.js';
 import { formatTime, fmt } from './math.js';
 import { weaponMaxLevel } from './upgrades.js';
@@ -45,6 +46,10 @@ export class UI {
     $('btn-copy').addEventListener('click', () => this.copyMetrics());
     $('btn-settings-back').addEventListener('click', () => this.fire('settingsBack'));
     $('btn-settings-reset').addEventListener('click', () => this.fire('settingsReset'));
+    $('btn-rota').addEventListener('click', () => this.fire('rota'));
+    $('btn-melhorias').addEventListener('click', () => this.fire('melhorias'));
+    $('btn-rota-back').addEventListener('click', () => this.fire('back'));
+    $('btn-mel-back').addEventListener('click', () => this.fire('back'));
   }
 
   icon(kind, size) {
@@ -66,7 +71,7 @@ export class UI {
 
   // ---------- telas ----------
   show(screen) {
-    for (const id of ['screen-title', 'screen-pause', 'screen-result', 'screen-settings']) $(id).hidden = id !== screen;
+    for (const id of ['screen-title', 'screen-pause', 'screen-result', 'screen-settings', 'screen-rota', 'screen-melhorias']) $(id).hidden = id !== screen;
     document.body.classList.toggle('in-menu', !!screen);
   }
 
@@ -429,6 +434,117 @@ export class UI {
     $('metrics-out').hidden = true;
     $('copy-status').textContent = '';
     this.show('screen-result');
+  }
+
+  // ---------- carreira ----------
+  setTitleTips(progress) {
+    $('title-tips').textContent = progress.gorjetas ? `${progress.gorjetas}` : '';
+  }
+
+  /** Mapa da Rota: trechos de baixo para cima; liberado = jogar; bloqueado = cadeado e a meta. */
+  buildRota(progress, onPlay) {
+    const list = $('rota-list');
+    list.textContent = '';
+    for (const t of TRECHOS) {
+      const st = progress.trechos[t.id];
+      const open = st.liberado && t.jogavel;
+      const li = document.createElement('li');
+      const item = document.createElement(open ? 'button' : 'div');
+      item.className = `rota-item ${open ? 'is-open' : 'is-locked'}`;
+      if (open) item.type = 'button';
+      const name = document.createElement('span');
+      name.className = 'rota-name';
+      name.textContent = t.nome;
+      const where = document.createElement('span');
+      where.className = 'rota-where';
+      where.textContent = t.onde;
+      const left = document.createElement('span');
+      left.append(name, document.createElement('br'), where);
+      const right = document.createElement('span');
+      if (open) {
+        right.className = 'rota-play';
+        right.textContent = 'JOGAR';
+      } else if (st.liberado) {
+        right.className = 'rota-lock';
+        right.textContent = 'EM PRODUÇÃO';
+      } else {
+        right.className = 'rota-lock';
+        right.textContent = '🔒 BLOQUEADO';
+      }
+      item.append(left, right);
+      const goal = document.createElement('span');
+      goal.className = 'rota-goal';
+      if (t.estrelas) {
+        const n = st.estrelas.filter(Boolean).length;
+        const stars = document.createElement('span');
+        stars.className = 'rota-stars';
+        stars.textContent = '★'.repeat(n) + '☆'.repeat(3 - n);
+        goal.append(stars, document.createTextNode(` ${t.estrelas.map((s, i) => (st.estrelas[i] ? '✓ ' : '') + s).join(' · ')}`));
+        if (!st.liberado && t.meta) goal.textContent = t.meta;
+      } else goal.textContent = st.liberado ? 'Liberado. O trecho entra quando a arte chegar.' : t.meta;
+      item.append(goal);
+      if (open) item.addEventListener('click', () => onPlay(t.id));
+      li.append(item);
+      list.append(li);
+    }
+  }
+
+  /** Melhorias permanentes: nível, custo e compra com gorjetas. */
+  buildMelhorias(progress, onBuy) {
+    $('mel-total').textContent = String(progress.gorjetas);
+    const list = $('mel-list');
+    list.textContent = '';
+    for (const [id, m] of Object.entries(MELHORIAS)) {
+      const lv = upgradeLevel(progress, id);
+      const cost = upgradeCost(progress, id);
+      const row = document.createElement('div');
+      row.className = 'mel-item';
+      const name = document.createElement('span');
+      name.className = 'mel-name';
+      name.textContent = m.name;
+      const desc = document.createElement('span');
+      desc.className = 'mel-desc';
+      desc.textContent = `${m.desc} por nível`;
+      const pips = document.createElement('span');
+      pips.className = 'mel-pips';
+      for (let i = 0; i < m.custo.length; i++) {
+        const p = document.createElement('i');
+        if (i < lv) p.className = 'on';
+        pips.append(p);
+      }
+      const buy = document.createElement('button');
+      buy.type = 'button';
+      buy.className = 'mel-buy';
+      buy.textContent = cost == null ? 'MÁXIMO' : `${cost} 💰`;
+      buy.disabled = cost == null || progress.gorjetas < cost;
+      buy.addEventListener('click', () => onBuy(id));
+      row.append(name, buy, desc, pips);
+      list.append(row);
+    }
+  }
+
+  /** Gorjetas da partida no resultado. */
+  showTips(res, progress) {
+    const box = $('result-tips');
+    box.textContent = '';
+    const head = document.createElement('div');
+    head.innerHTML = '';
+    head.append(document.createTextNode('Gorjetas do turno: '));
+    const b = document.createElement('b');
+    b.textContent = `+${res.tips.total}`;
+    head.append(b, document.createTextNode(` · total ${progress.gorjetas}`));
+    box.append(head);
+    for (const [label, n] of res.tips.parts) {
+      if (!n) continue;
+      const r = document.createElement('small');
+      r.textContent = `${label}: +${n}`;
+      box.append(r);
+    }
+    for (const s of res.novas) {
+      const r = document.createElement('small');
+      r.textContent = `★ ${s}`;
+      box.append(r);
+    }
   }
 
   async copyMetrics() {

@@ -120,10 +120,10 @@ export function playerStats(player, mods) {
   const lvl = (id) => player.passives.find((p) => p.id === id)?.level || 0;
   return {
     speedMul: (1 + 0.08 * lvl('tenis')) * (mods.speedMul || 1),
-    maxHp: 120 + 20 * lvl('marmita'),
+    maxHp: 120 + 20 * lvl('marmita') + (mods.maxHpAdd || 0),
     areaMul: 1 + 0.1 * lvl('mochila'),
-    cdMul: Math.pow(0.93, lvl('cafe')),
-    magnetMul: 1 + 0.25 * lvl('ima'),
+    cdMul: Math.pow(0.93, lvl('cafe')) * (mods.cdMul || 1),
+    magnetMul: (1 + 0.25 * lvl('ima')) * (mods.magnetMul || 1),
     dmgMul: (1 + 0.1 * lvl('raiva') + (player.bonusDmg || 0)) * (mods.dmgMul || 1),
     armor: mods.armor || 0,
     eliteDmgMul: mods.eliteDmgMul || 1,
