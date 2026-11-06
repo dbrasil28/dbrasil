@@ -38,23 +38,6 @@
       "notes": "Variação amarela, recorte de costas; olho hipnotizado nao visivel."
     },
     {
-      "id": "personagens_telespectador_b",
-      "file": "prototype/assets/personagens/telespectador_b.png",
-      "source": "t_semcamisa.png",
-      "type": "personagem",
-      "status": "TEMPORARIO_RECORTADO_MOCKUP",
-      "size_px": [
-        134,
-        151
-      ],
-      "alpha": true,
-      "anchor": [
-        0.5,
-        1.0
-      ],
-      "notes": "Variação sem camisa, recorte de pose unica."
-    },
-    {
       "id": "personagens_telespectador_c",
       "file": "prototype/assets/personagens/telespectador_c.png",
       "source": "t_bone.png",
@@ -138,23 +121,6 @@
         1.0
       ],
       "notes": "Variação verde, pose unica."
-    },
-    {
-      "id": "personagens_telespectador_h",
-      "file": "prototype/assets/personagens/telespectador_h.png",
-      "source": "t_vinho.png",
-      "type": "personagem",
-      "status": "TEMPORARIO_RECORTADO_MOCKUP",
-      "size_px": [
-        128,
-        170
-      ],
-      "alpha": true,
-      "anchor": [
-        0.5,
-        1.0
-      ],
-      "notes": "Variação vinho, pose unica."
     },
     {
       "id": "personagens_golpista",
@@ -480,57 +446,6 @@
       "notes": "Vista de frente (correndo na direção da câmera). Usada quando o inimigo está acima do jogador e desce até ele."
     },
     {
-      "id": "personagens_frente_telespectador_amarelo_1",
-      "file": "prototype/assets/personagens/frente/telespectador_amarelo_1.png",
-      "source": "03_Concept_Mobile_Escala_Corrigida.png (recorte de pessoa de frente, parte de cima da cena)",
-      "type": "personagem",
-      "status": "TEMPORARIO_RECORTADO_MOCKUP",
-      "size_px": [
-        120,
-        135
-      ],
-      "alpha": true,
-      "anchor": [
-        0.5,
-        1.0
-      ],
-      "notes": "Vista de frente (correndo na direção da câmera). Usada quando o inimigo está acima do jogador e desce até ele."
-    },
-    {
-      "id": "personagens_frente_telespectador_amarelo_2",
-      "file": "prototype/assets/personagens/frente/telespectador_amarelo_2.png",
-      "source": "03_Concept_Mobile_Escala_Corrigida.png (recorte de pessoa de frente, parte de cima da cena)",
-      "type": "personagem",
-      "status": "TEMPORARIO_RECORTADO_MOCKUP",
-      "size_px": [
-        112,
-        129
-      ],
-      "alpha": true,
-      "anchor": [
-        0.5,
-        1.0
-      ],
-      "notes": "Vista de frente (correndo na direção da câmera). Usada quando o inimigo está acima do jogador e desce até ele."
-    },
-    {
-      "id": "personagens_frente_telespectador_amarelo_3",
-      "file": "prototype/assets/personagens/frente/telespectador_amarelo_3.png",
-      "source": "03_Concept_Mobile_Escala_Corrigida.png (recorte de pessoa de frente, parte de cima da cena)",
-      "type": "personagem",
-      "status": "TEMPORARIO_RECORTADO_MOCKUP",
-      "size_px": [
-        97,
-        154
-      ],
-      "alpha": true,
-      "anchor": [
-        0.5,
-        1.0
-      ],
-      "notes": "Vista de frente (correndo na direção da câmera). Usada quando o inimigo está acima do jogador e desce até ele."
-    },
-    {
       "id": "personagens_frente_telespectador_escura_1",
       "file": "prototype/assets/personagens/frente/telespectador_escura_1.png",
       "source": "03_Concept_Mobile_Escala_Corrigida.png (recorte de pessoa de frente, parte de cima da cena)",
@@ -565,23 +480,6 @@
       "notes": "Vista de frente (correndo na direção da câmera). Usada quando o inimigo está acima do jogador e desce até ele."
     },
     {
-      "id": "personagens_frente_telespectador_semcamisa_1",
-      "file": "prototype/assets/personagens/frente/telespectador_semcamisa_1.png",
-      "source": "03_Concept_Mobile_Escala_Corrigida.png (recorte de pessoa de frente, parte de cima da cena)",
-      "type": "personagem",
-      "status": "TEMPORARIO_RECORTADO_MOCKUP",
-      "size_px": [
-        125,
-        170
-      ],
-      "alpha": true,
-      "anchor": [
-        0.5,
-        1.0
-      ],
-      "notes": "Vista de frente (correndo na direção da câmera). Usada quando o inimigo está acima do jogador e desce até ele."
-    },
-    {
       "id": "personagens_frente_telespectador_semcamisa_3",
       "file": "prototype/assets/personagens/frente/telespectador_semcamisa_3.png",
       "source": "03_Concept_Mobile_Escala_Corrigida.png (recorte de pessoa de frente, parte de cima da cena)",
@@ -597,74 +495,21 @@
         1.0
       ],
       "notes": "Vista de frente (correndo na direção da câmera). Usada quando o inimigo está acima do jogador e desce até ele."
-    },
-    {
-      "id": "personagens_frente_telespectador_semcamisa_4",
-      "file": "prototype/assets/personagens/frente/telespectador_semcamisa_4.png",
-      "source": "03_Concept_Mobile_Escala_Corrigida.png (recorte de pessoa de frente, parte de cima da cena)",
-      "type": "personagem",
-      "status": "TEMPORARIO_RECORTADO_MOCKUP",
-      "size_px": [
-        121,
-        131
-      ],
-      "alpha": true,
-      "anchor": [
-        0.5,
-        1.0
-      ],
-      "notes": "Vista de frente (correndo na direção da câmera). Usada quando o inimigo está acima do jogador e desce até ele."
-    },
-    {
-      "id": "personagens_frente_telespectador_verde_1",
-      "file": "prototype/assets/personagens/frente/telespectador_verde_1.png",
-      "source": "03_Concept_Mobile_Escala_Corrigida.png (recorte de pessoa de frente, parte de cima da cena)",
-      "type": "personagem",
-      "status": "TEMPORARIO_RECORTADO_MOCKUP",
-      "size_px": [
-        100,
-        126
-      ],
-      "alpha": true,
-      "anchor": [
-        0.5,
-        1.0
-      ],
-      "notes": "Vista de frente (correndo na direção da câmera). Usada quando o inimigo está acima do jogador e desce até ele."
-    },
-    {
-      "id": "personagens_frente_telespectador_vinho_1",
-      "file": "prototype/assets/personagens/frente/telespectador_vinho_1.png",
-      "source": "03_Concept_Mobile_Escala_Corrigida.png (recorte de pessoa de frente, parte de cima da cena)",
-      "type": "personagem",
-      "status": "TEMPORARIO_RECORTADO_MOCKUP",
-      "size_px": [
-        114,
-        153
-      ],
-      "alpha": true,
-      "anchor": [
-        0.5,
-        1.0
-      ],
-      "notes": "Vista de frente (correndo na direção da câmera). Usada quando o inimigo está acima do jogador e desce até ele."
-    },
-    {
-      "id": "personagens_frente_telespectador_vinho_2",
-      "file": "prototype/assets/personagens/frente/telespectador_vinho_2.png",
-      "source": "03_Concept_Mobile_Escala_Corrigida.png (recorte de pessoa de frente, parte de cima da cena)",
-      "type": "personagem",
-      "status": "TEMPORARIO_RECORTADO_MOCKUP",
-      "size_px": [
-        139,
-        148
-      ],
-      "alpha": true,
-      "anchor": [
-        0.5,
-        1.0
-      ],
-      "notes": "Vista de frente (correndo na direção da câmera). Usada quando o inimigo está acima do jogador e desce até ele."
     }
-  ]
+  ],
+  "removidos_06_11": {
+    "motivo": "recortes sem as pernas (cortados por outras pessoas no mockup); esticados até a altura inteira pareciam meio corpo flutuando",
+    "arquivos": [
+      "prototype/assets/personagens/telespectador_b.png",
+      "prototype/assets/personagens/telespectador_h.png",
+      "prototype/assets/personagens/frente/telespectador_amarelo_1.png",
+      "prototype/assets/personagens/frente/telespectador_amarelo_2.png",
+      "prototype/assets/personagens/frente/telespectador_amarelo_3.png",
+      "prototype/assets/personagens/frente/telespectador_semcamisa_1.png",
+      "prototype/assets/personagens/frente/telespectador_semcamisa_4.png",
+      "prototype/assets/personagens/frente/telespectador_verde_1.png",
+      "prototype/assets/personagens/frente/telespectador_vinho_1.png",
+      "prototype/assets/personagens/frente/telespectador_vinho_2.png"
+    ]
+  }
 }

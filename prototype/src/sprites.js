@@ -4,23 +4,13 @@
 export const IMAGES = {
   juninho: 'assets/personagens/juninho.png',
   telespectador_a: 'assets/personagens/telespectador_a.png',
-  telespectador_b: 'assets/personagens/telespectador_b.png',
   telespectador_c: 'assets/personagens/telespectador_c.png',
   telespectador_d: 'assets/personagens/telespectador_d.png',
   telespectador_e: 'assets/personagens/telespectador_e.png',
   telespectador_f: 'assets/personagens/telespectador_f.png',
   telespectador_g: 'assets/personagens/telespectador_g.png',
-  telespectador_h: 'assets/personagens/telespectador_h.png',
-  // vistas de frente (correndo na direção da câmera), recortadas da parte de cima do mockup
-  tf_amarelo_1: 'assets/personagens/frente/telespectador_amarelo_1.png',
-  tf_amarelo_2: 'assets/personagens/frente/telespectador_amarelo_2.png',
-  tf_amarelo_3: 'assets/personagens/frente/telespectador_amarelo_3.png',
-  tf_verde_1: 'assets/personagens/frente/telespectador_verde_1.png',
-  tf_vinho_1: 'assets/personagens/frente/telespectador_vinho_1.png',
-  tf_vinho_2: 'assets/personagens/frente/telespectador_vinho_2.png',
-  tf_semcamisa_1: 'assets/personagens/frente/telespectador_semcamisa_1.png',
+  // vistas de frente (correndo na direção da câmera). Só entram recortes de corpo inteiro, com os pés.
   tf_semcamisa_3: 'assets/personagens/frente/telespectador_semcamisa_3.png',
-  tf_semcamisa_4: 'assets/personagens/frente/telespectador_semcamisa_4.png',
   tf_escura_1: 'assets/personagens/frente/telespectador_escura_1.png',
   tf_escura_2: 'assets/personagens/frente/telespectador_escura_2.png',
   burocrata_frente: 'assets/personagens/frente/burocrata_frente.png',
@@ -49,13 +39,12 @@ export const IMAGES = {
  * a roupa; só troca de frente (descendo na direção da câmera) para costas (subindo).
  */
 export const CROWD_SETS = [
-  { front: ['tf_amarelo_1', 'tf_amarelo_2', 'tf_amarelo_3'], back: ['telespectador_a', 'telespectador_d', 'telespectador_c'] },
-  { front: ['tf_verde_1'], back: ['telespectador_g'] },
-  { front: ['tf_vinho_1', 'tf_vinho_2'], back: ['telespectador_h'] },
-  { front: [], back: ['telespectador_e'] },
-  { front: ['telespectador_b', 'tf_semcamisa_1', 'tf_semcamisa_3', 'tf_semcamisa_4'], back: [] },
-  { front: ['tf_escura_1', 'tf_escura_2'], back: [] },
-  { front: [], back: ['telespectador_f'] },
+  { front: [], back: ['telespectador_a', 'telespectador_d', 'telespectador_c'] }, // camisa amarela
+  { front: [], back: ['telespectador_g'] }, // camisa verde
+  { front: [], back: ['telespectador_e'] }, // camisa branca
+  { front: ['tf_semcamisa_3'], back: [] }, // sem camisa
+  { front: ['tf_escura_1', 'tf_escura_2'], back: [] }, // roupa escura
+  { front: [], back: ['telespectador_f'] }, // camisa rosa
 ];
 export const CROWD = [...new Set(CROWD_SETS.flatMap((s) => [...s.front, ...s.back]))];
 
@@ -211,7 +200,7 @@ export class SpriteCache {
     if (opts.tint) atop(`rgb(${opts.tint[0]},${opts.tint[1]},${opts.tint[2]})`, 0, h, opts.tint[3]);
     if (opts.vest) atop('rgb(255,122,26)', h * 0.22, h * 0.52, 0.42); // colete laranja do Fiscal
     if (opts.hypno) atop('rgb(120,170,255)', 0, h * 0.24, 0.28); // luz de tela no rosto
-    if (opts.mode === 'woken') desaturate(lg, w, h, 0.75);
+    if (opts.mode === 'woken') desaturate(lg, w, h, 0.25);
     if (opts.flash) atop('rgb(255,255,255)', 0, h, 0.75);
     if (opts.mode === 'hurt') atop('rgb(255,40,50)', 0, h, 0.55);
 

@@ -171,6 +171,24 @@ button {
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.05em;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.who-row b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 360px) {
+  .who-row {
+    font-size: 12.5px;
+  }
+
+  #timer {
+    font-size: 24px;
+    min-width: 66px;
+  }
 }
 
 #lvl {

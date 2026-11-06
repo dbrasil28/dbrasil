@@ -184,13 +184,21 @@ export class Renderer {
             spr = this.cache.get(img, h, { ...art, flip: o.flipFix, flash: o.flash > 0 });
           }
           if (!spr) spr = this.sprite(o.type === 'isca' ? 'golpista' : o.type, variant, h, o.flash > 0);
+          o.stepPhase = o.stepPhase ?? (o.id % 7) * 0.9;
           const bob = Math.abs(Math.sin(o.walk)) * h * 0.035;
           if (o.type === 'isca' || o.type === 'golpista') {
             // brilho de "perfil falso": original e iscas piscam igual
             ctx.globalAlpha = 0.82 + Math.sin(t * 20 + o.id) * 0.18;
           }
           if (o.elite) drawEliteRing(ctx, pt, ppu, cam.k, o, t);
-          ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy - bob, spr.cssW, spr.cssH);
+          // passada: o corpo balança a partir dos pés (os recortes têm uma pose só)
+          const sw = Math.sin(o.walk * 1.6 + o.stepPhase);
+          ctx.save();
+          ctx.translate(pt.x, pt.y - bob);
+          ctx.rotate(sw * (o.boss ? 0.03 : 0.075));
+          ctx.scale(1, 1 + Math.abs(sw) * 0.03);
+          ctx.drawImage(spr, -spr.ox, -spr.oy, spr.cssW, spr.cssH);
+          ctx.restore();
           ctx.globalAlpha = 1;
           if (o.type === 'burocrata' && o.windup > 0) {
             ctx.fillStyle = COLORS.paper;
@@ -434,9 +442,14 @@ export class Renderer {
     for (const w of game.fx.woken) {
       cam.toScreen(w.x, w.y, pt);
       const spr = this.cache.get(crowdImage(w.tint || 0, w.id || 0, w.vy > 0), enemyH, { mode: 'woken', flip: !!w.flipFix }) || this.sprite('acordado', w.tint || 0, enemyH, false);
-      ctx.globalAlpha = Math.max(0, 1 - w.t / WAKE.fadeS) * 0.85;
+      const left = WAKE.fadeS - w.t;
+      ctx.globalAlpha = left < 0.35 ? Math.max(0, left / 0.35) : 1;
       const bob = Math.abs(Math.sin(w.walk)) * enemyH * 0.03;
-      ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy - bob, spr.cssW, spr.cssH);
+      ctx.save();
+      ctx.translate(pt.x, pt.y - bob);
+      ctx.rotate(Math.sin(w.walk * 1.6) * 0.06);
+      ctx.drawImage(spr, -spr.ox, -spr.oy, spr.cssW, spr.cssH);
+      ctx.restore();
       if (w.t < 0.6) {
         ctx.fillStyle = '#ffffff';
         ctx.font = `900 ${Math.max(12, enemyH * 0.32)}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;

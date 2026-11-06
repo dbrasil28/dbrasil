@@ -18,7 +18,7 @@ Substitui o "Cidadão Revoltado" do conceito v0.1. Motivo: o pacote pede que o h
 4. Quem acordou não colide, não causa dano e não pode ser atingido.
 5. Cada telespectador acordado tira `audienceLoss` da audiência da TV Caos, que nunca cai abaixo de `audienceFloor`. Elites e chefes continuam *aumentando* a audiência, porque são espetáculo.
 6. Inimigos que representam o sistema (Golpista, Burocrata, Fiscal, Político, Rival, Especulador) continuam com gore teatral, que pode ser desligado.
-7. Leitura visual: halo azul de tela em volta da cabeça, olhos vidrados e braços esticados para a frente. Quem acordou aparece sem halo, com a mão na cabeça.
+7. Leitura visual: halo azul de tela em volta da cabeça. Quem acordou aparece sem halo, com um "?" sobre a cabeça, em cor normal e opaco, e só some no último instante (a versão cinza e transparente parecia um fantasma).
 
 ## Constantes de tuning (`prototype/src/config.js`, objeto `WAKE`)
 
