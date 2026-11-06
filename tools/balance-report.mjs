@@ -1,6 +1,6 @@
 // Relatório de balanceamento: roda N partidas headless com o bot e resume os resultados.
 // O bot NÃO é um jogador humano: serve para comparar versões do balanceamento entre si.
-// Uso: node tools/balance-report.mjs [partidas=20] [aceitar|recusar|alternar] [sem-desvio]
+// Uso: node tools/balance-report.mjs [partidas=20] [aceitar|recusar|alternar] [--sem-desvio] [--reviver]
 import { simulate, BOT } from '../prototype/tests/bot.mjs';
 
 const runs = Number(process.argv[2] || 20);
@@ -11,7 +11,9 @@ const policies = {
   alternar: (i) => i % 2 === 0,
 };
 const policy = policies[policyName] || policies.alternar;
-BOT.dodge = process.argv[4] !== 'sem-desvio';
+const flags = process.argv.slice(4);
+BOT.dodge = !flags.some((f) => f.replace(/^--/, '') === 'sem-desvio');
+BOT.revive = flags.some((f) => f.replace(/^--/, '') === 'reviver');
 
 const rows = [];
 const t0 = Date.now();
@@ -32,7 +34,7 @@ for (const r of losses) causes[r.causa_da_derrota || '?'] = (causes[r.causa_da_d
 const reachedBoss = rows.filter((r) => r.tempo_s >= 480).length;
 
 const fmt = (s) => (s == null ? '—' : `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.round(s % 60)).padStart(2, '0')}`);
-console.log(`# Relatório de balanceamento (${runs} partidas, propostas: ${policyName}, bot ${BOT.dodge ? 'desvia' : 'não desvia'} dos projéteis, ${(ms / 1000).toFixed(1)} s)\n`);
+console.log(`# Relatório de balanceamento (${runs} partidas, propostas: ${policyName}, bot ${BOT.dodge ? 'desvia' : 'não desvia'} dos projéteis${BOT.revive ? ', assiste o anúncio para reviver' : ''}, ${(ms / 1000).toFixed(1)} s)\n`);
 console.log('| Métrica | Valor |');
 console.log('| --- | --- |');
 console.log(`| Vitórias | ${wins.length}/${runs} (${Math.round((wins.length / runs) * 100)}%) |`);

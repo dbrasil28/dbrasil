@@ -13,6 +13,7 @@ Status: **pré-produção, Fase 0** (protótipo de arena cinza).
 | `docs/concept-v0.1/` | Pacote de conceito original: GDD, sistemas, conteúdo, arte/UI, MVP, decisões e os 3 mockups |
 | `docs/ANALISE_CONCEITO_v0.1.md` | Análise do pacote: riscos, respostas às perguntas abertas e descobertas do protótipo |
 | `docs/PLAYTEST_FASE0.md` | Roteiro de teste em aparelho real e critérios para sair da Fase 0 |
+| `docs/MONETIZACAO_ANUNCIOS.md` | Modelo de publicidade: onde entram os anúncios, regras de frequência, políticas das redes e pilha técnica |
 | `docs/SKILLS_EQUIPE_GAMES.md` | Pesquisa de skills de Claude Code para construtor, designer e QA de games |
 | `prototype/` | Protótipo jogável (HTML + JavaScript, sem dependências) |
 | `tools/` | Servidor local, empacotador em arquivo único e relatório de balanceamento |
@@ -24,7 +25,7 @@ Precisa só de **Node.js 20+**, sem `npm install`.
 ```bash
 npm start            # abre em http://localhost:8080 e mostra o endereço para o celular na mesma rede Wi-Fi
 npm test             # testes de unidade + partidas simuladas
-node tools/balance-report.mjs 20 alternar   # 20 partidas com o bot; também: aceitar | recusar
+node tools/balance-report.mjs 20 alternar   # 20 partidas com o bot; também: aceitar | recusar, --reviver, --sem-desvio
 node tools/build-single.mjs                 # gera dist/brasil-estado-de-caos.html (arquivo único)
 ```
 
@@ -38,6 +39,13 @@ node tools/build-single.mjs                 # gera dist/brasil-estado-de-caos.ht
 - **Índice de Caos** como diretor de hordas, com quatro faixas: Normalidade Suspeita, Crise, Colapso Institucional e Estado de Calamidade.
 - **Corrupção:** 3 propostas com ganho e custo explícitos, Propina opcional e um veredito no fim ("Inocente (por enquanto)" … "Virou o sistema").
 - **TV Caos:** ticker com manchetes contextuais e a Audiência como número.
+- **Anúncios simulados** (modelo gratuito com publicidade):
+  - segunda chance ao morrer, com anúncio recompensado;
+  - troca de cartas por anúncio;
+  - intervalo comercial entre partidas, com regras de frequência;
+  - banner opcional só nos menus;
+  - simulação da compra "Sem anúncios".
+  No app, o simulador é trocado pelo AdMob (ver `docs/MONETIZACAO_ANUNCIOS.md`).
 - **Ajustes de teste** para as hipóteses abertas: escala do protagonista e dos inimigos, inclinação e rotação da câmera, joystick flutuante ou fixo, limite de inimigos, gore, flashes, tremor, FPS e começar direto numa proposta ou no chefe.
 - Ao fim, **métricas em JSON** para copiar: tempo, causa da derrota, decisões, FPS médio, pior quadro e aparelho.
 
@@ -47,7 +55,8 @@ Tudo é placeholder: bonecos geométricos com silhuetas distintas, sem assets ex
 
 ```
 prototype/src/
-  config.js     conteúdo e balanceamento (inimigos, armas, eventos, falas da TV)
+  config.js     conteúdo e balanceamento (inimigos, armas, eventos, falas da TV, regras de anúncio)
+  ads.js        anúncios: provedor simulado + regras de frequência e registro
   game.js       simulação (sem DOM, roda também no Node para testes)
   camera.js     projeção 2.5D com inclinação/rotação e escala por % da área jogável
   weapons.js    armas automáticas e projéteis

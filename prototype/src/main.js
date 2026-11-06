@@ -6,6 +6,7 @@ import { UI } from './ui.js';
 import { loadSettings, saveSettings, defaultSettings } from './settings.js';
 import { ENEMIES } from './config.js';
 import { fmt } from './math.js';
+import { Ads, createMockProvider } from './ads.js';
 
 const $ = (id) => document.getElementById(id);
 const STEP = 1 / 60;
@@ -14,6 +15,10 @@ let settings = loadSettings();
 const renderer = new Renderer($('view'));
 const input = new Input($('touch'), $('joy'), $('joy-knob'));
 const ui = new UI(renderer);
+const ads = new Ads(createMockProvider($('ad-layer'), () => Number(settings.adLength) || 5));
+ads.configure(settings);
+ads.provider.start();
+ui.rewardedOk = () => ads.rewardedAvailable();
 let game = new Game(settings);
 let state = 'title'; // title | playing | paused | result
 let settingsFrom = 'title';
@@ -146,7 +151,9 @@ function frame(now) {
       state = 'result';
       ui.closeModal();
       input.reset();
-      ui.showResult(game, perfSummary(), settings, deviceMeta());
+      ads.runEnded();
+      ui.showResult(game, perfSummary(), settings, deviceMeta(), ads.summary());
+      updateBanner();
     }
   }
 
@@ -174,9 +181,24 @@ function updateFps(now, dt) {
   }
 }
 
+function updateBanner() {
+  ui.setBanner(settings.ads && settings.bannerMenu && !settings.noAds && (state === 'title' || state === 'result'));
+}
+
+/** Intervalo comercial ao sair da tela de resultado (respeita as regras de frequência). */
+async function leaveResult(next) {
+  if (ads.canShowInterstitial()) {
+    ui.setBanner(false);
+    await ads.showInterstitial('fim_de_turno');
+  }
+  next();
+}
+
 function applySetting(id, value) {
   settings[id] = value;
   saveSettings(settings);
+  ads.configure(settings);
+  updateBanner();
   if (id === 'resolution' || id === 'playerPct' || id === 'elevation' || id === 'yaw' || id === 'joystick') layout();
   if (id === 'enemyPct') renderer.sprites.clear();
   if (id === 'showFps') $('fps').hidden = !value;
@@ -184,7 +206,32 @@ function applySetting(id, value) {
 }
 
 // ---------- eventos da interface ----------
-ui.on('start', start);
+ui.on('start', () => {
+  start();
+  updateBanner();
+});
+ui.on('again', () => leaveResult(() => {
+  start();
+  updateBanner();
+}));
+ui.on('revive', async (accept) => {
+  if (!game.modal || game.modal.kind !== 'revive') return;
+  let watched = false;
+  if (accept) {
+    ui.closeModal();
+    watched = await ads.showRewarded('reviver');
+  }
+  game.chooseRevive(watched);
+  modalOpen = false;
+  ui.closeModal();
+  last = performance.now();
+});
+ui.on('reroll', async () => {
+  if (!game.modal || !game.modal.options) return;
+  const ok = await ads.showRewarded('trocar_cartas');
+  if (ok) game.rerollOptions();
+  ui.openModal(game, performance.now());
+});
 ui.on('pause', () => {
   if (state !== 'playing') return;
   state = 'paused';
@@ -198,9 +245,15 @@ ui.on('resume', () => {
   acc = 0;
 });
 ui.on('quit', () => {
-  newGame();
-  state = 'title';
-  ui.show('screen-title');
+  const fromResult = state === 'result';
+  const go = () => {
+    newGame();
+    state = 'title';
+    ui.show('screen-title');
+    updateBanner();
+  };
+  if (fromResult) leaveResult(go);
+  else go();
 });
 ui.on('settings', (from) => {
   settingsFrom = from;
@@ -247,11 +300,12 @@ window.addEventListener('resize', () => layout());
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // expõe estado para testes automatizados (Playwright)
-window.__bec = { get game() { return game; }, get state() { return state; }, settings: () => settings };
+window.__bec = { get game() { return game; }, get state() { return state; }, settings: () => settings, ads };
 
 $('fps').hidden = !settings.showFps;
 layout();
 ui.show('screen-title');
+updateBanner();
 requestAnimationFrame((t) => {
   last = t;
   frame(t);

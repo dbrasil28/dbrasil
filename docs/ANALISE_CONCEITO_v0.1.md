@@ -116,8 +116,8 @@ O spike H06 deveria comparar **1 personagem** em dois pipelines (3D pré-renderi
 | 5 | Limite de inimigos | Começar com 300 (ajustável) e medir num Android de entrada (2–4 GB de RAM). No navegador, o pico do bot ficou em torno de 300. |
 | 6 | Humor e gore | Gore ajustável, com padrão moderado; decidir o teto depois de simular a ClassInd. Ver o ponto 1, sobre quem leva o gore. |
 | 7 | Corrupção | Escolha explícita (propostas) e também consequência da build (pegar Propina). O protótipo tem as duas. |
-| 8 | Negócio | Decidir antes da Fase 2, porque define a meta-progressão. Nada no conceito exige F2P. |
-| 9 | Engine | A Fase 0 em web já está pronta e roda em qualquer celular por link. Para produção: **Godot 4** se o jogo for premium e a equipe pequena; **Unity** se for F2P com anúncios e compras, pelos SDKs mais maduros. Decidir no fim da Fase 0, junto com o spike H06. |
+| 8 | Negócio | **Decidido em 06/11/2026:** gratuito com anúncios, nos moldes do Marble Division. Ver `MONETIZACAO_ANUNCIOS.md`. |
+| 9 | Engine | **A mesma pilha do Marble Division:** jogo web (JavaScript) empacotado com Capacitor, AdMob via plugin. O protótipo já é web, e a pilha já foi publicada pelo autor. Para produção, trocar o Canvas 2D por WebGL (Phaser ou PixiJS) e medir 300 inimigos dentro do Capacitor num Android de entrada. |
 | 10 | Referências reais | Sim, inspiração brasileira com nomes fictícios. Ver a tabela do ponto 2. |
 
 ## O que o protótipo cobre do backlog
@@ -149,6 +149,6 @@ O conteúdo segue o escopo do MVP: 4 famílias (Cidadão Revoltado, Golpista Dig
 ## Próximos passos recomendados
 
 1. **Jogar no celular** com 3 a 5 pessoas seguindo `docs/PLAYTEST_FASE0.md`, copiando as métricas ao fim de cada partida.
-2. **Decidir os pontos 1 e 2** (quem é a horda; nomes reais) antes de qualquer arte, porque isso muda o *concept* dos inimigos.
+2. **Decidir os pontos 1 e 2** (quem é a horda; nomes reais) antes de qualquer arte, porque isso muda o *concept* dos inimigos. Com anúncios, o ponto 2 deixa de ser opcional: as redes restringem anúncios em jogos com violência contra pessoas reais conhecidas.
 3. **Spike de arte H06** com 1 personagem, dentro do protótipo.
-4. **Escolher a engine** no fim da Fase 0, com os dados de desempenho em aparelho real.
+4. **Rodar o protótipo dentro do Capacitor** num Android de entrada e decidir se o desenho migra para WebGL antes da Fase 1.

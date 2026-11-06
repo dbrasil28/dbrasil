@@ -40,7 +40,7 @@ export class UI {
     $('btn-restart').addEventListener('click', () => this.fire('start'));
     $('btn-pause-settings').addEventListener('click', () => this.fire('settings', 'pause'));
     $('btn-quit').addEventListener('click', () => this.fire('quit'));
-    $('btn-again').addEventListener('click', () => this.fire('start'));
+    $('btn-again').addEventListener('click', () => this.fire('again'));
     $('btn-result-settings').addEventListener('click', () => this.fire('settings', 'result'));
     $('btn-copy').addEventListener('click', () => this.copyMetrics());
     $('btn-settings-back').addEventListener('click', () => this.fire('settingsBack'));
@@ -242,6 +242,8 @@ export class UI {
 
     if (m.kind === 'event') {
       box.appendChild(this.eventSheet(game, m));
+    } else if (m.kind === 'revive') {
+      box.appendChild(this.reviveSheet(game));
     } else {
       box.appendChild(this.levelSheet(game, m));
     }
@@ -296,7 +298,52 @@ export class UI {
       list.appendChild(b);
     });
     sheet.appendChild(list);
+    if (game.rerollsLeft > 0 && this.rewardedOk?.()) {
+      const rr = document.createElement('button');
+      rr.type = 'button';
+      rr.className = 'reroll';
+      rr.innerHTML = '<span class="ad-chip">ANÚNCIO</span><span></span>';
+      rr.lastChild.textContent = `Trocar as cartas (resta${game.rerollsLeft > 1 ? 'm' : ''} ${game.rerollsLeft})`;
+      rr.addEventListener('click', () => {
+        if (!this.armed()) return;
+        this.fire('reroll');
+      });
+      sheet.appendChild(rr);
+    }
     return sheet;
+  }
+
+  reviveSheet(game) {
+    const sheet = document.createElement('div');
+    sheet.className = 'sheet sheet-revive';
+    sheet.innerHTML = `
+      <div class="tv-bug"><b>TV CAOS</b><em>INTERVALO COMERCIAL</em></div>
+      <h2>Segunda chance</h2>
+      <p class="event-text">Assista a um anúncio e o Juninho volta com metade da vida. Quem estiver em volta cai junto. Vale uma vez por turno.</p>
+      <div class="choices"></div>`;
+    const choices = sheet.querySelector('.choices');
+    const watch = document.createElement('button');
+    watch.type = 'button';
+    watch.className = 'btn btn-primary btn-ad';
+    watch.innerHTML = '<span class="ad-chip">ANÚNCIO</span> Assistir e voltar';
+    watch.addEventListener('click', () => {
+      if (!this.armed()) return;
+      this.fire('revive', true);
+    });
+    const end = document.createElement('button');
+    end.type = 'button';
+    end.className = 'btn btn-ghost';
+    end.textContent = 'Encerrar turno';
+    end.addEventListener('click', () => {
+      if (!this.armed()) return;
+      this.fire('revive', false);
+    });
+    choices.append(watch, end);
+    return sheet;
+  }
+
+  setBanner(show) {
+    $('banner').hidden = !show;
   }
 
   eventSheet(game, m) {
@@ -344,7 +391,7 @@ export class UI {
   }
 
   // ---------- resultado ----------
-  showResult(game, perfSummary, settings, meta) {
+  showResult(game, perfSummary, settings, meta, adsSummary) {
     const s = game.summary();
     const win = game.over === 'victory';
     $('result-title').textContent = win ? 'TURNO CONCLUÍDO' : 'FIM DO TURNO';
@@ -364,6 +411,7 @@ export class UI {
       ['FPS médio', perfSummary.avgFps ? String(perfSummary.avgFps) : '—'],
       ['1% pior quadro', perfSummary.p99ms ? `${fmt(perfSummary.p99ms)} ms` : '—'],
       ['Pico de inimigos', String(s.pico_inimigos)],
+      ['Segunda chance', game.metrics.ads.aceitos.reviver ? 'usada' : game.reviveUsed ? 'recusada' : '—'],
     ];
     const dl = $('result-stats');
     dl.textContent = '';
@@ -374,7 +422,7 @@ export class UI {
       dd.textContent = v;
       dl.append(dt, dd);
     }
-    this.metricsJson = JSON.stringify({ ...s, desempenho: perfSummary, ajustes: settings, dispositivo: meta }, null, 2);
+    this.metricsJson = JSON.stringify({ ...s, anuncios_na_sessao: adsSummary, desempenho: perfSummary, ajustes: settings, dispositivo: meta }, null, 2);
     $('metrics-out').value = this.metricsJson;
     $('metrics-out').hidden = true;
     $('copy-status').textContent = '';

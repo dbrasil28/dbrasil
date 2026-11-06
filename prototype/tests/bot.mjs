@@ -4,7 +4,7 @@ import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
 
 // Opções do bot (o relatório de balanceamento desliga o desvio para comparar).
-export const BOT = { dodge: true };
+export const BOT = { dodge: true, revive: false };
 
 export function botInput(game) {
   const p = game.player;
@@ -77,6 +77,10 @@ export function resolveModal(game, eventPolicy = (i) => i % 2 === 0) {
   if (!m) return;
   if (m.kind === 'event') {
     game.chooseEvent(eventPolicy(game.metrics.decisions.length));
+    return;
+  }
+  if (m.kind === 'revive') {
+    game.chooseRevive(BOT.revive);
     return;
   }
   const order = ['evolution', 'weapon', 'passive', 'heal', 'bonus'];

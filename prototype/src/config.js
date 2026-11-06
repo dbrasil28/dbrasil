@@ -188,6 +188,20 @@ export const PASSIVES = {
 
 export const SLOTS = { weapons: 4, passives: 4 };
 
+// Publicidade (modelo gratuito com anúncios). Valores iniciais para teste, não metas.
+export const ADS = {
+  reviveHpFrac: 0.5, // volta com 50% da vida
+  reviveClearRadius: 3.5, // m: inimigos comuns em volta são derrubados
+  reviveInvuln: 2.5, // s de invulnerabilidade depois de voltar
+  rerollsPerRun: 2, // trocas de cartas por anúncio, por partida
+  interstitial: {
+    graceRuns: 1, // nenhum intersticial depois da 1ª partida da sessão
+    minGapSec: 180, // no mínimo 3 min entre intersticiais
+    skipAfterRewardedSec: 90, // quem viu um recompensado há pouco não leva intersticial
+    skippableAfterSec: 5, // botão de fechar aparece após 5 s
+  },
+};
+
 export const xpToNext = (level) => Math.floor(5 + level * 5 + Math.pow(level, 1.6));
 
 // Propostas de Corrupção: sempre duas saídas com ganho real, custo explícito.
@@ -266,6 +280,7 @@ export const TV = {
   boss: ['MORADORES? QUE MORADORES? ESPECULADOR CHEGA AO CENTRO'],
   lot: ['LOTE VENDIDO. ÁREA AGORA É PRIVADA', 'MAIS UM TERRENO "REVITALIZADO"'],
   accept: ['ACORDO FECHADO! ENTREGADOR AGORA É "PARCEIRO"'],
+  revive: ['VOLTAMOS DO INTERVALO. ENTREGADOR, INEXPLICAVELMENTE, CONTINUA DE PÉ'],
   refuse: ['ENTREGADOR RECUSA PROPOSTA. INVESTIGADO POR SER HONESTO DEMAIS'],
   rival: ['RIVAL PATROCINADO ENTRA NA DISPUTA. LOGO BEM VISÍVEL'],
   death: ['ENTREGADOR NÃO RESISTE. APP DESCONTA A ENTREGA'],

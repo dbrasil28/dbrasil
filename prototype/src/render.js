@@ -218,7 +218,8 @@ export class Renderer {
     const hurtBlink = p.hurtT > 0 && Math.floor(game.t * 16) % 2 === 0;
     const spr = this.sprite(game.corruption >= 50 ? 'playerGold' : 'player', p.faceX < 0 ? 1 : 0, playerPx, hurtBlink);
     const bob = p.moving ? Math.abs(Math.sin(game.t * 11)) * playerPx * 0.04 : 0;
-    ctx.globalAlpha = alpha;
+    const invulnBlink = p.invulnT > 0 && Math.floor(game.t * 12) % 2 === 0 ? 0.45 : 1;
+    ctx.globalAlpha = alpha * invulnBlink;
     ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy - bob, spr.cssW, spr.cssH);
     ctx.globalAlpha = 1;
   }

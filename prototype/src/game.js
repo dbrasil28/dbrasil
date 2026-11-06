@@ -3,7 +3,7 @@ import { Camera } from './camera.js';
 import { SpatialHash } from './spatial.js';
 import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
-  SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, xpToNext, caosBand,
+  SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, xpToNext, caosBand,
 } from './config.js';
 import { fireWeapon, updateProjectiles, updateZones } from './weapons.js';
 import { rollOptions, applyOption, playerStats } from './upgrades.js';
@@ -37,8 +37,10 @@ export class Game {
     this.player = {
       x: 0, y: 0, r: PLAYER.radius, hp: PLAYER.hp, level: 1, xp: 0, xpNext: xpToNext(1),
       weapons: [{ id: 'capacete', level: 1, cd: 0.4 }], passives: [],
-      faceX: 1, faceY: 0, moving: false, slowT: 0, hurtT: 0, bonusDmg: 0, vx: 0, vy: 0,
+      faceX: 1, faceY: 0, moving: false, slowT: 0, hurtT: 0, invulnT: 0, bonusDmg: 0, vx: 0, vy: 0,
     };
+    this.reviveUsed = false;
+    this.rerollsLeft = this.settings.ads ? ADS.rerollsPerRun : 0;
     this.mods = { dmgMul: 1, armor: 0, enemyHpMul: 1, bossHpMul: 1, eliteDmgMul: 1, speedMul: 1 };
     this.stats = playerStats(this.player, this.mods);
 
@@ -79,6 +81,7 @@ export class Game {
       peakEnemies: 0,
       causeOfDeath: null,
       lastDamageSource: null,
+      ads: { ofertas: { reviver: 0, trocar_cartas: 0 }, aceitos: { reviver: 0, trocar_cartas: 0 } },
     };
 
     this.applyView();
@@ -399,6 +402,7 @@ export class Game {
 
   hurtPlayer(amount, source) {
     const p = this.player;
+    if (p.invulnT > 0) return;
     const dmg = amount * (1 - this.stats.armor);
     p.hp -= dmg;
     p.hurtT = 0.12;
@@ -418,11 +422,13 @@ export class Game {
     }
     if (this.pendingChests > 0) {
       this.modal = { kind: 'chest', options: rollOptions(this.player, this.rng, 3) };
+      if (this.rerollsLeft > 0) this.metrics.ads.ofertas.trocar_cartas++;
       this.emit('modal', {});
       return;
     }
     if (this.pendingLevels > 0) {
       this.modal = { kind: 'levelup', level: this.player.level - this.pendingLevels + 1, options: rollOptions(this.player, this.rng, 3) };
+      if (this.rerollsLeft > 0) this.metrics.ads.ofertas.trocar_cartas++;
       this.emit('modal', {});
     }
   }
@@ -439,6 +445,55 @@ export class Game {
     this.stats = playerStats(this.player, this.mods);
     this.player.hp = Math.min(this.player.hp, this.stats.maxHp);
     if (opt.kind === 'evolution') this.emit('tv', { text: 'EVOLUÇÃO! ENTREGA EXPRESSA GARANTIDA OU SEU DINHEIRO DE VOLTA (NÃO)' });
+  }
+
+  die() {
+    this.tv('death');
+    this.finish('defeat');
+  }
+
+  /** Resposta à oferta de segunda chance. `watched` = assistiu o anúncio até o fim. */
+  chooseRevive(watched) {
+    if (!this.modal || this.modal.kind !== 'revive') return;
+    this.modal = null;
+    this.reviveUsed = true;
+    if (!watched) {
+      this.die();
+      return;
+    }
+    this.metrics.ads.aceitos.reviver++;
+    const p = this.player;
+    p.hp = this.stats.maxHp * ADS.reviveHpFrac;
+    p.invulnT = ADS.reviveInvuln;
+    const r = ADS.reviveClearRadius;
+    for (const e of this.enemies) {
+      if (e.dead) continue;
+      const dx = e.x - p.x;
+      const dy = e.y - p.y;
+      const d = Math.hypot(dx, dy);
+      if (d > r + 1) continue;
+      if (!e.elite) this.killEnemy(e, 'reviver');
+      else {
+        const l = d || 1;
+        e.kx += (dx / l) * 8;
+        e.ky += (dy / l) * 8;
+      }
+    }
+    this.enemyShots.length = 0;
+    this.fx.rings.push({ x: p.x, y: p.y, r0: 0.3, r1: r, t: 0, dur: 0.45, color: 'mic' });
+    this.metrics.causeOfDeath = null;
+    this.tv('revive');
+    this.shake(0.4);
+  }
+
+  /** Troca as 3 cartas da escolha atual (anúncio recompensado). */
+  rerollOptions() {
+    const m = this.modal;
+    if (!m || !m.options || this.rerollsLeft <= 0) return false;
+    this.rerollsLeft--;
+    this.metrics.ads.aceitos.trocar_cartas++;
+    m.options = rollOptions(this.player, this.rng, 3);
+    return true;
   }
 
   chooseEvent(accept) {
@@ -522,8 +577,14 @@ export class Game {
     if (!this.over && this.player.hp <= 0) {
       this.player.hp = 0;
       this.metrics.causeOfDeath = this.metrics.lastDamageSource;
-      this.tv('death');
-      this.finish('defeat');
+      if (this.settings.ads && !this.reviveUsed) {
+        // Segunda chance por anúncio recompensado (1 por partida)
+        this.modal = { kind: 'revive' };
+        this.metrics.ads.ofertas.reviver++;
+        this.emit('modal', {});
+        return;
+      }
+      this.die();
     }
     if (!this.over && this.player.hp < this.stats.maxHp * 0.25) this.tv('lowHp', 30);
 
@@ -552,6 +613,7 @@ export class Game {
     p.y += p.vy * dt;
     this.collideProps(p);
     if (p.hurtT > 0) p.hurtT -= dt;
+    if (p.invulnT > 0) p.invulnT -= dt;
 
     // dano por contato
     this.hash.query(p.x, p.y, p.r + 1.2, tmp);
@@ -941,6 +1003,7 @@ export class Game {
       pico_inimigos: m.peakEnemies,
       armas: this.player.weapons.map((w) => `${w.id}:${w.level}`),
       passivas: this.player.passives.map((p) => `${p.id}:${p.level}`),
+      anuncios_na_partida: m.ads,
       seed: this.seed,
     };
   }

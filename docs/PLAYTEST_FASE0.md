@@ -39,6 +39,12 @@ Ao fim de **cada** partida, toque em **Copiar métricas do teste** e cole numa p
 - [ ] Pegou a Propina (moeda verde) de propósito?
 - [ ] O ticker da TV atrapalhou a visão em algum momento?
 
+**Anúncios**
+- [ ] Aceitou a segunda chance? Achou que a recompensa valeu o vídeo?
+- [ ] Usou "Trocar as cartas"? Em que momento?
+- [ ] O intervalo entre partidas irritou? Faria a pessoa parar de jogar?
+- [ ] Teste uma sessão com os anúncios simulados em 30 s (ajuste "Duração do anúncio simulado").
+
 **Desempenho e conforto**
 - [ ] O aparelho esquentou? Em que minuto?
 - [ ] Houve travadas perceptíveis? Em que momento (onda, chefe, muitos números de dano)?
