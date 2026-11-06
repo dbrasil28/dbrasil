@@ -2,6 +2,7 @@
 // Provisório em código até a arte do guia chegar; usa os PNGs que já existem (chão, poste, cone).
 import { hash2 } from './math.js';
 import { images } from './sprites.js';
+import { Camera } from './camera.js';
 
 const pt = { x: 0, y: 0 };
 const pt2 = { x: 0, y: 0 };
@@ -11,10 +12,17 @@ const SEG = 6; // metros por segmento de decoração nas bordas
 const HOUSE_COLORS = ['#a8634c', '#b8955a', '#6f8a96', '#c4b597', '#86677f', '#7d8f62', '#b9806a', '#9d978c', '#c2a08e'];
 
 // textura de grão/sujeira usada em tudo que é desenhado em código
-let grain = null;
+let grainCanvas = null;
+const grainByCtx = new WeakMap();
 function grainPattern(ctx) {
-  if (grain) return grain;
+  const cached = grainByCtx.get(ctx);
+  if (cached) return cached;
   if (typeof document === 'undefined') return null;
+  if (grainCanvas) {
+    const pat = ctx.createPattern(grainCanvas, 'repeat');
+    grainByCtx.set(ctx, pat);
+    return pat;
+  }
   const c = document.createElement('canvas');
   c.width = 96;
   c.height = 96;
@@ -35,8 +43,10 @@ function grainPattern(ctx) {
     g.arc(Math.random() * 96, Math.random() * 96, 4 + Math.random() * 10, 0, Math.PI * 2);
     g.fill();
   }
-  grain = ctx.createPattern(c, 'repeat');
-  return grain;
+  grainCanvas = c;
+  const pat = ctx.createPattern(c, 'repeat');
+  grainByCtx.set(ctx, pat);
+  return pat;
 }
 
 /** Aplica grão (multiply) num retângulo de tela. */
@@ -76,10 +86,7 @@ export function drawOrlaGround(r, ctx, game, b) {
   cam.toScreen(m.sandX, b.maxY, pt2);
   if (tex) {
     const tile = m.groundTileM;
-    if (!r.groundPattern || r.groundPatternImg !== tex) {
-      r.groundPattern = ctx.createPattern(tex, 'repeat');
-      r.groundPatternImg = tex;
-    }
+    const groundPattern = ctx.createPattern(tex, 'repeat');
     ctx.save();
     ctx.beginPath();
     ctx.rect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
@@ -91,7 +98,7 @@ export function drawOrlaGround(r, ctx, game, b) {
     const oy = cam.anchorY - cam.y * ppu * k;
     const base = ctx.getTransform();
     ctx.transform(sx, 0, 0, sy, ox, oy);
-    ctx.fillStyle = r.groundPattern;
+    ctx.fillStyle = groundPattern;
     const inv = { x0: (pt.x - ox) / sx, y0: (pt.y - oy) / sy, x1: (pt2.x - ox) / sx, y1: (pt2.y - oy) / sy };
     ctx.fillRect(inv.x0, inv.y0, inv.x1 - inv.x0, inv.y1 - inv.y0);
     ctx.setTransform(base);
@@ -172,7 +179,84 @@ export function drawOrlaGround(r, ctx, game, b) {
   }
 }
 
-/** Decoração das bordas que fica na lista de profundidade (desenhada junto com os personagens). */
+/**
+ * Camada estática do mapa (chão + decoração das bordas) desenhada uma vez em blocos de 12 m
+ * e só copiada na tela a cada quadro. Nada disso se mexe, então não há por que redesenhar.
+ */
+const TILE_M = 12;
+export class OrlaLayer {
+  constructor() {
+    this.tiles = new Map();
+    this.key = '';
+  }
+
+  clear() {
+    this.tiles.clear();
+    this.key = '';
+  }
+
+  draw(ctx, game, vb, dpr) {
+    const cam = game.camera;
+    const m = game.map;
+    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}`;
+    if (key !== this.key) {
+      this.tiles.clear();
+      this.key = key;
+    }
+    const x0 = m.minX - 10;
+    const x1 = m.seaX + 6;
+    const j0 = Math.floor(vb.minY / TILE_M);
+    const j1 = Math.floor(vb.maxY / TILE_M);
+    for (let j = j0; j <= j1; j++) {
+      let t = this.tiles.get(j);
+      if (!t) {
+        t = this.build(game, j, x0, x1, dpr);
+        this.tiles.set(j, t);
+      }
+      cam.toScreen(x0, j * TILE_M, pt);
+      ctx.drawImage(t, pt.x, pt.y, t.cssW, t.cssH + 0.75);
+    }
+    // descarta blocos longe da tela
+    if (this.tiles.size > (j1 - j0 + 1) + 6) {
+      for (const k of this.tiles.keys()) if (k < j0 - 3 || k > j1 + 3) this.tiles.delete(k);
+    }
+  }
+
+  build(game, j, x0, x1, dpr) {
+    const cam = game.camera;
+    const scale = Math.min(dpr, 1.5);
+    const wCss = (x1 - x0) * cam.ppu;
+    const hCss = TILE_M * cam.ppu * cam.k;
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(wCss * scale);
+    c.height = Math.ceil(hCss * scale);
+    c.cssW = wCss;
+    c.cssH = hCss;
+    const g = c.getContext('2d');
+    g.scale(scale, scale);
+    // câmera local: o canto (x0, j·12) do mundo vira o (0, 0) do bloco
+    const tc = new Camera();
+    tc.setAngles(cam.elevation, 0);
+    tc.ppu = cam.ppu;
+    tc.anchorX = 0;
+    tc.anchorY = 0;
+    tc.x = x0;
+    tc.y = j * TILE_M;
+    const fake = { camera: tc, map: game.map, isStreet: (y) => game.isStreet(y) };
+    const b = { minX: x0, maxX: x1, minY: j * TILE_M - 0.5, maxY: (j + 1) * TILE_M + 0.5 };
+    drawOrlaGround(null, g, fake, b);
+    // decoração com base neste bloco e nos 12 m abaixo (objetos altos invadem o bloco de cima)
+    const list = orlaDecor(fake, { minX: x0, maxX: x1, minY: j * TILE_M - 1, maxY: (j + 1) * TILE_M + 12 }, []);
+    list.sort((a, b2) => a.y - b2.y);
+    for (const d of list) {
+      tc.toScreen(d.x, d.y, pt2);
+      drawDecor(g, d, { x: pt2.x, y: pt2.y }, tc.ppu, tc.k);
+    }
+    return c;
+  }
+}
+
+/** Decoração das bordas (desenhada na camada estática). */
 export function orlaDecor(game, b, out) {
   const m = game.map;
   const j0 = Math.floor(b.minY / SEG) - 1;

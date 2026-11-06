@@ -1,10 +1,8 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE } from './config.js';
-import { images, SpriteCache, CROWD, ENEMY_ART, ICON_ART, drawFit } from './sprites.js';
-import { drawOrlaGround, orlaDecor, drawDecor, drawImageProp } from './mapa.js';
-
-const decorTmp = [];
+import { images, SpriteCache, crowdImage, ENEMY_ART, ICON_ART, drawFit } from './sprites.js';
+import { OrlaLayer, drawImageProp } from './mapa.js';
 
 const pt = { x: 0, y: 0 };
 const pt2 = { x: 0, y: 0 };
@@ -47,6 +45,7 @@ export class Renderer {
     this.shakeAmp = 0;
     this.flashT = 0;
     this.cache = new SpriteCache();
+    this.orla = new OrlaLayer();
   }
 
   resize(w, h, dpr) {
@@ -59,7 +58,7 @@ export class Renderer {
     this.canvas.style.height = `${h}px`;
     this.sprites.clear();
     this.cache.clear(dpr);
-    this.groundPattern = null;
+    this.orla.clear();
     this.vignette = null;
   }
 
@@ -115,8 +114,8 @@ export class Renderer {
     ctx.translate(sx, sy);
 
     if (game.map.bounded) {
-      cam.visibleWorldBounds(3, bounds);
-      drawOrlaGround(this, ctx, game, bounds);
+      cam.visibleWorldBounds(1, bounds);
+      this.orla.draw(ctx, game, bounds, this.dpr);
     } else this.drawGround(ctx, game);
 
     // manchas no chão
@@ -139,7 +138,6 @@ export class Renderer {
     const list = [];
     cam.visibleWorldBounds(3, bounds);
     for (const pr of game.propsInBounds(bounds, propsTmp)) list.push({ d: cam.depth(pr.x, pr.y), k: 'prop', o: pr });
-    if (game.map.bounded) for (const dc of orlaDecor(game, bounds, (decorTmp.length = 0, decorTmp))) list.push({ d: cam.depth(dc.x, dc.y), k: 'decor', o: dc });
     for (const g of game.gems) list.push({ d: cam.depth(g.x, g.y) - 0.5, k: 'gem', o: g });
     for (const p of game.pickups) list.push({ d: cam.depth(p.x, p.y) - 0.4, k: 'pickup', o: p });
     for (const e of game.enemies) list.push({ d: cam.depth(e.x, e.y), k: 'enemy', o: e });
@@ -159,9 +157,7 @@ export class Renderer {
           else if (o.type === 'cone' && images.cone) drawImageProp(ctx, images.cone, pt, ppu * 0.75);
           else drawProp(ctx, o, pt, ppu, cam.k);
           break;
-        case 'decor':
-          drawDecor(ctx, o, pt, ppu, cam.k);
-          break;
+
         case 'gem':
           drawGem(ctx, o, pt, ppu, t);
           break;
@@ -172,16 +168,20 @@ export class Renderer {
           const def = ENEMIES[o.type];
           const h = playerPx * def.size * enemyMul;
           const variant = o.type === 'telespectador' ? o.tint : 0;
-          // olha para o lado em que anda (com folga, para não ficar virando)
-          const dxp = game.player.x - o.x;
-          if (dxp < -0.4) o.faceL = true;
-          else if (dxp > 0.4) o.faceL = false;
+          // de frente quando desce na direção da câmera (está acima do jogador), de costas quando sobe;
+          // com folga para não ficar trocando. O espelhamento é fixo por pessoa (variedade).
+          const dyp = game.player.y - o.y;
+          if (o.front === undefined) o.front = dyp >= 0;
+          else if (dyp > 0.8) o.front = true;
+          else if (dyp < -0.8) o.front = false;
+          if (o.flipFix === undefined) o.flipFix = ((o.id * 2654435761) >>> 0) % 2 === 0;
           let spr = null;
           if (o.type === 'telespectador') {
-            spr = this.cache.get(CROWD[o.tint % CROWD.length], h, { flip: o.faceL, flash: o.flash > 0, hypno: true });
+            spr = this.cache.get(crowdImage(o.tint, o.id, o.front), h, { flip: o.flipFix, flash: o.flash > 0, hypno: true });
           } else if (ENEMY_ART[o.type]) {
             const art = ENEMY_ART[o.type];
-            spr = this.cache.get(art.img, h, { ...art, flip: o.faceL, flash: o.flash > 0 });
+            const img = o.front && art.front && images[art.front] ? art.front : art.img;
+            spr = this.cache.get(img, h, { ...art, flip: o.flipFix, flash: o.flash > 0 });
           }
           if (!spr) spr = this.sprite(o.type === 'isca' ? 'golpista' : o.type, variant, h, o.flash > 0);
           const bob = Math.abs(Math.sin(o.walk)) * h * 0.035;
@@ -233,13 +233,16 @@ export class Renderer {
 
     if (game.map.bounded) {
       if (!this.vignette) {
-        const vg = ctx.createRadialGradient(this.w / 2, this.h * 0.5, this.h * 0.25, this.w / 2, this.h * 0.5, this.h * 0.75);
+        const vc = makeCanvas(Math.ceil(this.w / 2), Math.ceil(this.h / 2));
+        const vgc = vc.getContext('2d');
+        const vg = vgc.createRadialGradient(vc.width / 2, vc.height / 2, vc.height * 0.25, vc.width / 2, vc.height / 2, vc.height * 0.75);
         vg.addColorStop(0, 'rgba(255,170,80,0)');
         vg.addColorStop(1, 'rgba(30,10,20,0.45)');
-        this.vignette = vg;
+        vgc.fillStyle = vg;
+        vgc.fillRect(0, 0, vc.width, vc.height);
+        this.vignette = vc;
       }
-      ctx.fillStyle = this.vignette;
-      ctx.fillRect(-20, -20, this.w + 40, this.h + 40);
+      ctx.drawImage(this.vignette, -20, -20, this.w + 40, this.h + 40);
     }
     if (this.flashT > 0) {
       this.flashT -= perf.dt;
@@ -430,7 +433,7 @@ export class Renderer {
     const enemyH = playerPx * ENEMIES.telespectador.size * (this.enemyMul || 0.75);
     for (const w of game.fx.woken) {
       cam.toScreen(w.x, w.y, pt);
-      const spr = this.cache.get(CROWD[(w.tint || 0) % CROWD.length], enemyH, { mode: 'woken', flip: w.vx < 0 }) || this.sprite('acordado', w.tint || 0, enemyH, false);
+      const spr = this.cache.get(crowdImage(w.tint || 0, w.id || 0, w.vy > 0), enemyH, { mode: 'woken', flip: !!w.flipFix }) || this.sprite('acordado', w.tint || 0, enemyH, false);
       ctx.globalAlpha = Math.max(0, 1 - w.t / WAKE.fadeS) * 0.85;
       const bob = Math.abs(Math.sin(w.walk)) * enemyH * 0.03;
       ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy - bob, spr.cssW, spr.cssH);

@@ -115,7 +115,7 @@ export class Game {
     if (v) Object.assign(this.view, v);
     const s = this.settings;
     const { viewW, viewH, playTop, playBottom } = this.view;
-    this.camera.setAngles(s.elevation, Number(s.yaw));
+    this.camera.setAngles(s.elevation, this.map.bounded ? 0 : Number(s.yaw)); // o calçadão só funciona com ruas retas
     this.camera.setView(viewW, viewH, playTop, playBottom, s.playerPct, PLAYER.heightM);
     this.camera.x = this.player.x;
     this.camera.y = this.player.y;
@@ -174,14 +174,14 @@ export class Game {
   }
 
   /** Ajusta um ponto de nascimento: dentro do mapa e nunca visível na tela. */
-  fitSpawn(p) {
+  fitSpawn(p, marginM = 1.5) {
     const m = this.map;
     if (!m.bounded) return p;
     p.x = clamp(p.x, m.minX + 0.6, m.maxX - 0.6);
     const cam = this.camera;
     cam.toScreen(p.x, p.y, pt);
     if (pt.x > -24 && pt.x < cam.viewW + 24 && pt.y > cam.playTop - 40 && pt.y < cam.viewH + 40) {
-      cam.visibleWorldBounds(1.2, vb);
+      cam.visibleWorldBounds(marginM, vb);
       p.y = p.y < this.player.y ? vb.minY : vb.maxY;
     }
     return p;
@@ -295,7 +295,7 @@ export class Game {
     const { dir } = this.pendingWave;
     this.pendingWave = null;
     const n = Math.round((18 + this.caos * 0.32) * this.settings.spawnMul);
-    const base = this.fitSpawn(this.edgePoint(dir.a, 60));
+    const base = this.fitSpawn(this.edgePoint(dir.a, 60 + 3.5 * this.camera.ppu), 4.8);
     for (let i = 0; i < n; i++) {
       if (this.enemies.length >= this.settings.maxEnemies + 60) break;
       const a = this.rng() * Math.PI * 2;
@@ -401,7 +401,7 @@ export class Game {
     const dx = e.x - p.x;
     const dy = e.y - p.y;
     const l = Math.hypot(dx, dy) || 1;
-    this.fx.woken.push({ x: e.x, y: e.y, vx: (dx / l) * WAKE.walkSpeed, vy: (dy / l) * WAKE.walkSpeed, t: 0, tint: e.tint, walk: e.walk });
+    this.fx.woken.push({ x: e.x, y: e.y, vx: (dx / l) * WAKE.walkSpeed, vy: (dy / l) * WAKE.walkSpeed, t: 0, tint: e.tint, walk: e.walk, id: e.id, flipFix: e.flipFix });
   }
 
   bossDefeated() {
@@ -930,7 +930,8 @@ export class Game {
       const off = this.rng() * Math.PI * 2;
       for (let i = 0; i < n; i++) {
         const a = off + (i / n) * Math.PI * 2;
-        this.spawnEnemy('telespectador', p.x + Math.cos(a) * 6.5, p.y + Math.sin(a) * 6.5);
+        const sp = this.fitSpawn({ x: p.x + Math.cos(a) * 9.5, y: p.y + Math.sin(a) * 9.5 });
+        this.spawnEnemy('telespectador', sp.x, sp.y);
       }
     }
   }

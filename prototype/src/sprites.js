@@ -11,6 +11,19 @@ export const IMAGES = {
   telespectador_f: 'assets/personagens/telespectador_f.png',
   telespectador_g: 'assets/personagens/telespectador_g.png',
   telespectador_h: 'assets/personagens/telespectador_h.png',
+  // vistas de frente (correndo na direção da câmera), recortadas da parte de cima do mockup
+  tf_amarelo_1: 'assets/personagens/frente/telespectador_amarelo_1.png',
+  tf_amarelo_2: 'assets/personagens/frente/telespectador_amarelo_2.png',
+  tf_amarelo_3: 'assets/personagens/frente/telespectador_amarelo_3.png',
+  tf_verde_1: 'assets/personagens/frente/telespectador_verde_1.png',
+  tf_vinho_1: 'assets/personagens/frente/telespectador_vinho_1.png',
+  tf_vinho_2: 'assets/personagens/frente/telespectador_vinho_2.png',
+  tf_semcamisa_1: 'assets/personagens/frente/telespectador_semcamisa_1.png',
+  tf_semcamisa_3: 'assets/personagens/frente/telespectador_semcamisa_3.png',
+  tf_semcamisa_4: 'assets/personagens/frente/telespectador_semcamisa_4.png',
+  tf_escura_1: 'assets/personagens/frente/telespectador_escura_1.png',
+  tf_escura_2: 'assets/personagens/frente/telespectador_escura_2.png',
+  burocrata_frente: 'assets/personagens/frente/burocrata_frente.png',
   golpista: 'assets/personagens/golpista.png',
   burocrata: 'assets/personagens/burocrata.png',
   fiscal: 'assets/personagens/fiscal.png',
@@ -31,14 +44,34 @@ export const IMAGES = {
   logo: 'assets/hud/logo.png',
 };
 
-/** Variações de roupa da horda (MECH-001). */
-export const CROWD = ['telespectador_a', 'telespectador_b', 'telespectador_c', 'telespectador_d', 'telespectador_e', 'telespectador_f', 'telespectador_g', 'telespectador_h'];
+/**
+ * Horda (MECH-001) agrupada por roupa, com vista de frente e de costas. Cada pessoa mantém
+ * a roupa; só troca de frente (descendo na direção da câmera) para costas (subindo).
+ */
+export const CROWD_SETS = [
+  { front: ['tf_amarelo_1', 'tf_amarelo_2', 'tf_amarelo_3'], back: ['telespectador_a', 'telespectador_d', 'telespectador_c'] },
+  { front: ['tf_verde_1'], back: ['telespectador_g'] },
+  { front: ['tf_vinho_1', 'tf_vinho_2'], back: ['telespectador_h'] },
+  { front: [], back: ['telespectador_e'] },
+  { front: ['telespectador_b', 'tf_semcamisa_1', 'tf_semcamisa_3', 'tf_semcamisa_4'], back: [] },
+  { front: ['tf_escura_1', 'tf_escura_2'], back: [] },
+  { front: [], back: ['telespectador_f'] },
+];
+export const CROWD = [...new Set(CROWD_SETS.flatMap((s) => [...s.front, ...s.back]))];
+
+/** Imagem da pessoa da horda conforme a roupa (tint), o indivíduo (id) e a direção. */
+export function crowdImage(tint, id, front) {
+  const set = CROWD_SETS[tint % CROWD_SETS.length];
+  let list = front ? set.front : set.back;
+  if (!list.length) list = front ? set.back : set.front;
+  return list[id % list.length];
+}
 
 /** Tipo de inimigo -> imagem e tratamentos aplicados no cache. */
 export const ENEMY_ART = {
   golpista: { img: 'golpista' },
   isca: { img: 'golpista', tint: [54, 240, 224, 0.55] },
-  burocrata: { img: 'burocrata', papers: true },
+  burocrata: { img: 'burocrata', front: 'burocrata_frente', papers: true },
   fiscal: { img: 'fiscal', vest: true },
   politico: { img: 'politico' },
   rival: { img: 'politico', tint: [240, 122, 26, 0.32] },
@@ -80,6 +113,27 @@ export function loadImages(onEach) {
 }
 
 export const imagesReady = () => pending === 0;
+
+/** Monta de antemão todas as variações usadas na partida, para não travar no meio dela. */
+export function prewarm(cache, playerPx, enemyPx, sizeOf) {
+  // devolve uma fila de tarefas pequenas, feitas aos poucos entre os quadros (sem congelar a tela)
+  const jobs = [];
+  for (const flip of [false, true]) {
+    jobs.push(() => cache.get('juninho', playerPx, { flip, mode: '' }));
+    jobs.push(() => cache.get('juninho', playerPx, { flip, mode: 'hurt' }));
+    for (const id of CROWD) {
+      for (const flash of [false, true]) jobs.push(() => cache.get(id, enemyPx, { flip, flash, hypno: true }));
+      jobs.push(() => cache.get(id, enemyPx, { mode: 'woken', flip }));
+    }
+    for (const [type, art] of Object.entries(ENEMY_ART)) {
+      const h = enemyPx * sizeOf(type);
+      for (const img of [art.img, art.front].filter(Boolean)) {
+        for (const flash of [false, true]) jobs.push(() => cache.get(img, h, { ...art, flip, flash }));
+      }
+    }
+  }
+  return jobs;
+}
 
 function canvas(w, h) {
   const c = document.createElement('canvas');
@@ -136,7 +190,7 @@ export class SpriteCache {
 
     // camada do personagem (com espelhamento e tratamentos)
     const layer = canvas(w, h);
-    const lg = layer.getContext('2d');
+    const lg = layer.getContext('2d', { willReadFrequently: opts.mode === 'woken' });
     if (opts.flip) {
       lg.translate(w, 0);
       lg.scale(-1, 1);

@@ -7,7 +7,7 @@ import { loadSettings, saveSettings, defaultSettings } from './settings.js';
 import { ENEMIES } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
-import { loadImages, images } from './sprites.js';
+import { loadImages, images, prewarm } from './sprites.js';
 
 const $ = (id) => document.getElementById(id);
 const STEP = 1 / 60;
@@ -66,6 +66,7 @@ function layout() {
   const h = app.height;
   const dpr = settings.resolution === '1' ? 1 : Math.min(2, window.devicePixelRatio || 1);
   renderer.resize(w, h, dpr);
+  lastSize = `${Math.round(w)}x${Math.round(h)}`;
   ui.iconCache.clear();
   const top = $('caos').getBoundingClientRect().bottom - app.top;
   const bottom = $('hud-bottom').getBoundingClientRect().top - app.top;
@@ -76,6 +77,7 @@ function layout() {
   input.setMode(settings.joystick, h, h - bottom);
   ui.last.slots = null;
   updateReadout();
+  if (images.juninho) warmSprites();
 }
 
 function updateReadout() {
@@ -125,6 +127,7 @@ function drainOutbox(now) {
 function frame(now) {
   const dtReal = Math.min(0.1, (now - last) / 1000);
   last = now;
+  runWarmJobs();
 
   if (state === 'playing') {
     if (!game.modal) {
@@ -297,11 +300,24 @@ window.addEventListener('keydown', (e) => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && state === 'playing' && !game.modal) ui.fire('pause');
 });
-window.addEventListener('resize', () => layout());
+// No celular, a barra do navegador aparecendo e sumindo dispara "resize" o tempo todo.
+// Só refaz a tela quando o tamanho muda de verdade, e espera o movimento terminar.
+let resizeTimer = 0;
+let lastSize = '';
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const r = $('app').getBoundingClientRect();
+    const size = `${Math.round(r.width)}x${Math.round(r.height)}`;
+    if (size === lastSize) return;
+    lastSize = size;
+    layout();
+  }, 180);
+});
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // expõe estado para testes automatizados (Playwright)
-window.__bec = { get game() { return game; }, get state() { return state; }, settings: () => settings, ads };
+window.__bec = { get game() { return game; }, get state() { return state; }, settings: () => settings, ads, renderer };
 
 $('fps').hidden = !settings.showFps;
 
@@ -340,10 +356,29 @@ function applyHudArt() {
 
 loadImages(() => {
   renderer.cache.clear(renderer.dpr);
-  renderer.groundPattern = null;
+  renderer.orla.clear();
   ui.iconCache.clear();
   ui.last.slots = null;
-}).then(applyHudArt);
+}).then(() => {
+  applyHudArt();
+  warmSprites();
+});
+
+/** Prepara os sprites no tamanho atual da tela antes de jogar (evita travadas na partida). */
+let warmJobs = [];
+function warmSprites() {
+  const cam = game.camera;
+  const playerPx = (settings.playerPct / 100) * (cam.playBottom - cam.playTop);
+  warmJobs = prewarm(renderer.cache, playerPx, playerPx * (settings.enemyPct / 100), (type) => ENEMIES[type].size);
+}
+
+/** Faz um pouco da preparação dos sprites por quadro: mais nos menus, pouco durante a partida. */
+function runWarmJobs() {
+  if (!warmJobs.length) return;
+  const budgetMs = state === 'playing' ? 2 : 10;
+  const t0 = performance.now();
+  while (warmJobs.length && performance.now() - t0 < budgetMs) warmJobs.shift()();
+}
 
 layout();
 ui.show('screen-title');
