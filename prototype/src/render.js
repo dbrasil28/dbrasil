@@ -874,7 +874,8 @@ function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
   const artId = o.kind === 'boomerang' ? 'w_capacete' : o.kind === 'slipper' ? 'w_chinelo' : o.kind === 'lob' ? 'w_maleta' : null;
   const art = artId && images[artId];
   if (art) {
-    const s = Math.max(14, playerPx * (o.kind === 'slipper' ? 0.34 : 0.4));
+    // capacete do mesmo tamanho do que ele segura na mão (~17% da altura do personagem)
+    const s = Math.max(8, playerPx * (o.kind === 'slipper' ? 0.3 : o.kind === 'boomerang' ? 0.18 : 0.34));
     const y = o.kind === 'lob' ? pt.y - o.h * ppu - s * 0.5 : pt.y - playerPx * 0.45;
     if (o.kind === 'lob') {
       ctx.fillStyle = 'rgba(0,0,0,0.35)';
