@@ -20,7 +20,9 @@ Continua o registro do pacote de conceito (`docs/concept-v0.1/06_Decisoes_e_Ques
 | D14 | 06/11/2026 | Mapas | Vários tipos de mapa, todos bem brasileiros e com formato de jogo diferente. O mapa 1 é a orla do Rio de Janeiro (Orla do Desespero): calçadão de ondas, praia, morro com favela. Plano em `arte/GUIA_DE_PRODUCAO_DE_ARTE.md` | Decidido (mapa 1); mapas 2 a 5 em proposta |
 | D15 | 06/11/2026 | Arte | A arte final sai do guia de produção, gerada com o ChatGPT pelo autor; o protótipo usa recortes do mockup como provisório | Decidido |
 | D16 | 06/11/2026 | Arte no protótipo | Pacote de recortes v1 (`prototype/assets/`, manifesto em `asset_manifest.json`) integrado; mapa 1 em corredor; Juninho em 8% da área jogável e inimigos em 90% do Juninho, como no mockup | Feito; arte final pendente do guia |
+| D17 | 06/11/2026 | Marca real (exceção) | O Telespectador C usa a camisa do Flamengo com o monograma CRF, a pedido do autor ao gerar a arte. É a única exceção à regra de nomes e marcas fictícios (D13). Clube e escudo são marcas registradas: antes de publicar na loja, licenciar ou trocar por uma camisa rubro-negra sem escudo | Aceito no protótipo; revisar antes da loja |
 
 ## Pendentes
 
 - Confirmar a pilha técnica (D10) depois do teste de desempenho no Capacitor.
+- Resolver o escudo do Telespectador C (D17) antes de enviar para a loja: licença do clube ou camisa sem escudo.

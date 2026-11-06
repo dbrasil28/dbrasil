@@ -12,6 +12,8 @@ export const IMAGES = {
   tele_a_acordado: 'assets/personagens/telespectador_a/acordado.png',
   tele_b_walk_atlas: 'assets/personagens/telespectador_b/caminhada_atlas.webp', // B: regata cinza
   tele_b_acordado: 'assets/personagens/telespectador_b/acordado.png',
+  tele_c_walk_atlas: 'assets/personagens/telespectador_c/caminhada_atlas.webp', // C: camisa rubro-negra e chinelos
+  tele_c_acordado: 'assets/personagens/telespectador_c/acordado.png',
   telespectador_a: 'assets/personagens/telespectador_a.png',
   telespectador_c: 'assets/personagens/telespectador_c.png',
   telespectador_d: 'assets/personagens/telespectador_d.png',
@@ -50,6 +52,7 @@ export const IMAGES = {
 export const CROWD_SETS = [
   { front: [], back: ['telespectador_a', 'telespectador_d', 'telespectador_c'], anim: 'a' }, // camisa amarela
   { front: [], back: ['telespectador_e'], anim: 'b' }, // regata cinza (sem atlas, cai no recorte de camiseta clara)
+  { front: ['tf_escura_1'], back: [], anim: 'c' }, // camisa rubro-negra, ver D17 (sem atlas, cai na roupa escura)
   { front: [], back: ['telespectador_g'] }, // camisa verde
   { front: [], back: ['telespectador_e'] }, // camisa branca
   { front: ['tf_semcamisa_3'], back: [] }, // sem camisa
@@ -63,8 +66,9 @@ export const CROWD = [...new Set(CROWD_SETS.flatMap((s) => [...s.front, ...s.bac
  * na célula de 160 px (atlas_meta.json de cada pasta).
  */
 export const CROWD_ANIM = {
-  a: { atlas: 'tele_a_walk_atlas', prefix: 'ta', acordado: 'tele_a_acordado', figureH: 159 },
-  b: { atlas: 'tele_b_walk_atlas', prefix: 'tb', acordado: 'tele_b_acordado', figureH: 159 },
+  a: { atlas: 'tele_a_walk_atlas', prefix: 'ta', acordado: 'tele_a_acordado', figureH: 158 },
+  b: { atlas: 'tele_b_walk_atlas', prefix: 'tb', acordado: 'tele_b_acordado', figureH: 158 },
+  c: { atlas: 'tele_c_walk_atlas', prefix: 'tc', acordado: 'tele_c_acordado', figureH: 158 },
 };
 
 /** Atlas animado da roupa (tint), quando ela tem um e ele já carregou; senão null (usa o recorte). */
