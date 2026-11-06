@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE } from './config.js';
-import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
+import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
 
 const pt = { x: 0, y: 0 };
@@ -182,7 +182,13 @@ export class Renderer {
           const art = ENEMY_ART[o.type];
           const anim = o.type === 'telespectador' ? crowdAnim(o.tint) : null;
           const walk = anim ? anim.walk : walkReady(art && art.walk);
-          if (walk) {
+          if (art && art.attack && walk && (o.windup > 0 || o.throwT > 0)) {
+            // pose de ataque (o aviso antes do tiro): de frente, lançando para o lado do Juninho
+            cam.toScreen(game.player.x, game.player.y, pt2);
+            spr = this.cache.get(art.attack, h * art.attackH, attackOpts(pt2.x < pt.x));
+            animated = !!spr;
+          }
+          if (!spr && walk) {
             // atlas de caminhada: linha pela direção em que anda, quadro pela distância andada
             cam.toScreen(o.x + (o.mx ?? game.player.x - o.x), o.y + (o.my ?? game.player.y - o.y), pt2);
             const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
@@ -241,6 +247,7 @@ export class Renderer {
           ctx.fill();
           ctx.stroke();
           this.drawPlayer(ctx, game, pt, playerPx, 1);
+          if (o.paperT > 0) drawStuckPapers(ctx, pt, playerPx, o.paperT, game.t);
           break;
         }
         case 'proj':
@@ -994,7 +1001,24 @@ function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
   }
 }
 
+/** Papelada do Burocrata em voo: a folha da arte girando à altura do peito, com sombra no chão. */
 function drawPaper(ctx, pt, ppu, spin, playerPx) {
+  const im = images.burocrata_papel;
+  if (im) {
+    const w = Math.max(14, playerPx * 0.32);
+    const h = (w * im.height) / im.width;
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y, w * 0.4, w * 0.12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.save();
+    ctx.translate(pt.x, pt.y - playerPx * 0.45);
+    ctx.rotate(spin);
+    ctx.scale(1, 0.55 + 0.45 * Math.abs(Math.cos(spin * 0.7))); // a folha "abana" enquanto gira
+    ctx.drawImage(im, -w / 2, -h / 2, w, h);
+    ctx.restore();
+    return;
+  }
   const s = Math.max(6, playerPx * 0.13);
   ctx.save();
   ctx.translate(pt.x, pt.y - playerPx * 0.45);
@@ -1005,6 +1029,26 @@ function drawPaper(ctx, pt, ppu, spin, playerPx) {
   ctx.fillRect(-s * 0.7, -s, s * 1.4, s * 2);
   ctx.strokeRect(-s * 0.7, -s, s * 1.4, s * 2);
   ctx.restore();
+}
+
+// folhas grudadas no Juninho enquanto a papelada o deixa lento: [x, y, ângulo, escala] relativos à altura
+const STUCK = [[-0.16, 0.3, -0.5, 1], [0.14, 0.52, 0.35, 0.9], [-0.04, 0.74, 0.1, 0.8]];
+
+function drawStuckPapers(ctx, pt, playerPx, left, t) {
+  const im = images.burocrata_papel;
+  if (!im) return;
+  const w = Math.max(12, playerPx * 0.32);
+  const h = (w * im.height) / im.width;
+  ctx.globalAlpha = Math.min(1, left / 0.3); // somem no fim da lentidão
+  for (let i = 0; i < STUCK.length; i++) {
+    const [x, y, a, s] = STUCK[i];
+    ctx.save();
+    ctx.translate(pt.x + x * playerPx, pt.y - y * playerPx);
+    ctx.rotate(a + Math.sin(t * 9 + i * 2) * 0.12);
+    ctx.drawImage(im, (-w * s) / 2, (-h * s) / 2, w * s, h * s);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
 }
 
 function drawIconAt(ctx, kind, x, y, size) {

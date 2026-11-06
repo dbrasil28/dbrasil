@@ -39,7 +39,7 @@ export class Game {
     this.player = {
       x: 0, y: 0, r: PLAYER.radius, hp: PLAYER.hp, level: 1, xp: 0, xpNext: xpToNext(1),
       weapons: [{ id: 'capacete', level: 1, cd: 0.4 }], passives: [],
-      faceX: 1, faceY: 0, moving: false, slowT: 0, hurtT: 0, invulnT: 0, bonusDmg: 0, vx: 0, vy: 0,
+      faceX: 1, faceY: 0, moving: false, slowT: 0, paperT: 0, hurtT: 0, invulnT: 0, bonusDmg: 0, vx: 0, vy: 0,
       // animação do arremesso (atlas de teste): tempo desde o disparo / desde a pegada, capacetes em voo e mira
       throwT: 9, catchT: 9, helmetsOut: 0, aimX: 1, aimY: 0, walkPhase: 0,
     };
@@ -682,7 +682,8 @@ export class Game {
     p.moving = mag > 0.05;
     if (p.moving) p.walkPhase += dt * 8; // um ciclo de 6 quadros (2 passos) a cada ~0,8 s
     if (p.slowT > 0) p.slowT -= dt;
-    const speed = PLAYER.speed * st.speedMul * (p.slowT > 0 ? 0.6 : 1);
+    if (p.paperT > 0) p.paperT -= dt;
+    const speed = PLAYER.speed * st.speedMul * (p.slowT > 0 ? PLAYER.slowMul : 1);
     p.vx = mx * speed;
     p.vy = my * speed;
     const onSand = this.map.bounded && p.x > this.map.sandX;
@@ -840,6 +841,7 @@ export class Game {
         my = ux * s + uy * c;
       } else if (e.behavior === 'ranged') {
         const def = ENEMIES.burocrata;
+        if (e.throwT > 0) e.throwT -= dt;
         if (d < def.range * 0.65) {
           mx = -ux * 0.6;
           my = -uy * 0.6;
@@ -852,14 +854,16 @@ export class Game {
           mx *= 0.1;
           my *= 0.1;
           if (e.windup <= 0) {
-            this.enemyShots.push({ x: e.x, y: e.y, vx: ux * 6, vy: uy * 6, life: 2.6, r: 0.25, spin: 0 });
+            const sh = def.shot;
+            this.enemyShots.push({ x: e.x, y: e.y, vx: ux * sh.speed, vy: uy * sh.speed, life: sh.life, r: sh.radius, spin: 0 });
+            e.throwT = def.throwPoseS;
             this.tv('burocrata', 40);
           }
         } else if (d < def.range + 2 && !this.over) {
           e.fireT -= dt;
           if (e.fireT <= 0) {
             e.fireT = def.fireEvery;
-            e.windup = 0.45;
+            e.windup = def.windupS;
           }
         }
       } else if (e.behavior === 'intercept') {
@@ -973,8 +977,11 @@ export class Game {
       const rr = s.r + p.r;
       let remove = s.life <= 0;
       if (!remove && !this.over && (s.x - p.x) ** 2 + (s.y - p.y) ** 2 < rr * rr) {
-        this.hurtPlayer(6, 'burocrata');
-        p.slowT = 1.5;
+        const sh = ENEMIES.burocrata.shot;
+        if (!(p.paperT > 0)) this.emit('paper', {});
+        this.hurtPlayer(sh.dmg, 'burocrata');
+        p.slowT = Math.max(p.slowT, sh.slowS);
+        p.paperT = sh.slowS;
         remove = true;
       }
       if (remove) {

@@ -19,6 +19,7 @@ export const PLAYER = {
   speed: 3.4, // m/s
   hp: 120,
   magnet: 2.2, // m
+  slowMul: 0.6, // velocidade enquanto lento (papelada do Burocrata, multa do Fiscal)
 };
 
 // Famílias de inimigos (4) + elite + chefe. `size` é relativo ao protagonista e
@@ -45,6 +46,10 @@ export const ENEMIES = {
     name: 'Burocrata-Monstro',
     hp: 24, speed: 1.4, dmg: 7, radius: 0.32, size: 1.05, xp: 3,
     behavior: 'ranged', range: 5.5, fireEvery: 3.2,
+    windupS: 0.45, // mira parado, com a pose de ataque e o "!", antes de soltar
+    throwPoseS: 0.25, // a pose de ataque continua este tempo depois de soltar
+    // papelada: voa reto até o Juninho; se acertar, machuca e deixa lento (com papel grudado nele)
+    shot: { speed: 6, life: 2.6, radius: 0.25, dmg: 6, slowS: 1.5 },
   },
   fiscal: {
     name: 'Fiscal do Impossível', // corta caminho mirando onde você vai estar; encostar gera "multa" (perde XP)

@@ -15,6 +15,9 @@ export const IMAGES = {
   tele_c_walk_atlas: 'assets/personagens/telespectador_c/caminhada_atlas.webp', // C: camisa rubro-negra e chinelos
   tele_c_acordado: 'assets/personagens/telespectador_c/acordado.png',
   golpista_walk_atlas: 'assets/personagens/golpista/caminhada_atlas.webp', // Golpista Digital (e o Perfil Falso)
+  burocrata_walk_atlas: 'assets/personagens/burocrata/caminhada_atlas.webp', // Burocrata-Monstro
+  burocrata_ataque: 'assets/personagens/burocrata/ataque.png', // pose de frente lançando papéis (aviso do tiro)
+  burocrata_papel: 'assets/personagens/burocrata/papel.png', // folha solta da pose de ataque: o projétil
   telespectador_a: 'assets/personagens/telespectador_a.png',
   telespectador_c: 'assets/personagens/telespectador_c.png',
   telespectador_d: 'assets/personagens/telespectador_d.png',
@@ -71,6 +74,7 @@ export const WALK_ATLAS = {
   tb: { atlas: 'tele_b_walk_atlas', prefix: 'tb', figureH: 158 },
   tc: { atlas: 'tele_c_walk_atlas', prefix: 'tc', figureH: 158 },
   gd: { atlas: 'golpista_walk_atlas', prefix: 'gd', figureH: 157 },
+  bm: { atlas: 'burocrata_walk_atlas', prefix: 'bm', figureH: 158 },
 };
 
 /** O atlas, se já carregou; senão null (o jogo usa o recorte de pose única). */
@@ -101,7 +105,8 @@ export function crowdImage(tint, id, front) {
 export const ENEMY_ART = {
   golpista: { img: 'golpista', walk: WALK_ATLAS.gd },
   isca: { img: 'golpista', walk: WALK_ATLAS.gd, tint: [54, 240, 224, 0.55] },
-  burocrata: { img: 'burocrata', front: 'burocrata_frente', papers: true },
+  // attack: pose de ataque; attackH: altura dela em relação ao boneco andando (ela é agachada)
+  burocrata: { img: 'burocrata', front: 'burocrata_frente', papers: true, walk: WALK_ATLAS.bm, attack: 'burocrata_ataque', attackH: 0.92 },
   fiscal: { img: 'fiscal', vest: true },
   politico: { img: 'politico' },
   rival: { img: 'politico', tint: [240, 122, 26, 0.32] },
@@ -198,6 +203,7 @@ export function prewarm(cache, playerPx, enemyPx, sizeOf) {
     for (const [type, art] of Object.entries(ENEMY_ART)) {
       const h = enemyPx * sizeOf(type);
       for (const img of [art.img, art.front].filter(Boolean)) jobs.push(() => cache.get(img, h, { ...art, flip }));
+      if (art.attack) jobs.push(() => cache.get(art.attack, h * art.attackH, attackOpts(flip)));
       if (flip || !art.walk) continue;
       for (let r = 0; r < ATLAS.rows; r++) {
         for (let f = 0; f < ATLAS.cols; f++) jobs.push(() => cache.get(`${art.walk.prefix}_${r}_${f}`, h * (ATLAS.ch / art.walk.figureH), enemyWalkOpts(art)));
@@ -215,6 +221,9 @@ export function enemyWalkOpts(art) {
   if (!o) walkOpts.set(art, (o = { tint: art.tint, shadowScale: 0.6 }));
   return o;
 }
+
+const ATTACK_OPTS = [{ flip: false, shadowScale: 0.5 }, { flip: true, shadowScale: 0.5 }];
+export const attackOpts = (flip) => ATTACK_OPTS[flip ? 1 : 0];
 
 /** Máximo de sprites prontos guardados; acima disso saem os mais antigos (ordem de inserção). */
 const CACHE_MAX = 1600;

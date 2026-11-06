@@ -1,6 +1,6 @@
 # Atlas de caminhada de um personagem (16 direções × 6 quadros, célula 200×160, tronco no centro,
-# pés na base) a partir das 4 folhas 6×4 do pacote. Se o pacote tiver extras/telespectador_acordado.png,
-# grava também a pose de acordado com 320 px de altura (só a horda acorda).
+# pés na base) a partir das 4 folhas 6×4 do pacote. Poses extras do pacote (extras/*.png, como a de
+# acordado da horda ou a de ataque) são gravadas com 320 px de altura.
 # As folhas nem sempre respeitam a grade de 256 px: mãos invadem a célula do lado e cabeças ou pés
 # passam alguns px para a linha de cima ou de baixo. Por isso cada figura é separada por componentes
 # conectados na folha inteira e recortada pela própria máscara. A névoa de alfa baixo fora da figura
@@ -8,7 +8,7 @@
 # Requer Python 3 com Pillow, numpy e opencv-python (fora do jogo; o protótipo continua sem dependências).
 # uso: python3 -I tools/montar-atlas.py <pacote com folhas/> prototype/assets/personagens/<pasta> \
 #        <pasta de trabalho nova> <prefixo das prévias>
-# Grava caminhada_atlas.webp, atlas_meta.json e, na horda, acordado.png. O figureH de atlas_meta.json
+# Grava caminhada_atlas.webp, atlas_meta.json e as poses extras (acordado.png, ataque.png...). O figureH de atlas_meta.json
 # vai para WALK_ATLAS em prototype/src/sprites.js.
 import sys, os, json
 import numpy as np, cv2
@@ -124,19 +124,28 @@ full.alpha_composite(atlas)
 full.convert('RGB').resize((atlas.width // 2, atlas.height // 2)).save(f'{ref}/{tag}_atlas.jpg', quality=85)
 
 json.dump({'figureH': figH, 'top': TOP, 'feet': FEET}, open(os.path.join(dst, 'atlas_meta.json'), 'w'))
-acp = os.path.join(pkg, 'extras', 'telespectador_acordado.png')
-if not os.path.exists(acp):
-    print('sem pose de acordado no pacote')
-    sys.exit(0)
-ac = Image.open(acp).convert('RGBA')
-arr = np.array(ac)
-n, lab, st, _ = cv2.connectedComponentsWithStats((arr[:, :, 3] > TH).astype(np.uint8), connectivity=8)
-main = 1 + int(np.argmax(st[1:, 4]))
-mm = cv2.dilate((lab == main).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))) > 0
-arr[:, :, 3] = np.where(mm, arr[:, :, 3], 0)
-ac = Image.fromarray(arr)
-bb = ac.getchannel('A').point(lambda v: 255 if v > TH else 0).getbbox()
-ac = ac.crop(bb)
-ac = ac.resize((round(ac.width * 320 / ac.height), 320), Image.LANCZOS)
-ac.save(os.path.join(dst, 'acordado.png'), optimize=True)
-print('acordado', ac.size, os.path.getsize(os.path.join(dst, 'acordado.png')) // 1024, 'KB; componentes', n - 1)
+# poses extras (extras/<personagem>_<pose>.png, ex.: telespectador_acordado, burocrata_ataque) viram
+# <pose>.png com 320 px de altura. Ficam os pedaços grandes (papéis soltos, por exemplo); somem os pontinhos.
+exdir = os.path.join(pkg, 'extras')
+extras = sorted(f for f in os.listdir(exdir) if f.endswith('.png')) if os.path.isdir(exdir) else []
+if not extras:
+    print('sem poses extras no pacote')
+for fn in extras:
+    stem = fn[:-4]
+    name = stem.split('_', 1)[1] if '_' in stem else stem
+    arr = np.array(Image.open(os.path.join(exdir, fn)).convert('RGBA'))
+    n, lab, st, _ = cv2.connectedComponentsWithStats((arr[:, :, 3] > TH).astype(np.uint8), connectivity=8)
+    keep_min = max(200, 0.002 * st[1:, 4].max())
+    keep = [i for i in range(1, n) if st[i, 4] >= keep_min]
+    mm = cv2.dilate(np.isin(lab, keep).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))) > 0
+    arr[:, :, 3] = np.where(mm, arr[:, :, 3], 0)
+    ac = Image.fromarray(arr)
+    bb = ac.getchannel('A').point(lambda v: 255 if v > TH else 0).getbbox()
+    edge = [side for side, hit in zip(('esquerda', 'topo', 'direita', 'base'),
+            (bb[0] == 0, bb[1] == 0, bb[2] == arr.shape[1], bb[3] == arr.shape[0])) if hit]
+    ac = ac.crop(bb)
+    ac = ac.resize((round(ac.width * 320 / ac.height), 320), Image.LANCZOS)
+    out = os.path.join(dst, f'{name}.png')
+    ac.save(out, optimize=True)
+    print(f'{fn} -> {name}.png', ac.size, os.path.getsize(out) // 1024, 'KB; pedaços mantidos', len(keep), 'de', n - 1,
+          '; encosta na borda:' if edge else '', ', '.join(edge))

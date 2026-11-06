@@ -1,0 +1,248 @@
+{
+  "personagem": "burocrata",
+  "estado": "locomocao",
+  "folhas": 4,
+  "direcoes": 16,
+  "quadros_por_direcao": 6,
+  "sprites_individuais": 96,
+  "celula": [
+    256,
+    256
+  ],
+  "ordem": [
+    {
+      "direcao": 0,
+      "angulo": 0.0,
+      "folha": 1,
+      "linha": 0,
+      "quadros": [
+        "sprites/direcao_00_000_0/quadro_00.png",
+        "sprites/direcao_00_000_0/quadro_01.png",
+        "sprites/direcao_00_000_0/quadro_02.png",
+        "sprites/direcao_00_000_0/quadro_03.png",
+        "sprites/direcao_00_000_0/quadro_04.png",
+        "sprites/direcao_00_000_0/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 1,
+      "angulo": 22.5,
+      "folha": 1,
+      "linha": 1,
+      "quadros": [
+        "sprites/direcao_01_022_5/quadro_00.png",
+        "sprites/direcao_01_022_5/quadro_01.png",
+        "sprites/direcao_01_022_5/quadro_02.png",
+        "sprites/direcao_01_022_5/quadro_03.png",
+        "sprites/direcao_01_022_5/quadro_04.png",
+        "sprites/direcao_01_022_5/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 2,
+      "angulo": 45.0,
+      "folha": 1,
+      "linha": 2,
+      "quadros": [
+        "sprites/direcao_02_045_0/quadro_00.png",
+        "sprites/direcao_02_045_0/quadro_01.png",
+        "sprites/direcao_02_045_0/quadro_02.png",
+        "sprites/direcao_02_045_0/quadro_03.png",
+        "sprites/direcao_02_045_0/quadro_04.png",
+        "sprites/direcao_02_045_0/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 3,
+      "angulo": 67.5,
+      "folha": 1,
+      "linha": 3,
+      "quadros": [
+        "sprites/direcao_03_067_5/quadro_00.png",
+        "sprites/direcao_03_067_5/quadro_01.png",
+        "sprites/direcao_03_067_5/quadro_02.png",
+        "sprites/direcao_03_067_5/quadro_03.png",
+        "sprites/direcao_03_067_5/quadro_04.png",
+        "sprites/direcao_03_067_5/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 4,
+      "angulo": 90.0,
+      "folha": 2,
+      "linha": 0,
+      "quadros": [
+        "sprites/direcao_04_090_0/quadro_00.png",
+        "sprites/direcao_04_090_0/quadro_01.png",
+        "sprites/direcao_04_090_0/quadro_02.png",
+        "sprites/direcao_04_090_0/quadro_03.png",
+        "sprites/direcao_04_090_0/quadro_04.png",
+        "sprites/direcao_04_090_0/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 5,
+      "angulo": 112.5,
+      "folha": 2,
+      "linha": 1,
+      "quadros": [
+        "sprites/direcao_05_112_5/quadro_00.png",
+        "sprites/direcao_05_112_5/quadro_01.png",
+        "sprites/direcao_05_112_5/quadro_02.png",
+        "sprites/direcao_05_112_5/quadro_03.png",
+        "sprites/direcao_05_112_5/quadro_04.png",
+        "sprites/direcao_05_112_5/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 6,
+      "angulo": 135.0,
+      "folha": 2,
+      "linha": 2,
+      "quadros": [
+        "sprites/direcao_06_135_0/quadro_00.png",
+        "sprites/direcao_06_135_0/quadro_01.png",
+        "sprites/direcao_06_135_0/quadro_02.png",
+        "sprites/direcao_06_135_0/quadro_03.png",
+        "sprites/direcao_06_135_0/quadro_04.png",
+        "sprites/direcao_06_135_0/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 7,
+      "angulo": 157.5,
+      "folha": 2,
+      "linha": 3,
+      "quadros": [
+        "sprites/direcao_07_157_5/quadro_00.png",
+        "sprites/direcao_07_157_5/quadro_01.png",
+        "sprites/direcao_07_157_5/quadro_02.png",
+        "sprites/direcao_07_157_5/quadro_03.png",
+        "sprites/direcao_07_157_5/quadro_04.png",
+        "sprites/direcao_07_157_5/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 8,
+      "angulo": 180.0,
+      "folha": 3,
+      "linha": 0,
+      "quadros": [
+        "sprites/direcao_08_180_0/quadro_00.png",
+        "sprites/direcao_08_180_0/quadro_01.png",
+        "sprites/direcao_08_180_0/quadro_02.png",
+        "sprites/direcao_08_180_0/quadro_03.png",
+        "sprites/direcao_08_180_0/quadro_04.png",
+        "sprites/direcao_08_180_0/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 9,
+      "angulo": 202.5,
+      "folha": 3,
+      "linha": 1,
+      "quadros": [
+        "sprites/direcao_09_202_5/quadro_00.png",
+        "sprites/direcao_09_202_5/quadro_01.png",
+        "sprites/direcao_09_202_5/quadro_02.png",
+        "sprites/direcao_09_202_5/quadro_03.png",
+        "sprites/direcao_09_202_5/quadro_04.png",
+        "sprites/direcao_09_202_5/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 10,
+      "angulo": 225.0,
+      "folha": 3,
+      "linha": 2,
+      "quadros": [
+        "sprites/direcao_10_225_0/quadro_00.png",
+        "sprites/direcao_10_225_0/quadro_01.png",
+        "sprites/direcao_10_225_0/quadro_02.png",
+        "sprites/direcao_10_225_0/quadro_03.png",
+        "sprites/direcao_10_225_0/quadro_04.png",
+        "sprites/direcao_10_225_0/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 11,
+      "angulo": 247.5,
+      "folha": 3,
+      "linha": 3,
+      "quadros": [
+        "sprites/direcao_11_247_5/quadro_00.png",
+        "sprites/direcao_11_247_5/quadro_01.png",
+        "sprites/direcao_11_247_5/quadro_02.png",
+        "sprites/direcao_11_247_5/quadro_03.png",
+        "sprites/direcao_11_247_5/quadro_04.png",
+        "sprites/direcao_11_247_5/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 12,
+      "angulo": 270.0,
+      "folha": 4,
+      "linha": 0,
+      "quadros": [
+        "sprites/direcao_12_270_0/quadro_00.png",
+        "sprites/direcao_12_270_0/quadro_01.png",
+        "sprites/direcao_12_270_0/quadro_02.png",
+        "sprites/direcao_12_270_0/quadro_03.png",
+        "sprites/direcao_12_270_0/quadro_04.png",
+        "sprites/direcao_12_270_0/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 13,
+      "angulo": 292.5,
+      "folha": 4,
+      "linha": 1,
+      "quadros": [
+        "sprites/direcao_13_292_5/quadro_00.png",
+        "sprites/direcao_13_292_5/quadro_01.png",
+        "sprites/direcao_13_292_5/quadro_02.png",
+        "sprites/direcao_13_292_5/quadro_03.png",
+        "sprites/direcao_13_292_5/quadro_04.png",
+        "sprites/direcao_13_292_5/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 14,
+      "angulo": 315.0,
+      "folha": 4,
+      "linha": 2,
+      "quadros": [
+        "sprites/direcao_14_315_0/quadro_00.png",
+        "sprites/direcao_14_315_0/quadro_01.png",
+        "sprites/direcao_14_315_0/quadro_02.png",
+        "sprites/direcao_14_315_0/quadro_03.png",
+        "sprites/direcao_14_315_0/quadro_04.png",
+        "sprites/direcao_14_315_0/quadro_05.png"
+      ]
+    },
+    {
+      "direcao": 15,
+      "angulo": 337.5,
+      "folha": 4,
+      "linha": 3,
+      "quadros": [
+        "sprites/direcao_15_337_5/quadro_00.png",
+        "sprites/direcao_15_337_5/quadro_01.png",
+        "sprites/direcao_15_337_5/quadro_02.png",
+        "sprites/direcao_15_337_5/quadro_03.png",
+        "sprites/direcao_15_337_5/quadro_04.png",
+        "sprites/direcao_15_337_5/quadro_05.png"
+      ]
+    }
+  ],
+  "duracao_quadro_ms": 180,
+  "limites": "arte gerada com pequenas variacoes de registro; nao testada no motor do jogo",
+  "ataque_extra": {
+    "arquivo": "extras/burocrata_ataque.png",
+    "dimensoes": [
+      1254,
+      1254
+    ],
+    "tipo": "pose frontal estática; lançamento pela mão esquerda, carimbo na direita"
+  }
+}
