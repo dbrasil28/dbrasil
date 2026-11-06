@@ -126,7 +126,7 @@ export const DIRECTOR = {
     if (caos >= 45) list.push({ type: 'fiscal', w: 0.1 });
     return list;
   },
-  // ajuste "Teste de elenco": todos os inimigos com arte nova desde 00:00 (só para ver a arte; não balanceia)
+  // ajuste "Elenco completo" (ligado por padrão enquanto a arte entra): todos os inimigos desde 00:00
   castTestComposition: [
     { type: 'telespectador', w: 1 },
     { type: 'golpista', w: 0.3 },

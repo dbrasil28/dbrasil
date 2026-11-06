@@ -92,7 +92,7 @@ export function resolveModal(game, eventPolicy = (i) => i % 2 === 0) {
 }
 
 export function simulate({ seed = 7, seconds = 600, dt = 1 / 30, settings = {}, eventPolicy } = {}) {
-  const s = { ...defaultSettings(), ...settings };
+  const s = { ...defaultSettings(), elenco: false, ...settings }; // balanceamento mede o ritmo normal
   const game = new Game(s, { seed });
   let guard = 0;
   while (!game.finished && game.t < seconds && guard++ < seconds * 200) {

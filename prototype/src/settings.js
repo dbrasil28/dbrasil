@@ -21,7 +21,7 @@ export const SETTINGS_SCHEMA = [
   { id: 'reduceFlashes', label: 'Reduzir flashes', type: 'toggle', def: false },
   { id: 'showFps', label: 'Mostrar FPS e contagem', type: 'toggle', def: false },
   { id: 'resolution', label: 'Resolução', type: 'select', options: [['auto', 'Automática (até 2x)'], ['1', '1x (mais leve)']], def: 'auto' },
-  { id: 'castTest', label: 'Teste de elenco: todos os inimigos desde o início', type: 'toggle', def: false, hint: 'Golpista, Burocrata e Fiscal desde 00:00, para ver a arte nova. Não serve para balanceamento' },
+  { id: 'elenco', label: 'Elenco completo desde o início', type: 'toggle', def: true, hint: 'Golpista, Burocrata e Fiscal desde 00:00, para ver a arte. Desligado: ritmo normal (Golpista ~1:30, Burocrata ~5:00, Fiscal ~6:00)' },
   { id: 'startAt', label: 'Começar a partida em', type: 'select', options: [['0', '00:00'], ['115', '01:55 — 1ª proposta'], ['265', '04:25 — 2ª proposta'], ['415', '06:55 — 3ª proposta'], ['465', '07:45 — chefe']], def: '0', hint: 'Atalho de teste: começa com upgrades automáticos' },
 ];
 
