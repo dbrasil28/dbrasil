@@ -71,10 +71,70 @@ A ordem e os nomes dos mapas 2 a 5 são propostas. O mapa 1 está decidido.
 - **Borda esquerda:** avenida e prédios. Bancas, barraca de pastel e caldo de cana, banca de jornal, ponto de ônibus, postes com cartazes. Funciona como parede.
 - **Borda direita:** ciclovia, a **areia** (anda mais devagar, desencoraja fugir por ali), quiosques de praia, posto de salva-vidas, palmeiras e coqueiros. O mar fica fora da área jogável.
 - **Quarteirões de 48 m:** 40 m de calçadão e 8 m de rua transversal de asfalto. Nas transversais o **ônibus atravessa** como evento que bloqueia, e entram as ondas laterais, sempre com aviso.
-- **Morro e favela:** a cada 3 quarteirões, uma transversal sobe para o morro. No mapa 1, a favela aparece na **borda e nas escadarias de acesso**: casas de tijolo empilhadas, lajes, caixas d'água azuis, varais, fios, comércio, cores. A **subida do morro pode virar o trecho final** (vielas estreitas antes do chefe), o que muda o formato de jogo no fim da partida.
+- **Morro e favela:** a cada 3 quarteirões, uma transversal sobe para o morro. No mapa 1, a favela aparece na **borda e nas escadarias de acesso**: casas de tijolo empilhadas, lajes, caixas d'água azuis, varais, fios, comércio, cores. A **Subida do Morro** é a parte 2 do Rio, um trecho próprio da rota: ver a seção 2.4 e `docs/design/CARREIRA_E_ROTA.md`.
 - **Chefe:** o Especulador Imobiliário "revitaliza a orla". Os lotes que ele vende cortam o calçadão e estreitam a passagem.
 
-**Cuidado de representação:** a favela é **cenário vivo e digno**, com cores, comércio, varal, laje e música. Não é cenário de crime: sem traficantes, armas ou violência associada aos moradores. O pacote de conceito pede para não estigmatizar comunidades reais, e as redes de anúncio também restringem isso. Quem apanha no jogo é o sistema, não o morador.
+**Moradores e inimigos:** a favela tem cores, comércio, varal, laje e música, e os **moradores são a horda**, hipnotizados pela TV, que acordam em vez de morrer. Os inimigos do morro são os **traficantes do PCC e o Chefe do Tráfico**, armados, por decisão do autor (D21, em `docs/DECISOES.md`).
+
+### 2.4 Mapa 1, parte 2 — Subida do Morro (Rio de Janeiro)
+
+**Fantasia:** a última entrega do Rio é lá no alto, na laje do chefe. Ao chegar ao nível da meta na Orla, o tapume da escadaria cai e uma seta leva o Juninho até ela. Ele sobe vielas e escadarias em zigue-zague, no meio do PCC, até a laje do topo. O desenho completo do trecho está em `docs/design/CARREIRA_E_ROTA.md`, seção 5.
+
+**Planta:** subida de baixo para cima, com 250 m de altura no total:
+
+```
+          ↑ LAJE DO TOPO (chefe; saída para a Rodovia)
+   ┌─────────────┐
+   │  escadaria  │  3–4 m
+   └──┐       ┌──┘
+      │ viela │       4–6 m (gargalo)
+ ┌────┘       └─────┐
+ │ laje / pracinha  │ 10–14 m (arena: baile, eventos)
+ └────┐       ┌─────┘
+      │ viela │ ← beco fechado no toque de recolher
+          ↓ pé do morro (vem da Orla)
+```
+
+**Arte mínima para o trecho entrar no jogo**, nesta ordem:
+
+| Arquivo | O que é | Formato |
+| --- | --- | --- |
+| `chao/cimento_morro.png` | Cimento rachado e remendado das vielas | Textura de chão: 1024×1024 sem transparência, vista de cima 90°, emenda perfeita |
+| `chao/escadaria_degraus.png` | Degraus de concreto vistos de cima, repetindo no sentido da subida | Textura de chão; a emenda de cima com a de baixo tem que ser perfeita |
+| `chao/laje_concreto.png` | Laje de concreto com marcas de chuva e de caixa d'água | Textura de chão |
+| `cenario/casa_morro_a/b/c.png` | Casas de 2 a 3 andares: tijolo aparente, reboco gasto, laje com caixa d'água azul, varal, janela com a luz azul de TV | Bloco de borda, 1024×1024 transparente, vista 3/4, laterais retas para encaixar |
+| `cenario/barraco_a/b.png` | Barraco de madeira, telha e lona, colorido e remendado | Bloco de borda |
+| `cenario/muro_grafite_a/b.png` | Muro baixo com grafite colorido sem texto | Bloco de borda |
+| `cenario/poste_gatonet.png` | Poste de concreto com emaranhado de fios e caixas de gatonet | Objeto em pé, 1024×1024 transparente |
+| `cenario/barricada_pneus.png` | Barricada de pneus, entulho e sofá velho que fecha o beco (toque de recolher) | Objeto em pé |
+| `cenario/moto_estacionada.png`, `botijao.png`, `caixa_dagua_chao.png`, `mesa_bar_plastico.png`, `caixa_de_som.png` | Obstáculos das vielas e da laje | Objeto em pé |
+| `cenario/tapume_escadaria.png` | Tapume de obra fechando a escadaria do pé do morro (abre na meta) | Objeto em pé |
+
+**Personagens do trecho**, no mesmo formato dos pacotes de caminhada já entregues: 4 folhas PNG de 1536×1024, grade 6×4, células de 256×256, 16 direções × 6 quadros, 0° de frente, 90° direita, 180° costas e 270° esquerda.
+
+| Pacote | Descrição para o prompt | Além da caminhada |
+| --- | --- | --- |
+| `Traficante_PCC_Morro` | Homem adulto fictício, camiseta de time genérica sem escudo, bermuda, chinelo, boné para trás, cordão, rádio na cintura, fuzil genérico sem marca nas mãos | 16 poses paradas de tiro (uma por direção) e uma pose soltando fogos para o alto |
+| `Chefe_do_Trafico` | Homem adulto fictício, corpo largo, cordão de ouro grosso, relógio dourado, camisa aberta, óculos escuros, rádio na mão, fuzil genérico sem marca; maior que os outros | 16 poses de rajada e uma pose de "toque de recolher", com o braço apontando |
+| `Cracudo` | Homem adulto fictício, magro, roupa suja e larga, chinelo de dedo, andar cambaleante | Pose agachada catando coisa no chão |
+| `Trombadinha` | Ladrão fictício de boné e moletom, mochila nas costas, andar rápido e esperto | Pose correndo com o celular roubado na mão |
+| `Mototaxi` | Mototaxista fictício com colete numerado sem marca, capacete e moto popular sem logo | Basta descendo e subindo a viela, em 2 direções |
+
+**Efeitos:**
+- **Fogos:** `efeitos/fogos.png`, com 6 quadros de um rojão estourando no céu.
+- **Tiro:** `efeitos/clarao_tiro.png`, com 4 quadros de clarão de boca de arma.
+- **Linha de mira:** o jogo desenha a linha vermelha do aviso antes do tiro.
+
+### 2.5 Mapa da Rota (tela vista de cima)
+
+Tela com a rota inteira do Juninho, como os mapas de fase dos jogos de celular. Mostra os trechos liberados e os bloqueados, com cadeado.
+
+| Arquivo | O que é | Formato |
+| --- | --- | --- |
+| `hud/mapa_rota.png` | Ilustração vista de cima do caminho da entrega: a orla do Rio com o calçadão de ondas, o morro, a rodovia, o centro de São Paulo, a capital modernista, a praia do Nordeste, um estúdio de TV e a sede do aplicativo, ligados por uma estrada contínua que serpenteia de baixo para cima. Estilo do jogo, fim de tarde, sem nomes nem texto, porque o jogo escreve | PNG 1080×2400 em retrato, sem transparência |
+| `hud/cadeado.png` | Cadeado dourado gasto | Ícone de HUD, 512×512 transparente |
+| `hud/moto_rota.png` | O Juninho na moto, visto de cima, pequeno, para marcar onde ele está na rota | Ícone de HUD, 512×512 transparente |
+| `hud/seta_rota.png` | Seta grossa amarela com contorno escuro, para apontar a saída liberada | Ícone de HUD, 512×512 transparente |
 
 ## 3. Prompt de estilo (cole na primeira mensagem)
 

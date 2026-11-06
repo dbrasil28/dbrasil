@@ -36,7 +36,7 @@ Este documento diz **quais objetos o cenário precisa, onde cada um fica, o que 
 2. **Objeto alto só na borda.** No meio do calçadão, nada passa de 2,5 m, para não esconder inimigos atrás.
 3. **No meio do calçadão, no máximo 3 obstáculos por quarteirão**, com pelo menos 5 m entre eles e nenhum a menos de 6 m do ponto de partida.
 4. **Nada de texto, marca, logo ou pessoa real** nos desenhos. Quando precisar de texto (barraca, placa), o jogo escreve por cima.
-5. **A favela é cenário vivo e digno:** cores, comércio, laje, varal e música. Sem crime, sem arma e sem estigma.
+5. **Na favela, os moradores são a horda:** cores, comércio, laje, varal e música. Os inimigos do morro são os traficantes do PCC e o Chefe do Tráfico, armados, por decisão do autor (D21). A arte do morro está no guia, seção 2.4.
 
 ### 1.4 Desempenho
 
