@@ -114,6 +114,7 @@ export class Game {
     this.exitWarnT = 0;
     if (this.world) {
       for (const h of this.world.heals) this.pickups.push({ kind: h.kind, x: h.x, y: h.y, t: 0, plat: h.plat });
+      if (this.settings.aberta) this.world.gateOpen = true; // versão aberta: a escadaria já começa aberta
       if (this.startTrecho === 'morro') {
         // começa no pé do morro, com a escadaria já aberta e o nível de quando entrou nele (ponto de controle)
         const g = this.world.gate;
@@ -1386,7 +1387,7 @@ export class Game {
       this.tv('morro');
     }
     if (this.segment !== 'morro') return;
-    w.exitOpen = p.level >= ROUTE.morro.unlockLevel;
+    w.exitOpen = !!this.settings.aberta || p.level >= ROUTE.morro.unlockLevel;
     const top = w.top;
     if (inside(top, p.x, p.y) && p.y < (top.y0 + top.y1) / 2) {
       if (w.exitOpen) this.deliver();

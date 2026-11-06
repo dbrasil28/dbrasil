@@ -442,11 +442,11 @@ export class UI {
   }
 
   /** Mapa da Rota: trechos de baixo para cima; liberado = jogar; bloqueado = cadeado e a meta. */
-  buildRota(progress, onPlay) {
+  buildRota(progress, onPlay, aberta = false) {
     const list = $('rota-list');
     list.textContent = '';
     for (const t of TRECHOS) {
-      const st = progress.trechos[t.id];
+      const st = aberta ? { ...progress.trechos[t.id], liberado: true } : progress.trechos[t.id]; // versão aberta: tudo liberado
       const open = st.liberado && t.jogavel;
       const li = document.createElement('li');
       const item = document.createElement(open ? 'button' : 'div');

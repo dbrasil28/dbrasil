@@ -7,7 +7,7 @@ import { ROUTE, INTERACT } from '../src/config.js';
 import { constrain, applyLevels, inside } from '../src/mundo.js';
 
 const newGame = (extra = {}) => {
-  const g = new Game({ ...defaultSettings(), elenco: false, ...extra }, { seed: 4 });
+  const g = new Game({ ...defaultSettings(), elenco: false, aberta: false, ...extra }, { seed: 4 });
   g.enemies.length = 0;
   return g;
 };

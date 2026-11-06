@@ -4,7 +4,7 @@ import { Renderer } from './render.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, defaultSettings } from './settings.js';
-import { ENEMIES } from './config.js';
+import { ENEMIES, ROUTE } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
 import { loadImages, images, prewarm } from './sprites.js';
@@ -99,7 +99,9 @@ let runTrecho = 'orla';
 let menuFrom = 'screen-title';
 
 function newGame() {
-  const meta = { melhorias: progress.melhorias, trecho: runTrecho, entryLevel: runTrecho === 'morro' ? progress.nivelNoMorro : 1 };
+  // no morro: o nível de quando entrou nele; na versão aberta, pelo menos o nível que libera a escadaria
+  const entry = settings.aberta ? Math.max(progress.nivelNoMorro, ROUTE.orla.unlockLevel) : progress.nivelNoMorro;
+  const meta = { melhorias: progress.melhorias, trecho: runTrecho, entryLevel: runTrecho === 'morro' ? entry : 1 };
   game = new Game(settings, { meta });
   layout();
   modalOpen = false;
@@ -235,7 +237,7 @@ function openRota() {
     runTrecho = id;
     start();
     updateBanner();
-  });
+  }, settings.aberta);
   ui.show('screen-rota');
   const scr = document.getElementById('screen-rota');
   scr.scrollTop = scr.scrollHeight; // a rota sobe: abre mostrando o começo, embaixo
