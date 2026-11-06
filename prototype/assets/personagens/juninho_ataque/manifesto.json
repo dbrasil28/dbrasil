@@ -1,0 +1,65 @@
+{
+  "folhas": [
+    {
+      "arquivo": "folha_1.png",
+      "angulos": [
+        0.0,
+        22.5,
+        45.0,
+        67.5
+      ]
+    },
+    {
+      "arquivo": "folha_2.png",
+      "angulos": [
+        90.0,
+        112.5,
+        135.0,
+        157.5
+      ]
+    },
+    {
+      "arquivo": "folha_3.png",
+      "angulos": [
+        180.0,
+        202.5,
+        225.0,
+        247.5
+      ]
+    },
+    {
+      "arquivo": "folha_4.png",
+      "angulos": [
+        270.0,
+        292.5,
+        315.0,
+        337.5
+      ]
+    }
+  ],
+  "tamanho_folha": [
+    1536,
+    1024
+  ],
+  "celula": [
+    256,
+    256
+  ],
+  "grade": [
+    6,
+    4
+  ],
+  "quadros": [
+    "pronto",
+    "preparacao",
+    "lancamento",
+    "continuacao",
+    "espera_recepcao",
+    "recuperado"
+  ],
+  "mao": "direita",
+  "projetil": "separado, criar no quadro2 (indice a partir de zero), remover ao recuperar no quadro5; segurar quadro4 se necessario aguardar retorno",
+  "limitacoes": "ataque parado; ha variacoes de registro entre quadros; integracao e reproducao no motor do jogo nao testadas",
+  "versao": 2,
+  "correcao": "Folha4: arremesso anatomico com mao direita em toda a sequencia, braco esquerdo vazio."
+}
