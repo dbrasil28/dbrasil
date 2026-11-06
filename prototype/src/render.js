@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE } from './config.js';
-import { images, SpriteCache, crowdImage, crowdAnimated, ENEMY_ART, ICON_ART, drawFit, ATLAS, TA, atlasRow } from './sprites.js';
+import { images, SpriteCache, crowdImage, crowdAnim, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
 
 const pt = { x: 0, y: 0 };
@@ -177,12 +177,13 @@ export class Renderer {
           if (o.flipFix === undefined) o.flipFix = ((o.id * 2654435761) >>> 0) % 2 === 0;
           let spr = null;
           let animated = false;
-          if (o.type === 'telespectador' && crowdAnimated(o.tint)) {
+          const anim = o.type === 'telespectador' ? crowdAnim(o.tint) : null;
+          if (anim) {
             // atlas de caminhada: direção para onde anda (o jogador), quadro pela distância andada
             cam.toScreen(game.player.x, game.player.y, pt2);
             const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
             const frame = Math.floor((o.walk / (Math.PI * 2)) * 6) % 6;
-            spr = this.cache.get(`ta_${row}_${frame}`, h * (ATLAS.ch / TA.figureH), { flash: o.flash > 0, hypno: true, shadowScale: 0.6 });
+            spr = this.cache.get(`${anim.prefix}_${row}_${frame}`, h * (ATLAS.ch / anim.figureH), { flash: o.flash > 0, hypno: true, shadowScale: 0.6 });
             animated = !!spr;
           }
           if (!spr && o.type === 'telespectador') {
@@ -495,7 +496,8 @@ export class Renderer {
     const enemyH = playerPx * ENEMIES.telespectador.size * (this.enemyMul || 0.75);
     for (const w of game.fx.woken) {
       cam.toScreen(w.x, w.y, pt);
-      const spr = (crowdAnimated(w.tint || 0) && this.cache.get('tele_a_acordado', enemyH, { flip: w.vx < 0 }))
+      const anim = crowdAnim(w.tint || 0);
+      const spr = (anim && this.cache.get(anim.acordado, enemyH, { flip: w.vx < 0 }))
         || this.cache.get(crowdImage(w.tint || 0, w.id || 0, w.vy > 0), enemyH, { mode: 'woken', flip: !!w.flipFix })
         || this.sprite('acordado', w.tint || 0, enemyH, false);
       const left = WAKE.fadeS - w.t;

@@ -6,9 +6,12 @@ export const IMAGES = {
   // Juninho: atlas de arremesso e de caminhada, 16 direções (linhas; 0° = de frente, 90° = direita) × 6 quadros
   juninho_atlas: 'assets/personagens/juninho_ataque_atlas.webp',
   juninho_walk_atlas: 'assets/personagens/juninho_caminhada_atlas.webp',
-  // Telespectador Hipnotizado A (camisa amarela): caminhada em 16 direções × 6 quadros + pose de acordado
-  tele_a_walk_atlas: 'assets/personagens/telespectador_a/caminhada_atlas.webp',
+  // Telespectadores Hipnotizados com caminhada em 16 direções × 6 quadros + pose de acordado
+  // (atlas montados por tools/montar-atlas-telespectador.py)
+  tele_a_walk_atlas: 'assets/personagens/telespectador_a/caminhada_atlas.webp', // A: camisa amarela
   tele_a_acordado: 'assets/personagens/telespectador_a/acordado.png',
+  tele_b_walk_atlas: 'assets/personagens/telespectador_b/caminhada_atlas.webp', // B: regata cinza
+  tele_b_acordado: 'assets/personagens/telespectador_b/acordado.png',
   telespectador_a: 'assets/personagens/telespectador_a.png',
   telespectador_c: 'assets/personagens/telespectador_c.png',
   telespectador_d: 'assets/personagens/telespectador_d.png',
@@ -45,7 +48,8 @@ export const IMAGES = {
  * a roupa; só troca de frente (descendo na direção da câmera) para costas (subindo).
  */
 export const CROWD_SETS = [
-  { front: [], back: ['telespectador_a', 'telespectador_d', 'telespectador_c'] }, // camisa amarela
+  { front: [], back: ['telespectador_a', 'telespectador_d', 'telespectador_c'], anim: 'a' }, // camisa amarela
+  { front: [], back: ['telespectador_e'], anim: 'b' }, // regata cinza (sem atlas, cai no recorte de camiseta clara)
   { front: [], back: ['telespectador_g'] }, // camisa verde
   { front: [], back: ['telespectador_e'] }, // camisa branca
   { front: ['tf_semcamisa_3'], back: [] }, // sem camisa
@@ -53,6 +57,21 @@ export const CROWD_SETS = [
   { front: [], back: ['telespectador_f'] }, // camisa rosa
 ];
 export const CROWD = [...new Set(CROWD_SETS.flatMap((s) => [...s.front, ...s.back]))];
+
+/**
+ * Telespectadores com atlas de caminhada: imagem do atlas, prefixo das 96 células e altura da figura
+ * na célula de 160 px (atlas_meta.json de cada pasta).
+ */
+export const CROWD_ANIM = {
+  a: { atlas: 'tele_a_walk_atlas', prefix: 'ta', acordado: 'tele_a_acordado', figureH: 159 },
+  b: { atlas: 'tele_b_walk_atlas', prefix: 'tb', acordado: 'tele_b_acordado', figureH: 159 },
+};
+
+/** Atlas animado da roupa (tint), quando ela tem um e ele já carregou; senão null (usa o recorte). */
+export function crowdAnim(tint) {
+  const a = CROWD_ANIM[CROWD_SETS[tint % CROWD_SETS.length].anim];
+  return a && images[`${a.prefix}_0_0`] ? a : null;
+}
 
 /** Imagem da pessoa da horda conforme a roupa (tint), o indivíduo (id) e a direção. */
 export function crowdImage(tint, id, front) {
@@ -97,7 +116,7 @@ export function loadImages(onEach) {
       images[id] = im;
       if (id === 'juninho_atlas') sliceAtlas(im, 'ja');
       if (id === 'juninho_walk_atlas') sliceAtlas(im, 'jw');
-      if (id === 'tele_a_walk_atlas') sliceAtlas(im, 'ta');
+      for (const a of Object.values(CROWD_ANIM)) if (id === a.atlas) sliceAtlas(im, a.prefix);
       pending--;
       onEach?.(id);
       resolve();
@@ -113,10 +132,6 @@ export function loadImages(onEach) {
 export const imagesReady = () => pending === 0;
 
 export const ATLAS = { cols: 6, rows: 16, cw: 200, ch: 160, figureH: 155, hipFrac: 0.585, pivotFrac: 0.53 }; // figura ≈ 155 px numa célula de 160; cintura a 58,5% da altura
-export const TA = { figureH: 159 }; // atlas do Telespectador A (ver telespectador_a/atlas_meta.json)
-
-/** A horda amarela (conjunto 0) usa o atlas animado quando ele está carregado. */
-export const crowdAnimated = (tint) => tint % CROWD_SETS.length === 0 && !!images.ta_0_0;
 
 /** Corta um atlas em 96 células (canvas) registradas como imagens `<prefixo>_<direção>_<quadro>`. */
 function sliceAtlas(im, prefix) {
@@ -156,11 +171,12 @@ export function prewarm(cache, playerPx, enemyPx, sizeOf) {
       for (const flash of [false, true]) jobs.push(() => cache.get(id, enemyPx, { flip, flash, hypno: true }));
       jobs.push(() => cache.get(id, enemyPx, { mode: 'woken', flip }));
     }
-    jobs.push(() => cache.get('tele_a_acordado', enemyPx, { flip }));
-    if (!flip) {
+    for (const a of Object.values(CROWD_ANIM)) {
+      jobs.push(() => cache.get(a.acordado, enemyPx, { flip }));
+      if (flip) continue;
       for (let r = 0; r < ATLAS.rows; r++) {
         for (let f = 0; f < ATLAS.cols; f++) {
-          for (const flash of [false, true]) jobs.push(() => cache.get(`ta_${r}_${f}`, enemyPx * (ATLAS.ch / TA.figureH), { flash, hypno: true, shadowScale: 0.6 }));
+          for (const flash of [false, true]) jobs.push(() => cache.get(`${a.prefix}_${r}_${f}`, enemyPx * (ATLAS.ch / a.figureH), { flash, hypno: true, shadowScale: 0.6 }));
         }
       }
     }

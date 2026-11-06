@@ -1,0 +1,10 @@
+TELESPECTADOR HIPNOTIZADO B — regata cinza
+
+4 folhas PNG 1536x1024; grade6x4, celulas256x256.
+96 sprites individuais:16 direcoes x6 quadros.
+16 previas APNG e uma previa geral, com seis quadros em loop.
+0 graus frente;90 direita;180 costas;270 esquerda.
+Reproduzir as COLUNAS de00a05 na linha da direcao; linhas nao sao quadros de tempo.
+Inclui pose acordada extra, sem brilho nos olhos.
+Extrair as tres partes ZIP na mesma pasta para reunir o pacote.
+Arte ainda possui pequenas variacoes de registro e nao foi testada no motor.
