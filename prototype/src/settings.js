@@ -1,0 +1,48 @@
+// Ajustes de teste. Cada item corresponde a uma hipótese aberta do pacote de conceito.
+const KEY = 'bec.settings.v1';
+
+export const SETTINGS_SCHEMA = [
+  { id: 'playerPct', label: 'Altura do protagonista (% da área jogável)', type: 'range', min: 6, max: 14, step: 0.5, def: 10, hint: 'GDD: 8–11%' },
+  { id: 'enemyPct', label: 'Inimigo comum (% do protagonista)', type: 'range', min: 50, max: 110, step: 5, def: 75, hint: 'GDD: 60–80%' },
+  { id: 'elevation', label: 'Inclinação da câmera (°)', type: 'range', min: 35, max: 80, step: 1, def: 55, hint: '90° = vista de cima' },
+  { id: 'yaw', label: 'Rotação da câmera', type: 'select', options: [['0', '0° — ruas retas (mockups)'], ['45', '45° — isometria diamante']], def: '0' },
+  { id: 'joystick', label: 'Controle', type: 'select', options: [['floating', 'Joystick flutuante (toque em qualquer lugar)'], ['fixed', 'Joystick fixo (canto inferior esquerdo)']], def: 'floating', hint: 'Hipótese H07' },
+  { id: 'maxEnemies', label: 'Limite de inimigos simultâneos', type: 'range', min: 100, max: 800, step: 50, def: 300, hint: 'Pergunta aberta 5' },
+  { id: 'spawnMul', label: 'Intensidade das hordas', type: 'range', min: 0.5, max: 2, step: 0.1, def: 1 },
+  { id: 'obstacles', label: 'Obstáculos (bancas, postes, cones)', type: 'toggle', def: true },
+  { id: 'damageNumbers', label: 'Números de dano', type: 'toggle', def: true },
+  { id: 'gore', label: 'Respingos e manchas', type: 'toggle', def: true },
+  { id: 'shake', label: 'Tremor de câmera', type: 'toggle', def: true },
+  { id: 'reduceFlashes', label: 'Reduzir flashes', type: 'toggle', def: false },
+  { id: 'showFps', label: 'Mostrar FPS e contagem', type: 'toggle', def: false },
+  { id: 'resolution', label: 'Resolução', type: 'select', options: [['auto', 'Automática (até 2x)'], ['1', '1x (mais leve)']], def: 'auto' },
+  { id: 'startAt', label: 'Começar a partida em', type: 'select', options: [['0', '00:00'], ['115', '01:55 — 1ª proposta'], ['265', '04:25 — 2ª proposta'], ['415', '06:55 — 3ª proposta'], ['465', '07:45 — chefe']], def: '0', hint: 'Atalho de teste: começa com upgrades automáticos' },
+];
+
+export function defaultSettings() {
+  const s = {};
+  for (const f of SETTINGS_SCHEMA) s[f.id] = f.def;
+  return s;
+}
+
+export function loadSettings() {
+  const s = defaultSettings();
+  try {
+    const raw = globalThis.localStorage?.getItem(KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      for (const f of SETTINGS_SCHEMA) if (f.id in saved && typeof saved[f.id] === typeof f.def) s[f.id] = saved[f.id];
+    }
+  } catch {
+    /* armazenamento indisponível: segue com o padrão */
+  }
+  return s;
+}
+
+export function saveSettings(s) {
+  try {
+    globalThis.localStorage?.setItem(KEY, JSON.stringify(s));
+  } catch {
+    /* ignora */
+  }
+}

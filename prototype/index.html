@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#141117">
+<title>Brasil: Estado de Caos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Semi+Condensed:wght@500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!--APP-->
+<div id="app">
+  <canvas id="view" aria-label="Arena do jogo"></canvas>
+  <div id="touch" aria-hidden="true"></div>
+  <div id="joy" hidden><div id="joy-knob"></div></div>
+
+  <header id="hud-top">
+    <div class="who">
+      <div id="avatar" class="avatar" aria-hidden="true"><span></span></div>
+      <div class="who-info">
+        <div class="who-row"><b>JUNINHO</b><span id="lvl">NV. 1</span></div>
+        <div class="bar bar-hp"><i id="hp-fill"></i><span id="hp-text">120 / 120</span></div>
+      </div>
+    </div>
+    <div id="timer" aria-label="Tempo de turno">00:00</div>
+    <button id="btn-pause" class="icon-btn" type="button" aria-label="Pausar"><span></span><span></span></button>
+  </header>
+
+  <div id="caos">
+    <span class="caos-label">ÍNDICE DE CAOS</span>
+    <div class="bar bar-caos"><i id="caos-fill"></i></div>
+    <span id="caos-val">0%</span>
+  </div>
+  <div id="subhud">
+    <span class="kills"><i class="skull" aria-hidden="true"></i><span id="kills">0</span></span>
+    <span id="caos-band">NORMALIDADE SUSPEITA</span>
+  </div>
+
+  <div id="ticker" hidden>
+    <span class="tv-tag"><b>TV CAOS</b><em>AO VIVO</em></span>
+    <span id="ticker-text"></span>
+    <span id="ticker-aud"></span>
+  </div>
+
+  <div id="boss-bar" hidden>
+    <span>ESPECULADOR IMOBILIÁRIO</span>
+    <div class="bar bar-boss"><i id="boss-fill"></i></div>
+  </div>
+
+  <div id="warn" hidden></div>
+  <div id="toast" role="status" hidden></div>
+
+  <footer id="hud-bottom">
+    <div id="slots"></div>
+    <div class="bar bar-xp"><i id="xp-fill"></i></div>
+  </footer>
+
+  <div id="fps" hidden></div>
+  <section id="modal" class="modal" hidden></section>
+
+  <section id="screen-title" class="screen" hidden>
+    <div class="screen-inner">
+      <p class="eyebrow">PROTÓTIPO · FASE 0 · ARENA CINZA</p>
+      <h1 class="logo"><span>BRASIL:</span><span>ESTADO DE CAOS</span></h1>
+      <p class="tagline">No Brasil, sobreviver é fácil. Difícil é continuar inocente.</p>
+      <p class="lede">Juninho, o entregador, precisa fechar o turno no Centro do Desespero. Arraste o dedo em qualquer lugar da tela para andar. Os ataques são automáticos.</p>
+      <div class="actions">
+        <button id="btn-start" class="btn btn-primary" type="button">Começar turno</button>
+        <button id="btn-title-settings" class="btn" type="button">Ajustes de teste</button>
+      </div>
+      <p class="fine">Tudo aqui é placeholder: formas simples para medir escala, controle, leitura e desempenho antes da arte. No computador, use WASD ou as setas.</p>
+    </div>
+  </section>
+
+  <section id="screen-pause" class="screen" hidden>
+    <div class="screen-inner">
+      <h2 class="screen-title">PAUSA</h2>
+      <div class="actions">
+        <button id="btn-resume" class="btn btn-primary" type="button">Continuar</button>
+        <button id="btn-pause-settings" class="btn" type="button">Ajustes de teste</button>
+        <button id="btn-restart" class="btn" type="button">Recomeçar turno</button>
+        <button id="btn-quit" class="btn btn-ghost" type="button">Sair para o início</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-result" class="screen" hidden>
+    <div class="screen-inner">
+      <div class="tv-bug"><b>TV CAOS</b><em>PLANTÃO</em></div>
+      <h2 id="result-title" class="screen-title">FIM DO TURNO</h2>
+      <p id="result-headline" class="headline"></p>
+      <div class="verdict"><span id="result-verdict"></span><small id="result-corr"></small></div>
+      <dl id="result-stats" class="stats"></dl>
+      <div class="actions">
+        <button id="btn-again" class="btn btn-primary" type="button">Jogar de novo</button>
+        <button id="btn-copy" class="btn" type="button">Copiar métricas do teste</button>
+        <button id="btn-result-settings" class="btn btn-ghost" type="button">Ajustes de teste</button>
+      </div>
+      <p id="copy-status" class="fine" role="status"></p>
+      <textarea id="metrics-out" readonly hidden aria-label="Métricas em JSON"></textarea>
+    </div>
+  </section>
+
+  <section id="screen-settings" class="screen" hidden>
+    <div class="screen-inner screen-wide">
+      <h2 class="screen-title">AJUSTES DE TESTE</h2>
+      <p id="settings-readout" class="readout"></p>
+      <form id="settings-form" onsubmit="return false"></form>
+      <div class="actions actions-row">
+        <button id="btn-settings-back" class="btn btn-primary" type="button">Voltar</button>
+        <button id="btn-settings-reset" class="btn btn-ghost" type="button">Restaurar padrão</button>
+      </div>
+    </div>
+  </section>
+</div>
+<!--/APP-->
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

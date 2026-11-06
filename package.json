@@ -1,0 +1,14 @@
+{
+  "name": "brasil-estado-de-caos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BRASIL: ESTADO DE CAOS — protótipo Fase 0 (arena cinza) de um survivors-like mobile em retrato.",
+  "type": "module",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "test": "node --test \"prototype/tests/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

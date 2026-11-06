@@ -1,0 +1,14 @@
+{
+  "projeto": "BRASIL: ESTADO DE CAOS",
+  "versao": "0.1",
+  "data": "2026-11-06",
+  "plataformas": [
+    "Android",
+    "iOS"
+  ],
+  "orientacao": "portrait",
+  "cameras": "2.5D isométrica",
+  "status": "pré-produção",
+  "principal_referencia_visual": "02_Referencias_Visuais/03_Concept_Mobile_Escala_Corrigida.png",
+  "notas": "mockups, não assets ou código de produção"
+}
