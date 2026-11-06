@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE } from './config.js';
-import { images, SpriteCache, crowdImage, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
+import { images, SpriteCache, crowdImage, crowdAnimated, ENEMY_ART, ICON_ART, drawFit, ATLAS, TA, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
 
 const pt = { x: 0, y: 0 };
@@ -176,9 +176,18 @@ export class Renderer {
           else if (dyp < -0.8) o.front = false;
           if (o.flipFix === undefined) o.flipFix = ((o.id * 2654435761) >>> 0) % 2 === 0;
           let spr = null;
-          if (o.type === 'telespectador') {
+          let animated = false;
+          if (o.type === 'telespectador' && crowdAnimated(o.tint)) {
+            // atlas de caminhada: direção para onde anda (o jogador), quadro pela distância andada
+            cam.toScreen(game.player.x, game.player.y, pt2);
+            const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+            const frame = Math.floor((o.walk / (Math.PI * 2)) * 6) % 6;
+            spr = this.cache.get(`ta_${row}_${frame}`, h * (ATLAS.ch / TA.figureH), { flash: o.flash > 0, hypno: true, shadowScale: 0.6 });
+            animated = !!spr;
+          }
+          if (!spr && o.type === 'telespectador') {
             spr = this.cache.get(crowdImage(o.tint, o.id, o.front), h, { flip: o.flipFix, flash: o.flash > 0, hypno: true });
-          } else if (ENEMY_ART[o.type]) {
+          } else if (!spr && ENEMY_ART[o.type]) {
             const art = ENEMY_ART[o.type];
             const img = o.front && art.front && images[art.front] ? art.front : art.img;
             spr = this.cache.get(img, h, { ...art, flip: o.flipFix, flash: o.flash > 0 });
@@ -191,14 +200,18 @@ export class Renderer {
             ctx.globalAlpha = 0.82 + Math.sin(t * 20 + o.id) * 0.18;
           }
           if (o.elite) drawEliteRing(ctx, pt, ppu, cam.k, o, t);
-          // passada: o corpo balança a partir dos pés (os recortes têm uma pose só)
-          const sw = Math.sin(o.walk * 1.6 + o.stepPhase);
-          ctx.save();
-          ctx.translate(pt.x, pt.y - bob);
-          ctx.rotate(sw * (o.boss ? 0.03 : 0.075));
-          ctx.scale(1, 1 + Math.abs(sw) * 0.03);
-          ctx.drawImage(spr, -spr.ox, -spr.oy, spr.cssW, spr.cssH);
-          ctx.restore();
+          if (animated) {
+            ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy, spr.cssW, spr.cssH);
+          } else {
+            // passada mecânica: o corpo balança a partir dos pés (recortes de pose única)
+            const sw = Math.sin(o.walk * 1.6 + o.stepPhase);
+            ctx.save();
+            ctx.translate(pt.x, pt.y - bob);
+            ctx.rotate(sw * (o.boss ? 0.03 : 0.075));
+            ctx.scale(1, 1 + Math.abs(sw) * 0.03);
+            ctx.drawImage(spr, -spr.ox, -spr.oy, spr.cssW, spr.cssH);
+            ctx.restore();
+          }
           ctx.globalAlpha = 1;
           if (o.type === 'burocrata' && o.windup > 0) {
             ctx.fillStyle = COLORS.paper;
@@ -482,7 +495,9 @@ export class Renderer {
     const enemyH = playerPx * ENEMIES.telespectador.size * (this.enemyMul || 0.75);
     for (const w of game.fx.woken) {
       cam.toScreen(w.x, w.y, pt);
-      const spr = this.cache.get(crowdImage(w.tint || 0, w.id || 0, w.vy > 0), enemyH, { mode: 'woken', flip: !!w.flipFix }) || this.sprite('acordado', w.tint || 0, enemyH, false);
+      const spr = (crowdAnimated(w.tint || 0) && this.cache.get('tele_a_acordado', enemyH, { flip: w.vx < 0 }))
+        || this.cache.get(crowdImage(w.tint || 0, w.id || 0, w.vy > 0), enemyH, { mode: 'woken', flip: !!w.flipFix })
+        || this.sprite('acordado', w.tint || 0, enemyH, false);
       const left = WAKE.fadeS - w.t;
       ctx.globalAlpha = left < 0.35 ? Math.max(0, left / 0.35) : 1;
       const bob = Math.abs(Math.sin(w.walk)) * enemyH * 0.03;

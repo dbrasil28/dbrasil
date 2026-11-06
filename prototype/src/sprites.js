@@ -6,6 +6,9 @@ export const IMAGES = {
   // Juninho: atlas de arremesso e de caminhada, 16 direções (linhas; 0° = de frente, 90° = direita) × 6 quadros
   juninho_atlas: 'assets/personagens/juninho_ataque_atlas.webp',
   juninho_walk_atlas: 'assets/personagens/juninho_caminhada_atlas.webp',
+  // Telespectador Hipnotizado A (camisa amarela): caminhada em 16 direções × 6 quadros + pose de acordado
+  tele_a_walk_atlas: 'assets/personagens/telespectador_a/caminhada_atlas.webp',
+  tele_a_acordado: 'assets/personagens/telespectador_a/acordado.png',
   telespectador_a: 'assets/personagens/telespectador_a.png',
   telespectador_c: 'assets/personagens/telespectador_c.png',
   telespectador_d: 'assets/personagens/telespectador_d.png',
@@ -94,6 +97,7 @@ export function loadImages(onEach) {
       images[id] = im;
       if (id === 'juninho_atlas') sliceAtlas(im, 'ja');
       if (id === 'juninho_walk_atlas') sliceAtlas(im, 'jw');
+      if (id === 'tele_a_walk_atlas') sliceAtlas(im, 'ta');
       pending--;
       onEach?.(id);
       resolve();
@@ -109,6 +113,10 @@ export function loadImages(onEach) {
 export const imagesReady = () => pending === 0;
 
 export const ATLAS = { cols: 6, rows: 16, cw: 200, ch: 160, figureH: 155, hipFrac: 0.585, pivotFrac: 0.53 }; // figura ≈ 155 px numa célula de 160; cintura a 58,5% da altura
+export const TA = { figureH: 159 }; // atlas do Telespectador A (ver telespectador_a/atlas_meta.json)
+
+/** A horda amarela (conjunto 0) usa o atlas animado quando ele está carregado. */
+export const crowdAnimated = (tint) => tint % CROWD_SETS.length === 0 && !!images.ta_0_0;
 
 /** Corta um atlas em 96 células (canvas) registradas como imagens `<prefixo>_<direção>_<quadro>`. */
 function sliceAtlas(im, prefix) {
@@ -147,6 +155,14 @@ export function prewarm(cache, playerPx, enemyPx, sizeOf) {
     for (const id of CROWD) {
       for (const flash of [false, true]) jobs.push(() => cache.get(id, enemyPx, { flip, flash, hypno: true }));
       jobs.push(() => cache.get(id, enemyPx, { mode: 'woken', flip }));
+    }
+    jobs.push(() => cache.get('tele_a_acordado', enemyPx, { flip }));
+    if (!flip) {
+      for (let r = 0; r < ATLAS.rows; r++) {
+        for (let f = 0; f < ATLAS.cols; f++) {
+          for (const flash of [false, true]) jobs.push(() => cache.get(`ta_${r}_${f}`, enemyPx * (ATLAS.ch / TA.figureH), { flash, hypno: true, shadowScale: 0.6 }));
+        }
+      }
     }
     for (const [type, art] of Object.entries(ENEMY_ART)) {
       const h = enemyPx * sizeOf(type);
