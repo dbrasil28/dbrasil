@@ -557,6 +557,20 @@ export class Renderer {
       cam.toScreen(q.x, q.y, pt);
       const a = 1 - q.t / q.life;
       ctx.globalAlpha = a;
+      if (q.kind === 'money') {
+        // nota de dinheiro girando
+        const bw = Math.max(5, playerPx * 0.11);
+        ctx.save();
+        ctx.translate(pt.x, pt.y - q.z * ppu);
+        ctx.rotate(q.rot + q.t * 8);
+        ctx.scale(1, 0.45 + 0.55 * Math.abs(Math.cos(q.t * 10 + q.rot)));
+        ctx.fillStyle = '#69b84a';
+        ctx.fillRect(-bw / 2, -bw * 0.25, bw, bw * 0.5);
+        ctx.fillStyle = '#3e7a2c';
+        ctx.fillRect(-bw * 0.12, -bw * 0.25, bw * 0.24, bw * 0.5);
+        ctx.restore();
+        continue;
+      }
       ctx.fillStyle = q.kind === 'glitch' ? COLORS.neon : q.kind === 'static' ? (q.x * 7 % 1 > 0.5 ? '#ffffff' : COLORS.hypno) : COLORS.blood;
       const s = Math.max(2, playerPx * 0.05);
       ctx.fillRect(pt.x - s / 2, pt.y - q.z * ppu - s / 2, s, s);
@@ -932,16 +946,20 @@ function drawBribe(ctx, b, pt, ppu, playerPx) {
   ctx.ellipse(pt.x, pt.y, w * 0.45, w * 0.14, 0, 0, Math.PI * 2);
   ctx.fill();
   const y = pt.y - b.h * ppu - playerPx * 0.45 * (1 - b.s); // sai da altura da mão e cai no chão
-  const im = images.politico_maleta;
+  // fases do pacote: fechada girando, abrindo, aberta soltando dinheiro
+  const op = ENEMIES.politico.opening;
+  const phase = b.s < op.halfAt ? 0 : b.s < op.openAt ? 1 : 2;
+  const im = [images.politico_maleta, images.politico_maleta_meio, images.politico_maleta_aberta][phase] || images.politico_maleta;
   if (!im) {
     drawIconAt(ctx, 'maleta', pt.x, y - w * 0.5, w);
     return;
   }
-  const h = (w * im.height) / im.width;
+  const iw = w * (im.width / 96); // as três têm a mesma escala de recorte (96 px = maleta fechada)
+  const h = (iw * im.height) / im.width;
   ctx.save();
   ctx.translate(pt.x, y - h * 0.5);
-  ctx.rotate(b.t * 7);
-  ctx.drawImage(im, -w / 2, -h / 2, w, h);
+  ctx.rotate(phase === 0 ? b.t * 7 : Math.sin(b.t * 9) * 0.25);
+  ctx.drawImage(im, -iw / 2, -h / 2, iw, h);
   ctx.restore();
 }
 

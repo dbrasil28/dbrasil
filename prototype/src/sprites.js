@@ -23,6 +23,8 @@ export const IMAGES = {
   politico_walk_atlas: 'assets/personagens/politico/caminhada_atlas.webp', // Político Corrupto (e o Rival, tingido)
   politico_attack_atlas: 'assets/personagens/politico/ataque_atlas.webp', // arremesso da maleta (quadros 0–3)
   politico_maleta: 'assets/personagens/politico/maleta_voo.png', // maleta fechada em voo
+  politico_maleta_meio: 'assets/personagens/politico/maleta_voo_meio.png', // abrindo no ar
+  politico_maleta_aberta: 'assets/personagens/politico/maleta_voo_aberta.png', // aberta no ar, soltando notas
   politico_aberta: 'assets/personagens/politico/aberta_dinheiro.png', // maleta aberta com dinheiro: Propina no chão
   telespectador_a: 'assets/personagens/telespectador_a.png',
   telespectador_c: 'assets/personagens/telespectador_c.png',

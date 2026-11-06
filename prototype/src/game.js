@@ -1010,7 +1010,7 @@ export class Game {
 
   throwBriefcase(e, td) {
     const p = this.player;
-    this.bribes.push({ x0: e.x, y0: e.y, x1: p.x, y1: p.y, x: e.x, y: e.y, h: 0, s: 0, t: 0 });
+    this.bribes.push({ x0: e.x, y0: e.y, x1: p.x, y1: p.y, x: e.x, y: e.y, h: 0, s: 0, t: 0, trail: 0, seed: (e.id * 2654435761) >>> 0 });
     e.throwT = td.releaseS;
     this.tv('maleta', 35);
   }
@@ -1027,6 +1027,14 @@ export class Game {
       b.x = b.x0 + (b.x1 - b.x0) * b.s;
       b.y = b.y0 + (b.y1 - b.y0) * b.s;
       b.h = 4 * td.arcM * b.s * (1 - b.s);
+      if (b.s >= ENEMIES.politico.opening.openAt) {
+        // aberta no ar: vai soltando notas
+        b.trail -= dt;
+        if (b.trail <= 0) {
+          b.trail = ENEMIES.politico.opening.trailEveryS;
+          this.moneyBits(b, b.x, b.y, b.h + 0.9, 1, 0.8);
+        }
+      }
       let land = b.s >= 1;
       const rr = td.hitR + p.r;
       if (!land && !this.over && b.s > 0.25 && b.h < PLAYER.heightM && (b.x - p.x) ** 2 + (b.y - p.y) ** 2 < rr * rr) {
@@ -1053,6 +1061,7 @@ export class Game {
       if (thrown.length >= td.maxOnGround) thrown[0].dead = true;
       this.pickups.push({ kind: 'propina', x, y, t: 0, thrown: true });
       this.lures.push({ x, y, t: 0 });
+      this.moneyBits(b, x, y, 0.4, ENEMIES.politico.opening.burst, 2.4);
       this.tv('lure', 30);
       list[i] = list[list.length - 1];
       list.pop();
@@ -1060,6 +1069,20 @@ export class Game {
     const L = ENEMIES.politico.lure;
     for (const q of this.lures) q.t += dt;
     if (this.lures.length && this.lures[0].t >= L.durS) this.lures = this.lures.filter((q) => q.t < L.durS);
+  }
+
+  /** Notas de dinheiro (só efeito): sorteio próprio da maleta, para não mexer no sorteio da partida. */
+  moneyBits(b, x, y, z, n, speed) {
+    const parts = this.fx.particles;
+    for (let i = 0; i < n && parts.length < 260; i++) {
+      b.seed = (Math.imul(b.seed, 1664525) + 1013904223) >>> 0;
+      const r1 = b.seed / 4294967296;
+      b.seed = (Math.imul(b.seed, 1664525) + 1013904223) >>> 0;
+      const r2 = b.seed / 4294967296;
+      const a = r1 * Math.PI * 2;
+      const s = speed * (0.4 + r2 * 0.6);
+      parts.push({ x, y, z, vx: Math.cos(a) * s, vy: Math.sin(a) * s, vz: 1 + r2 * 2, t: 0, life: 0.9 + r1 * 0.5, kind: 'money', rot: r2 * 6 });
+    }
   }
 
   updateEnemyShots(dt) {
@@ -1131,7 +1154,7 @@ export class Game {
       q.t += dt;
       q.x += q.vx * dt;
       q.y += q.vy * dt;
-      q.vz -= 12 * dt;
+      q.vz -= (q.kind === 'money' ? 4 : 12) * dt; // nota de dinheiro cai flutuando
       q.z = Math.max(0, q.z + q.vz * dt);
       if (q.z === 0) {
         q.vx *= 0.8;

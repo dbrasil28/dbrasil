@@ -65,6 +65,9 @@ export const ENEMIES = {
     throw: { range: 7, every: 4.5, windupS: 0.42, releaseS: 0.16, flightS: 0.8, arcM: 1.8, dmg: 10, hitR: 0.5, dropGapM: 1.3, maxOnGround: 6 },
     // quando a maleta cai aberta, quem está perto (horda e inimigos comuns) corre atrás do dinheiro por um instante
     lure: { radiusM: 7, durS: 2.5, speedMul: 1.35, reachM: 0.7 },
+    // a maleta abre no ar (fases do pacote): fechada até 35% do voo, meio aberta até 65%, depois aberta
+    // soltando notas; ao cair, as notas se espalham (só efeito visual)
+    opening: { halfAt: 0.35, openAt: 0.65, trailEveryS: 0.05, burst: 12 },
   },
   rival: {
     name: 'Rival Patrocinado',
