@@ -168,3 +168,41 @@ test('açaí cura, deixa o Juninho mais rápido e volta depois, fora da tela', a
   g.updateInteract(HEAL_RESPAWN_S + 1);
   assert.ok(g.pickups.some((k) => k.src === h && !k.dead), 'o açaí não voltou');
 });
+
+test('andando de verdade (passos curtos), o Juninho atravessa todas as emendas da rota até a entrega', async () => {
+  const { routeTarget } = await import('../src/mundo.js');
+  const { PLAYER } = await import('../src/config.js');
+  const g = newGame({ aberta: true });
+  const w = g.world;
+  const e = { x: (w.gate.x0 + w.gate.x1) / 2, y: w.orlaTop + 8, r: PLAYER.radius, ri: 0, plat: null, lvl: 0, z: 0 };
+  const goal = { x: (w.top.x0 + w.top.x1) / 2, y: w.top.y0 + 2 };
+  const out = {};
+  const step = (PLAYER.speed * 0.75) / 60; // escadaria, 60 quadros por segundo
+  let i = 0;
+  for (; i < 40000; i++) {
+    routeTarget(w, e, goal.x, goal.y, w.path.length - 1, out);
+    const dx = out.x - e.x;
+    const dy = out.y - e.y;
+    const d = Math.hypot(dx, dy) || 1;
+    e.x += (dx / d) * step;
+    e.y += (dy / d) * step;
+    constrain(w, e);
+    if (Math.hypot(goal.x - e.x, goal.y - e.y) < 0.5) break;
+  }
+  assert.ok(Math.hypot(goal.x - e.x, goal.y - e.y) < 0.5, `ficou preso em (${e.x.toFixed(2)}, ${e.y.toFixed(2)}), pedaço ${e.ri}`);
+  // subindo reto pelo meio da escadaria, como no joystick
+  const s2 = { x: (w.gate.x0 + w.gate.x1) / 2, y: w.orlaTop + 3, r: PLAYER.radius, ri: 0 };
+  for (let k = 0; k < 900; k++) {
+    s2.y -= step;
+    constrain(w, s2);
+  }
+  assert.ok(s2.y < w.orlaTop - 6, `subindo reto travou em y ${s2.y.toFixed(2)}`);
+  // e com a escadaria fechada não passa do fim da Orla
+  const g2 = newGame();
+  const f = { x: (g2.world.gate.x0 + g2.world.gate.x1) / 2, y: g2.world.orlaTop + 3, r: PLAYER.radius, ri: 0 };
+  for (let k = 0; k < 600; k++) {
+    f.y -= step;
+    constrain(g2.world, f);
+  }
+  assert.ok(f.y > g2.world.orlaTop, 'passou pelo tapume fechado');
+});

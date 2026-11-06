@@ -1,7 +1,7 @@
 // Desenho provisório (em código) do mundo da rota: lajes com escada, objetos de cena, boteco,
 // tapume da escadaria, setas da rota, mira do traficante e balas. Sai quando a arte do guia chegar.
 import { ROUTE } from './config.js';
-import { inside } from './mundo.js';
+import { inside, deliveryPoint } from './mundo.js';
 
 const a = { x: 0, y: 0 };
 const b = { x: 0, y: 0 };
@@ -320,10 +320,11 @@ export function routeGoal(game, out) {
     return out;
   }
   // no morro: a próxima junta acima; perto do topo, o fundo da laje do topo
-  const ri = p.ri >= 0 ? p.ri : 2;
+  let ri = p.ri >= 0 ? p.ri : 2;
+  // em cima da passagem: já aponta a próxima, para a seta não sumir
+  if (ri < w.joints.length && Math.hypot(w.joints[ri].x - p.x, w.joints[ri].y - p.y) < 2.5) ri++;
   if (ri >= w.path.length - 1) {
-    out.x = (w.top.x0 + w.top.x1) / 2;
-    out.y = w.top.y0 + 2;
+    deliveryPoint(w, out);
   } else {
     out.x = w.joints[ri].x;
     out.y = w.joints[ri].y;
@@ -376,7 +377,7 @@ export function drawEdgeArrow(ctx, game, cam, dpr, t) {
   const goal = routeGoal(game, {});
   if (!goal) return;
   cam.toScreen(goal.x, goal.y, a);
-  const top = cam.playTop + 30;
+  const top = cam.playTop + 125; // abaixo do plantão da TV, que cobre o alto da tela
   const bot = cam.playBottom - 30;
   if (a.x > 20 && a.x < cam.viewW - 20 && a.y > top && a.y < bot) return;
   const cx = cam.viewW / 2;
@@ -414,6 +415,79 @@ export function drawEdgeArrow(ctx, game, cam, dpr, t) {
   const ly = y - Math.sin(ang) * 34 + 4;
   ctx.strokeText(goal.label, lx, ly);
   ctx.fillText(goal.label, lx, ly);
+}
+
+/**
+ * Destino do trecho bem marcado: anel pulsando no chão e coluna de luz ('chao', antes dos personagens)
+ * e a placa com a caixa de pizza ('placa', por cima de tudo). Orla: a escadaria; Morro: a entrega.
+ */
+export function drawGoalBeacon(ctx, game, cam, ppu, t, layer) {
+  const w = game.world;
+  if (!w || game.delivered) return;
+  let label;
+  if (game.segment === 'orla') {
+    if (!w.gateOpen) return;
+    c.x = (w.gate.x0 + w.gate.x1) / 2;
+    c.y = w.orlaTop + 0.6;
+    label = 'SUBIDA DO MORRO';
+  } else {
+    deliveryPoint(w, c);
+    label = w.exitOpen ? 'ENTREGA AQUI' : `ENTREGA · NÍVEL ${ROUTE.morro.unlockLevel}`;
+  }
+  cam.toScreen(c.x, c.y, a);
+  if (a.x < -300 || a.x > cam.viewW + 300 || a.y < -200 || a.y > cam.viewH + 900) return;
+  const pulse = 0.5 + 0.5 * Math.sin(t * 4);
+  const H = 7 * ppu;
+  if (layer === 'chao') {
+    ctx.fillStyle = 'rgba(255,210,31,0.16)';
+    ctx.beginPath();
+    ctx.ellipse(a.x, a.y, 1.6 * ppu, 1.6 * ppu * cam.k, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255,210,31,${0.55 + 0.4 * pulse})`;
+    ctx.lineWidth = 3;
+    for (const rr of [1.6, 1.6 + pulse * 1.2]) {
+      ctx.beginPath();
+      ctx.ellipse(a.x, a.y, rr * ppu, rr * ppu * cam.k, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    const gr = ctx.createLinearGradient(0, a.y - H, 0, a.y);
+    gr.addColorStop(0, 'rgba(255,210,31,0)');
+    gr.addColorStop(1, `rgba(255,210,31,${0.25 + 0.15 * pulse})`);
+    ctx.fillStyle = gr;
+    ctx.fillRect(a.x - ppu * 0.9, a.y - H, ppu * 1.8, H);
+    return;
+  }
+  // placa flutuando no alto da coluna: caixa de pizza e o texto
+  const y = a.y - H * 0.8 - Math.sin(t * 3) * 4;
+  const fs = Math.max(11, ppu * 0.42);
+  ctx.font = `900 ${fs}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
+  const tw = ctx.measureText(label).width;
+  const bw = tw + fs * 2.6;
+  const bh = fs * 1.7;
+  ctx.fillStyle = 'rgba(20,16,14,0.9)';
+  ctx.fillRect(a.x - bw / 2, y - bh, bw, bh);
+  ctx.strokeStyle = '#ffd21f';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(a.x - bw / 2, y - bh, bw, bh);
+  // caixa de pizza
+  const px = a.x - bw / 2 + fs * 0.5;
+  const py = y - bh / 2;
+  ctx.fillStyle = '#e9e1cf';
+  ctx.fillRect(px, py - fs * 0.45, fs * 1.3, fs * 0.9);
+  ctx.fillStyle = '#c8342b';
+  ctx.fillRect(px + fs * 0.2, py - fs * 0.25, fs * 0.9, fs * 0.5);
+  ctx.fillStyle = '#ffd21f';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, px + fs * 1.6, py + 1);
+  ctx.textBaseline = 'alphabetic';
+  // pino até o chão
+  ctx.beginPath();
+  ctx.moveTo(a.x - 7, y);
+  ctx.lineTo(a.x + 7, y);
+  ctx.lineTo(a.x, y + 12);
+  ctx.closePath();
+  ctx.fill();
 }
 
 /** Linha vermelha de mira do traficante (aviso antes do tiro) e o alvo no chão. */

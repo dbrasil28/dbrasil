@@ -4,8 +4,9 @@ import { ENEMIES, WAKE, GORE } from './config.js';
 import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
+import { drawMinimap } from './minimapa.js';
 import {
-  entityDepth, drawPlatform, drawStair, drawObject, drawPlace, drawGate, drawGroundArrows, drawEdgeArrow,
+  entityDepth, drawPlatform, drawStair, drawObject, drawPlace, drawGate, drawGroundArrows, drawEdgeArrow, drawGoalBeacon,
   drawAim, drawBullet, drawHeal,
 } from './render_mundo.js';
 
@@ -157,7 +158,10 @@ export class Renderer {
     }
 
     this.drawZones(ctx, game, ppu);
-    if (game.world) drawGroundArrows(ctx, game, cam, ppu, game.t); // seta pintada no chão até a saída liberada
+    if (game.world) {
+      drawGoalBeacon(ctx, game, cam, ppu, game.t, 'chao'); // anel e luz no destino do trecho
+      drawGroundArrows(ctx, game, cam, ppu, game.t); // seta pintada no chão até a saída liberada
+    }
 
     // lista de desenho com ordenação por profundidade
     const list = [];
@@ -384,7 +388,15 @@ export class Renderer {
     this.drawPlayer(ctx, game, pt, playerPx, 0.38);
 
     this.drawFx(ctx, game, ppu, playerPx);
-    if (game.world) drawEdgeArrow(ctx, game, cam, this.dpr, game.t); // seta na borda quando a saída está fora da tela
+    if (game.world) {
+      drawGoalBeacon(ctx, game, cam, ppu, game.t, 'placa');
+      drawEdgeArrow(ctx, game, cam, this.dpr, game.t); // seta na borda quando a saída está fora da tela
+      // mapa da favela no canto (no morro); aberto grande quando tocado
+      if (game.segment === 'morro' && !game.over) {
+        const open = !!(perf && perf.mapa);
+        drawMinimap(ctx, game, cam, open ? performance.now() / 1000 : game.t, open);
+      }
+    }
     this.drawLotsLabels(ctx, game);
 
     if (game.map.bounded) {

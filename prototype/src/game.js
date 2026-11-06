@@ -6,7 +6,7 @@ import {
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
   ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE,
 } from './config.js';
-import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside } from './mundo.js';
+import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside, routeRemaining } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones } from './weapons.js';
 import { rollOptions, applyOption, playerStats } from './upgrades.js';
 
@@ -1412,6 +1412,26 @@ export class Game {
         this.emit('exitLocked', { level: ROUTE.morro.unlockLevel });
       }
     }
+  }
+
+  /** Objetivo do trecho para o HUD: o que fazer agora, quantos metros faltam e o progresso (0 a 1). */
+  objective() {
+    const w = this.world;
+    if (!w || this.delivered || this.over) return null;
+    const p = this.player;
+    if (this.segment === 'orla') {
+      if (!w.gateOpen) return { text: `NÍVEL ${ROUTE.orla.unlockLevel} ABRE A SUBIDA DO MORRO`, frac: p.level / ROUTE.orla.unlockLevel };
+      const j = w.joints[0];
+      const d = Math.round(Math.hypot(j.x - p.x, j.y - p.y));
+      return { text: `SIGA A SETA ATÉ O MORRO · ${d} M`, frac: clamp((w.orla.y1 - p.y) / (w.orla.y1 - w.orlaTop), 0, 1) };
+    }
+    if (!w.routeTotal) w.routeTotal = routeRemaining(w, (w.gate.x0 + w.gate.x1) / 2, w.gate.y1 - 1, 1);
+    const d = routeRemaining(w, p.x, p.y, p.ri);
+    const m = Math.round(d);
+    const text = w.exitOpen
+      ? `SUBA E ENTREGUE NO ALTO · ${m} M`
+      : `SUBA ATÉ O ALTO · ${m} M · NÍVEL ${ROUTE.morro.unlockLevel}`;
+    return { text, frac: clamp(1 - d / w.routeTotal, 0, 1) };
   }
 
   deliver() {

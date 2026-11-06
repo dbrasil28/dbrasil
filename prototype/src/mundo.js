@@ -7,6 +7,7 @@ import { clamp } from './math.js';
 import { placeCenario, SOLID_CELL } from './cenario.js';
 
 const rect = (x0, y0, x1, y1, extra = {}) => ({ x0, y0, x1, y1, ...extra });
+const JOINT_M = 1.0;
 export const inside = (k, x, y) => x >= k.x0 && x <= k.x1 && y >= k.y0 && y <= k.y1;
 
 /** Monta o mundo do mapa da orla. Coordenadas em metros; subir na tela = y menor. */
@@ -43,10 +44,14 @@ export function buildWorld(map) {
     heals: [],
     places: [],
   };
+  w.corridors = [];
   for (let i = 0; i < path.length - 1; i++) {
     const a = path[i];
     const b = path[i + 1];
     w.joints.push({ x: (Math.max(a.x0, b.x0) + Math.min(a.x1, b.x1)) / 2, y: (Math.max(a.y0, b.y0) + Math.min(a.y1, b.y1)) / 2 });
+    // passagem entre dois pedaços (largura comum, 1 m para dentro de cada um): sem ela, quem tem raio
+    // maior que metade da emenda ficava preso na fresta entre os dois retângulos
+    w.corridors.push(rect(Math.max(a.x0, b.x0), a.y0 - JOINT_M, Math.min(a.x1, b.x1), b.y1 + JOINT_M, { gate: i <= 1 }));
   }
   placeOrla(w, map);
   placeMorro(w);
@@ -151,37 +156,47 @@ export function pathIndex(w, x, y, hint = -1) {
   return -1;
 }
 
-/** Mantém a entidade dentro das áreas de andar da rota (o portão só conta aberto). */
+/** Mantém a entidade dentro das áreas de andar da rota e das passagens entre elas (o portão só conta aberto). */
 export function constrain(w, e) {
   const r = e.r || 0.3;
   const path = w.path;
   let bx = e.x;
   let by = e.y;
   let bd = Infinity;
-  for (let i = 0; i < path.length; i++) {
-    if (i === 1 && !w.gateOpen) continue;
-    const k = path[i];
+  let bi = e.ri;
+  const n = path.length;
+  const cor = w.corridors || [];
+  for (let i = 0; i < n + cor.length; i++) {
+    const isCor = i >= n;
+    const k = isCor ? cor[i - n] : path[i];
+    if (!w.gateOpen && (isCor ? k.gate : i === 1)) continue;
     const cx = clamp(e.x, k.x0 + r, k.x1 - r);
     const cy = clamp(e.y, k.y0 + r, k.y1 - r);
     const d = (cx - e.x) ** 2 + (cy - e.y) ** 2;
     if (d === 0) {
-      e.ri = i;
+      if (!isCor) e.ri = i;
       return;
     }
     if (d < bd) {
       bd = d;
       bx = cx;
       by = cy;
-      e.ri = i;
+      if (!isCor) bi = i;
     }
   }
+  e.ri = bi;
   e.x = bx;
   e.y = by;
 }
 
 /** Para onde andar para chegar a (tx, ty) pela rota: direto se estão no mesmo pedaço, senão pela junta. */
 export function routeTarget(w, e, tx, ty, ti, out) {
-  const ei = pathIndex(w, e.x, e.y, e.ri);
+  let ei = pathIndex(w, e.x, e.y, e.ri);
+  // já na emenda (dentro do pedaço seguinte também): mira a próxima junta, senão fica parado na junta
+  if (ei >= 0 && ti >= 0) {
+    while (ei < ti && (ei + 1 !== 1 || w.gateOpen) && inside(w.path[ei + 1], e.x, e.y)) ei++;
+    while (ei > ti && (ei - 1 !== 1 || w.gateOpen) && inside(w.path[ei - 1], e.x, e.y)) ei--;
+  }
   if (ei >= 0) e.ri = ei;
   if (ei < 0 || ti < 0 || ei === ti) {
     out.x = tx;
@@ -192,6 +207,25 @@ export function routeTarget(w, e, tx, ty, ti, out) {
   out.x = j.x;
   out.y = j.y;
   return out;
+}
+
+/** Ponto da entrega: metade de cima da laje do topo (a entrega vale ali). */
+export function deliveryPoint(w, out = {}) {
+  out.x = (w.top.x0 + w.top.x1) / 2;
+  out.y = w.top.y0 + (w.top.y1 - w.top.y0) * 0.3;
+  return out;
+}
+
+/** Metros que faltam pela rota (junta por junta) até a entrega. */
+export function routeRemaining(w, x, y, ri = -1) {
+  let i = pathIndex(w, x, y, ri);
+  if (i < 0) i = ri >= 0 ? ri : 0;
+  const goal = deliveryPoint(w);
+  const J = w.joints;
+  if (i >= w.path.length - 1) return Math.hypot(goal.x - x, goal.y - y);
+  let d = Math.hypot(J[i].x - x, J[i].y - y);
+  for (let k = i; k < J.length - 1; k++) d += Math.hypot(J[k + 1].x - J[k].x, J[k + 1].y - J[k].y);
+  return d + Math.hypot(goal.x - J[J.length - 1].x, goal.y - J[J.length - 1].y);
 }
 
 /** Multiplicador de velocidade do lugar (escadaria mais lenta). */

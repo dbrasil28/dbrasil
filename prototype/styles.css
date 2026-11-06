@@ -94,6 +94,7 @@ button {
 #hud-bottom,
 #warn,
 #toast,
+#objetivo,
 #fps {
   position: absolute;
   pointer-events: none;
@@ -586,9 +587,76 @@ button {
   border-right-color: var(--caution);
 }
 
+/* mapa da favela aberto: some o que fica por cima dele */
+body.mapa-aberto #ticker,
+body.mapa-aberto #objetivo,
+body.mapa-aberto #toast,
+body.mapa-aberto #warn {
+  visibility: hidden;
+}
+
+/* área de toque do mapa da favela (o desenho é do canvas) */
+#btn-mapa {
+  position: absolute;
+  z-index: 15;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* objetivo do trecho, logo acima das armas */
+#objetivo {
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--safe-b) + 84px);
+  width: max-content;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 6px;
+  align-items: center;
+  max-width: calc(100% - 24px);
+  box-sizing: border-box;
+  padding: 4px 10px 5px;
+  border: 1px solid rgba(255, 210, 31, 0.7);
+  border-radius: 4px;
+  background: rgba(20, 17, 23, 0.86);
+  color: #ffd21f;
+  font-family: var(--display);
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+#objetivo > b {
+  animation: obj-bob 0.9s ease-in-out infinite;
+}
+
+#objetivo #obj-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#objetivo .bar-obj {
+  grid-column: 1 / -1;
+  height: 3px;
+  margin-top: 3px;
+}
+
+#objetivo .bar-obj i {
+  background: #ffd21f;
+}
+
+@keyframes obj-bob {
+  50% { transform: translateY(-2px); }
+}
+
 #toast {
   left: 50%;
-  bottom: calc(var(--safe-b) + 96px);
+  bottom: calc(var(--safe-b) + 126px);
   transform: translateX(-50%);
   padding: 5px 10px;
   border-radius: 3px;

@@ -136,6 +136,18 @@ export class UI {
     $('boss-bar').hidden = !boss;
     if (boss) this.setWidth('boss-fill', boss.hp / boss.maxHp);
 
+    // objetivo do trecho: o que fazer e quantos metros faltam
+    const obj = game.objective ? game.objective() : null;
+    const show = !!obj;
+    if (this.last.obj !== show) {
+      this.last.obj = show;
+      $('objetivo').hidden = !show;
+    }
+    if (obj) {
+      this.setText('obj-text', obj.text);
+      this.setWidth('obj-fill', obj.frac);
+    }
+
     this.updateTicker(game, now);
   }
 

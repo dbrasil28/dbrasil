@@ -1,6 +1,7 @@
 // Ponto de entrada no navegador: liga simulação, renderização, entrada e interface.
 import { Game } from './game.js';
 import { Renderer } from './render.js';
+import { minimapRect } from './minimapa.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, defaultSettings } from './settings.js';
@@ -131,10 +132,43 @@ function drainOutbox(now) {
     else if (ev.type === 'fine') ui.toast(`MULTA: −${ev.amount} XP`, now);
     else if (ev.type === 'paper') ui.toast('PAPELADA! VOCÊ FICOU LENTO', now);
     else if (ev.type === 'unlock') ui.toast(`MAPA LIBERADO: ${ev.name} · SIGA A SETA`, now);
-    else if (ev.type === 'segment') ui.toast(ev.name, now);
+    else if (ev.type === 'segment') ui.toast(`${ev.name} · SIGA AS SETAS ATÉ O TOPO`, now);
     else if (ev.type === 'exitLocked') ui.toast(`CHEGUE AO NÍVEL ${ev.level} PARA ENTREGAR`, now);
   }
   game.outbox.length = 0;
+}
+
+// mapa da favela: o botão fica por cima do mapa do canto; tocando, abre grande e o jogo pausa
+let mapaAberto = false;
+const btnMapa = $('btn-mapa');
+const mapaLast = { show: false, key: '' };
+btnMapa.addEventListener('click', () => {
+  if (state !== 'playing' || game.modal) return;
+  mapaAberto = !mapaAberto;
+  input.reset();
+  if (!mapaAberto) {
+    last = performance.now();
+    acc = 0;
+  }
+});
+function updateMapaButton() {
+  const show = state === 'playing' && !!game.world && game.segment === 'morro' && !game.modal && !game.over;
+  if (!show) mapaAberto = false;
+  if (mapaLast.open !== mapaAberto) {
+    mapaLast.open = mapaAberto;
+    document.body.classList.toggle('mapa-aberto', mapaAberto);
+  }
+  if (mapaLast.show !== show) {
+    mapaLast.show = show;
+    btnMapa.hidden = !show;
+  }
+  if (!show) return;
+  const r = mapaAberto ? { x: 0, y: 0, w: window.innerWidth, h: window.innerHeight } : minimapRect(game.camera, false);
+  const key = `${Math.round(r.x)}|${Math.round(r.y)}|${Math.round(r.w)}|${Math.round(r.h)}`;
+  if (mapaLast.key === key) return;
+  mapaLast.key = key;
+  Object.assign(btnMapa.style, { left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, height: `${r.h + (mapaAberto ? 0 : 15)}px` });
+  btnMapa.setAttribute('aria-label', mapaAberto ? 'Fechar o mapa da favela' : 'Abrir o mapa da favela');
 }
 
 function frame(now) {
@@ -142,7 +176,7 @@ function frame(now) {
   last = now;
   runWarmJobs();
 
-  if (state === 'playing') {
+  if (state === 'playing' && !mapaAberto) {
     if (!game.modal) {
       acc += dtReal;
       let steps = 0;
@@ -177,7 +211,8 @@ function frame(now) {
     }
   }
 
-  renderer.draw(game, settings, { dt: dtReal });
+  renderer.draw(game, settings, { dt: dtReal, mapa: mapaAberto });
+  updateMapaButton();
   ui.updateHud(game, now);
   ui.tickWarn(now);
   ui.tickToast(now);

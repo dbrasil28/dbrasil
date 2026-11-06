@@ -116,6 +116,17 @@ No meio da luta, ele faz uma proposta de Corrupção: "trabalhar pra firma". Ace
 
 **Entrega:** com o chefe derrubado, a TV Caos noticia: "ENTREGA FEITA NO ALTO DO MORRO: UMA PIZZA DE CALABRESA. GORJETA: NENHUMA". O caminho desce pelo outro lado do morro até a Rodovia.
 
+**Como o jogador sabe o caminho (feito em 06/11/2026):**
+
+| Ajuda | O que mostra |
+| --- | --- |
+| Mapa da favela | No canto direito, sempre que o Juninho está no morro: o caminho inteiro visto de cima (vielas, escadarias, lajes, casas com laje), o Juninho em vermelho, a entrega em amarelo, a linha tracejada até lá, traficantes em laranja e camburões em branco. Tocando, abre grande, com o nome de cada pedaço, e o jogo pausa; tocando de novo, fecha |
+| Objetivo na tela | Acima das armas: "SUBA E ENTREGUE NO ALTO · 182 M", com a barra de progresso da subida. Antes do nível da entrega, mostra o nível que falta |
+| Setas | Setas amarelas no chão até a próxima passagem e seta na borda da tela (abaixo do plantão da TV) quando ela está fora da tela |
+| Marcador da entrega | Anel pulsando, coluna de luz e placa "ENTREGA AQUI" com a caixa de pizza na laje do topo |
+
+Correção do mesmo dia: o Juninho travava no pé da escadaria e em todas as emendas entre um pedaço e o próximo (a fresta entre os dois retângulos era menor que o corpo dele). Agora cada emenda tem uma passagem, e um teste sobe a rota inteira andando em passos curtos.
+
 **No mapa:** os moradores são a horda, as vítimas que acordam. Os inimigos do morro são os traficantes do PCC e o Chefe do Tráfico, por decisão do autor (D21).
 
 ## 6. Ordem de construção
