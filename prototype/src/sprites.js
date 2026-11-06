@@ -16,7 +16,8 @@ export const IMAGES = {
   tele_c_acordado: 'assets/personagens/telespectador_c/acordado.png',
   golpista_walk_atlas: 'assets/personagens/golpista/caminhada_atlas.webp', // Golpista Digital (e o Perfil Falso)
   burocrata_walk_atlas: 'assets/personagens/burocrata/caminhada_atlas.webp', // Burocrata-Monstro
-  burocrata_ataque: 'assets/personagens/burocrata/ataque.png', // pose de frente lançando papéis (aviso do tiro)
+  burocrata_ataque: 'assets/personagens/burocrata/ataque.png', // pose de frente lançando papéis (reserva)
+  burocrata_poses_atlas: 'assets/personagens/burocrata/poses_atlas.webp', // ataque e fúria em 16 direções
   burocrata_papel: 'assets/personagens/burocrata/papel.png', // folha solta da pose de ataque: o projétil
   fiscal_walk_atlas: 'assets/personagens/fiscal/caminhada_atlas.webp', // Fiscal do Impossível
   telespectador_a: 'assets/personagens/telespectador_a.png',
@@ -79,6 +80,15 @@ export const WALK_ATLAS = {
   fi: { atlas: 'fiscal_walk_atlas', prefix: 'fi', figureH: 158 },
 };
 
+/**
+ * Poses paradas em 16 direções (montadas por tools/montar-poses.py): uma coluna por estado, célula de
+ * 320×200 com os pés na base, na mesma escala do atlas de caminhada (boneco em pé = figureH px).
+ */
+export const POSE_ATLAS = {
+  bp: { atlas: 'burocrata_poses_atlas', prefix: 'bp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
+};
+export const POSE_OPTS = { shadowScale: 0.4 };
+
 /** O atlas, se já carregou; senão null (o jogo usa o recorte de pose única). */
 export const walkReady = (w) => (w && images[`${w.prefix}_0_0`] ? w : null);
 
@@ -108,7 +118,8 @@ export const ENEMY_ART = {
   golpista: { img: 'golpista', walk: WALK_ATLAS.gd },
   isca: { img: 'golpista', walk: WALK_ATLAS.gd, tint: [54, 240, 224, 0.55] },
   // attack: pose de ataque; attackH: altura dela em relação ao boneco andando (ela é agachada)
-  burocrata: { img: 'burocrata', front: 'burocrata_frente', papers: true, walk: WALK_ATLAS.bm, attack: 'burocrata_ataque', attackH: 0.92 },
+  // poses: fúria enquanto mira e ataque ao soltar, nas 16 direções; attack/attackH: pose única de reserva
+  burocrata: { img: 'burocrata', front: 'burocrata_frente', papers: true, walk: WALK_ATLAS.bm, poses: POSE_ATLAS.bp, attack: 'burocrata_ataque', attackH: 0.92 },
   fiscal: { img: 'fiscal', vest: true, walk: WALK_ATLAS.fi }, // vest pinta o colete só no recorte antigo
   politico: { img: 'politico' },
   rival: { img: 'politico', tint: [240, 122, 26, 0.32] },
@@ -140,6 +151,7 @@ export function loadImages(onEach) {
       if (id === 'juninho_atlas') sliceAtlas(im, 'ja');
       if (id === 'juninho_walk_atlas') sliceAtlas(im, 'jw');
       for (const w of Object.values(WALK_ATLAS)) if (id === w.atlas) sliceAtlas(im, w.prefix);
+      for (const p of Object.values(POSE_ATLAS)) if (id === p.atlas) sliceAtlas(im, p.prefix, p);
       pending--;
       onEach?.(id);
       resolve();
@@ -157,11 +169,11 @@ export const imagesReady = () => pending === 0;
 export const ATLAS = { cols: 6, rows: 16, cw: 200, ch: 160, figureH: 155, hipFrac: 0.585, pivotFrac: 0.53 }; // figura ≈ 155 px numa célula de 160; cintura a 58,5% da altura
 
 /** Corta um atlas em 96 células (canvas) registradas como imagens `<prefixo>_<direção>_<quadro>`. */
-function sliceAtlas(im, prefix) {
-  for (let r = 0; r < ATLAS.rows; r++) {
-    for (let f = 0; f < ATLAS.cols; f++) {
-      const c = canvas(ATLAS.cw, ATLAS.ch);
-      c.getContext('2d').drawImage(im, f * ATLAS.cw, r * ATLAS.ch, ATLAS.cw, ATLAS.ch, 0, 0, ATLAS.cw, ATLAS.ch);
+function sliceAtlas(im, prefix, g = ATLAS) {
+  for (let r = 0; r < g.rows; r++) {
+    for (let f = 0; f < g.cols; f++) {
+      const c = canvas(g.cw, g.ch);
+      c.getContext('2d').drawImage(im, f * g.cw, r * g.ch, g.cw, g.ch, 0, 0, g.cw, g.ch);
       images[`${prefix}_${r}_${f}`] = c;
     }
   }
@@ -206,6 +218,12 @@ export function prewarm(cache, playerPx, enemyPx, sizeOf) {
       const h = enemyPx * sizeOf(type);
       for (const img of [art.img, art.front].filter(Boolean)) jobs.push(() => cache.get(img, h, { ...art, flip }));
       if (art.attack) jobs.push(() => cache.get(art.attack, h * art.attackH, attackOpts(flip)));
+      if (!flip && art.poses) {
+        const P = art.poses;
+        for (let r = 0; r < P.rows; r++) {
+          for (let c = 0; c < P.cols; c++) jobs.push(() => cache.get(`${P.prefix}_${r}_${c}`, h * (P.ch / P.figureH), POSE_OPTS));
+        }
+      }
       if (flip || !art.walk) continue;
       for (let r = 0; r < ATLAS.rows; r++) {
         for (let f = 0; f < ATLAS.cols; f++) jobs.push(() => cache.get(`${art.walk.prefix}_${r}_${f}`, h * (ATLAS.ch / art.walk.figureH), enemyWalkOpts(art)));

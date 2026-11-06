@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE } from './config.js';
-import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
+import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
 
 const pt = { x: 0, y: 0 };
@@ -183,9 +183,16 @@ export class Renderer {
           const anim = o.type === 'telespectador' ? crowdAnim(o.tint) : null;
           const walk = anim ? anim.walk : walkReady(art && art.walk);
           if (art && art.attack && walk && (o.windup > 0 || o.throwT > 0)) {
-            // pose de ataque (o aviso antes do tiro): de frente, lançando para o lado do Juninho
             cam.toScreen(game.player.x, game.player.y, pt2);
-            spr = this.cache.get(art.attack, h * art.attackH, attackOpts(pt2.x < pt.x));
+            const poses = walkReady(art.poses);
+            if (poses) {
+              // virado para o Juninho: fúria enquanto mira (o aviso), ataque quando solta a papelada
+              const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+              const col = poses.col[o.windup > 0 ? 'furia' : 'ataque'];
+              spr = this.cache.get(`${poses.prefix}_${row}_${col}`, h * (poses.ch / poses.figureH), POSE_OPTS);
+            }
+            // reserva: a pose única de frente, espelhada para o lado do Juninho
+            if (!spr) spr = this.cache.get(art.attack, h * art.attackH, attackOpts(pt2.x < pt.x));
             animated = !!spr;
           }
           if (!spr && walk) {
@@ -232,7 +239,7 @@ export class Renderer {
             ctx.fillStyle = COLORS.paper;
             ctx.font = `900 ${Math.max(11, h * 0.3)}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
             ctx.textAlign = 'center';
-            ctx.fillText('!', pt.x, pt.y - h - 4);
+            ctx.fillText('!', pt.x, pt.y - h * 1.25 - 4); // acima do carimbo erguido na fúria
           }
           if (o.elite && !o.boss) drawHpPip(ctx, pt, h, o.hp / o.maxHp);
           break;

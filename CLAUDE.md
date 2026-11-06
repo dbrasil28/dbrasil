@@ -28,6 +28,8 @@ node tools/balance-report.mjs 20 alternar  # 20 partidas com o bot (aceitar | re
 node tools/build-single.mjs                # gera dist/brasil-estado-de-caos.html (arquivo único)
 python3 -I tools/montar-atlas.py <pacote> prototype/assets/personagens/<pasta> <pasta-nova> x
                                            # atlas 16×6 de caminhada (+ pose de acordado na horda); Pillow, numpy, opencv
+python3 -I tools/montar-poses.py <pacote> prototype/assets/personagens/<pasta> <pasta-nova> x ataque furia
+                                           # poses paradas em 16 direções (folhas 4×4), na escala da caminhada
 ```
 
 Rode `npm test` antes de qualquer commit.

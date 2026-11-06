@@ -1,0 +1,216 @@
+{
+  "personagem": "Burocrata-Monstro",
+  "tipo": "poses estáticas em 16 direções por estado",
+  "folhas": [
+    1536,
+    1024
+  ],
+  "grade": [
+    4,
+    4
+  ],
+  "celula": [
+    384,
+    256
+  ],
+  "convencao": "0 frente,90 direita,180 costas,270 esquerda",
+  "estados": {
+    "ataque": [
+      {
+        "angulo": 0.0,
+        "arquivo": "sprites/ataque/ataque_00_000_0.png",
+        "linha": 0,
+        "coluna": 0
+      },
+      {
+        "angulo": 22.5,
+        "arquivo": "sprites/ataque/ataque_01_022_5.png",
+        "linha": 0,
+        "coluna": 1
+      },
+      {
+        "angulo": 45.0,
+        "arquivo": "sprites/ataque/ataque_02_045_0.png",
+        "linha": 0,
+        "coluna": 2
+      },
+      {
+        "angulo": 67.5,
+        "arquivo": "sprites/ataque/ataque_03_067_5.png",
+        "linha": 0,
+        "coluna": 3
+      },
+      {
+        "angulo": 90.0,
+        "arquivo": "sprites/ataque/ataque_04_090_0.png",
+        "linha": 1,
+        "coluna": 0
+      },
+      {
+        "angulo": 112.5,
+        "arquivo": "sprites/ataque/ataque_05_112_5.png",
+        "linha": 1,
+        "coluna": 1
+      },
+      {
+        "angulo": 135.0,
+        "arquivo": "sprites/ataque/ataque_06_135_0.png",
+        "linha": 1,
+        "coluna": 2
+      },
+      {
+        "angulo": 157.5,
+        "arquivo": "sprites/ataque/ataque_07_157_5.png",
+        "linha": 1,
+        "coluna": 3
+      },
+      {
+        "angulo": 180.0,
+        "arquivo": "sprites/ataque/ataque_08_180_0.png",
+        "linha": 2,
+        "coluna": 0
+      },
+      {
+        "angulo": 202.5,
+        "arquivo": "sprites/ataque/ataque_09_202_5.png",
+        "linha": 2,
+        "coluna": 1
+      },
+      {
+        "angulo": 225.0,
+        "arquivo": "sprites/ataque/ataque_10_225_0.png",
+        "linha": 2,
+        "coluna": 2
+      },
+      {
+        "angulo": 247.5,
+        "arquivo": "sprites/ataque/ataque_11_247_5.png",
+        "linha": 2,
+        "coluna": 3
+      },
+      {
+        "angulo": 270.0,
+        "arquivo": "sprites/ataque/ataque_12_270_0.png",
+        "linha": 3,
+        "coluna": 0
+      },
+      {
+        "angulo": 292.5,
+        "arquivo": "sprites/ataque/ataque_13_292_5.png",
+        "linha": 3,
+        "coluna": 1
+      },
+      {
+        "angulo": 315.0,
+        "arquivo": "sprites/ataque/ataque_14_315_0.png",
+        "linha": 3,
+        "coluna": 2
+      },
+      {
+        "angulo": 337.5,
+        "arquivo": "sprites/ataque/ataque_15_337_5.png",
+        "linha": 3,
+        "coluna": 3
+      }
+    ],
+    "furia": [
+      {
+        "angulo": 0.0,
+        "arquivo": "sprites/furia/furia_00_000_0.png",
+        "linha": 0,
+        "coluna": 0
+      },
+      {
+        "angulo": 22.5,
+        "arquivo": "sprites/furia/furia_01_022_5.png",
+        "linha": 0,
+        "coluna": 1
+      },
+      {
+        "angulo": 45.0,
+        "arquivo": "sprites/furia/furia_02_045_0.png",
+        "linha": 0,
+        "coluna": 2
+      },
+      {
+        "angulo": 67.5,
+        "arquivo": "sprites/furia/furia_03_067_5.png",
+        "linha": 0,
+        "coluna": 3
+      },
+      {
+        "angulo": 90.0,
+        "arquivo": "sprites/furia/furia_04_090_0.png",
+        "linha": 1,
+        "coluna": 0
+      },
+      {
+        "angulo": 112.5,
+        "arquivo": "sprites/furia/furia_05_112_5.png",
+        "linha": 1,
+        "coluna": 1
+      },
+      {
+        "angulo": 135.0,
+        "arquivo": "sprites/furia/furia_06_135_0.png",
+        "linha": 1,
+        "coluna": 2
+      },
+      {
+        "angulo": 157.5,
+        "arquivo": "sprites/furia/furia_07_157_5.png",
+        "linha": 1,
+        "coluna": 3
+      },
+      {
+        "angulo": 180.0,
+        "arquivo": "sprites/furia/furia_08_180_0.png",
+        "linha": 2,
+        "coluna": 0
+      },
+      {
+        "angulo": 202.5,
+        "arquivo": "sprites/furia/furia_09_202_5.png",
+        "linha": 2,
+        "coluna": 1
+      },
+      {
+        "angulo": 225.0,
+        "arquivo": "sprites/furia/furia_10_225_0.png",
+        "linha": 2,
+        "coluna": 2
+      },
+      {
+        "angulo": 247.5,
+        "arquivo": "sprites/furia/furia_11_247_5.png",
+        "linha": 2,
+        "coluna": 3
+      },
+      {
+        "angulo": 270.0,
+        "arquivo": "sprites/furia/furia_12_270_0.png",
+        "linha": 3,
+        "coluna": 0
+      },
+      {
+        "angulo": 292.5,
+        "arquivo": "sprites/furia/furia_13_292_5.png",
+        "linha": 3,
+        "coluna": 1
+      },
+      {
+        "angulo": 315.0,
+        "arquivo": "sprites/furia/furia_14_315_0.png",
+        "linha": 3,
+        "coluna": 2
+      },
+      {
+        "angulo": 337.5,
+        "arquivo": "sprites/furia/furia_15_337_5.png",
+        "linha": 3,
+        "coluna": 3
+      }
+    ]
+  },
+  "limites": "Não testado no motor; pequenas variações de registro entre ângulos."
+}

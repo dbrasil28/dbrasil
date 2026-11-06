@@ -1,0 +1,9 @@
+BUROCRATA: ATAQUE E FÚRIA
+32 poses estáticas: 16 de ataque + 16 de fúria, a cada 22,5 graus.
+2 folhas PNG transparentes 1536x1024, grade 4x4, células 384x256.
+32 recortes individuais, com alpha preservado.
+Ataque: lança papéis com esquerda, carimbo na direita.
+Fúria: dois braços erguidos, papéis à esquerda, carimbo à direita.
+São poses direcionais, não quadros de uma animação temporal.
+Não testado no motor. Pequenas variações de registro entre ângulos.
+Extrair os três ZIPs na mesma pasta.
