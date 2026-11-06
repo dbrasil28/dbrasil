@@ -18,6 +18,7 @@ export const IMAGES = {
   burocrata_walk_atlas: 'assets/personagens/burocrata/caminhada_atlas.webp', // Burocrata-Monstro
   burocrata_ataque: 'assets/personagens/burocrata/ataque.png', // pose de frente lançando papéis (aviso do tiro)
   burocrata_papel: 'assets/personagens/burocrata/papel.png', // folha solta da pose de ataque: o projétil
+  fiscal_walk_atlas: 'assets/personagens/fiscal/caminhada_atlas.webp', // Fiscal do Impossível
   telespectador_a: 'assets/personagens/telespectador_a.png',
   telespectador_c: 'assets/personagens/telespectador_c.png',
   telespectador_d: 'assets/personagens/telespectador_d.png',
@@ -75,6 +76,7 @@ export const WALK_ATLAS = {
   tc: { atlas: 'tele_c_walk_atlas', prefix: 'tc', figureH: 158 },
   gd: { atlas: 'golpista_walk_atlas', prefix: 'gd', figureH: 157 },
   bm: { atlas: 'burocrata_walk_atlas', prefix: 'bm', figureH: 158 },
+  fi: { atlas: 'fiscal_walk_atlas', prefix: 'fi', figureH: 158 },
 };
 
 /** O atlas, se já carregou; senão null (o jogo usa o recorte de pose única). */
@@ -107,7 +109,7 @@ export const ENEMY_ART = {
   isca: { img: 'golpista', walk: WALK_ATLAS.gd, tint: [54, 240, 224, 0.55] },
   // attack: pose de ataque; attackH: altura dela em relação ao boneco andando (ela é agachada)
   burocrata: { img: 'burocrata', front: 'burocrata_frente', papers: true, walk: WALK_ATLAS.bm, attack: 'burocrata_ataque', attackH: 0.92 },
-  fiscal: { img: 'fiscal', vest: true },
+  fiscal: { img: 'fiscal', vest: true, walk: WALK_ATLAS.fi }, // vest pinta o colete só no recorte antigo
   politico: { img: 'politico' },
   rival: { img: 'politico', tint: [240, 122, 26, 0.32] },
   especulador: { img: 'especulador', hardhat: true },

@@ -1,0 +1,8 @@
+FISCAL DO IMPOSSÍVEL
+4 folhas PNG 1536x1024, grade 6x4, células 256x256.
+96 sprites: 16 direções x 6 quadros.
+16 prévias APNG e montagem geral.
+0 frente, 90 direita, 180 costas, 270 esquerda.
+Reproduzir as colunas 00 a 05 da linha correspondente à direção.
+Extrair os três ZIPs na mesma pasta.
+Pequenas variações de registro na arte; não testada no motor.
