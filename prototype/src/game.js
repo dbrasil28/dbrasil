@@ -264,7 +264,7 @@ export class Game {
   }
 
   spawnCommon() {
-    const comp = DIRECTOR.composition(this.caos);
+    const comp = this.settings.castTest ? DIRECTOR.castTestComposition : DIRECTOR.composition(this.caos);
     let pick = weightedPick(this.rng, comp).type;
     if (pick === 'burocrata' && this.countType('burocrata') >= DIRECTOR.maxBurocratas) pick = 'telespectador';
     const ang = this.rng() * Math.PI * 2;

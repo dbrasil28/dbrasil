@@ -55,15 +55,12 @@ export const IMAGES = {
  * Horda (MECH-001) agrupada por roupa, com vista de frente e de costas. Cada pessoa mantém
  * a roupa; só troca de frente (descendo na direção da câmera) para costas (subindo).
  */
+// Só roupas com atlas animado (D18). Os recortes de pose única ficam como reserva, caso o atlas não
+// carregue. Roupa nova: um conjunto com `anim` aqui e o atlas em WALK_ATLAS e CROWD_ANIM.
 export const CROWD_SETS = [
   { front: [], back: ['telespectador_a', 'telespectador_d', 'telespectador_c'], anim: 'a' }, // camisa amarela
-  { front: [], back: ['telespectador_e'], anim: 'b' }, // regata cinza (sem atlas, cai no recorte de camiseta clara)
-  { front: ['tf_escura_1'], back: [], anim: 'c' }, // camisa rubro-negra, ver D17 (sem atlas, cai na roupa escura)
-  { front: [], back: ['telespectador_g'] }, // camisa verde
-  { front: [], back: ['telespectador_e'] }, // camisa branca
-  { front: ['tf_semcamisa_3'], back: [] }, // sem camisa
-  { front: ['tf_escura_1', 'tf_escura_2'], back: [] }, // roupa escura
-  { front: [], back: ['telespectador_f'] }, // camisa rosa
+  { front: [], back: ['telespectador_e'], anim: 'b' }, // regata cinza (reserva: camiseta clara)
+  { front: ['tf_escura_1', 'tf_escura_2'], back: [], anim: 'c' }, // camisa rubro-negra, ver D17 (reserva: roupa escura)
 ];
 export const CROWD = [...new Set(CROWD_SETS.flatMap((s) => [...s.front, ...s.back]))];
 

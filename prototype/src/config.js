@@ -126,6 +126,13 @@ export const DIRECTOR = {
     if (caos >= 45) list.push({ type: 'fiscal', w: 0.1 });
     return list;
   },
+  // ajuste "Teste de elenco": todos os inimigos com arte nova desde 00:00 (só para ver a arte; não balanceia)
+  castTestComposition: [
+    { type: 'telespectador', w: 1 },
+    { type: 'golpista', w: 0.3 },
+    { type: 'burocrata', w: 0.25 },
+    { type: 'fiscal', w: 0.25 },
+  ],
   maxBurocratas: 22,
   eliteEvery: (caos) => (caos >= 60 ? 40 : 60),
 };
