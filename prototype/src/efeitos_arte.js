@@ -41,9 +41,12 @@ export const FX = {
   pneu_queimado: { cols: 1, rows: 1, chao: true, dur: 2.6 },
   poeira_moto: { cols: 3, rows: 2, dur: 0.55, cobreM: 2.6, zM: 0.7 },
   atropelo: { cols: 3, rows: 2, dur: 0.36, tamP: 0.8, zP: 0.45 },
-  // Megafone da TV: a borda da aura fica a 90% da imagem
-  aura_base: { cols: 1, rows: 1, chao: true, borda: 0.9 },
-  aura_pulso: { cols: 3, rows: 2, chao: true, dur: 0.45, borda: 0.9 },
+  // Megafone da TV: a aura é uma marcação de área, não um furacão. suave: a imagem ganha um borrão leve e
+  // some aos poucos para fora, como fumaça (pontos: [distância do centro, 0 a 1; quanto aparece]); alpha: o
+  // quanto ela aparece no chão.
+  // borda: onde fica o alcance na imagem já esfumaçada (o desenho cresce para o alcance bater nela).
+  aura_base: { cols: 1, rows: 1, chao: true, borda: 0.88, suave: { desfoque: 0.02, pontos: [[0, 1], [0.7, 1], [0.88, 0.65], [1, 0]] }, alpha: 0.62 },
+  aura_pulso: { cols: 3, rows: 2, chao: true, dur: 0.45, borda: 0.88, suave: { desfoque: 0.02, pontos: [[0, 1], [0.7, 1], [0.88, 0.65], [1, 0]] }, alpha: 0.45 },
   empurrao: { cols: 3, rows: 2, dur: 0.3, tamP: 0.5, zP: 0.55 },
   // Gato de Luz: 4 raios (linhas) de 3 m cada
   raio: { cols: 1, rows: 4, luz: true, compM: 3 },

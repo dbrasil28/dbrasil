@@ -75,6 +75,41 @@ export function fxImg(nome) {
   return null;
 }
 
+const suaves = {};
+/**
+ * Versão esfumaçada da folha (feita uma vez): borrão leve e a borda sumindo aos poucos, célula por célula,
+ * como fumaça. Sem suporte a filtro no navegador, fica só a borda sumindo.
+ */
+function fxSuave(nome) {
+  const im = fxImg(nome);
+  const F = FX[nome];
+  if (!im || !F.suave || typeof document === 'undefined') return im;
+  if (suaves[nome]) return suaves[nome];
+  const c = document.createElement('canvas');
+  c.width = im.width;
+  c.height = im.height;
+  const g = c.getContext('2d');
+  const cw = im.width / F.cols;
+  const ch = im.height / F.rows;
+  g.filter = `blur(${Math.max(1, Math.round(cw * F.suave.desfoque))}px)`;
+  g.drawImage(im, 0, 0);
+  g.filter = 'none';
+  g.globalCompositeOperation = 'destination-in';
+  for (let r = 0; r < F.rows; r++) {
+    for (let k = 0; k < F.cols; k++) {
+      const cx = (k + 0.5) * cw;
+      const cy = (r + 0.5) * ch;
+      const R = Math.min(cw, ch) / 2;
+      const gr = g.createRadialGradient(cx, cy, 0, cx, cy, R);
+      for (const [d, v] of F.suave.pontos) gr.addColorStop(d, `rgba(0,0,0,${v})`);
+      g.fillStyle = gr;
+      g.fillRect(k * cw, r * ch, cw, ch);
+    }
+  }
+  suaves[nome] = c;
+  return c;
+}
+
 let armasVistas = '';
 /** Carrega as folhas das habilidades que o Juninho tem. */
 export function precarregarFx(game) {
@@ -153,8 +188,8 @@ export function drawFxChao(ctx, game, cam, ppu) {
     }
     quadro(F, im, quadroNoTempo(F, a.t, a.dur), src);
     const larg = (a.tam || F.cobreM || 2) / (F.borda || 1);
-    const alpha = F.laco || a.nome === 'aura_pulso' || a.nome === 'latido_onda' ? fimSuave(a) : Math.min(1, a.t / 0.08) * fimSuave(a);
-    drawChao(ctx, cam, ppu, im, src, q.x, q.y, larg, a.rot || 0, alpha);
+    const alpha = (F.laco || a.nome === 'aura_pulso' || a.nome === 'latido_onda' ? fimSuave(a) : Math.min(1, a.t / 0.08) * fimSuave(a)) * (F.alpha ?? 1);
+    drawChao(ctx, cam, ppu, F.suave ? fxSuave(a.nome) : im, src, q.x, q.y, larg, a.rot || 0, alpha);
     if (a.nome === 'carimbo_marca') textoNoChao(ctx, cam, ppu, 'INDEFERIDO', q.x, q.y, larg * 0.17, a.rot || 0, alpha);
   }
 }
@@ -275,8 +310,9 @@ export function drawPoca(ctx, cam, ppu, z) {
 export function drawAura(ctx, cam, ppu, p, t) {
   const im = fxImg('aura_base');
   if (!im) return false;
-  quadro(FX.aura_base, im, 0, src);
-  drawChao(ctx, cam, ppu, im, src, p.x, p.y, (p.auraR * 2) / FX.aura_base.borda, t * 0.35, 0.9);
+  const F = FX.aura_base;
+  quadro(F, im, 0, src);
+  drawChao(ctx, cam, ppu, fxSuave('aura_base'), src, p.x, p.y, (p.auraR * 2) / F.borda, t * 0.2, F.alpha);
   return true;
 }
 
