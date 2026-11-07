@@ -43,6 +43,7 @@ export function buildWorld(map) {
     slots: [],
     heals: [],
     places: [],
+    visto: new Set([0, 1]), // pedaços da rota em que o Juninho já pisou (o mapa da favela só mostra esses)
   };
   w.corridors = [];
   for (let i = 0; i < path.length - 1; i++) {

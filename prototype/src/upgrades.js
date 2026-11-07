@@ -94,6 +94,22 @@ export function rollOptions(player, rng, n = 3, segment = 'orla') {
   return opts.slice(0, n);
 }
 
+/** Só armas novas (para a melhoria "Bolsa de ferramentas", no começo do trecho). */
+export function rollNewWeapons(player, rng, n = 3, segment = 'orla') {
+  const pool = Object.keys(WEAPONS).filter((id) => {
+    const W = WEAPONS[id];
+    if (W.evolution || player.weapons.some((w) => w.id === id)) return false;
+    return !W.onlyIn || W.onlyIn === segment;
+  });
+  const out = [];
+  while (out.length < n && pool.length) {
+    const id = pool.splice(Math.floor(rng() * pool.length), 1)[0];
+    const only = WEAPONS[id].onlyIn;
+    out.push({ kind: 'weapon', id, level: 1, title: WEAPONS[id].name, desc: WEAPONS[id].role, tag: only === 'orla' ? 'SÓ NA ORLA' : only === 'morro' ? 'SÓ NO MORRO' : 'ARMA INICIAL' });
+  }
+  return out;
+}
+
 export function applyOption(player, opt) {
   if (opt.kind === 'evolution') {
     const w = player.weapons.find((x) => x.id === opt.from);

@@ -1,11 +1,8 @@
 // Mapa da favela: a Subida do Morro vista de cima, sempre no canto da tela enquanto o Juninho está no
-// morro. Mostra o caminho inteiro (vielas, escadarias e lajes), onde ele está, o caminho até a entrega,
-// os traficantes e os camburões. Tocando, abre grande (o jogo pausa). Desenho em código, sem DOM.
-import { ROUTE } from './config.js';
-import { deliveryPoint, routeRemaining } from './mundo.js';
+// morro. Mostra só o que ele já andou (D39: o resto é descoberta), onde ele está, os traficantes e os
+// camburões por perto. Tocando, abre grande (o jogo pausa). Desenho em código, sem DOM.
 
 const COLORS = { viela: '#a39a8e', escadaria: '#c9c0b2', laje: '#d2b98c', orla: '#7a6f63' };
-const tmp = { x: 0, y: 0 };
 
 /** Retângulo do mapa na tela: pequeno no canto direito, ou grande no meio. */
 export function minimapRect(cam, open) {
@@ -73,7 +70,10 @@ export function drawMinimap(ctx, game, cam, t, open) {
   ctx.rect(ix, iy, iw, ih);
   ctx.clip();
   // caminho: fim da Orla, escadaria do pé do morro e os pedaços em sequência
+  // só o que o Juninho já andou (D39): o resto da favela é descoberta
+  const visto = (i) => w.visto.has(i);
   w.path.forEach((k, i) => {
+    if (!visto(i)) return;
     const x0 = Math.max(B.x0, k.x0);
     const x1 = Math.min(B.x1, k.x1);
     const y0 = Math.max(B.y0, k.y0);
@@ -88,49 +88,26 @@ export function drawMinimap(ctx, game, cam, t, open) {
   });
   // casas com laje (dá para subir)
   ctx.fillStyle = 'rgba(80,60,50,0.9)';
+  const pisado = (x, y) => w.path.some((k, i) => visto(i) && x >= k.x0 - 6 && x <= k.x1 + 6 && y >= k.y0 - 1 && y <= k.y1 + 1);
   for (const P of w.platforms) {
-    if (P.y1 > w.orlaTop) continue;
+    if (P.y1 > w.orlaTop || !pisado((P.x0 + P.x1) / 2, (P.y0 + P.y1) / 2)) continue;
     ctx.fillRect(X(P.x0), Y(P.y0), (P.x1 - P.x0) * sx, (P.y1 - P.y0) * sy);
   }
   // camburões
   for (const p of w.props) {
-    if (p.kind !== 'camburao') continue;
+    if (p.kind !== 'camburao' || !pisado(p.x, p.y)) continue;
     ctx.fillStyle = '#f2efe8';
     ctx.fillRect(X(p.x0), Y(p.y0), Math.max(3, (p.x1 - p.x0) * sx), Math.max(2, (p.y1 - p.y0) * sy));
     ctx.fillStyle = t % 0.6 < 0.3 ? '#e5252f' : '#2a6fd0';
     ctx.fillRect(X(p.x0), Y(p.y0) - 1, 3, 2);
   }
-  // caminho até a entrega: linha tracejada passando pelas passagens
   const p = game.player;
-  const dp = deliveryPoint(w, tmp);
-  const ri = Math.max(0, p.ri);
-  ctx.strokeStyle = '#ffd21f';
-  ctx.lineWidth = open ? 3 : 2;
-  ctx.setLineDash(open ? [7, 5] : [4, 3]);
-  ctx.lineDashOffset = -t * (open ? 22 : 12);
-  ctx.beginPath();
-  ctx.moveTo(X(p.x), Y(p.y));
-  for (let j = ri; j < w.joints.length; j++) ctx.lineTo(X(w.joints[j].x), Y(w.joints[j].y));
-  ctx.lineTo(X(dp.x), Y(dp.y));
-  ctx.stroke();
-  ctx.setLineDash([]);
   // traficantes
   for (const e of game.enemies) {
-    if (e.type !== 'traficante' || e.dead || e.y > B.y1) continue;
+    if (e.type !== 'traficante' || e.dead || e.y > B.y1 || !pisado(e.x, e.y)) continue;
     ctx.fillStyle = '#ff7a1a';
     ctx.fillRect(X(e.x) - 1.5, Y(e.y) - 1.5, 3, 3);
   }
-  // entrega
-  const pulse = 0.5 + 0.5 * Math.sin(t * 5);
-  ctx.fillStyle = `rgba(255,210,31,${0.3 + 0.3 * pulse})`;
-  ctx.beginPath();
-  ctx.arc(X(dp.x), Y(dp.y), (open ? 11 : 6) + pulse * 3, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#e9e1cf';
-  const ps = open ? 12 : 7;
-  ctx.fillRect(X(dp.x) - ps / 2, Y(dp.y) - ps / 2, ps, ps);
-  ctx.fillStyle = '#c8342b';
-  ctx.fillRect(X(dp.x) - ps / 3, Y(dp.y) - ps / 4, (ps * 2) / 3, ps / 2);
   // o Juninho
   ctx.fillStyle = '#ff2d3d';
   ctx.strokeStyle = '#fff';
@@ -144,7 +121,6 @@ export function drawMinimap(ctx, game, cam, t, open) {
   // títulos
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffd21f';
-  const d = Math.round(routeRemaining(w, p.x, p.y, p.ri));
   if (open) {
     ctx.font = '900 18px "Barlow Semi Condensed", "Arial Narrow", sans-serif';
     ctx.fillText('MAPA DA FAVELA · SUBIDA DO MORRO', R.x + R.w / 2, R.y + 21);
@@ -152,7 +128,7 @@ export function drawMinimap(ctx, game, cam, t, open) {
     ctx.font = '800 11px "Barlow Semi Condensed", "Arial Narrow", sans-serif';
     ctx.textAlign = 'left';
     w.path.forEach((k, i) => {
-      if (i === 0 || k.y1 < B.y0) return;
+      if (i === 0 || k.y1 < B.y0 || !visto(i)) return;
       const name = i === 1 ? 'ESCADARIA DO PÉ DO MORRO' : k === w.top ? 'LAJE DO TOPO' : k.kind.toUpperCase();
       const ly = Y((k.y0 + k.y1) / 2) + 4;
       const lx = X(k.x1) + 4;
@@ -166,8 +142,7 @@ export function drawMinimap(ctx, game, cam, t, open) {
     ctx.textAlign = 'center';
     ctx.font = '900 13px "Barlow Semi Condensed", "Arial Narrow", sans-serif';
     ctx.fillStyle = '#ffd21f';
-    const lvl = w.exitOpen ? '' : ` · ENTREGA NO NÍVEL ${ROUTE.morro.unlockLevel}`;
-    ctx.fillText(`VOCÊ (VERMELHO) → ENTREGA (AMARELO): ${d} M${lvl}`, R.x + R.w / 2, R.y + R.h - 26);
+    ctx.fillText('VOCÊ (VERMELHO) · SÓ O QUE VOCÊ JÁ ANDOU', R.x + R.w / 2, R.y + R.h - 26);
     ctx.fillStyle = 'rgba(255,255,255,0.75)';
     ctx.font = '700 12px "Barlow Semi Condensed", "Arial Narrow", sans-serif';
     ctx.fillText('LARANJA: TRAFICANTE · BRANCO: CAMBURÃO · TOQUE PARA FECHAR', R.x + R.w / 2, R.y + R.h - 10);
@@ -177,7 +152,7 @@ export function drawMinimap(ctx, game, cam, t, open) {
     ctx.fillStyle = 'rgba(20,16,20,0.88)';
     ctx.fillRect(R.x, R.y + R.h, R.w, 15);
     ctx.fillStyle = '#ffd21f';
-    ctx.fillText(`${d} M · TOQUE`, R.x + R.w / 2, R.y + R.h + 11);
+    ctx.fillText('TOQUE', R.x + R.w / 2, R.y + R.h + 11);
   }
   ctx.restore();
 }

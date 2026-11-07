@@ -23,7 +23,7 @@ export const SETTINGS_SCHEMA = [
   { id: 'showFps', label: 'Mostrar FPS e contagem', type: 'toggle', def: false },
   { id: 'resolution', label: 'Resolução', type: 'select', options: [['auto', 'Automática (até 2x)'], ['1', '1x (mais leve)']], def: 'auto' },
   { id: 'elenco', label: 'Elenco completo desde o início', type: 'toggle', def: true, hint: 'Golpista, Burocrata e Fiscal desde 00:00 e o Político aos 12 s, para ver a arte. Desligado: ritmo normal (Golpista ~1:30, Político 1:30, Burocrata ~5:00, Fiscal ~6:00)' },
-  { id: 'aberta', label: 'Versão aberta: tudo liberado', type: 'toggle', def: true, hint: 'Para testar: Mapa da Rota todo liberado, escadaria do morro aberta desde o começo e entrega no topo sem nível mínimo. Desligue para jogar a carreira de verdade' },
+  { id: 'aberta', label: 'Versão aberta: tudo liberado', type: 'toggle', def: false, novo: true, hint: 'Para testar: Mapa da Rota todo liberado, escadaria do morro aberta desde o começo e entrega no topo sem derrubar o chefe. Desligada, é a carreira de verdade (D39)' },
   { id: 'trecho', label: 'Começar no trecho', type: 'select', options: [['orla', 'Orla do Desespero'], ['morro', 'Subida do Morro (atalho de teste)']], def: 'orla', hint: 'Atalho de teste: começa no pé do morro, com a escadaria já aberta' },
   { id: 'startAt', label: 'Começar a partida em', type: 'select', options: [['0', '00:00'], ['115', '01:55 — 1ª proposta'], ['265', '04:25 — 2ª proposta'], ['415', '06:55 — 3ª proposta'], ['465', '07:45 — chefe']], def: '0', hint: 'Atalho de teste: começa com upgrades automáticos' },
 ];
@@ -40,7 +40,12 @@ export function loadSettings() {
     const raw = globalThis.localStorage?.getItem(KEY);
     if (raw) {
       const saved = JSON.parse(raw);
-      for (const f of SETTINGS_SCHEMA) if (f.id in saved && typeof saved[f.id] === typeof f.def) s[f.id] = saved[f.id];
+      // `novo`: o padrão mudou com a regra da carreira (D39); o valor guardado antes dela não vale mais
+      const v = saved.versao || 1;
+      for (const f of SETTINGS_SCHEMA) {
+        if (f.novo && v < 2) continue;
+        if (f.id in saved && typeof saved[f.id] === typeof f.def) s[f.id] = saved[f.id];
+      }
     }
   } catch {
     /* armazenamento indisponível: segue com o padrão */
@@ -50,7 +55,7 @@ export function loadSettings() {
 
 export function saveSettings(s) {
   try {
-    globalThis.localStorage?.setItem(KEY, JSON.stringify(s));
+    globalThis.localStorage?.setItem(KEY, JSON.stringify({ ...s, versao: 2 }));
   } catch {
     /* ignora */
   }

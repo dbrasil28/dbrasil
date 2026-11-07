@@ -7,7 +7,7 @@ const KEY = 'bec.progresso.v1';
 function fresh() {
   const trechos = {};
   for (const t of TRECHOS) trechos[t.id] = { liberado: t.id === 'orla', estrelas: [false, false, false], melhor: null };
-  return { gorjetas: 0, melhorias: {}, trechos, nivelNoMorro: 1, partidas: 0 };
+  return { gorjetas: 0, melhorias: {}, trechos, partidas: 0 };
 }
 
 export function loadProgress() {
@@ -18,7 +18,6 @@ export function loadProgress() {
       const s = JSON.parse(raw);
       if (typeof s.gorjetas === 'number') p.gorjetas = s.gorjetas;
       if (s.melhorias && typeof s.melhorias === 'object') p.melhorias = s.melhorias;
-      if (typeof s.nivelNoMorro === 'number') p.nivelNoMorro = s.nivelNoMorro;
       if (typeof s.partidas === 'number') p.partidas = s.partidas;
       for (const t of TRECHOS) if (s.trechos?.[t.id]) Object.assign(p.trechos[t.id], s.trechos[t.id]);
     }
@@ -51,23 +50,24 @@ export function applyRun(p, game) {
   };
   const semReviver = !game.metrics.ads.aceitos.reviver;
   const m = game.metrics;
+  // estrelas (D39): derrubar o chefão, achar a relíquia, sem reviver
   if (game.startTrecho !== 'morro') {
-    star('orla', 0, m.portaoAberto != null);
-    star('orla', 1, game.bossKilled);
-    star('orla', 2, semReviver && (m.portaoAberto != null || game.bossKilled));
+    star('orla', 0, m.chefaoOrlaS != null);
+    star('orla', 1, !!m.reliquia_orla);
+    star('orla', 2, semReviver && m.chefaoOrlaS != null);
   }
-  if (m.portaoAberto != null || game.segment === 'morro') {
-    if (!p.trechos.morro.liberado) novas.push('Subida do Morro liberada no Mapa da Rota');
-    p.trechos.morro.liberado = true;
-  }
-  if (m.nivelNoMorro) p.nivelNoMorro = Math.max(p.nivelNoMorro, m.nivelNoMorro);
   star('morro', 0, game.delivered);
-  star('morro', 1, game.delivered && m.entregaAt <= 540);
+  star('morro', 1, !!m.reliquia_morro);
   star('morro', 2, game.delivered && semReviver);
-  if (game.delivered) {
-    // a entrega no morro libera o próximo trecho da rota (ainda em produção)
-    p.trechos.rodovia_sp.liberado = true;
-  }
+  // descoberta: o trecho só aparece no Mapa da Rota depois que o Juninho chega nele
+  const descobrir = (id, ok, txt) => {
+    if (ok && !p.trechos[id].liberado) {
+      p.trechos[id].liberado = true;
+      novas.push(txt);
+    }
+  };
+  descobrir('morro', m.morroAt != null, 'Novo trecho no Mapa da Rota: Subida do Morro');
+  descobrir('sp', game.delivered, 'Novo trecho no Mapa da Rota: São Paulo (em produção)');
   saveProgress(p);
   return { tips, novas };
 }

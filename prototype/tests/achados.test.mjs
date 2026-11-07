@@ -122,3 +122,24 @@ test('faro: o Caramelo para e late na direção de um achado fechado por perto',
   assert.ok(farejou, 'o cachorro não farejou');
   assert.ok(farejou.fx > 0, 'não virou para o achado');
 });
+
+test('melhorias de opção: arma a mais no começo do trecho e troca de cartas sem anúncio', async () => {
+  const { MELHORIAS } = await import('../src/config.js');
+  const g = new Game({ ...defaultSettings(), elenco: false, aberta: false }, { seed: 3, meta: { melhorias: { armaInicial: 1, troca: 1 } } });
+  g.enemies.length = 0;
+  g.spawnAcc = -1e9;
+  g.update(DT, parado);
+  assert.equal(g.modal && g.modal.kind, 'inicial', 'sem a escolha da arma inicial');
+  assert.ok(g.modal.options.every((o) => o.kind === 'weapon' && o.level === 1));
+  assert.equal(g.trocasGratis, 1);
+  const antes = g.modal.options.map((o) => o.id).join();
+  assert.ok(g.rerollOptions(true));
+  assert.equal(g.trocasGratis, 0);
+  assert.equal(g.metrics.ads.aceitos.trocar_cartas, 0, 'a troca grátis contou como anúncio');
+  g.chooseOption(0);
+  assert.equal(g.player.weapons.length, 2);
+  assert.ok(antes.length > 0);
+  // as melhorias de força ficaram pequenas
+  const max = (id) => MELHORIAS[id].step * MELHORIAS[id].custo.length;
+  assert.ok(max('vida') <= 20 && max('velocidade') <= 0.061 && max('dano') <= 0.101 && max('recarga') <= 0.061);
+});

@@ -107,7 +107,12 @@ function holofote(game, out) {
   return out;
 }
 
-const heliOn = (game) => game.covil && game.covil.aberto && !game.covil.saiu && !game.over;
+// com a melhoria "Rádio da polícia", o helicóptero já aparece no sinal do covil (85%)
+const heliOn = (game) => {
+  const C = game.covil;
+  if (!C || C.saiu || game.over) return false;
+  return C.aberto || (C.sinal && !!(game.meta.melhorias && game.meta.melhorias.pista));
+};
 const spot = { x: 0, y: 0 };
 
 /** Mancha de luz do holofote no chão (antes dos personagens, para eles ficarem iluminados por cima). */

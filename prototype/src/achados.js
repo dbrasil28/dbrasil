@@ -133,6 +133,7 @@ export function pegarReliquia(game, id) {
   const p = game.player;
   p.reliquia = id;
   const R = RELIQUIAS[id];
+  game.metrics[`reliquia_${R.onde}`] = true; // estrela do trecho
   game.tv(`reliquia_${id}`);
   game.word(p.x, p.y - 1, R.nome.toUpperCase(), '#ffd21f');
   game.emit('reliquia', { id });

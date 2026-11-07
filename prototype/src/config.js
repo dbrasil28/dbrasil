@@ -227,9 +227,8 @@ export const AVENIDA = {
 // Rota contínua (docs/design/CARREIRA_E_ROTA.md): a Orla tem fim; a escadaria do pé do morro abre no
 // nível da meta e leva direto à Subida do Morro, sem corte. Pedaços do morro de baixo para cima.
 export const ROUTE = {
-  orla: { blocks: 8, startY: 44, startX: -6.5, unlockLevel: 15, gate: { x0: -12.8, x1: -8.6, len: 8 } }, // startX: o Juninho começa no meio do calçadão
+  orla: { blocks: 8, startY: 44, startX: -6.5, gate: { x0: -12.8, x1: -8.6, len: 8 } }, // startX: o Juninho começa no meio do calçadão
   morro: {
-    unlockLevel: 25, // nível para fazer a entrega na laje do topo
     stairSlow: 0.75, // escadaria: todo mundo sobe mais devagar
     pieces: [
       { kind: 'viela', x0: -13, x1: -8, len: 24 },
@@ -335,11 +334,16 @@ export const CENARIO = {
 // compram melhorias permanentes das habilidades básicas, para voltar um pouco mais forte.
 export const GORJETAS = { porMinuto: 5, porNivel: 2, porMilAbates: 10, liberarTrecho: 25, chefe: 60, entrega: 80 };
 export const MELHORIAS = {
-  vida: { name: 'Marmita reforçada', desc: '+10 de vida máxima', step: 10, custo: [40, 70, 110, 160, 230] },
-  dano: { name: 'Capacete de aço', desc: '+5% de dano', step: 0.05, custo: [50, 85, 130, 190, 270] },
-  velocidade: { name: 'Tênis de corrida', desc: '+3% de velocidade', step: 0.03, custo: [40, 70, 110, 160, 230] },
-  recarga: { name: 'Café de garrafa', desc: '−3% de recarga das armas', step: 0.03, custo: [50, 85, 130, 190, 270] },
-  ima: { name: 'Mochila maior', desc: '+10% de raio de coleta', step: 0.1, custo: [30, 55, 85, 125, 180] },
+  // bem pequenas (D39): o jogo continua difícil; o progresso vem mais das melhorias de opção
+  vida: { name: 'Marmita reforçada', desc: '+5 de vida máxima', step: 5, custo: [40, 80, 130, 200] }, // até +20
+  dano: { name: 'Capacete de aço', desc: '+2,5% de dano', step: 0.025, custo: [50, 100, 160, 240] }, // até +10%
+  velocidade: { name: 'Tênis de corrida', desc: '+2% de velocidade', step: 0.02, custo: [40, 90, 150] }, // até +6%
+  recarga: { name: 'Café de garrafa', desc: '−2% de recarga das armas', step: 0.02, custo: [50, 110, 180] }, // até −6%
+  ima: { name: 'Mochila maior', desc: '+5% de raio de coleta', step: 0.05, custo: [30, 55, 85, 125, 180] }, // até +25%
+  // melhorias de opção: dão escolha, não força
+  armaInicial: { name: 'Bolsa de ferramentas', desc: 'No começo de cada trecho, escolhe uma arma a mais', opcao: true, custo: [150] },
+  troca: { name: 'Contato no app', desc: '1 troca de cartas por partida, sem anúncio', opcao: true, custo: [120] },
+  pista: { name: 'Rádio da polícia', desc: 'O helicóptero da TV já aparece no sinal do covil', opcao: true, custo: [100] },
 };
 // Carreira (D39, docs/design/CARREIRA_E_ROTA.md): cada trecho tem o seu Caos (0 a 100%), um chefão
 // que mora num covil do mapa e guarda a saída, e pistas que crescem em vez de setas.
@@ -428,21 +432,15 @@ export const RELIQUIAS = {
   },
 };
 
-// Trechos da rota, de baixo para cima no Mapa da Rota. `jogavel`: já existe no protótipo.
+// Trechos da rota, de baixo para cima no Mapa da Rota (o que não foi descoberto aparece como ???).
+// `jogavel`: já existe no protótipo. A segunda parte (Nordeste, TV, sede do app) vem depois (D42).
 export const TRECHOS = [
   { id: 'orla', nome: 'Orla do Desespero', onde: 'Rio · calçadão', jogavel: true,
-    estrelas: ['Liberar a Subida do Morro', 'Vencer o Especulador', 'Sem reviver'] },
+    estrelas: ['Derrubar o chefão', 'Achar a relíquia', 'Sem reviver'] },
   { id: 'morro', nome: 'Subida do Morro', onde: 'Rio · favela', jogavel: true,
-    meta: `Chegue ao nível ${ROUTE.orla.unlockLevel} na Orla`,
-    estrelas: ['Fazer a entrega', 'Entregar antes de 9:00', 'Sem reviver'] },
-  { id: 'rodovia_sp', nome: 'Rodovia', onde: 'Rio → São Paulo', meta: 'Faça a entrega no alto do morro' },
-  { id: 'centro', nome: 'Centro do Desespero', onde: 'São Paulo', meta: 'Atravesse a rodovia' },
-  { id: 'rodovia_capital', nome: 'Rodovia', onde: 'São Paulo → capital', meta: 'Vença o Rapa' },
-  { id: 'acordopolis', nome: 'Acordópolis', onde: 'Capital', meta: 'Atravesse a rodovia' },
-  { id: 'rodovia_ne', nome: 'Rodovia', onde: 'Capital → Nordeste', meta: 'Vença O Acordão' },
-  { id: 'paraiso', nome: 'Paraíso à Venda', onde: 'Praia do Nordeste', meta: 'Atravesse a rodovia' },
-  { id: 'tv', nome: 'Rede do Pânico', onde: 'Estúdio de TV', meta: 'Vença o Barão do Guarda-Sol' },
-  { id: 'final', nome: 'Entrega Final', onde: 'Sede do aplicativo', meta: 'Vença o Apresentador' },
+    estrelas: ['Derrubar o chefão e entregar', 'Achar a relíquia', 'Sem reviver'] },
+  { id: 'sp', nome: 'São Paulo', onde: 'Rodovia e Centro do Desespero' },
+  { id: 'brasilia', nome: 'Brasília', onde: 'Rodovia e a Esplanada' },
 ];
 
 // Diretor de spawn guiado pelo Índice de Caos (0–100).

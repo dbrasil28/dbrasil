@@ -5,7 +5,7 @@ import { minimapRect } from './minimapa.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, defaultSettings } from './settings.js';
-import { ENEMIES, ROUTE } from './config.js';
+import { ENEMIES } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
 import { loadImages, images, prewarm } from './sprites.js';
@@ -100,10 +100,8 @@ let runTrecho = 'orla';
 let menuFrom = 'screen-title';
 
 function newGame() {
-  // no morro: o nível de quando entrou nele; na versão aberta, pelo menos o nível que libera a escadaria
-  const entry = settings.aberta ? Math.max(progress.nivelNoMorro, ROUTE.orla.unlockLevel) : progress.nivelNoMorro;
   // abertura (o sinal da TV pegando) em toda partida que começa na Orla; da 2ª partida em diante, dá para pular
-  const meta = { melhorias: progress.melhorias, trecho: runTrecho, entryLevel: runTrecho === 'morro' ? entry : 1, abertura: runTrecho === 'orla' };
+  const meta = { melhorias: progress.melhorias, trecho: runTrecho, abertura: runTrecho === 'orla' };
   ui.podePular = progress.partidas > 0;
   game = new Game(settings, { meta });
   layout();
@@ -315,6 +313,11 @@ ui.on('revive', async (accept) => {
   modalOpen = false;
   ui.closeModal();
   last = performance.now();
+});
+ui.on('rerollGratis', () => {
+  if (!game.modal || !game.modal.options) return;
+  game.rerollOptions(true);
+  ui.openModal(game, performance.now());
 });
 ui.on('reroll', async () => {
   if (!game.modal || !game.modal.options) return;

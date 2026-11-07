@@ -13,7 +13,7 @@ import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside, routeRemaining } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones, updateDogs } from './weapons.js';
-import { rollOptions, applyOption, playerStats } from './upgrades.js';
+import { rollOptions, rollNewWeapons, applyOption, playerStats } from './upgrades.js';
 
 const CHUNK = 10; // metros por chunk de cenário
 const tmp = [];
@@ -37,7 +37,7 @@ export class Game {
   constructor(settings, { seed = Date.now() % 1e9, viewW = 390, viewH = 844, playTop = 96, playBottom = 760, meta = null } = {}) {
     this.settings = settings;
     // carreira: melhorias permanentes compradas com gorjetas e o nível de entrada do trecho
-    this.meta = meta || { melhorias: {}, entryLevel: 1 };
+    this.meta = meta || { melhorias: {} };
     this.seed = seed;
     this.map = MAPS[settings.map] || MAPS.orla;
     this.camera = new Camera();
@@ -69,6 +69,8 @@ export class Game {
     };
     this.reviveUsed = false;
     this.rerollsLeft = this.settings.ads ? ADS.rerollsPerRun : 0;
+    this.trocasGratis = this.meta.melhorias && this.meta.melhorias.troca ? 1 : 0; // melhoria de opção
+    this.pendingInicial = false;
     this.mods = { dmgMul: 1, armor: 0, enemyHpMul: 1, bossHpMul: 1, eliteDmgMul: 1, speedMul: 1 };
     const mel = this.meta.melhorias || {};
     const lv = (id) => Math.min(mel[id] || 0, MELHORIAS[id].custo.length);
@@ -146,6 +148,7 @@ export class Game {
     this.achados = this.world ? sortearAchados(this) : []; // isopores, cofres e a relíquia (D40)
     this.abertura = null;
     if (this.meta.abertura && this.world && this.startTrecho === 'orla') iniciarAbertura(this); // o dia em que o sinal pegou
+    if (this.meta.melhorias && this.meta.melhorias.armaInicial) this.pendingInicial = true;
 
     this.metrics = {
       seed: this.seed,
@@ -681,6 +684,16 @@ export class Game {
       this.emit('modal', {});
       return;
     }
+    if (this.pendingInicial && !emAbertura(this)) {
+      // melhoria "Bolsa de ferramentas": uma arma a mais no começo do trecho
+      this.pendingInicial = false;
+      const options = rollNewWeapons(this.player, this.rng, 3, this.segment);
+      if (options.length) {
+        this.modal = { kind: 'inicial', options };
+        this.emit('modal', {});
+        return;
+      }
+    }
     if (this.pendingChests > 0) {
       this.modal = { kind: 'chest', options: rollOptions(this.player, this.rng, 3, this.segment) };
       if (this.rerollsLeft > 0) this.metrics.ads.ofertas.trocar_cartas++;
@@ -701,7 +714,7 @@ export class Game {
     if (!opt) return;
     applyOption(this.player, opt);
     if (m.kind === 'chest') this.pendingChests--;
-    else this.pendingLevels--;
+    else if (m.kind !== 'inicial') this.pendingLevels--;
     this.modal = null;
     this.stats = playerStats(this.player, this.mods);
     this.player.hp = Math.min(this.player.hp, this.stats.maxHp);
@@ -773,11 +786,18 @@ export class Game {
   }
 
   /** Troca as 3 cartas da escolha atual (anúncio recompensado). */
-  rerollOptions() {
+  rerollOptions(gratis = false) {
     const m = this.modal;
-    if (!m || !m.options || this.rerollsLeft <= 0) return false;
-    this.rerollsLeft--;
-    this.metrics.ads.aceitos.trocar_cartas++;
+    if (!m || !m.options) return false;
+    if (gratis) {
+      // melhoria "Contato no app": troca sem anúncio
+      if (this.trocasGratis <= 0) return false;
+      this.trocasGratis--;
+    } else {
+      if (this.rerollsLeft <= 0) return false;
+      this.rerollsLeft--;
+      this.metrics.ads.aceitos.trocar_cartas++;
+    }
     m.options = rollOptions(this.player, this.rng, 3, this.segment);
     return true;
   }
@@ -1674,12 +1694,12 @@ export class Game {
     if (this.segment === 'orla' && p.y < w.orlaTop - 1) {
       this.segment = 'morro';
       this.metrics.morroAt = Math.round(this.t);
-      this.metrics.nivelNoMorro = 1;
       this.emit('segment', { name: 'SUBIDA DO MORRO' });
       this.tv('morro');
       recomecar(this, 'morro'); // "atualização obrigatória do aplicativo"
     }
     if (this.segment !== 'morro') return;
+    if (p.ri >= 0) w.visto.add(p.ri);
     w.exitOpen = !!this.settings.aberta || this.chefeKilled;
     const top = w.top;
     if (w.exitOpen && inside(top, p.x, p.y) && p.y < (top.y0 + top.y1) / 2 && !this.chefe) this.deliver();

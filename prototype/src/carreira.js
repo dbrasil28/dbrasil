@@ -205,6 +205,7 @@ export function recomecar(game, trecho) {
   game.covil = covilDe(game, trecho);
   game.crise = null;
   game.crisesFeitas = new Set();
+  if (game.meta.melhorias && game.meta.melhorias.armaInicial) game.pendingInicial = true; // "Bolsa de ferramentas"
   game.tv('recomeco');
   game.emit('recomeco', { text: CARREIRA.recomeco });
 }

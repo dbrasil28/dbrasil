@@ -326,7 +326,9 @@ export class UI {
     head.className = 'sheet-head';
     head.innerHTML = m.kind === 'chest'
       ? '<span class="eyebrow">MALETA ENCONTRADA</span><h2>Abra e escolha</h2>'
-      : `<span class="eyebrow">NÍVEL ${m.level}</span><h2>Escolha uma melhoria</h2>`;
+      : m.kind === 'inicial'
+        ? '<span class="eyebrow">BOLSA DE FERRAMENTAS</span><h2>Escolha uma arma para o trecho</h2>'
+        : `<span class="eyebrow">NÍVEL ${m.level}</span><h2>Escolha uma melhoria</h2>`;
     sheet.appendChild(head);
     const list = document.createElement('div');
     list.className = 'cards';
@@ -357,6 +359,18 @@ export class UI {
       list.appendChild(b);
     });
     sheet.appendChild(list);
+    if (game.trocasGratis > 0) {
+      // melhoria "Contato no app": troca sem anúncio
+      const rg = document.createElement('button');
+      rg.type = 'button';
+      rg.className = 'reroll';
+      rg.textContent = 'Trocar as cartas (contato no app, grátis)';
+      rg.addEventListener('click', () => {
+        if (!this.armed()) return;
+        this.fire('rerollGratis');
+      });
+      sheet.appendChild(rg);
+    }
     if (game.rerollsLeft > 0 && this.rewardedOk?.()) {
       const rr = document.createElement('button');
       rr.type = 'button';
@@ -601,6 +615,15 @@ export class UI {
       const st = aberta ? { ...progress.trechos[t.id], liberado: true } : progress.trechos[t.id]; // versão aberta: tudo liberado
       const open = st.liberado && t.jogavel;
       const li = document.createElement('li');
+      if (!st.liberado) {
+        // ainda não descoberto (D39): sem nome e sem meta
+        const item = document.createElement('div');
+        item.className = 'rota-item is-locked';
+        item.innerHTML = '<span><span class="rota-name">???</span></span><span class="rota-lock">🔒</span>';
+        li.append(item);
+        list.append(li);
+        continue;
+      }
       const item = document.createElement(open ? 'button' : 'div');
       item.className = `rota-item ${open ? 'is-open' : 'is-locked'}`;
       if (open) item.type = 'button';
@@ -656,7 +679,7 @@ export class UI {
       name.textContent = m.name;
       const desc = document.createElement('span');
       desc.className = 'mel-desc';
-      desc.textContent = `${m.desc} por nível`;
+      desc.textContent = m.opcao ? m.desc : `${m.desc} por nível`;
       const pips = document.createElement('span');
       pips.className = 'mel-pips';
       for (let i = 0; i < m.custo.length; i++) {
