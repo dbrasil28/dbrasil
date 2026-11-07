@@ -1304,7 +1304,7 @@ export class Game {
       if (s.obj) continue;
       s.emptyT += dt;
       if (s.emptyT >= I.respawnS && (s.x - p.x) ** 2 + (s.y - p.y) ** 2 > I.respawnMinDistM ** 2 && !this.onScreen(s.x, s.y)) {
-        s.obj = { kind: s.kind, x: s.x, y: s.y, plat: s.plat };
+        s.obj = { kind: s.kind, x: s.x, y: s.y, plat: s.plat, dir: s.dir };
         s.emptyT = 0;
       }
     }

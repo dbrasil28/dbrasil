@@ -2,7 +2,7 @@
 // Subida do Morro), as áreas onde dá para andar, as lajes com escada, os lugares (boteco, quiosque,
 // prédio, posto de salva-vidas) e as vagas dos objetos que o Juninho pega e arremessa.
 // Plano: docs/design/CARREIRA_E_ROTA.md e docs/design/MAPAS_CARACTERIZACAO.md.
-import { ROUTE, PLACES } from './config.js';
+import { ROUTE, PLACES, CADEIRA_DIST } from './config.js';
 import { clamp } from './math.js';
 import { placeCenario, SOLID_CELL } from './cenario.js';
 
@@ -69,8 +69,9 @@ function addPlatform(w, x0, y0, x1, y1, h, stair, kind) {
   return P;
 }
 
-function addSlot(w, kind, x, y, plat = null, place = null) {
-  w.slots.push({ kind, x, y, plat, place, obj: { kind, x, y, plat }, emptyT: 0 });
+function addSlot(w, kind, x, y, plat = null, place = null, dir = 's') {
+  // dir: para onde o objeto está virado (cadeira de frente para a mesa); 's' = de frente para a câmera
+  w.slots.push({ kind, x, y, plat, place, dir, obj: { kind, x, y, plat, dir }, emptyT: 0 });
 }
 
 /** Orla: boteco, quiosque, prédio com escada de incêndio e posto de salva-vidas, por quarteirão. */
@@ -87,8 +88,8 @@ function placeOrla(w, map) {
       w.places.push({ kind: 'boteco', side: 'esq', sign: 'BOTECO', x0: x, y0: yb - 1.2, x1: x + 6.5, y1: yb + 5.4, counter });
       for (const [mx, my] of [[x + 3.6, yb + 0.9], [x + 4.4, yb + 3.6]]) {
         addSlot(w, 'mesa', mx, my);
-        addSlot(w, 'cadeira', mx - 0.85, my);
-        addSlot(w, 'cadeira', mx + 0.85, my);
+        addSlot(w, 'cadeira', mx - CADEIRA_DIST, my, null, null, 'se');
+        addSlot(w, 'cadeira', mx + CADEIRA_DIST, my, null, null, 'sw');
       }
       addSlot(w, 'engradado', x + 1.9, yb + 4.9);
     } else if (kind === 'predio') {
@@ -131,8 +132,8 @@ function placeMorro(w) {
       const m = side === -1 ? -1 : 1; // o boteco fica espelhado do lado livre
       for (const [dx, dy] of [[-3, -1.5], [2.5, 1.5]]) {
         addSlot(w, 'mesa', cx + dx * m, cy + dy);
-        addSlot(w, 'cadeira', cx + dx * m - 0.85, cy + dy);
-        addSlot(w, 'cadeira', cx + dx * m + 0.85, cy + dy);
+        addSlot(w, 'cadeira', cx + dx * m - CADEIRA_DIST, cy + dy, null, null, 'se');
+        addSlot(w, 'cadeira', cx + dx * m + CADEIRA_DIST, cy + dy, null, null, 'sw');
       }
       addSlot(w, 'botijao', m === 1 ? k.x0 + 0.9 : k.x1 - 0.9, k.y0 + 1.2);
       addSlot(w, 'engradado', m === 1 ? k.x1 - 1.0 : k.x0 + 1.0, k.y1 - 1.4);

@@ -19,6 +19,15 @@ export const ART = {
   orelhao: { w: 0.6, d: 0.5, h: 2.1, padX: 0.55, top: 2.7, bot: 0.3, files: ['laranja'], espelha: true },
   muro: { w: 4.4, d: 0.4, h: 2.4, padX: 0.3, top: 3.0, bot: 0.35, files: ['a', 'b'] },
   tapume: { w: 4.6, d: 0.3, h: 2.2, padX: 0.3, top: 2.7, bot: 0.35, files: ['a'] },
+  // muro na vertical (correndo de baixo para cima na tela): fino em x, comprido em y
+  muro_v: { w: 0.45, d: 4.4, h: 2.4, padX: 0.45, top: 6.5, bot: 0.3, files: ['a', 'b'], espelha: true },
+  // praia
+  coqueiro: { w: 0.5, d: 0.5, h: 7.5, padX: 2.6, top: 8.0, bot: 0.3, files: ['a'], espelha: true },
+  guarda_sol: { w: 0.2, d: 0.2, h: 2.6, padX: 1.4, top: 3.0, bot: 0.3, files: ['a', 'b'], espelha: true },
+  isopor: { w: 0.75, d: 0.5, h: 0.5, padX: 0.3, top: 1.2, bot: 0.3, files: ['a'] },
+  mate: { w: 1.4, d: 0.8, h: 1.2, padX: 0.6, top: 2.6, bot: 0.3, files: ['a'], espelha: true },
+  rede: { w: 6.0, d: 0.2, h: 2.2, padX: 0.3, top: 3.0, bot: 0.3, files: ['a'] },
+  toalha: { w: 1.0, d: 1.8, h: 0.05, padX: 0.2, top: 1.8, bot: 0.2, files: ['a', 'b', 'c'], chao: true },
   // veículos e coisas do morro
   camburao: { w: 4.6, d: 2.0, h: 2.1, padX: 0.7, top: 4.0, bot: 0.45, files: ['a'], espelha: true },
   moto: { w: 1.9, d: 0.7, h: 1.1, padX: 0.4, top: 2.0, bot: 0.3, files: ['a'], espelha: true },

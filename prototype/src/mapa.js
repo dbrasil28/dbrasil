@@ -317,7 +317,7 @@ export class OrlaLayer {
   draw(ctx, game, vb, dpr) {
     const cam = game.camera;
     const m = game.map;
-    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}|${game.world && game.world.gateOpen ? 1 : 0}`;
+    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}|${images.cen_coqueiro_a ? 1 : 0}|${game.world && game.world.gateOpen ? 1 : 0}`;
     if (key !== this.key) {
       this.tiles.clear();
       this.key = key;
@@ -419,8 +419,19 @@ export function drawDecor(ctx, d, p, ppu, k) {
     case 'fachada': return drawFachada(ctx, d.f, p, ppu);
     case 'banca_pastel': return drawBancaPastel(ctx, p, ppu, k);
     case 'ponto_onibus': return drawPonto(ctx, p, ppu, k);
-    case 'poste': return drawImageProp(ctx, images.poste, p, ppu * 5.0);
-    case 'coqueiro': return drawCoqueiro(ctx, d, p, ppu, k);
+    case 'poste': return drawImageProp(ctx, d.seed > 0.4 && images.poste_b ? images.poste_b : images.poste, p, ppu * 6.4);
+    case 'coqueiro': {
+      const im = images.cen_coqueiro_a; // coqueiro gerado (Figma), além da areia
+      if (!im) return drawCoqueiro(ctx, d, p, ppu, k);
+      const h = (6.2 + d.seed * 2) * ppu;
+      const w = (im.width / im.height) * h;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      if (d.seed > 0.5) ctx.scale(-1, 1);
+      ctx.drawImage(im, -w / 2, -h * (1 - 0.3 / 8.3), w, h);
+      ctx.restore();
+      return undefined;
+    }
     case 'quiosque': return drawQuiosque(ctx, d, p, ppu, k);
     case 'salva_vidas': return drawSalvaVidas(ctx, p, ppu, k);
     default: return undefined;

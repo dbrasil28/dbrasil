@@ -179,6 +179,10 @@ export const THROWABLES = {
 // Altura de cada objeto arremessável quando está no chão (m, na escala dos personagens, que são
 // desenhados com 1,75 m): a imagem gerada é desenhada com essa altura.
 export const OBJ_ALTURA = { cadeira: 0.85, mesa: 0.8, engradado: 0.45, botijao: 0.65, cadeira_praia: 0.85, banquinho: 0.5, pneu: 0.4 };
+// Os personagens são desenhados maiores que a escala real (para ler bem no celular); os objetos crescem
+// junto para não parecerem de brinquedo ao lado deles. Cadeiras ficam a esta distância do centro da mesa.
+export const OBJ_ESCALA = 1.4;
+export const CADEIRA_DIST = 1.2;
 export const HEALS = { coco: 20, marmita: 35, acai: 15, pastel: 30, milho: 12 };
 export const HEAL_RESPAWN_S = 45;
 export const ACAI_BUFF = { speedMul: 1.25, s: 6 };
@@ -199,6 +203,7 @@ export const CENARIO = {
   esquerda2: ['pastelaria', 'acai', 'boteco', 'acai', 'pastelaria', 'boteco', 'acai', 'boteco', 'pastelaria'],
   carrinho: ['milho', 'banca', 'picole', 'milho', 'banca', 'milho', 'picole', 'banca', 'milho'],
   posteCadaM: 12, // postes nas duas fileiras do calçadão
+  posteAlturaM: 6.4, // altura do poste de luz com o gato de fios
   lixoPorQuarteirao: 34, // sujeira no chão (só desenho): manchas, latinhas, papel, sacos, poças
   santinhos: 10, // santinhos de candidato no chão, por rua e por quarteirão
   bandeirinhasChance: 0.6, // bandeirinhas verde-amarelas atravessando a rua

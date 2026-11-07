@@ -1,6 +1,6 @@
 // Desenho provisório (em código) do mundo da rota: lajes com escada, objetos de cena, boteco,
 // tapume da escadaria, setas da rota, mira do traficante e balas. Sai quando a arte do guia chegar.
-import { ROUTE, OBJ_ALTURA } from './config.js';
+import { ROUTE, OBJ_ALTURA, OBJ_ESCALA } from './config.js';
 import { inside, deliveryPoint } from './mundo.js';
 import { images } from './sprites.js';
 import { ART, ART_S, artKey } from './arte_cenario.js';
@@ -118,15 +118,23 @@ export function drawStair(ctx, P, cam, ppu) {
 }
 
 /** Objeto de cena: s = tamanho de referência em px (altura do Juninho). */
-export function drawObject(ctx, kind, x, y, s, rot = 0) {
+// giro dos objetos: direção pedida -> vista guardada (e se é espelhada)
+const VISTA = { s: ['s', false], se: ['se', false], e: ['se', false], ne: ['ne', false], n: ['n', false], nw: ['ne', true], w: ['se', true], sw: ['se', true] };
+export const GIRO = ['s', 'se', 'ne', 'n', 'nw', 'sw'];
+
+export function drawObject(ctx, kind, x, y, s, rot = 0, dir = 's') {
   // arte gerada: base do objeto no chão em (x, y); s = 0,42 da altura do Juninho na tela
-  const im = images[`obj_${kind}`];
+  const [vd, flip] = VISTA[dir] || VISTA.s;
+  const im = images[`obj_${kind}_${vd}`] || images[`obj_${kind}`];
   if (im && OBJ_ALTURA[kind]) {
-    const h = ((s / 0.42) * OBJ_ALTURA[kind]) / 1.75;
+    // vistas do giro: mesma escala da diagonal da frente (220 px de altura)
+    const ref = images[`obj_${kind}_se`] ? 220 : im.height;
+    const h = ((((s / 0.42) * OBJ_ALTURA[kind]) / 1.75) * OBJ_ESCALA * im.height) / ref;
     const w = (im.width / im.height) * h;
     ctx.save();
     ctx.translate(x, y - h / 2);
     if (rot) ctx.rotate(rot);
+    if (flip && images[`obj_${kind}_${vd}`]) ctx.scale(-1, 1);
     ctx.drawImage(im, -w / 2, -h / 2, w, h);
     ctx.restore();
     return;

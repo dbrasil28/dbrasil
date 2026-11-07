@@ -2,7 +2,7 @@
 // meio do calçadão, carrinhos, bancos, lixeiras, orelhões, postes, placas e a sujeira do chão; no morro,
 // motos, entulho, gatos de luz, caixas d'água, sinuca e varal nas lajes. Tudo determinístico por posição.
 // Os sólidos nunca fecham a rota: ficam longe das passagens, das escadas e do começo da partida.
-import { CENARIO, PLACES, ROUTE } from './config.js';
+import { CENARIO, PLACES, ROUTE, CADEIRA_DIST } from './config.js';
 import { hash2 } from './math.js';
 
 const H = hash2;
@@ -64,8 +64,8 @@ function prop(w, kind, x0, y0, x1, y1, h, v, opts = {}) {
 export const FIGURAS = new Set(['garota', 'policial']);
 const litter = (w, kind, x, y, v) => w.litter.push({ kind, x, y, v });
 
-function slot(w, kind, x, y) {
-  w.slots.push({ kind, x, y, plat: null, place: null, obj: { kind, x, y, plat: null }, emptyT: 0 });
+function slot(w, kind, x, y, dir = 's') {
+  w.slots.push({ kind, x, y, plat: null, place: null, dir, obj: { kind, x, y, plat: null, dir }, emptyT: 0 });
 }
 
 /**
@@ -101,8 +101,8 @@ function loja(w, kind, side, x, yb, seed) {
       return;
     }
     slot(w, 'mesa', mx, my);
-    slot(w, assento, mx - 0.85, my);
-    slot(w, assento, mx + 0.85, my);
+    slot(w, assento, mx - CADEIRA_DIST, my, 'se');
+    slot(w, assento, mx + CADEIRA_DIST, my, 'sw');
   });
   if (kind === 'boteco') slot(w, 'engradado', side === 'esq' ? x + 1.9 : x + 2.6, side === 'esq' ? yb + 4.9 : yb + 0.4);
   else w.heals.push({ kind: kind === 'acai' ? 'acai' : 'pastel', x: heal[0], y: heal[1], plat: null });
@@ -190,6 +190,10 @@ function calcadao(w, map, b) {
   }
   // muro pichado de terreno baldio, saindo do lado do morro, e tapume de obra parada com cartazes
   prop(w, 'muro', map.minX, y0 + 23.3, map.minX + 4.4, y0 + 23.7, 2.4, seed(9));
+  // muro na vertical, dividindo o calçadão (um por quarteirão, onde couber)
+  for (const [mx, my] of [[-9.6, 20.6], [4.6, 27.5], [-3.6, 31.0]]) {
+    if (prop(w, 'muro_v', mx, y0 + my, mx + 0.45, y0 + my + 4.4, 2.4, seed(11))) break;
+  }
   for (const [tx, ty] of [[1.0, 32.5], [-4.6, 6.5], [2.2, 9.5]]) {
     if (prop(w, 'tapume', tx, y0 + ty - 0.3, tx + 4.6, y0 + ty, 2.2, seed(10))) break;
   }
@@ -204,7 +208,7 @@ function calcadao(w, map, b) {
   for (let row = 0; row < 2; row++) {
     const px = row === 0 ? -7.4 : 7.4;
     for (let yy = 2 + row * (step / 2); yy < 39; yy += step) {
-      prop(w, 'poste', px - 0.18, y0 + yy - 0.36, px + 0.18, y0 + yy, 4.6, H(b, Math.round(yy), 609 + row));
+      prop(w, 'poste', px - 0.18, y0 + yy - 0.36, px + 0.18, y0 + yy, CENARIO.posteAlturaM, H(b, Math.round(yy), 609 + row));
     }
   }
   const nome = PLACAS.rua[Math.floor(H(b, 0, 611) * PLACAS.rua.length)];
@@ -224,6 +228,38 @@ function calcadao(w, map, b) {
     const x = map.minX + 0.5 + H(b, i, 620) * (map.sandX - map.minX - 1);
     const y = y0 + H(b, i, 621) * 40;
     litter(w, kinds[Math.floor(H(b, i, 622) * kinds.length)], x, y, H(b, i, 623));
+  }
+}
+
+/** Areia: coqueiros, guarda-sóis com toalha e isopor, carrinho de mate e, às vezes, a rede de futevôlei. */
+function praia(w, map, b) {
+  const y0 = -map.blockLen * b;
+  const sd = (i) => H(b, i, 1101);
+  const x0 = map.sandX + 0.3;
+  const x1 = map.maxX - 0.3;
+  // flat: estendido no chão (desenho sem colisão, conta como chão para a ordem de desenho)
+  const chao = (kind, ax, ay, bx, by, v) => {
+    const p = prop(w, kind, ax, ay, bx, by, 0.05, v, { solid: false });
+    p.y = p.y0 - 0.3;
+    return p;
+  };
+  for (const [cx, yy, i] of [[x1 - 0.6, 4, 1], [x1 - 0.4, 33, 2], [x0 + 1.4, 14, 3]]) {
+    if (sd(i) < 0.75) prop(w, 'coqueiro', cx - 0.25, y0 + yy - 0.5, cx + 0.25, y0 + yy, 7.5, sd(10 + i));
+  }
+  for (const [cx, yy, i] of [[x0 + 2.0, 8, 1], [x0 + 3.6, 27.5, 2], [x0 + 1.4, 36, 3], [x0 + 4.2, 18, 4]]) {
+    if (sd(20 + i) > 0.8) continue;
+    const gs = prop(w, 'guarda_sol', cx - 0.1, y0 + yy - 0.2, cx + 0.1, y0 + yy, 2.6, sd(30 + i));
+    if (!gs) continue;
+    if (cx + 1.6 < x1) chao('toalha', cx + 0.35, y0 + yy - 1.2, cx + 1.35, y0 + yy + 0.6, sd(40 + i));
+    if (sd(50 + i) < 0.7) prop(w, 'isopor', cx - 1.7, y0 + yy - 0.1, cx - 0.95, y0 + yy + 0.4, 0.5, sd(60 + i));
+  }
+  if (b % 2 === 0) prop(w, 'mate', x1 - 2.0, y0 + 11.4, x1 - 0.6, y0 + 12.2, 1.2, sd(70));
+  // quadra de futevôlei (a cada 3 quarteirões): linhas no chão, rede com os postes sólidos
+  if (b % 3 === 1) {
+    const ry = y0 + 31;
+    for (const px of [x0, x1 - 0.3]) prop(w, 'poste_rede', px, ry - 0.25, px + 0.3, ry, 2.2, 0, { extra: { invisivel: true } });
+    const r = prop(w, 'rede', x0, ry - 0.2, x1, ry, 2.2, sd(80), { solid: false });
+    if (r) litter(w, 'quadra', (x0 + x1) / 2, ry, (x1 - x0) / 2);
   }
 }
 
@@ -366,7 +402,10 @@ export function placeCenario(w, map) {
   w.props = [];
   w.litter = [];
   // lojas primeiro (ocupam espaço com mesas), depois ruas, calçadão e morro
-  for (let b = 0; b <= ROUTE.orla.blocks; b++) calcadao(w, map, b);
+  for (let b = 0; b <= ROUTE.orla.blocks; b++) {
+    calcadao(w, map, b);
+    praia(w, map, b);
+  }
   policia(w, map); // antes dos carros: o camburão tem vaga garantida no pé do morro
   for (let s = 0; s <= ROUTE.orla.blocks + 1; s++) rua(w, map, s);
   morro(w);

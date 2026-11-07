@@ -6,7 +6,7 @@ import { OrlaLayer, drawImageProp } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
 import { drawMinimap } from './minimapa.js';
 import {
-  entityDepth, drawPlatform, drawStair, drawObject, drawPlace, drawGate, drawGroundArrows, drawEdgeArrow, drawGoalBeacon,
+  entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace, drawGate, drawGroundArrows, drawEdgeArrow, drawGoalBeacon,
   drawAim, drawBullet, drawHeal,
 } from './render_mundo.js';
 
@@ -238,11 +238,11 @@ export class Renderer {
           ctx.beginPath();
           ctx.ellipse(pt.x, pt.y, s * 0.3, s * 0.1, 0, 0, Math.PI * 2);
           ctx.fill();
-          drawObject(ctx, o.kind, pt.x, pt.y, s * (1 + Math.sin(t * 4 + o.x) * 0.04));
+          drawObject(ctx, o.kind, pt.x, pt.y, s * (1 + Math.sin(t * 4 + o.x) * 0.04), 0, o.dir);
           break;
         }
         case 'prop':
-          if (o.type === 'poste' && images.poste) drawImageProp(ctx, images.poste, pt, ppu * 4.6);
+          if (o.type === 'poste' && images.poste) drawImageProp(ctx, images.poste, pt, ppu * 6.4);
           else if (o.type === 'cone' && images.cone) drawImageProp(ctx, images.cone, pt, ppu * 0.75);
           else drawProp(ctx, o, pt, ppu, cam.k);
           break;
@@ -1258,7 +1258,7 @@ function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
     ctx.beginPath();
     ctx.ellipse(pt.x, pt.y, s * 0.28, s * 0.09, 0, 0, Math.PI * 2);
     ctx.fill();
-    drawObject(ctx, o.obj, pt.x, pt.y - o.h * ppu - playerPx * 0.3, s, o.t * 12);
+    drawObject(ctx, o.obj, pt.x, pt.y - o.h * ppu - playerPx * 0.3, s, Math.sin(o.t * 9) * 0.5, GIRO[Math.floor(o.t * 16) % GIRO.length]); // gira no ar
     return;
   }
   const artId = o.kind === 'boomerang' ? 'w_capacete' : o.kind === 'slipper' ? 'w_chinelo' : o.kind === 'lob' ? 'w_maleta' : null;

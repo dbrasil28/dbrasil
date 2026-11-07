@@ -145,6 +145,19 @@ Regras do cenário:
 | Casas da borda | Lado do morro | Pichação, cartaz e bandeira na janela |
 | Muro do fim da Orla | Ao lado da escadaria | Pichado e com cartazes; camburão parado na rua com três policiais de guarda |
 
+### Praia (areia da Orla)
+
+| O quê | Onde | Como joga |
+| --- | --- | --- |
+| Coqueiros | Beira da areia | Tronco sólido |
+| Guarda-sóis com toalha e isopor | Espalhados na areia | Haste e isopor sólidos; a toalha é chão |
+| Carrinho de mate | Um a cada dois quarteirões | Sólido |
+| Quadra de futevôlei | Um a cada três quarteirões | Linhas na areia; postes da rede sólidos, rede passa por cima |
+
+### Postes e muros
+
+Os postes de luz são de concreto, cheios de fio de gato, com transformador e pipa presa. O poste com o cartaz "vote em mim de novo" saiu do jogo. Os muros têm versão horizontal (de frente) e vertical (correndo de baixo para cima na tela), que divide o calçadão.
+
 ### Subida do Morro
 
 | O quê | Onde | Como joga |

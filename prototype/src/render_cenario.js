@@ -18,10 +18,10 @@ let cacheKey = '';
 const DIRECT = new Set(['fios', 'bandeirinhas']); // compridos e finos: desenha direto, sem bitmap
 const VARIANTS = { carro: 16, onibus: 4, garota: 12, muro: 9, tapume: 9, poste: 6, moto: 6, lixeira: 4, banco: 3 };
 // folga do bitmap em volta do retângulo do chão (m): lados, em cima, embaixo
-const PAD = { policial: [0.8, 0.3], camburao: [0.6, 0.6], placa_parede: [1.4, 0.6], placa: [0.9, 0.4], garota: [0.6, 0.3], varal: [0.4, 0.5], bandeira: [1.4, 0.4], orelhao: [0.5, 0.3], poste: [1.0, 0.3] };
+const PAD = { policial: [0.8, 0.3], camburao: [0.6, 0.6], poste: [2.2, 0.3], placa_parede: [1.4, 0.6], placa: [0.9, 0.4], garota: [0.6, 0.3], varal: [0.4, 0.5], bandeira: [1.4, 0.4], orelhao: [0.5, 0.3] };
 
 function sprite(p, ppu, k, dpr) {
-  const key = `${ppu.toFixed(3)}|${k.toFixed(4)}|${dpr}|${images.poste ? 1 : 0}|${images.cone ? 1 : 0}`;
+  const key = `${ppu.toFixed(3)}|${k.toFixed(4)}|${dpr}|${images.poste ? 1 : 0}|${images.poste_b ? 1 : 0}|${images.cone ? 1 : 0}`;
   if (key !== cacheKey) {
     cache.clear();
     cacheKey = key;
@@ -61,6 +61,7 @@ function sprite(p, ppu, k, dpr) {
 
 /** Desenha um objeto do cenário; (sx, sy) = tela do canto da frente à esquerda, no chão. */
 export function drawCenario(ctx, p, cam, ppu, dpr, t, alpha = 1, playerPx = 0) {
+  if (p.invisivel) return; // poste da rede: só colisão (o desenho vem na imagem da rede)
   cam.toScreen(p.x0, p.y1, pt);
   if (DIRECT.has(p.kind)) return drawOverhead(ctx, p, cam, ppu, t);
   // arte pintada (PNG do ateliê), quando existe: mesma origem (canto da frente, à esquerda, no chão)
@@ -233,25 +234,21 @@ function bloco(g, p, W, D, m) {
 
 const DRAW = {
   poste(g, p, W, D, m) {
+    // poste de luz com o gato de fios (imagem centrada na base); sem imagem, um poste simples
     const H = p.h * m;
-    if (images.poste) {
-      const im = images.poste;
+    const im = p.v < 0.5 ? images.poste : images.poste_b || images.poste;
+    if (im) {
       const w = (im.width / im.height) * H;
       g.fillStyle = 'rgba(0,0,0,0.3)';
       g.beginPath();
-      g.ellipse(W / 2, 0, w * 0.3, w * 0.1, 0, 0, Math.PI * 2);
+      g.ellipse(W / 2 + 0.25 * m, 0, 0.45 * m, 0.14 * m, 0, 0, Math.PI * 2);
       g.fill();
       g.drawImage(im, W / 2 - w / 2, -H, w, H);
     } else {
       rect(g, W / 2 - 0.07 * m, -H, 0.14 * m, H, '#6f7076');
-      rect(g, W / 2 - 0.07 * m, -H, 0.8 * m, 0.1 * m, '#6f7076');
-      rect(g, W / 2 + 0.5 * m, -H + 0.1 * m, 0.4 * m, 0.12 * m, '#ffe9a0');
     }
-    // cartaz de candidato amarrado no poste (e às vezes uma bandeira)
-    // (o desenho do poste já vem com cartaz de político; no provisório, cartaz de candidato)
-    if (!images.poste && p.v < 0.6) cartaz(g, W / 2 - 0.32 * m, -2.5 * m, 0.64 * m, 0.85 * m, Math.floor(p.v * 10));
-    else if (p.v > 0.7) bandeira(g, W / 2 + 0.05 * m, -3.3 * m, 0.8 * m, 0.55 * m);
   },
+
   cone(g, p, W, D, m) {
     if (images.cone) {
       const im = images.cone;
@@ -574,6 +571,22 @@ export function drawLitter(g, w, cam, b) {
         g.lineWidth = 2;
         g.stroke();
         break;
+      case 'quadra': {
+        // linhas da quadra de futevôlei na areia (v = metade da largura em m)
+        const hw = v;
+        const hl = 6;
+        cam.toScreen(d.x - hw, d.y - hl, pt2);
+        const w2 = hw * 2 * ppu;
+        const h2 = hl * 2 * ppu * k;
+        g.strokeStyle = 'rgba(40,120,200,0.75)';
+        g.lineWidth = Math.max(2, ppu * 0.08);
+        g.strokeRect(pt2.x, pt2.y, w2, h2);
+        g.beginPath();
+        g.moveTo(pt2.x, pt2.y + h2 / 2);
+        g.lineTo(pt2.x + w2, pt2.y + h2 / 2);
+        g.stroke();
+        break;
+      }
       case 'bueiro':
         g.fillStyle = '#2a2a2e';
         g.beginPath();
