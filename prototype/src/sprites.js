@@ -26,8 +26,9 @@ export const IMAGES = {
   chefe_trafico_poses_atlas: 'assets/personagens/chefe_trafico/poses_atlas.webp', // ataque e raiva em 16 direções
   traficante_poses_atlas: 'assets/personagens/traficante/poses_atlas.webp', // mira com o fuzil em 16 direções
   funkeiro_poses_atlas: 'assets/personagens/funkeiro/poses_atlas.webp', // fúria de braços abertos em 16 direções
-  // Cachorro Caramelo (habilidade): caminhada, mordida e latido em 16 direções × 6 quadros
+  // Cachorro Caramelo (habilidade): caminhada, corrida, mordida e latido em 16 direções × 6 quadros
   caramelo_walk_atlas: 'assets/personagens/caramelo/caminhada_atlas.webp',
+  caramelo_corrida_atlas: 'assets/personagens/caramelo/corrida_atlas.webp',
   caramelo_mordida_atlas: 'assets/personagens/caramelo/mordida_atlas.webp',
   caramelo_latido_atlas: 'assets/personagens/caramelo/latido_atlas.webp',
   politico_walk_atlas: 'assets/personagens/politico/caminhada_atlas.webp', // Político Corrupto (e o Rival, tingido)
@@ -172,9 +173,10 @@ export const WALK_ATLAS = {
   tf: { atlas: 'traficante_walk_atlas', prefix: 'tf', figureH: 157 },
   ct: { atlas: 'chefe_trafico_walk_atlas', prefix: 'ct', figureH: 157 },
   pa: { atlas: 'politico_attack_atlas', prefix: 'pa', figureH: 158 }, // mesma escala da caminhada
-  // Caramelo: as três na mesma escala. feetRows: onde ficam as patas em cada direção (px da célula de 160);
+  // Caramelo: as quatro na mesma escala. feetRows: onde ficam as patas em cada direção (px da célula de 160);
   // de lado o cachorro pisa mais alto na folha, então o desenho desce até as patas tocarem o chão
   cw: { atlas: 'caramelo_walk_atlas', prefix: 'cw', figureH: 152, feetRows: [153.7, 150.3, 147.5, 148.9, 136.0, 136.0, 143.3, 152.3, 153.0, 148.2, 144.3, 138.1, 129.0, 138.4, 146.1, 151.3] },
+  cr: { atlas: 'caramelo_corrida_atlas', prefix: 'cr', figureH: 152, feetRows: [155.5,  153.4,  145.0,  144.3,  127.3,  130.8,  131.5,  142.6,  159.0,  155.1,  146.8,  140.2,  129.4,  133.6,  142.3,  151.3] },
   cm: { atlas: 'caramelo_mordida_atlas', prefix: 'cm', figureH: 152, feetRows: [156.9, 156.5, 156.2, 151.0, 131.1, 136.0, 139.5, 145.4, 156.5, 153.0, 149.9, 145.4, 132.9, 138.8, 143.7, 148.9] },
   cl: { atlas: 'caramelo_latido_atlas', prefix: 'cl', figureH: 152, feetRows: [155.1, 151.7, 150.3, 150.6, 136.3, 139.5, 144.0, 152.3, 156.5, 153.0, 150.3, 143.7, 130.1, 140.5, 144.7, 151.7] },
 };

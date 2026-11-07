@@ -1684,14 +1684,15 @@ function drawBoletoGirando(ctx, z, q, pt, playerPx, t) {
 const dogPt = { x: 0, y: 0 };
 
 /**
- * Cachorro Caramelo com a arte: caminhada (seguindo e correndo), mordida e latido em 16 direções.
+ * Cachorro Caramelo com a arte: caminhada (seguindo), corrida (indo e voltando), mordida e latido em 16 direções.
  * Parado ao lado do Juninho fica no primeiro quadro do latido, que é o cachorro em guarda.
  */
 function drawCaramelo(ctx, d, pt, playerPx, t, cam, cache) {
   const W = walkReady(WALK_ATLAS.cw);
+  const R = walkReady(WALK_ATLAS.cr);
   const M = walkReady(WALK_ATLAS.cm);
   const L = walkReady(WALK_ATLAS.cl);
-  if (!W || !M || !L) return drawCarameloCodigo(ctx, d, pt, playerPx, t);
+  if (!W || !R || !M || !L) return drawCarameloCodigo(ctx, d, pt, playerPx, t);
   cam.toScreen(d.x + (d.fx || 1), d.y + (d.fy || 0), dogPt);
   const row = atlasRow(dogPt.x - pt.x, dogPt.y - pt.y);
   let A = W;
@@ -1706,8 +1707,8 @@ function drawCaramelo(ctx, d, pt, playerPx, t, cam, cache) {
     A = L; // em guarda
     f = 0;
   } else if ((d.vel || 0) > CARAMELO_CORRIDA_MS) {
-    // correndo: a folha de corrida ainda não chegou inteira; a caminhada roda no ritmo máximo dela
-    f = Math.floor(t * CARAMELO_QUADROS_S) % 6;
+    A = R; // galope: troca de quadro pela distância, como a caminhada
+    f = Math.floor(((d.walk || 0) / CARAMELO_GALOPE_M) * 6) % 6;
   } else {
     f = Math.floor(((d.walk || 0) / CARAMELO_PASSO_M) * 6) % 6;
   }
@@ -1726,8 +1727,8 @@ function drawCaramelo(ctx, d, pt, playerPx, t, cam, cache) {
 }
 const CARAMELO_ALTURA = 0.55; // altura da figura (com o rabo) em relação ao Juninho
 const CARAMELO_PASSO_M = 0.85; // metros andados num ciclo de 6 quadros da caminhada
-const CARAMELO_CORRIDA_MS = 3.5; // acima dessa velocidade, a caminhada troca de quadro pelo tempo
-const CARAMELO_QUADROS_S = 16; // quadros por segundo da caminhada no máximo
+const CARAMELO_CORRIDA_MS = 3.5; // acima dessa velocidade (m/s) ele galopa
+const CARAMELO_GALOPE_M = 3.0; // metros num ciclo de 6 quadros do galope (a 9 m/s, 18 quadros por segundo)
 const CARAMELO_OPTS = { noShadow: true };
 
 /** Reserva enquanto a arte não carrega: vira-lata desenhado em código, de rabo abanando. */
