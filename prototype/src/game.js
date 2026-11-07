@@ -1049,6 +1049,7 @@ export class Game {
       } else if (e.behavior === 'shooter') {
         // Traficante: fica a uma distância, mira com aviso (a mira trava no ponto) e atira
         const def = ENEMIES.traficante;
+        if (e.throwT > 0) e.throwT -= dt; // pose de mira logo depois do tiro
         if (!e.saw && d < def.fogosM && !this.over) {
           e.saw = true;
           this.fogos(e);

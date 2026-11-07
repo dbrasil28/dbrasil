@@ -323,6 +323,16 @@ export class Renderer {
               animated = !!spr;
             }
           }
+          if (!spr && art && art.aim && walk && (o.aimT > 0 || o.throwT > 0)) {
+            // Traficante mirando: fuzil no ombro, virado para o ponto onde a mira travou
+            const poses = walkReady(art.poses);
+            if (poses) {
+              cam.toScreen(o.ax ?? game.player.x, o.ay ?? game.player.y, pt2);
+              const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+              spr = this.cache.get(`${poses.prefix}_${row}_${poses.col.mira}`, h * (poses.ch / poses.figureH), POSE_OPTS);
+              animated = !!spr;
+            }
+          }
           if (!spr && art && art.throwAnim && walk && (o.windup > 0 || o.throwT > 0)) {
             // Político arremessando a maleta, virado para o Juninho: preparação em 3 quadros, depois a soltura
             const A = walkReady(art.throwAnim);
@@ -892,7 +902,7 @@ function drawPuppet(g, kind, variant, W, H, flash) {
       pants = '#2f3a2f';
       break;
     case 'traficante':
-      shirt = '#2e6b45'; // camiseta de time genérica, sem escudo
+      shirt = '#1d2a44'; // camisa azul-marinho sem escudo (a do desenho)
       pants = '#2b2d33';
       break;
     case 'golpista':
@@ -1194,7 +1204,7 @@ const FOGO_COLORS = ['#ffd21f', '#ff5a3d', '#7fd6ff', '#ffffff'];
 // pedaços de zumbi: cor da roupa por tipo (telespectador pela roupa do conjunto) e da pele por pessoa
 const GIB_SHIRT = {
   golpista: '#2b2a33', burocrata: '#e8e4da', fiscal: '#f07a1a', politico: '#1f2a4a', rival: '#c86a1d',
-  traficante: '#2e6b45', especulador: '#e2b52a', isca: '#36f0e0',
+  traficante: '#1d2a44', especulador: '#e2b52a', isca: '#36f0e0',
 };
 const TELE_SHIRT = ['#d9a92a', '#8a8c90', '#a8262b'];
 const GIB_PANTS = { telespectador: '#3b4250', burocrata: '#5a6170', politico: '#1f2a4a', traficante: '#2b2d33' };
