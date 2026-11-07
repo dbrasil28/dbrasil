@@ -176,8 +176,8 @@ export const WALK_ATLAS = {
  */
 export const POSE_ATLAS = {
   bp: { atlas: 'burocrata_poses_atlas', prefix: 'bp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
-  fkp: { atlas: 'funkeiro_poses_atlas', prefix: 'fkp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { furia: 0 } },
-  tfp: { atlas: 'traficante_poses_atlas', prefix: 'tfp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { mira: 0 } },
+  fkp: { atlas: 'funkeiro_poses_atlas', prefix: 'fkp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
+  tfp: { atlas: 'traficante_poses_atlas', prefix: 'tfp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
   ctp: { atlas: 'chefe_trafico_poses_atlas', prefix: 'ctp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
 };
 export const POSE_OPTS = { shadowScale: 0.4 };
@@ -215,9 +215,9 @@ export const ENEMY_ART = {
   burocrata: { img: 'burocrata', front: 'burocrata_frente', papers: true, walk: WALK_ATLAS.bm, poses: POSE_ATLAS.bp, attack: 'burocrata_ataque', attackH: 0.92 },
   fiscal: { img: 'fiscal', vest: true, walk: WALK_ATLAS.fi }, // vest pinta o colete só no recorte antigo
   // fury: pose de fúria (braços abertos) virada para o Juninho enquanto prepara a investida
-  funkeiro: { img: 'funkeiro', walk: WALK_ATLAS.fk, poses: POSE_ATLAS.fkp, fury: true },
+  funkeiro: { img: 'funkeiro', walk: WALK_ATLAS.fk, poses: POSE_ATLAS.fkp, fury: true, dash: 'ataque' },
   // aim: pose de mira (fuzil no ombro) virada para o ponto travado, enquanto mira e logo depois do tiro
-  traficante: { img: 'traficante', walk: WALK_ATLAS.tf, poses: POSE_ATLAS.tfp, aim: true },
+  traficante: { img: 'traficante', walk: WALK_ATLAS.tf, poses: POSE_ATLAS.tfp, aim: 'ataque', fury: true },
   // chefe: ataque (rajada) enquanto mira e atira; raiva (grito no rádio) enquanto chama reforço
   chefe_trafico: { img: 'chefe_trafico', walk: WALK_ATLAS.ct, poses: POSE_ATLAS.ctp, aim: 'ataque', fury: true },
   // throwAnim: quadros 0–2 na preparação, 3 ao soltar a maleta

@@ -82,7 +82,7 @@ export const ENEMIES = {
     hp: 45, speed: 1.7, dmg: 8, radius: 0.32, size: 1.05, xp: 5,
     behavior: 'shooter', range: 9, keepM: 5.5, aimS: 0.6, fireEvery: 2.6,
     bullet: { speed: 16, life: 1.0, radius: 0.18, dmg: 9 },
-    fogosM: 12, fogosPack: 6,
+    fogosM: 12, fogosPack: 6, raivaS: 0.9, // ao ver o Juninho: para, grita e solta os fogos
   },
   // Subida do Morro: chega perto, para de braços abertos (fúria, o aviso) e parte reto para cima do Juninho.
   // A direção trava quando ele abre os braços: dá para sair da frente.

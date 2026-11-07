@@ -1068,8 +1068,10 @@ export class Game {
         if (e.throwT > 0) e.throwT -= dt; // pose de mira logo depois do tiro
         if (!e.saw && d < def.fogosM && !this.over) {
           e.saw = true;
+          e.raivaT = def.raivaS; // grita e solta os fogos (pose de raiva), parado
           this.fogos(e);
         }
+        if (e.raivaT > 0) e.raivaT -= dt;
         if (d < def.keepM) {
           mx = -ux * 0.7;
           my = -uy * 0.7;
@@ -1158,6 +1160,10 @@ export class Game {
             e.ax = p.x;
             e.ay = p.y;
           }
+        }
+        if (e.raivaT > 0) {
+          mx = 0;
+          my = 0;
         }
       } else if (e.behavior === 'investida') {
         // Funkeiro: abre os braços (fúria) com a direção travada e parte reto; depois volta a andar
