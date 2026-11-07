@@ -386,21 +386,23 @@ export function drawRaio(ctx, b, cam, ppu, playerPx) {
   for (let i = 1; i < b.pts.length; i++) {
     cam.toScreen(b.pts[i - 1].x, b.pts[i - 1].y, raioA);
     cam.toScreen(b.pts[i].x, b.pts[i].y, raioB);
-    const y0 = raioA.y - playerPx * 0.55;
-    const y1 = raioB.y - playerPx * 0.55;
+    // altura de cada ponta: o corpo de quem leva o choque, ou o alto do poste (z, em metros)
+    const y0 = raioA.y - (b.pts[i - 1].z != null ? b.pts[i - 1].z * ppu : playerPx * 0.55);
+    const y1 = raioB.y - (b.pts[i].z != null ? b.pts[i].z * ppu : playerPx * 0.55);
     const dx = raioB.x - raioA.x;
     const dy = y1 - y0;
     const len = Math.hypot(dx, dy);
     if (len < 2) continue;
     // pedaços de até ~3 m (o tamanho da arte), sem esticar: o pedaço mais comprido vira dois
-    const comp = F.compM * ppu;
+    // grosso: o raio do poste usa pedaços mais compridos, e por isso mais grossos (a arte só muda de escala)
+    const comp = F.compM * ppu * (b.grosso || 1);
     const n = Math.max(1, Math.round(len / comp));
     const L = len / n;
     ctx.save();
     ctx.translate(raioA.x, y0);
     ctx.rotate(Math.atan2(dy, dx));
     // o brilho azul em volta do arco (luz do curto, somada), para o raio ler bem no celular
-    const gw = playerPx * 0.34;
+    const gw = playerPx * 0.34 * (b.grosso || 1);
     const g = ctx.createLinearGradient(0, -gw, 0, gw);
     g.addColorStop(0, 'rgba(120,180,255,0)');
     g.addColorStop(0.5, 'rgba(150,200,255,0.6)');

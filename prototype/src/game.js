@@ -9,6 +9,7 @@ import {
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
 import { FX, IMPACTO } from './efeitos_arte.js';
+import { explosaoPerto, updateReacoes } from './reacoes.js';
 import { updateCrises, criseLentidao } from './crises.js';
 import { emHorda, iniciarHorda, updateHorda, durezaHorda } from './horda.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
@@ -571,6 +572,7 @@ export class Game {
     }
     this.fx.rings.push({ x, y, r0: 0.2, r1: radius, t: 0, dur: 0.3, color: 'blast' });
     this.shake(0.18);
+    explosaoPerto(this, x, y, radius); // carro perto explode também
   }
 
   killEnemy(e, source) {
@@ -954,6 +956,7 @@ export class Game {
     }
     this.updateEnemies(dt);
     this.updateTraffic(dt);
+    updateReacoes(this);
     updateProjectiles(this, dt);
     updateZones(this, dt);
     updateDogs(this, dt);

@@ -173,6 +173,7 @@ test('Megafone: círculo sempre ligado que empurra a horda para fora', () => {
 
 test('Gato de Luz: o choque pula de um inimigo para o vizinho', () => {
   const g = arena('gato');
+  if (g.world) g.world.props = g.world.props.filter((q) => q.kind !== 'poste' && q.kind !== 'fios'); // a descarga do poste tem teste próprio
   const st = weaponStats('gato', 1);
   const fila = [inimigo(g, 2, 0), inimigo(g, 4, 0), inimigo(g, 6, 0), inimigo(g, 8, 0)];
   g.update(DT, parado);

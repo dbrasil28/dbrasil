@@ -84,7 +84,8 @@ export function drawCenario(ctx, p, cam, ppu, dpr, t, alpha = 1, playerPx = 0) {
         ctx.translate(2 * pt.x + (p.x1 - p.x0) * ppu, 0);
         ctx.scale(-1, 1);
       }
-      ctx.drawImage(im, pt.x - A.padX * ART_S * k, pt.y - A.top * ART_S * k, im.width * k, im.height * k);
+      // veículo que explodiu: a mesma arte, queimada (escurecida); a fumaça sai como efeito (reacoes.js)
+      ctx.drawImage(p.queimado ? queimado(im) : im, pt.x - A.padX * ART_S * k, pt.y - A.top * ART_S * k, im.width * k, im.height * k);
       ctx.restore();
       return;
     }
@@ -120,6 +121,23 @@ function drawPlacaParede(ctx, p, ppu, im) {
   text(ctx, p.text, fx, fy, 0.2 * ppu, '#1d1a18', 800, null, wpx * 0.8);
 }
 const PLACA_CAIXA = [15, 14, 285, 133]; // caixa do desenho na imagem (px): x0, y0, x1, y1
+
+const queimados = new WeakMap();
+/** A arte do veículo escurecida, como carcaça queimada (feita uma vez por imagem). */
+function queimado(im) {
+  let c = queimados.get(im);
+  if (c || typeof document === 'undefined') return c || im;
+  c = document.createElement('canvas');
+  c.width = im.width;
+  c.height = im.height;
+  const g = c.getContext('2d');
+  g.drawImage(im, 0, 0);
+  g.globalCompositeOperation = 'source-atop';
+  g.fillStyle = 'rgba(26,18,14,0.74)';
+  g.fillRect(0, 0, c.width, c.height);
+  queimados.set(im, c);
+  return c;
+}
 
 /** Objetos visíveis (lista ordenada por y) entre y0 e y1. */
 export function cenarioInRange(w, y0, y1, out) {

@@ -90,6 +90,14 @@ export function botInput(game) {
   const goal = botGoal(game);
   if (goal) {
     routeTarget(game.world, p, goal.x, goal.y, goal.ri, rtBot);
+    if (p.plat) {
+      // em cima da casa com laje ou na escada: desce pela escada antes de seguir para o objetivo
+      const S = p.plat.stair;
+      const sx = (S.x0 + S.x1) / 2;
+      const naEscada = p.x >= S.x0 && p.x <= S.x1 && p.y >= S.y0 && p.y <= S.y1;
+      rtBot.x = sx;
+      rtBot.y = p.lvl === 1 && !naEscada ? S.y0 + 0.4 : S.y1 + 0.8;
+    }
     const gd = Math.hypot(rtBot.x - p.x, rtBot.y - p.y);
     if (gd > 1.5) {
       let ux = (rtBot.x - p.x) / gd;

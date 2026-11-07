@@ -1,4 +1,5 @@
 // Comportamento das armas automáticas e dos projéteis. Tudo em metros/segundos.
+import { explosaoPerto, raioPerto } from './reacoes.js';
 import { weaponStats } from './upgrades.js';
 import { INTERACT, WEAPON_FX, RELIQUIAS, ACHADOS } from './config.js';
 import { achadoParaFarejar } from './achados.js';
@@ -210,6 +211,7 @@ export function fireWeapon(game, w, ps) {
     case 'gato': {
       // Gato de Luz: o choque acerta o mais perto e pula para os vizinhos (a Mochila Térmica aumenta o alcance e o pulo)
       const seen = new Set();
+      const tocou = [];
       for (let c = 0; c < st.count; c++) {
         let cur = nearestEnemies(game, p.x, p.y, st.range * area, 1, seen)[0];
         if (!cur) break;
@@ -219,6 +221,7 @@ export function fireWeapon(game, w, ps) {
           seen.add(cur.id);
           game.damageEnemy(cur, st.dmg * dmgMul, w.id, 0, 0);
           cur.choqueAte = game.t + st.stunS + 0.15; // arcos elétricos no corpo enquanto trava
+          tocou.push(cur); // perto de um poste ou do gatonet, o poste descarrega (depois do raio principal)
           game.efeito('chamuscado_raio', cur.x, cur.y, { rot: giroFixo(cur.x, cur.y) });
           game.efeito('luz', cur.x, cur.y, { dur: 0.3, tam: 4.5, cor: '170,210,255' });
           cur.slowT = Math.max(cur.slowT, st.stunS);
@@ -227,6 +230,8 @@ export function fireWeapon(game, w, ps) {
           cur = nx || null;
         }
         game.fx.bolts.push({ pts, t: 0, dur: WEAPON_FX.raioDur, seed: game.fxRng() * 1000 });
+        for (const e of tocou) raioPerto(game, e.x, e.y, e);
+        tocou.length = 0;
         if (c === 0) game.efeito('raio_origem', p.x, p.y, { alvo: p }); // o fio do gato estourando na mão
         fired = true;
       }
@@ -468,6 +473,7 @@ export function updateZones(game, dt) {
         }
         game.fx.rings.push({ x: z.x, y: z.y, r0: 0.3, r1: z.radius * 1.15, t: 0, dur: 0.35, color: 'blast' });
         // fogo de verdade: a explosão, a fumaça com notas queimando e a marca preta no chão
+        explosaoPerto(game, z.x, z.y, z.radius); // carro perto explode também
         game.efeito('explosao', z.x, z.y, { tam: z.radius * 2.6, z: z.radius * 0.38 });
         // a fumaça continua a da explosão: mesmo ponto, só os quadros de fumaça, entrando aos poucos e subindo devagar
         game.efeito('explosao_fumaca', z.x, z.y, { tam: z.radius * 2.5, z: z.radius * 0.42, delay: 0.55, de: 3, entra: 0.4, sobe: 0.45 });

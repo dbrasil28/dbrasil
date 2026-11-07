@@ -304,6 +304,19 @@ export const PLACES = {
 // é sorteado para subir pela escada, no máximo maxSubindo de cada vez. O chefão sempre sobe.
 // vaoM: a casa fica afastada das paredes da pracinha (fundo e lado), para a horda dar a volta e cercar;
 // chegouM: a essa distância do lugar dela no cerco, o inimigo para (sem empurrar a parede e tremer).
+// Reações do cenário (pedido do autor, 07/11/2026). Carro: um veículo a menos de gatilhoM da borda de uma
+// explosão explode também, depois de um atraso, e pode disparar outro (reação em cadeia); fica queimado e
+// soltando fumaça. tipos: tamanho da explosão de cada veículo. Poste: o Gato de Luz acertando a menos de
+// gatilhoM de um poste (ou dos fios do gatonet) faz ele descarregar do alto (altura em tipos) um raio enorme
+// em até `alvos` inimigos a até raioM; depois recarrega.
+export const REACOES = {
+  carro: {
+    gatilhoM: 2.4, raioM: 3.4, dano: 90, voo: 7, atrasoS: [0.15, 0.45], danoJuninho: 18, fumacaS: 10, fumacaCadaS: 0.9,
+    tipos: { carro: 1, onibus: 1.35, camburao: 1.15, moto: 0.6 },
+  },
+  poste: { gatilhoM: 3.2, raioM: 7, alvos: 6, dano: 60, travaS: 0.6, recargaS: 6, tipos: { poste: 6.0, fios: 5.2 } },
+};
+
 export const LAJE = { subirChance: 0.12, maxSubindo: 3, sorteioS: [3, 6], vaoM: 1.6, chegouM: 0.35 };
 export const INTERACT = { pickR: 1.0, holdS: 0.25, throwRange: 8, flightS: 0.5, arcM: 2.4, respawnS: 35, respawnMinDistM: 14 };
 export const THROWABLES = {
