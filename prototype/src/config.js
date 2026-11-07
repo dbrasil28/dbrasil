@@ -371,6 +371,36 @@ export const CARREIRA = {
   trechoHpMul: { orla: 1, morro: 1.25 }, // cada trecho começa mais duro que o anterior
 };
 
+// Abertura do jogo (D39): a Orla começa normal até o sinal da TV pegar.
+export const ABERTURA = {
+  pessoas: 28, // gente passeando em volta do Juninho
+  pertoM: 14,
+  passeioMs: 0.9,
+  plantaoS: 10, // a TV anuncia o sinal novo
+  sinalS: 20, // o sinal pega
+  travaS: 0.6, // a pessoa trava, o olho acende...
+  viraS: 4, // ...e todas viram horda nesse tempo, a mais perto do Juninho por último
+  lentoMul: 0.6, // logo depois, só telespectadores lentos (o tutorial sem texto)
+  lentosS: 30,
+};
+
+// Crises da cidade (D39): em 30% e 60% do Caos do trecho; a TV avisa antes e nada fecha a passagem.
+export const CRISES = {
+  avisoS: 20, // a TV avisa esse tempo antes
+  porTrecho: {
+    orla: [{ id: 'ressaca', caos: 30, duracaoS: 35 }, { id: 'apagao', caos: 60, duracaoS: 35 }],
+    morro: [{ id: 'baile', caos: 30, duracaoS: 30 }, { id: 'curto', caos: 60, duracaoS: 35 }],
+  },
+  // Ressaca: o mar avança até perto da ciclovia, a areia molhada deixa lento e as ondas derrubam a horda
+  ressaca: { avancaS: 5, aguaSobraM: 1.5, lentoMul: 0.6, ondaS: 5, ondaCorreS: 1.0, ondaDano: 18, ondaEmpurra: 7, ondaEmpurraJuninho: 1.2 },
+  // Apagão: a tela escurece; só a luz dos postes e em volta do Juninho; os olhos da horda brilham
+  apagao: { luzPosteM: 4.5, luzJuninhoM: 3.4, escuro: 0.8, achadoLongeM: 14, rampaS: 2 },
+  // Baile na laje: a horda em volta para para dançar, mas chega uma leva de Funkeiros
+  baile: { raioM: 22, funkeiros: 4 },
+  // Gato de luz em curto: faíscas perto do Juninho estalam (aviso) e dão o choque, nele também
+  curto: { cadaS: 1.1, maxFaiscas: 5, pertoM: 7, avisoS: 0.8, choqueS: 0.35, raioM: 1.4, danoJuninho: 12, danoHorda: 30 },
+};
+
 // Achados pelo caminho (D40): esconderijos com pista e sem seta; nada se compra nem se abre com anúncio.
 export const ACHADOS = {
   isopores: 5, // por trecho, sorteados entre os esconderijos
@@ -713,6 +743,17 @@ export const TV = {
   fase_orla: ['ESPECULADOR ANUNCIA FASE 2 DO EMPREENDIMENTO: AGORA COM DOIS LOTES', 'ESPECULADOR CERCA A ÁREA: "CONDOMÍNIO FECHADO, PRIVATIVO E EXCLUSIVO"'],
   fase_morro: ['CHEFE DO TRÁFICO CHAMA A FIRMA INTEIRA', 'CHEFE DECRETA TOQUE DE RECOLHER NA LAJE'],
   chefaoCaiu: ['ESPECULADOR SOFRE DESPEJO. O SINAL DA TV CAI JUNTO COM ELE'],
+  aberturaPlantao: ['PLANTÃO: TV CAOS TESTA SINAL NOVO NA ORLA. "VOCÊ NÃO VAI CONSEGUIR DESLIGAR"'],
+  aberturaSinal: ['O SINAL PEGOU. FIQUE LIGADO. FIQUE LIGADO. FIQUE LIGADO.'],
+  crise_ressaca_aviso: ['PREVISÃO: RESSACA NA ORLA EM 20 SEGUNDOS. DEFESA CIVIL PEDE CALMA (E SOME)'],
+  crise_ressaca: ['RESSACA! O MAR INVADE A AREIA. PLATEIA HIPNOTIZADA NÃO SAI DA FRENTE'],
+  crise_ressaca_fim: ['O MAR RECUA E DEIXA ALGUMA COISA NA AREIA MOLHADA'],
+  crise_apagao_aviso: ['CONCESSIONÁRIA ANUNCIA "INSTABILIDADE" NA REDE. PREVISÃO: 20 SEGUNDOS'],
+  crise_apagao: ['APAGÃO NA ORLA! SÓ OS POSTES COM GATO CONTINUAM ACESOS'],
+  crise_baile_aviso: ['DJ DA LAJE TESTA O SOM. EM 20 SEGUNDOS, O BAILE COMEÇA'],
+  crise_baile: ['BAILE NA LAJE! A HORDA PARA PARA DANÇAR. OS FUNKEIROS, NÃO'],
+  crise_curto_aviso: ['GATONET SOBRECARREGADO. CHEIRO DE FIO QUEIMADO NO MORRO'],
+  crise_curto: ['GATO DE LUZ EM CURTO! FAÍSCA PARA TODO LADO, OLHE ONDE PISA'],
   cofre: ['ENTREGADOR ACHA COFRE NA ORLA. RECEITA DIZ QUE NÃO VIU NADA', 'COFRE ABERTO AO VIVO. DONO AINDA NÃO SE APRESENTOU'],
   cofre5: ['DEU BICHO! ENTREGADOR TIRA A SORTE GRANDE. BANCA PEDE RECONTAGEM'],
   reliquia_altinha: ['ENTREGADOR ACHA A BOLA DA ALTINHA. A PRAIA INTEIRA PARA PARA OLHAR'],

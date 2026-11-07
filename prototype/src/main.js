@@ -102,7 +102,9 @@ let menuFrom = 'screen-title';
 function newGame() {
   // no morro: o nível de quando entrou nele; na versão aberta, pelo menos o nível que libera a escadaria
   const entry = settings.aberta ? Math.max(progress.nivelNoMorro, ROUTE.orla.unlockLevel) : progress.nivelNoMorro;
-  const meta = { melhorias: progress.melhorias, trecho: runTrecho, entryLevel: runTrecho === 'morro' ? entry : 1 };
+  // abertura (o sinal da TV pegando) em toda partida que começa na Orla; da 2ª partida em diante, dá para pular
+  const meta = { melhorias: progress.melhorias, trecho: runTrecho, entryLevel: runTrecho === 'morro' ? entry : 1, abertura: runTrecho === 'orla' };
+  ui.podePular = progress.partidas > 0;
   game = new Game(settings, { meta });
   layout();
   modalOpen = false;
@@ -359,6 +361,9 @@ ui.on('settingsReset', () => {
   $('fps').hidden = !settings.showFps;
   ui.buildSettings(settings, applySetting);
   updateReadout();
+});
+ui.on('pularAbertura', () => {
+  if (game) game.pularAbertura();
 });
 ui.on('cofreOk', () => {
   game.fecharCofre();

@@ -203,6 +203,8 @@ export function recomecar(game, trecho) {
   game.caosParado = false;
   game.nextWaveAt = game.t + SESSION.firstWaveAt;
   game.covil = covilDe(game, trecho);
+  game.crise = null;
+  game.crisesFeitas = new Set();
   game.tv('recomeco');
   game.emit('recomeco', { text: CARREIRA.recomeco });
 }

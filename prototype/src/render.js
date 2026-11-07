@@ -5,6 +5,7 @@ import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS,
 import { OrlaLayer, drawImageProp, drawTallDecor } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
 import { drawMinimap } from './minimapa.js';
+import { drawCriseChao, drawCriseCeu, escondidoDeDia } from './render_crises.js';
 import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado, drawBola } from './render_carreira.js';
 import {
   entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace,
@@ -164,6 +165,8 @@ export class Renderer {
       // carreira (D39): sem seta nem placa; a obra do Especulador e o holofote da TV sobre o covil aberto
       drawObraChao(ctx, game.world, cam, ppu);
       drawHolofoteChao(ctx, game, cam, ppu, game.t);
+      cam.visibleWorldBounds(3, bounds);
+      drawCriseChao(ctx, game, cam, ppu, game.t, bounds); // Ressaca, Baile, Curto
     }
 
     // lista de desenho com ordenação por profundidade
@@ -175,6 +178,9 @@ export class Renderer {
       list.push({ d: p.plat ? cam.depth(p.x, p.plat.y1) + 0.002 : cam.depth(p.x, p.y) - 0.4, k: 'pickup', o: p, z: p.plat ? p.plat.h : 0 });
     }
     for (const e of game.enemies) list.push({ d: entityDepth(cam, e), k: 'enemy', o: e });
+    if (game.abertura && game.abertura.fase !== 'feito') {
+      for (const c of game.abertura.civis) if (!c.virou) list.push({ d: cam.depth(c.x, c.y), k: 'civil', o: c });
+    }
     list.push({ d: entityDepth(cam, game.player), k: 'player', o: game.player });
     const w = game.world;
     if (w) {
@@ -280,7 +286,7 @@ export class Renderer {
           drawPortaEscadaria(ctx, o, cam, ppu, t);
           break;
         case 'achado':
-          drawAchado(ctx, game, o, pt, ppu, t, playerPx);
+          if (!escondidoDeDia(game, o)) drawAchado(ctx, game, o, pt, ppu, t, playerPx);
           break;
         case 'obraFundo':
           drawObraFundo(ctx, o, cam, ppu, t);
@@ -310,6 +316,19 @@ export class Renderer {
         case 'pickup':
           drawPickup(ctx, o, pt, ppu, t);
           break;
+        case 'civil': {
+          // abertura: gente normal passeando (a arte da horda sem o brilho da TV); travando, o olho acende
+          const anim = crowdAnim(o.tint);
+          if (!anim) break;
+          const h = playerPx * ENEMIES.telespectador.size * enemyMul;
+          const mv = Math.hypot(o.vx, o.vy) > 0.01;
+          cam.toScreen(o.x + (mv ? o.vx : 0), o.y + (mv ? o.vy : 1), pt2);
+          const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+          const frame = mv ? Math.floor((o.walk / (Math.PI * 2)) * 6) % 6 : 0;
+          const spr = this.cache.get(`${anim.walk.prefix}_${row}_${frame}`, h * (ATLAS.ch / anim.walk.figureH), o.viraT >= 0 ? CROWD_WALK_OPTS : CIVIL_OPTS);
+          if (spr) blit(ctx, spr, pt.x, pt.y, o.viraT >= 0 && Math.sin(t * 40) > 0);
+          break;
+        }
         case 'enemy': {
           const def = ENEMIES[o.type];
           const h = playerPx * def.size * enemyMul;
@@ -504,6 +523,7 @@ export class Renderer {
     this.drawFx(ctx, game, ppu, playerPx);
     if (game.map.bounded) this.drawAtmosfera(ctx, cam);
     if (game.world) {
+      if (game.crise) drawCriseCeu(ctx, game, cam, ppu, game.t, playerPx, cenarioInRange(game.world, bounds.minY - 3, bounds.maxY + 7, criseTmp));
       drawHolofoteCeu(ctx, game, cam, ppu, game.t); // facho do helicóptero, ou a claridade na beira da tela
       // mapa da favela no canto (no morro); aberto grande quando tocado
       if (game.segment === 'morro' && !game.over) {
@@ -1707,6 +1727,8 @@ function drawBoletoGirando(ctx, z, q, pt, playerPx, t) {
 }
 
 const dogPt = { x: 0, y: 0 };
+const criseTmp = [];
+const CIVIL_OPTS = { shadowScale: 0.6 };
 
 /**
  * Cachorro Caramelo com a arte: caminhada (seguindo), corrida (indo e voltando), mordida e latido em 16 direções.

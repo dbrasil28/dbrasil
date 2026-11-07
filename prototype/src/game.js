@@ -5,9 +5,11 @@ import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA,
+  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
+import { updateCrises, criseLentidao } from './crises.js';
+import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside, routeRemaining } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones, updateDogs } from './weapons.js';
@@ -142,6 +144,8 @@ export class Game {
     }
     this.covil = covilDe(this, 'orla'); // a obra do Especulador; no Morro, a laje do topo
     this.achados = this.world ? sortearAchados(this) : []; // isopores, cofres e a relíquia (D40)
+    this.abertura = null;
+    if (this.meta.abertura && this.world && this.startTrecho === 'orla') iniciarAbertura(this); // o dia em que o sinal pegou
 
     this.metrics = {
       seed: this.seed,
@@ -401,11 +405,12 @@ export class Game {
   spawnCommon() {
     const comp = this.segment === 'morro' ? DIRECTOR.morroComposition
       : this.settings.elenco ? DIRECTOR.castTestComposition : DIRECTOR.composition(this.pressao);
-    let pick = weightedPick(this.rng, comp).type;
+    let pick = comecoLento(this) ? 'telespectador' : weightedPick(this.rng, comp).type;
     if (pick === 'burocrata' && this.countType('burocrata') >= DIRECTOR.maxBurocratas) pick = 'telespectador';
     const ang = this.rng() * Math.PI * 2;
     const p = this.fitSpawn(this.edgePoint(ang, 30 + this.rng() * 60));
     const e = this.spawnEnemy(pick, p.x, p.y);
+    if (comecoLento(this)) e.speed *= ABERTURA.lentoMul;
     // pista que cresce (D39): o Juninho demora a ir ao covil aberto e parte da horda anda para lá
     const C = this.covil;
     if (C && C.demora && !C.saiu && this.rng() < CARREIRA.hordaChamadaFrac) e.chamado = true;
@@ -668,7 +673,8 @@ export class Game {
   // ---------- escolhas ----------
   openModalIfNeeded() {
     if (this.modal || this.over) return;
-    if (this.eventIndex < SESSION.eventTimes.length && this.t >= SESSION.eventTimes[this.eventIndex]) {
+    const tt = this.world ? tempoNoTrecho(this) : this.t; // propostas pelo tempo no trecho (a abertura não conta)
+    if (this.eventIndex < SESSION.eventTimes.length && tt >= SESSION.eventTimes[this.eventIndex]) {
       const ev = EVENTS[this.eventIndex];
       this.eventIndex++;
       this.modal = { kind: 'event', event: ev, corruption: this.corruption };
@@ -700,6 +706,11 @@ export class Game {
     this.stats = playerStats(this.player, this.mods);
     this.player.hp = Math.min(this.player.hp, this.stats.maxHp);
     if (opt.kind === 'evolution') this.emit('tv', { text: 'EVOLUÇÃO! ENTREGA EXPRESSA GARANTIDA OU SEU DINHEIRO DE VOLTA (NÃO)' });
+  }
+
+  /** Pula a abertura (da segunda vez em diante). */
+  pularAbertura() {
+    pularAbertura(this);
   }
 
   /** O jogador viu a abertura do cofre. */
@@ -831,9 +842,13 @@ export class Game {
       this.updateInteract(dt);
       updateAchados(this, dt);
       this.updateRoute(dt);
-      updateCovil(this, dt);
-      this.updateDirector(dt);
-      this.updateWeapons(dt);
+      updateAbertura(this, dt);
+      if (!emAbertura(this)) {
+        updateCovil(this, dt);
+        updateCrises(this, dt);
+        this.updateDirector(dt);
+        this.updateWeapons(dt);
+      }
     }
     this.updateEnemies(dt);
     this.updateTraffic(dt);
@@ -893,7 +908,7 @@ export class Game {
     const stairs = this.world ? slowAt(this.world, p.x, p.y, p.ri) : 1; // escadaria do morro
     if (p.acaiT > 0) p.acaiT -= dt;
     const acai = p.acaiT > 0 ? ACAI_BUFF.speedMul : 1; // açaí: corre mais por uns segundos
-    const speed = PLAYER.speed * st.speedMul * (p.slowT > 0 ? PLAYER.slowMul : 1) * stairs * acai;
+    const speed = PLAYER.speed * st.speedMul * (p.slowT > 0 ? PLAYER.slowMul : 1) * stairs * acai * criseLentidao(this, p.x);
     p.vx = mx * speed;
     p.vy = my * speed;
     const onSand = this.map.bounded && p.x > this.map.sandX;
@@ -1293,7 +1308,13 @@ export class Game {
       e.mx = mx; // direção em que anda (o desenho vira o corpo para ela)
       e.my = my;
       const sandMul = (this.map.bounded && e.x > this.map.sandX ? this.map.enemySandMul : 1)
-        * (this.world ? slowAt(this.world, e.x, e.y, e.ri) : 1);
+        * (this.world ? slowAt(this.world, e.x, e.y, e.ri) * criseLentidao(this, e.x) : 1);
+      if (e.dancaT > 0) {
+        // baile na laje: dançando, não anda
+        e.dancaT -= dt;
+        mx = 0;
+        my = 0;
+      }
       e.x += (mx * spd * sandMul + e.kx) * dt;
       e.y += (my * spd * sandMul + e.ky) * dt;
       this.clampToMap(e);

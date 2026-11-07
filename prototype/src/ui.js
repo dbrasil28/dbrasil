@@ -118,6 +118,25 @@ export class UI {
     this.setText('hp-text', `${Math.ceil(p.hp)} / ${st.maxHp}`);
     this.setWidth('hp-fill', p.hp / st.maxHp);
     this.setWidth('xp-fill', p.xp / p.xpNext);
+    // abertura: a barra de Caos só aparece quando o sinal pega; da 2ª vez, dá para pular
+    const naAbertura = !!(game.abertura && game.abertura.fase !== 'feito');
+    if (this.last.abertura !== naAbertura) {
+      this.last.abertura = naAbertura;
+      $('caos').style.visibility = naAbertura ? 'hidden' : '';
+      let b = document.getElementById('btn-pular');
+      if (naAbertura && this.podePular) {
+        if (!b) {
+          b = document.createElement('button');
+          b.id = 'btn-pular';
+          b.type = 'button';
+          b.className = 'btn btn-ghost btn-pular';
+          b.textContent = 'Pular abertura';
+          b.addEventListener('click', () => this.fire('pularAbertura'));
+          document.getElementById('hud')?.appendChild(b) || document.body.appendChild(b);
+        }
+        b.hidden = false;
+      } else if (b) b.hidden = true;
+    }
     this.setWidth('caos-fill', game.caos / 100);
     this.setText('caos-val', `${Math.round(game.caos)}%`);
     this.setText('caos-band', game.band.name);

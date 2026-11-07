@@ -1843,3 +1843,14 @@ body.mapa-aberto #warn {
   0% { opacity: 0; transform: translateY(-40px) scale(0.85); }
   100% { opacity: 1; transform: none; }
 }
+
+/* abertura (D39): pular da segunda vez em diante */
+.btn-pular {
+  position: absolute;
+  right: 12px;
+  bottom: 110px;
+  z-index: 30;
+  padding: 8px 14px;
+  font-size: 14px;
+  pointer-events: auto;
+}
