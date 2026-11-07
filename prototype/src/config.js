@@ -132,23 +132,20 @@ export const MAPS = {
   aberto: { name: 'Arena aberta (teste)', bounded: false, groundTileM: 10 },
 };
 
-// Prédios da Orla (borda esquerda, depois do calçadão), gerados no Figma já com volume: telhado visto
-// de cima, a ponta curta virada para a câmera e a lateral comprida com as lojas virada para o calçadão.
-// perto/longe: base da fachada das lojas na imagem (px), na ponta da rua e no fundo; esq: borda esquerda.
-// frenteM: largura da ponta curta (m). A imagem é estreitada (compressaoX) e endireitada em parte
-// (endireitar) para a fachada correr junto da beira do calçadão sem o prédio ficar torto.
+// Prédios da Orla (borda esquerda, depois do calçadão), desenhados no Figma já no ângulo do jogo
+// (projeção paralela, câmera de 55°, giro de 18°): a frente curta fica reta, virada para a rua
+// transversal, e a lateral comprida com as lojas sobe quase em pé, junto da beira do calçadão.
+// A imagem é desenhada inteira, só na escala. Medidas em px da imagem: canto = pé do canto da frente
+// com a lateral; esq = borda esquerda da frente; topo = beira do telhado na frente; fundo = beira do
+// telhado no fundo (topo − fundo = comprimento do prédio na tela). alturaM: altura do prédio (m).
 export const PREDIOS = {
   x1: -14.6, // beira do calçadão
-  frenteM: 6,
-  compressaoX: 0.65, // sem giro do mapa
-  endireitar: 0.5, // sem giro do mapa
-  estreitoMin: 0.45, // com giro: o quanto a imagem pode ser estreitada para a lateral seguir a beira
-  k: Math.sin((55 * Math.PI) / 180), // achatamento do chão na câmera padrão
+  k: Math.sin((55 * Math.PI) / 180), // câmera em que os prédios foram desenhados
   modelos: {
-    a: { w: 437, h: 1100, perto: [201, 1099], longe: [436, 712], esq: 0, alturaM: 20 },
-    b: { w: 429, h: 1100, perto: [190, 1099], longe: [428, 681], esq: 0, alturaM: 23 },
-    c: { w: 520, h: 1100, perto: [251, 1099], longe: [519, 420], esq: 0, alturaM: 14 },
-    d: { w: 388, h: 1100, perto: [235, 1099], longe: [387, 630], esq: 0, alturaM: 30 },
+    a: { w: 328, h: 1463, canto: [219, 1460], esq: 21, topo: 371, fundo: 76, alturaM: 21 },
+    b: { w: 311, h: 1473, canto: [244, 1472], esq: 1, topo: 257, fundo: 64, alturaM: 25 },
+    c: { w: 369, h: 1484, canto: [238, 1481], esq: 5, topo: 514, fundo: 29, alturaM: 16 },
+    d: { w: 305, h: 1482, canto: [209, 1478], esq: 0, topo: 228, fundo: 25, alturaM: 31 },
   },
 };
 

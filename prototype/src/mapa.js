@@ -564,7 +564,7 @@ export function drawDecor(ctx, d, p, ppu, k, sh = 0) {
   switch (d.kind) {
     case 'casa': return drawCasa(ctx, d, p, ppu, k);
     case 'fachada': return drawFachada(ctx, d.f, p, ppu);
-    case 'predio': return drawPredio(ctx, d.pr, p, ppu, sh);
+    case 'predio': return drawPredio(ctx, d.pr, p, ppu);
     case 'banca_pastel': return drawBancaPastel(ctx, p, ppu, k);
     case 'ponto_onibus': return drawPonto(ctx, p, ppu, k);
     case 'poste': return drawImageProp(ctx, d.seed > 0.4 && images.poste_b ? images.poste_b : images.poste, p, ppu * 6.4);
@@ -597,37 +597,17 @@ export function drawImageProp(ctx, im, p, hPx) {
 }
 
 /**
- * Prédio gerado com volume (telhado, ponta da rua e a lateral das lojas). A base da fachada das lojas vai
- * junto da beira do calçadão: a imagem é estreitada e endireitada em parte (PREDIOS em config.js).
- * p = tela do canto (x0, y1) do prédio. Câmera sem giro: x para a direita, y para baixo.
+ * Prédio desenhado no ângulo do jogo: a imagem vai inteira, só na escala, com o pé do canto da frente
+ * com a lateral no canto (x1, y1) do prédio. p = tela do canto (x0, y1).
  */
-function drawPredio(ctx, pr, p, ppu, sh = 0) {
+function drawPredio(ctx, pr, p, ppu) {
   const P = PREDIOS;
   const M = P.modelos[pr.img];
   const im = images[`predio_${pr.img}`];
   if (!M || !im) return;
-  const sc = pr.mpp * ppu * (im.height / M.h); // px de tela por px da imagem
-  const rImg = (M.longe[0] - M.perto[0]) / (M.perto[1] - M.longe[1]); // recuo da lateral na imagem
-  let c;
-  let corte;
-  let resto = 0;
-  if (sh) {
-    // com o giro do mapa, a imagem é só estreitada até a lateral recuar no mesmo ângulo da beira do
-    // calçadão: as paredes continuam retas (sem entortar) e a base da fachada assenta na beira
-    c = Math.max(P.estreitoMin, Math.min(1, sh / rImg));
-    corte = rImg * c - sh; // só sobra algo quando o prédio não pode ficar mais estreito
-  } else {
-    c = P.compressaoX;
-    corte = P.endireitar * rImg * c;
-    resto = (rImg * c - corte) * (M.perto[1] - M.longe[1]) * sc;
-  }
-  const tx = p.x + (P.x1 - pr.x0) * ppu - resto / 2;
-  const ox = tx - c * sc * M.perto[0];
-  const oy = p.y - M.perto[1] * sc;
-  ctx.save();
-  ctx.transform(c * sc, 0, corte * sc, sc, ox - corte * M.perto[1] * sc, oy);
-  ctx.drawImage(im, 0, 0, M.w, M.h);
-  ctx.restore();
+  const sc = pr.mpp * ppu; // px de tela por px da imagem
+  const sx = p.x + (P.x1 - pr.x0) * ppu;
+  ctx.drawImage(im, sx - M.canto[0] * sc, p.y - M.canto[1] * sc, M.w * sc, M.h * sc);
 }
 
 function shade(hex, f) {

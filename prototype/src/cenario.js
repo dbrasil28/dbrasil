@@ -239,10 +239,10 @@ function predios(w, map, b) {
   for (let i = 0; i < 6 && y > y0 + 4; i++) {
     const nome = nomes[Math.floor(H(b, i, 1201) * nomes.length)];
     const M = P.modelos[nome];
-    const mpp = P.frenteM / (M.perto[0] - M.esq); // metros por pixel da imagem
-    const len = ((M.perto[1] - M.longe[1]) * mpp) / P.k; // comprimento da fachada ao longo do calçadão
+    const mpp = M.alturaM / (M.canto[1] - M.topo); // metros por px da imagem
+    const len = ((M.topo - M.fundo) * mpp) / P.k; // comprimento do prédio ao longo do calçadão
     if (y - len < y0 - 1) break;
-    w.predios.push({ x0: P.x1 - P.frenteM, x1: P.x1, y0: y - len, y1: y, img: nome, mpp });
+    w.predios.push({ x0: P.x1 - (M.canto[0] - M.esq) * mpp, x1: P.x1, y0: y - len, y1: y, img: nome, mpp });
     y -= len;
   }
 }
