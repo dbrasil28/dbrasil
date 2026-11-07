@@ -520,14 +520,7 @@ export class Renderer {
             ctx.ellipse(pt.x - o.vx * ppu * 0.08, pt.y - o.vy * ppu * cam.k * 0.08, (o.r + 0.6) * ppu, (o.r + 0.6) * ppu * cam.k, 0, 0, Math.PI * 2);
             ctx.fill();
           }
-          // anel no chão: separa o protagonista da multidão (GDD 04, §5)
-          ctx.fillStyle = 'rgba(229,37,47,0.22)';
-          ctx.strokeStyle = 'rgba(255,74,82,0.95)';
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.ellipse(pt.x, pt.y, (o.r + 0.32) * ppu, (o.r + 0.32) * ppu * cam.k, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
+          // sem o anel vermelho no chão (o autor tirou, 07/11/2026): o Juninho se destaca pela arte e pela sombra
           this.drawPlayer(ctx, game, pt, playerPx, 1);
           if (o.paperT > 0) drawStuckPapers(ctx, pt, playerPx, o.paperT, game.t);
           if (o.carry) drawObject(ctx, o.carry.kind, pt.x, pt.y - playerPx * 0.95, playerPx * 0.4, Math.sin(t * 9) * 0.08); // carregando acima da cabeça
