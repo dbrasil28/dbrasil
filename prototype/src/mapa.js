@@ -201,8 +201,9 @@ function drawOrlaOnly(r, ctx, game, b) {
 
   // calçadão: textura de pedra portuguesa em ondas (vista de cima, com a perspectiva da câmera)
   const tex = images.chao;
+  const calcX1 = m.avenidaX0 ?? m.sandX; // o calçadão vai até a avenida
   cam.toScreen(m.minX, b.minY, pt);
-  cam.toScreen(m.sandX, b.maxY, pt2);
+  cam.toScreen(calcX1, b.maxY, pt2);
   if (tex) {
     const tile = m.groundTileM;
     const groundPattern = ctx.createPattern(tex, 'repeat');
@@ -227,6 +228,30 @@ function drawOrlaOnly(r, ctx, game, b) {
     ctx.restore();
   } else {
     band(m.minX, m.sandX, '#7b6f63');
+  }
+
+  // avenida da praia: quatro faixas, dois sentidos, meio-fio dos dois lados e faixa dupla no meio
+  if (m.avenidaX0 !== undefined) {
+    band(m.avenidaX0, m.avenidaX1, '#36363b', 0.5);
+    const linha = (x, cor, w, dash) => {
+      cam.toScreen(x, b.minY, pt);
+      cam.toScreen(x, b.maxY, pt2);
+      ctx.strokeStyle = cor;
+      ctx.lineWidth = Math.max(1, ppu * w);
+      ctx.setLineDash(dash || []);
+      ctx.beginPath();
+      ctx.moveTo(pt.x, pt.y);
+      ctx.lineTo(pt2.x, pt2.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    };
+    band(m.avenidaX0 - 0.15, m.avenidaX0 + 0.15, '#b9b3a8');
+    band(m.avenidaX1 - 0.15, m.avenidaX1 + 0.15, '#b9b3a8');
+    const cx = (m.avenidaX0 + m.avenidaX1) / 2;
+    linha(cx - 0.12, 'rgba(235,190,40,0.85)', 0.08);
+    linha(cx + 0.12, 'rgba(235,190,40,0.85)', 0.08);
+    linha((m.avenidaX0 + cx) / 2, 'rgba(240,236,228,0.6)', 0.08, [ppu * 2, ppu * 2]);
+    linha((cx + m.avenidaX1) / 2, 'rgba(240,236,228,0.6)', 0.08, [ppu * 2, ppu * 2]);
   }
 
   // ciclovia vermelha na beira da areia
@@ -268,8 +293,9 @@ function drawOrlaOnly(r, ctx, game, b) {
   for (let j = y0; j <= y1; j++) {
     const ys = j * m.blockLen + (m.blockLen - m.streetLen);
     const ye = ys + m.streetLen;
+    const rx1 = m.avenidaX0 ?? m.sandX; // a rua transversal termina na avenida
     cam.toScreen(m.minX - 2.5, ys, pt);
-    cam.toScreen(m.sandX, ye, pt2);
+    cam.toScreen(rx1, ye, pt2);
     ctx.fillStyle = '#3a3a3e';
     ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
     dirt(ctx, pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y, 0.5);
@@ -279,7 +305,7 @@ function drawOrlaOnly(r, ctx, game, b) {
     ctx.fillRect(pt.x, pt2.y - Math.max(2, ppu * 0.18 * k), pt2.x - pt.x, Math.max(2, ppu * 0.18 * k));
     // faixa central amarela
     cam.toScreen(m.minX - 2.5, ys + m.streetLen / 2, pt);
-    cam.toScreen(m.sandX, ys + m.streetLen / 2, pt2);
+    cam.toScreen(rx1, ys + m.streetLen / 2, pt2);
     ctx.strokeStyle = 'rgba(230,190,40,0.7)';
     ctx.lineWidth = Math.max(1.5, ppu * 0.1);
     ctx.setLineDash([ppu * 1.6, ppu * 1.2]);
@@ -288,12 +314,19 @@ function drawOrlaOnly(r, ctx, game, b) {
     ctx.lineTo(pt2.x, pt2.y);
     ctx.stroke();
     ctx.setLineDash([]);
-    // faixa de pedestre junto ao calçadão
+    // faixa de pedestre na esquina da avenida, e outra atravessando a avenida
     ctx.fillStyle = 'rgba(235,232,225,0.75)';
-    for (let x = m.minX + 2; x < m.minX + 2 + 6; x += 0.9) {
+    for (let x = rx1 - 3.4; x < rx1 - 0.3; x += 0.9) {
       cam.toScreen(x, ys + 1, pt);
       cam.toScreen(x + 0.5, ye - 1, pt2);
       ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
+    }
+    if (m.avenidaX0 !== undefined) {
+      for (let y = ys + 1.2; y < ys + 4.6; y += 0.9) {
+        cam.toScreen(m.avenidaX0 + 0.3, y, pt);
+        cam.toScreen(m.avenidaX1 - 0.3, y + 0.5, pt2);
+        ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
+      }
     }
   }
 }

@@ -124,6 +124,22 @@ Regras do cenário:
 - **Sujeira só no desenho:** manchas, latinhas, papel, bitucas, sacos de lixo, papelão, poças, óleo, bueiros, buracos e santinhos de candidato. Não atrapalha o andar.
 - **Nomes inventados:** ruas (R. do Jeitinho, R. da Propina, Trav. do Boleto...), candidatos (Tonho do Asfalto 171, Dona Promessa 0800, Coronel Boleto 7777, Tio do Pix 1000, Pastor Grana 1010, Dr. Cargo 4040), letreiros (Bar do Zé, Açaí do Grau...) e placas das vielas. A polícia é genérica, sem brasão nem sigla de corporação real.
 
+### Organização da Orla (07/11/2026)
+
+Da esquerda para o mar, como em Copacabana (decisão do autor): **prédios, calçadão, avenida, ciclovia, areia e mar**.
+
+| Faixa | Largura | O que tem |
+| --- | --- | --- |
+| Prédios | fora do caminho | Hoje casas desenhadas; os prédios entram aqui, com as lojas no térreo |
+| Calçadão, lado das lojas | 7 m | Botecos, açaí, pastelaria, prédio com terraço, muro |
+| Calçadão, meio | 8 m | Barraca do meio, carrinho, tapume, orelhão; bancos e postes na beira da avenida; garotas na esquina |
+| Avenida | 11 m | Quatro faixas, dois sentidos. Carros andando atropelam o Juninho (28 de dano e um empurrão) e matam a horda. Carro vindo por trás na faixa do Juninho dá aviso na borda de baixo da tela. Faixa de pedestre em cada rua |
+| Ciclovia | 1,6 m | Faixa vermelha |
+| Areia | 6 m de andar | Quiosque, salva-vidas, guarda-sóis, coqueiros, futevôlei |
+| Mar | — | Depois da areia |
+
+As ruas transversais saem dos prédios e terminam na avenida, com carros e ônibus parados. O Juninho começa no meio do calçadão. A planta da rota (`node tools/planta-mundo.mjs`) mostra tudo isso de cima.
+
 ### Orla, por quarteirão
 
 | O quê | Onde | Como joga |

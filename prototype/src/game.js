@@ -4,7 +4,7 @@ import { SpatialHash } from './spatial.js';
 import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE,
+  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO,
 } from './config.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside, routeRemaining } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones } from './weapons.js';
@@ -54,7 +54,7 @@ export class Game {
     this.nextId = 1;
 
     this.player = {
-      x: 0, y: 0, r: PLAYER.radius, hp: PLAYER.hp, level: 1, xp: 0, xpNext: xpToNext(1),
+      x: this.map.bounded ? ROUTE.orla.startX : 0, y: 0, r: PLAYER.radius, hp: PLAYER.hp, level: 1, xp: 0, xpNext: xpToNext(1),
       weapons: [{ id: 'capacete', level: 1, cd: 0.4 }], passives: [],
       faceX: 1, faceY: 0, moving: false, slowT: 0, paperT: 0, acaiT: 0, hurtT: 0, invulnT: 0, bonusDmg: 0, vx: 0, vy: 0,
       // animação do arremesso (atlas de teste): tempo desde o disparo / desde a pegada, capacetes em voo e mira
@@ -106,6 +106,9 @@ export class Game {
     this.tvCooldown = {};
     this.chunks = new Map();
 
+    // avenida da praia: carros andando nas faixas
+    this.traffic = [];
+    this.trafficT = AVENIDA.faixas.map(() => 1 + this.rng() * 4);
     // mundo da rota (só no mapa da orla): trechos ligados, lajes com escada, lugares e objetos
     this.world = this.map.bounded ? buildWorld(this.map) : null;
     this.startTrecho = this.meta.trecho || this.settings.trecho || 'orla'; // o Mapa da Rota escolhe o trecho
@@ -779,6 +782,7 @@ export class Game {
       this.updateWeapons(dt);
     }
     this.updateEnemies(dt);
+    this.updateTraffic(dt);
     updateProjectiles(this, dt);
     updateZones(this, dt);
     this.updateEnemyShots(dt);
@@ -1380,6 +1384,63 @@ export class Game {
       this.tv('botijao', 25);
       const p = this.player;
       if ((p.x - pr.x) ** 2 + (p.y - pr.y) ** 2 < T.radius * T.radius) this.hurtPlayer(T.selfDmg, 'botijao');
+    }
+  }
+
+  /** Avenida da praia: carros nascem longe, andam na faixa, atropelam quem estiver na frente e somem. */
+  updateTraffic(dt) {
+    const w = this.world;
+    const m = this.map;
+    if (!w || m.avenidaX0 === undefined) return;
+    const A = AVENIDA;
+    const E = CENARIO.carros.escala;
+    const p = this.player;
+    const len = 4.0 * E;
+    const wid = 1.8 * E;
+    const y0 = w.orlaTop;
+    const y1 = w.orla.y1;
+    const perto = p.y > y0 - A.raioM && this.segment === 'orla';
+    A.faixas.forEach((f, i) => {
+      this.trafficT[i] -= dt;
+      if (this.trafficT[i] > 0 || !perto) return;
+      this.trafficT[i] = A.intervaloS[0] + this.rng() * (A.intervaloS[1] - A.intervaloS[0]);
+      const y = p.y - f.sentido * A.raioM;
+      if (y < y0 + len || y > y1 - len) return;
+      if (this.traffic.some((c) => c.faixa === i && Math.abs(c.y - y) < len * 2.2)) return;
+      const v = A.velocidade[0] + this.rng() * (A.velocidade[1] - A.velocidade[0]);
+      this.traffic.push({ x: f.x, y, faixa: i, sentido: f.sentido, v, len, wid, modelo: A.modelos[Math.floor(this.rng() * A.modelos.length)], warned: false });
+    });
+    const list = this.traffic;
+    for (let i = list.length - 1; i >= 0; i--) {
+      const c = list[i];
+      c.y += c.sentido * c.v * dt;
+      if (Math.abs(c.y - p.y) > A.raioM + 6 || c.y < y0 || c.y > y1) {
+        list[i] = list[list.length - 1];
+        list.pop();
+        continue;
+      }
+      const hx = c.wid / 2;
+      const hy = c.len / 2;
+      // aviso: carro vindo por trás do Juninho, na faixa dele
+      if (!c.warned && c.sentido < 0 && Math.abs(c.x - p.x) < hx + 0.8 && c.y > p.y && c.y - p.y < A.avisoM) {
+        c.warned = true;
+        this.emit('warn', { angle: Math.PI / 2, dur: 1.2, label: 'CARRO' });
+      }
+      // atropelou o Juninho
+      if (!this.over && !p.plat && Math.abs(p.x - c.x) < hx + p.r && Math.abs(p.y - c.y) < hy + p.r && !(p.invulnT > 0)) {
+        this.hurtPlayer(A.dano, 'carro');
+        p.x += (p.x < c.x ? -1 : 1) * A.empurraoM;
+        p.invulnT = A.invulnS;
+        this.shake(0.4);
+        this.tv('atropelado', 30);
+        this.clampToMap(p);
+      }
+      // atropelou a horda
+      this.hash.query(c.x, c.y, hy + 1, tmp);
+      for (const e of tmp) {
+        if (e.dead || e.plat) continue;
+        if (Math.abs(e.x - c.x) < hx + e.r && Math.abs(e.y - c.y) < hy + e.r) this.damageEnemy(e, A.danoHorda, 'carro', (e.x < c.x ? -1 : 1) * 6, c.sentido * 4);
+      }
     }
   }
 

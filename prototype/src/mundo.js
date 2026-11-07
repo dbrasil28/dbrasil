@@ -105,9 +105,10 @@ function placeOrla(w, map) {
     const side = PLACES.praia[b % PLACES.praia.length];
     if (side === 'quiosque') {
       const yq = y0 + 22;
-      w.places.push({ kind: 'quiosque', x0: map.sandX - 2.5, y0: yq - 2, x1: map.sandX + 1, y1: yq + 4 });
-      for (let i = 0; i < 3; i++) addSlot(w, 'cadeira_praia', map.sandX - 1.4 + i * 1.1, yq + (i % 2) * 1.2);
-      w.heals.push({ kind: 'coco', x: map.sandX - 2.0, y: yq + 2.6 });
+      // na areia, depois da ciclovia (a avenida vem antes)
+      w.places.push({ kind: 'quiosque', x0: map.sandX + 0.4, y0: yq - 2, x1: map.sandX + 3.9, y1: yq + 4 });
+      for (let i = 0; i < 3; i++) addSlot(w, 'cadeira_praia', map.sandX + 1.0 + i * 1.1, yq + (i % 2) * 1.2);
+      w.heals.push({ kind: 'coco', x: map.sandX + 3.4, y: yq + 2.6 });
     } else if (side === 'salva_vidas') {
       const yp = y0 + 16;
       const x = map.sandX + 1.6;

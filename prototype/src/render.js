@@ -1,6 +1,6 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE, GORE } from './config.js';
+import { ENEMIES, WAKE, GORE, CENARIO } from './config.js';
 import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
@@ -198,6 +198,7 @@ export class Renderer {
       }
       if (!w.gateOpen) list.push({ d: cam.depth(w.gate.x0, w.orlaTop + 0.3), k: 'gate', o: w, x: w.gate.x0, y: w.orlaTop });
     }
+    for (const c of game.traffic || []) list.push({ d: cam.depth(c.x, c.y + c.len / 2), k: 'trafego', o: c, x: c.x, y: c.y + c.len / 2 });
     for (const p of game.projectiles) list.push({ d: cam.depth(p.x, p.y) + 0.3, k: 'proj', o: p });
     for (const s of game.enemyShots) list.push({ d: cam.depth(s.x, s.y) + 0.3, k: 'shot', o: s });
     for (const b of game.bribes) list.push({ d: cam.depth(b.x, b.y) + 0.3, k: 'bribe', o: b });
@@ -221,6 +222,22 @@ export class Renderer {
         case 'place':
           drawPlace(ctx, o, cam, ppu);
           break;
+        case 'trafego': {
+          // carro andando na avenida: de frente quando desce, de traseira quando sobe
+          const im = images[`trafego_${o.modelo}_${o.sentido > 0 ? 'sul' : 'norte'}`];
+          ctx.fillStyle = 'rgba(0,0,0,0.35)';
+          ctx.beginPath();
+          ctx.ellipse(pt.x + ppu * 0.2, pt.y - o.len * ppu * cam.k * 0.45, o.wid * ppu * 0.55, o.len * ppu * cam.k * 0.55, 0, 0, Math.PI * 2);
+          ctx.fill();
+          if (im) {
+            const s = (ppu / 128) * CENARIO.carros.escala;
+            ctx.drawImage(im, pt.x - (im.width * s) / 2, pt.y - im.height * s, im.width * s, im.height * s);
+          } else {
+            ctx.fillStyle = '#7f8896';
+            ctx.fillRect(pt.x - (o.wid * ppu) / 2, pt.y - o.len * ppu * cam.k - 1.4 * ppu, o.wid * ppu, o.len * ppu * cam.k + 1.4 * ppu);
+          }
+          break;
+        }
         case 'cen': {
           // o Juninho atrás de um objeto alto: o objeto fica meio transparente para não sumir com ele
           const pl = game.player;

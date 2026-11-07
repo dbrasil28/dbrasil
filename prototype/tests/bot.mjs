@@ -58,8 +58,15 @@ export function botInput(game) {
       n += wgt;
     }
   }
+  // carros na avenida: sai da frente de quem vem na faixa
+  let carX = 0;
+  for (const c of game.traffic || []) {
+    const ahead = (p.y - c.y) * c.sentido; // > 0: o Juninho está na frente do carro
+    if (ahead < -c.len || ahead > 16 || Math.abs(c.x - p.x) > c.wid / 2 + 1.6) continue;
+    carX += (p.x <= c.x ? -1 : 1) * 4;
+  }
   const a = game.t * 0.35;
-  let wx = Math.cos(a) * 0.3;
+  let wx = Math.cos(a) * 0.3 + carX;
   let wy = Math.sin(a) * 0.3;
   // buscar a gema mais próxima (jogadores reais vivem disso)
   let best = null;

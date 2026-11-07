@@ -40,7 +40,7 @@ const overlap = (a, b, m = 0) => a.x0 < b.x1 + m && a.x1 > b.x0 - m && a.y0 < b.
 /** O retângulo pode virar sólido sem fechar passagem nem cobrir objeto, cura, escada ou lugar? */
 function livre(w, r, piece, juntaM = CENARIO.livreJuntaM) {
   if (piece && (r.x0 < piece.x0 || r.x1 > piece.x1 || r.y0 < piece.y0 || r.y1 > piece.y1)) return false;
-  if (rectDist2(r, 0, 0) < CENARIO.livreInicioM ** 2) return false;
+  if (rectDist2(r, ROUTE.orla.startX, 0) < CENARIO.livreInicioM ** 2) return false;
   for (const j of w.joints) if (rectDist2(r, j.x, j.y) < juntaM ** 2) return false;
   for (const P of w.platforms) if (overlap(r, { x0: P.bx0, y0: P.by0, x1: P.bx1, y1: P.by1 }, 0.4)) return false;
   for (const k of w.solids) if (overlap(r, k, 0.75)) return false;
@@ -122,7 +122,7 @@ function rua(w, map, s) {
   for (let L = 0; L < 2; L++) {
     const used = [false, false, false, false];
     if (H(s, L, 501) < C.onibusChance) {
-      const i = Math.floor(H(s, L, 502) * 2);
+      const i = 0; // o ônibus ocupa as duas vagas da faixa
       const yy0 = L === 0 ? ys + 0.35 : ye - 0.35 - C.onibusLarg * E;
       const x0 = C.vagaX[i];
       if (prop(w, 'onibus', x0, yy0, x0 + C.onibusLen * E, yy0 + C.onibusLarg * E, C.onibusH * E, H(s, L, 503), { piece: w.orla })) {
@@ -144,7 +144,7 @@ function rua(w, map, s) {
   }
   // buraco no meio da rua, cercado de cones
   if (H(s, 0, 508) < CENARIO.buracoChance) {
-    const x = -3 + H(s, 0, 509) * 12;
+    const x = -11 + H(s, 0, 509) * 7;
     const y = ys + map.streetLen / 2 + (H(s, 0, 510) - 0.5);
     if (y < w.orla.y1 - 1.5) {
       litter(w, 'buraco', x, y, H(s, 0, 511));
@@ -153,10 +153,10 @@ function rua(w, map, s) {
   }
   // bandeirinhas verde-amarelas atravessando a rua (desde a última Copa)
   if (H(s, 3, 516) < CENARIO.bandeirinhasChance) prop(w, 'bandeirinhas', w.orla.x0, ys + 3.8, CENARIO.bandeirinhasAteX, ys + 4.0, 4.4, H(s, 3, 517), { solid: false });
-  for (let i = 0; i < CENARIO.santinhos; i++) litter(w, 'santinho', -12 + H(s, i, 518) * 24, ys + 0.5 + H(s, i, 519) * 7, H(s, i, 520));
-  litter(w, 'bueiro', -8 + H(s, 1, 512) * 4, ys + 1.0, 0);
-  litter(w, 'bueiro', 6 + H(s, 2, 512) * 4, ye - 1.0, 0);
-  for (let i = 0; i < 4; i++) litter(w, 'oleo', -10 + H(s, i, 513) * 22, ys + 1 + H(s, i, 514) * 6, H(s, i, 515));
+  for (let i = 0; i < CENARIO.santinhos; i++) litter(w, 'santinho', -13 + H(s, i, 518) * 13, ys + 0.5 + H(s, i, 519) * 7, H(s, i, 520));
+  litter(w, 'bueiro', -11 + H(s, 1, 512) * 3, ys + 1.0, 0);
+  litter(w, 'bueiro', -6 + H(s, 2, 512) * 3, ye - 1.0, 0);
+  for (let i = 0; i < 4; i++) litter(w, 'oleo', -13 + H(s, i, 513) * 13, ys + 1 + H(s, i, 514) * 6, H(s, i, 515));
 }
 
 function calcadao(w, map, b) {
@@ -166,10 +166,10 @@ function calcadao(w, map, b) {
   if (PLACES.orla[b % PLACES.orla.length] === 'nada') loja(w, 'boteco', 'esq', map.minX, y0 + 13, seed(1));
   loja(w, CENARIO.esquerda2[b % CENARIO.esquerda2.length], 'esq', map.minX, y0 + 28, seed(2));
   const meio = CENARIO.meio[b % CENARIO.meio.length];
-  if (!loja(w, meio, 'meio', -0.5 + (seed(3) - 0.5) * 3, y0 + 15, seed(4))) loja(w, meio, 'meio', 1, y0 + 24, seed(4));
+  if (!loja(w, meio, 'meio', -3.4 + (seed(3) - 0.5), y0 + 15, seed(4))) loja(w, meio, 'meio', -3.4, y0 + 24, seed(4));
   // carrinho de milho, banca de jornal ou carrinho de picolé, perto de uma das ruas
   const car = CENARIO.carrinho[b % CENARIO.carrinho.length];
-  for (const [cx, cy] of [[3 + seed(5) * 4, y0 + 5], [2 + seed(6) * 4, y0 + 34.5]]) {
+  for (const [cx, cy] of [[-4.5 + seed(5) * 2.5, y0 + 5], [-4 + seed(6) * 2.5, y0 + 34.5]]) {
     const dim = car === 'banca' ? [2.4, 1.6, 2.3] : car === 'milho' ? [1.4, 0.8, 1.1] : [1.2, 0.8, 1.0];
     const p = prop(w, car, cx - dim[0] / 2, cy - dim[1], cx + dim[0] / 2, cy, dim[2], seed(7));
     if (p) {
@@ -178,11 +178,12 @@ function calcadao(w, map, b) {
     }
   }
   // bancos de frente para o mar e no lado do morro, com lixeira do lado
-  for (const [bx, yy, i] of [[9.2, 5, 1], [9.2, 13, 2], [9.2, 31, 3], [9.2, 37, 4], [-6.2, 8, 5], [-6.2, 22, 6]]) {
+  // na beira da avenida, de frente para o mar, e no meio do calçadão
+  for (const [bx, yy, i] of [[-1.5, 5, 1], [-1.5, 12.5, 2], [-1.5, 31, 3], [-1.5, 37, 4], [-6.2, 8, 5], [-6.2, 22, 6]]) {
     if (H(b, i, 602) > 0.62) continue;
     const bn = prop(w, 'banco', bx, y0 + yy, bx + 1.9, y0 + yy + 0.55, 0.9, H(b, i, 603));
     if (bn && H(b, i, 604) < 0.6) {
-      const lx = bx + (bx > 0 ? -1.35 : 2.75);
+      const lx = bx + (bx > -3 ? -1.35 : 2.75);
       if (prop(w, 'lixeira', lx, y0 + yy, lx + 0.5, y0 + yy + 0.5, 1.0, H(b, i, 605))) {
         for (let k = 0; k < 4; k++) litter(w, k ? 'papel' : 'saco', lx + 0.25 + (H(b, i * 9 + k, 606) - 0.5) * 2.2, y0 + yy + 0.6 + H(b, i * 9 + k, 607) * 1.2, H(b, k, 608));
       }
@@ -191,14 +192,15 @@ function calcadao(w, map, b) {
   // muro pichado de terreno baldio, saindo do lado do morro, e tapume de obra parada com cartazes
   prop(w, 'muro', map.minX, y0 + 23.3, map.minX + 4.4, y0 + 23.7, 2.4, seed(9));
   // muro na vertical, dividindo o calçadão (um por quarteirão, onde couber)
-  for (const [mx, my] of [[-9.6, 20.6], [4.6, 27.5], [-3.6, 31.0]]) {
+  for (const [mx, my] of [[-9.6, 20.6], [-2.4, 26.4], [-5.0, 31.0]]) {
     if (prop(w, 'muro_v', mx, y0 + my, mx + 0.45, y0 + my + 4.4, 2.4, seed(11))) break;
   }
-  for (const [tx, ty] of [[1.0, 32.5], [-4.6, 6.5], [2.2, 9.5]]) {
+  for (const [tx, ty] of [[-6.2, 32.5], [-6.6, 6.5], [-5.8, 10]]) {
     if (prop(w, 'tapume', tx, y0 + ty - 0.3, tx + 4.6, y0 + ty, 2.2, seed(10))) break;
   }
   // garotas de programa paradas na esquina, perto do poste (figuras de ambiente: não bloqueiam nem lutam)
-  for (const [gx, gy, i] of [[7.9, 38.2, 1], [8.6, 38.6, 2], [-8.0, 1.4, 3], [6.3, 2.2, 4]]) {
+  // na esquina da avenida e na do lado das lojas
+  for (const [gx, gy, i] of [[-0.5, 38.2, 1], [0.3, 38.6, 2], [-8.0, 1.4, 3], [-0.6, 2.2, 4]]) {
     if (H(b, i, 630) < 0.5) prop(w, 'garota', gx - 0.25, y0 + gy - 0.2, gx + 0.25, y0 + gy, 1.68, H(b, i, 631), { solid: false });
   }
   // orelhão (um a cada dois quarteirões)
@@ -206,7 +208,7 @@ function calcadao(w, map, b) {
   // postes nas duas fileiras e placas nas esquinas
   const step = CENARIO.posteCadaM;
   for (let row = 0; row < 2; row++) {
-    const px = row === 0 ? -7.4 : 7.4;
+    const px = row === 0 ? -7.4 : map.avenidaX0 - 0.45; // a segunda fileira ilumina a avenida
     for (let yy = 2 + row * (step / 2); yy < 39; yy += step) {
       prop(w, 'poste', px - 0.18, y0 + yy - 0.36, px + 0.18, y0 + yy, CENARIO.posteAlturaM, H(b, Math.round(yy), 609 + row));
     }
@@ -214,22 +216,26 @@ function calcadao(w, map, b) {
   // cada rua tem um nome só, nas duas esquinas: a de baixo do quarteirão b é a rua b, a de cima é a b + 1
   const nomeRua = (r) => PLACAS.rua[r % PLACAS.rua.length];
   prop(w, 'placa', -6.9, y0 + 38.4, -6.6, y0 + 38.7, 2.6, 0, { extra: { text: nomeRua(b), tipo: 'rua' } });
-  prop(w, 'placa', 6.4, y0 + 1.0, 6.7, y0 + 1.3, 2.6, 0, { extra: { text: nomeRua(b + 1), tipo: 'rua' } });
+  prop(w, 'placa', -0.1, y0 + 1.0, 0.2, y0 + 1.3, 2.6, 0, { extra: { text: nomeRua(b + 1), tipo: 'rua' } });
   const aviso = PLACAS.aviso[Math.floor(H(b, 2, 611) * PLACAS.aviso.length)];
-  prop(w, 'placa', 3.6 + H(b, 3, 611) * 3, y0 + 26.5, 3.9 + H(b, 3, 611) * 3, y0 + 26.8, 2.4, 0, { extra: { text: aviso, tipo: 'aviso' } });
+  prop(w, 'placa', -3.4 + H(b, 3, 611) * 2, y0 + 26.5, -3.1 + H(b, 3, 611) * 2, y0 + 26.8, 2.4, 0, { extra: { text: aviso, tipo: 'aviso' } });
   // santinhos de candidato espalhados perto das ruas (depois da eleição ninguém varre)
   for (let i = 0; i < CENARIO.santinhos; i++) {
     const top = i % 2 === 0;
-    litter(w, 'santinho', map.minX + 1 + H(b, i, 640) * (map.sandX - map.minX - 2), y0 + (top ? H(b, i, 641) * 5 : 35 + H(b, i, 641) * 5), H(b, i, 642));
+    litter(w, 'santinho', map.minX + 1 + H(b, i, 640) * (map.avenidaX0 - map.minX - 1.5), y0 + (top ? H(b, i, 641) * 5 : 35 + H(b, i, 641) * 5), H(b, i, 642));
   }
   // sujeira espalhada (só desenho)
   const n = CENARIO.lixoPorQuarteirao;
   const kinds = ['mancha', 'mancha', 'latinha', 'papel', 'bituca', 'saco', 'poca', 'papelao', 'garrafa', 'mancha', 'papel', 'chiclete'];
   for (let i = 0; i < n; i++) {
-    const x = map.minX + 0.5 + H(b, i, 620) * (map.sandX - map.minX - 1);
+    const x = map.minX + 0.5 + H(b, i, 620) * (map.avenidaX0 - map.minX - 1);
     const y = y0 + H(b, i, 621) * 40;
     litter(w, kinds[Math.floor(H(b, i, 622) * kinds.length)], x, y, H(b, i, 623));
   }
+  // avenida: óleo nas faixas e bueiros no meio-fio
+  for (let i = 0; i < 6; i++) litter(w, 'oleo', map.avenidaX0 + 0.8 + H(b, i, 650) * (map.avenidaX1 - map.avenidaX0 - 1.6), y0 + H(b, i, 651) * 40, H(b, i, 652));
+  litter(w, 'bueiro', map.avenidaX0 + 0.6, y0 + 12 + H(b, 1, 653) * 16, 0);
+  litter(w, 'bueiro', map.avenidaX1 - 0.6, y0 + 8 + H(b, 2, 653) * 20, 0);
 }
 
 /** Areia: coqueiros, guarda-sóis com toalha e isopor, carrinho de mate e, às vezes, a rede de futevôlei. */

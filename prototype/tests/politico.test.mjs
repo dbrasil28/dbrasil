@@ -11,6 +11,7 @@ const newGame = () => {
   const g = new Game({ ...defaultSettings(), elenco: false }, { seed: 3 });
   g.enemies.length = 0;
   g.player.weapons.length = 0; // ninguém atira: o teste olha só o Político
+  g.player.x = 0; // o teste mede do centro do calçadão
   return g;
 };
 const step = (g, s) => { for (let t = 0; t < s; t += 1 / 30) g.updateEnemies(1 / 30), g.updateBribes(1 / 30); };

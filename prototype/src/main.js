@@ -127,7 +127,7 @@ function drainOutbox(now) {
     if (ev.type === 'tv') ui.pushTicker(ev.text);
     else if (ev.type === 'shake') renderer.addShake(ev.amount, settings.shake);
     else if (ev.type === 'flash') renderer.flash(!settings.reduceFlashes);
-    else if (ev.type === 'warn') ui.warn(ev.angle, ev.dur * 1000, now, 'PLATEIA');
+    else if (ev.type === 'warn') ui.warn(ev.angle, ev.dur * 1000, now, ev.label || 'PLATEIA');
     else if (ev.type === 'boss') ui.warn(-Math.PI / 2, 2500, now, 'CHEFE');
     else if (ev.type === 'fine') ui.toast(`MULTA: −${ev.amount} XP`, now);
     else if (ev.type === 'paper') ui.toast('PAPELADA! VOCÊ FICOU LENTO', now);

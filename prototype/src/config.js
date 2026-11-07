@@ -116,6 +116,9 @@ export const MAPS = {
   orla: {
     name: 'Orla do Desespero', bounded: true,
     minX: -14, // fim do calçadão à esquerda: morro e favela (não dá para entrar)
+    // da esquerda para o mar (como em Copacabana): prédios, calçadão, avenida, ciclovia, areia, mar
+    avenidaX0: 1.0, // fim do calçadão e começo da avenida ao longo da praia
+    avenidaX1: 12.4, // fim da avenida e começo da ciclovia
     sandX: 14, // começo da areia à direita
     maxX: 20, // até onde dá para andar na areia
     seaX: 26, // começo do mar (só visual)
@@ -129,10 +132,26 @@ export const MAPS = {
   aberto: { name: 'Arena aberta (teste)', bounded: false, groundTileM: 10 },
 };
 
+// Avenida da praia (Orla): carros andando nas quatro faixas, dois sentidos. Atropelam o Juninho e a
+// horda. Quem vem por trás do Juninho na faixa dele dá aviso na borda de baixo da tela antes de chegar.
+export const AVENIDA = {
+  faixas: [{ x: 2.4, sentido: 1 }, { x: 5.0, sentido: 1 }, { x: 8.4, sentido: -1 }, { x: 11.0, sentido: -1 }], // 1 = descendo (para a câmera)
+  canteiroX: 6.7, // faixa dupla amarela no meio
+  velocidade: [8, 12], // m/s
+  intervaloS: [3, 8], // tempo entre um carro e o próximo na mesma faixa
+  raioM: 42, // carros só existem perto do Juninho
+  dano: 28, // atropelou o Juninho
+  empurraoM: 2.2, // joga o Juninho para o lado
+  invulnS: 0.8,
+  danoHorda: 400, // atropelou zumbi: morre
+  avisoM: 16, // carro vindo por trás, nessa distância, na faixa do Juninho: aviso
+  modelos: ['fusca', 'brasilia', 'uno'],
+};
+
 // Rota contínua (docs/design/CARREIRA_E_ROTA.md): a Orla tem fim; a escadaria do pé do morro abre no
 // nível da meta e leva direto à Subida do Morro, sem corte. Pedaços do morro de baixo para cima.
 export const ROUTE = {
-  orla: { blocks: 8, startY: 44, unlockLevel: 15, gate: { x0: -12.8, x1: -8.6, len: 8 } },
+  orla: { blocks: 8, startY: 44, startX: -6.5, unlockLevel: 15, gate: { x0: -12.8, x1: -8.6, len: 8 } }, // startX: o Juninho começa no meio do calçadão
   morro: {
     unlockLevel: 25, // nível para fazer a entrega na laje do topo
     stairSlow: 0.75, // escadaria: todo mundo sobe mais devagar
@@ -193,7 +212,7 @@ export const CENARIO = {
   // carros estacionados nas duas faixas de cada rua transversal (vagas: começo de cada carro em x)
   // medidas reais em metros; escala: os personagens são desenhados maiores que a escala real (para ler
   // bem no celular), então os veículos crescem junto para não parecerem de brinquedo ao lado deles
-  carros: { vagaX: [-6.0, 0.0, 6.2], chance: 0.6, len: 4.0, larg: 1.8, h: 1.45, onibusChance: 0.3, onibusLen: 8.8, onibusLarg: 2.5, onibusH: 3.0, escala: 1.3 },
+  carros: { vagaX: [-13.4, -8.0], chance: 0.6, len: 4.0, larg: 1.8, h: 1.45, onibusChance: 0.3, onibusLen: 8.8, onibusLarg: 2.5, onibusH: 3.0, escala: 1.3 },
   buracoChance: 0.4, // buraco no meio da rua, com cones em volta
   livreInicioM: 7, // área livre em volta do começo da partida
   livreJuntaM: 3, // nada sólido perto das passagens entre pedaços da rota
@@ -207,7 +226,7 @@ export const CENARIO = {
   lixoPorQuarteirao: 34, // sujeira no chão (só desenho): manchas, latinhas, papel, sacos, poças
   santinhos: 10, // santinhos de candidato no chão, por rua e por quarteirão
   bandeirinhasChance: 0.6, // bandeirinhas verde-amarelas atravessando a rua
-  bandeirinhasAteX: 14,
+  bandeirinhasAteX: 1.0, // a rua transversal termina na avenida
   morro: { motosPorViela: 2, lixoPorPedaco: 14 },
   // polícia na favela (ambiente): camburão no pé do morro (começo em x) e nas primeiras lajes,
   // policiais na entrada das vielas indicadas (índice do pedaço da rota), barricada numa viela
@@ -493,6 +512,7 @@ export const TV = {
   fogos: ['FOGOS NO MORRO: CHEGOU ENCOMENDA', 'SOLTARAM FOGOS. O MORRO INTEIRO SABE QUE ELE CHEGOU'],
   botijao: ['BOTIJÃO VOA NA ORLA. PREÇO DO GÁS SOBE DE NOVO', 'EXPLOSÃO DE BOTIJÃO. GOVERNO PROMETE "VALE-GÁS" PARA 2040'],
   objeto: ['ENTREGADOR ARREMESSA CADEIRA DE BOTECO. DONO COBRA A MESA'],
+  atropelado: ['ENTREGADOR É ATROPELADO NA AVENIDA DA PRAIA. MOTORISTA NÃO PARA', 'CARRO PASSA POR CIMA DE ENTREGADOR. APP DESCONTA A ENTREGA ATRASADA'],
   acai: ['ENTREGADOR PARA PARA TOMAR AÇAÍ NO MEIO DO APOCALIPSE', 'AÇAÍ COM GRANOLA: O ÚNICO SERVIÇO PÚBLICO QUE FUNCIONA'],
   entrega: ['ENTREGA FEITA NO ALTO DO MORRO: UMA PIZZA DE CALABRESA. GORJETA: NENHUMA'],
   maleta: ['POLÍTICO ARREMESSA MALETA. ASSESSORIA FALA EM "DOAÇÃO ESPONTÂNEA"', 'MALETA VOANDO NA ORLA. DONO NÃO SE IDENTIFICA'],

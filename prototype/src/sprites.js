@@ -46,6 +46,13 @@ export const IMAGES = {
   poste: 'assets/cenario/orla/poste_gato_a.webp',
   poste_b: 'assets/cenario/orla/poste_gato_b.webp',
   cone: 'assets/cenario/cone.png',
+  // carros andando na avenida: de frente (descendo) e de traseira (subindo), 128 px por metro
+  trafego_fusca_norte: 'assets/veiculos/fusca_norte.webp',
+  trafego_fusca_sul: 'assets/veiculos/fusca_sul.webp',
+  trafego_brasilia_norte: 'assets/veiculos/brasilia_norte.webp',
+  trafego_brasilia_sul: 'assets/veiculos/brasilia_sul.webp',
+  trafego_uno_norte: 'assets/veiculos/uno_norte.webp',
+  trafego_uno_sul: 'assets/veiculos/uno_sul.webp',
   // objetos que o Juninho pega e arremessa (Figma, recortados); altura no chão em OBJ_ALTURA (config.js)
   obj_cadeira: 'assets/objetos/cadeira.webp',
   obj_mesa: 'assets/objetos/mesa.webp',
