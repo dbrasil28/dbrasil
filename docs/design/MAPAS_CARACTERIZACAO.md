@@ -138,6 +138,8 @@ Da esquerda para o mar, como em Copacabana (decisão do autor): **prédios, cal�
 | Areia | 6 m de andar | Quiosque, salva-vidas, guarda-sóis, coqueiros, futevôlei |
 | Mar | — | Depois da areia |
 
+**Profundidade (07/11/2026, opção 2 do autor):** o mapa continua reto, com a câmera olhando para o norte, mas o chão ganhou sombras longas de fim de tarde (o sol baixo vem do alto à esquerda, então os prédios sombreiam o calçadão e cada objeto arrasta a sua sombra para a direita), meio-fio com altura nas ruas e na beira da avenida, escurecido na base dos objetos, névoa quente no alto da tela e um escurecido embaixo. Números em `SOMBRA` (config.js). A outra opção, girar o mapa 45° para um isométrico de verdade, ficou para depois: exige refazer a arte no ângulo diagonal.
+
 As ruas transversais saem dos prédios e terminam na avenida, com carros e ônibus parados. O Juninho começa no meio do calçadão. A planta da rota (`node tools/planta-mundo.mjs`) mostra tudo isso de cima.
 
 ### Orla, por quarteirão

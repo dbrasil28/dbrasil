@@ -3,7 +3,7 @@
 import { hash2 } from './math.js';
 import { images } from './sprites.js';
 import { Camera } from './camera.js';
-import { PREDIOS } from './config.js';
+import { PREDIOS, SOMBRA } from './config.js';
 import { drawLitter, drawFachada, pixo, cartaz, bandeira } from './render_cenario.js';
 
 const pt = { x: 0, y: 0 };
@@ -248,6 +248,9 @@ function drawOrlaOnly(r, ctx, game, b) {
     };
     band(m.avenidaX0 - 0.15, m.avenidaX0 + 0.15, '#b9b3a8');
     band(m.avenidaX1 - 0.15, m.avenidaX1 + 0.15, '#b9b3a8');
+    // o calçadão é mais alto que o asfalto: a sombra do meio-fio cai na avenida (sol à esquerda)
+    band(m.avenidaX0 + 0.15, m.avenidaX0 + 0.55, 'rgba(0,0,0,0.3)');
+    band(m.avenidaX1 - 0.3, m.avenidaX1 - 0.15, 'rgba(255,236,210,0.18)');
     const cx = (m.avenidaX0 + m.avenidaX1) / 2;
     linha(cx - 0.12, 'rgba(235,190,40,0.85)', 0.08);
     linha(cx + 0.12, 'rgba(235,190,40,0.85)', 0.08);
@@ -300,10 +303,20 @@ function drawOrlaOnly(r, ctx, game, b) {
     ctx.fillStyle = '#3a3a3e';
     ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
     dirt(ctx, pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y, 0.5);
-    // meio-fio
-    ctx.fillStyle = '#a9a39a';
-    ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, Math.max(2, ppu * 0.18 * k));
-    ctx.fillRect(pt.x, pt2.y - Math.max(2, ppu * 0.18 * k), pt2.x - pt.x, Math.max(2, ppu * 0.18 * k));
+    // meio-fio com altura: em cima da rua, a calçada de cima mostra a face (virada para a câmera);
+    // embaixo, só o topo do meio-fio e a sombra dele no asfalto
+    const mf = Math.max(2, ppu * SOMBRA.meioFioM);
+    const topo = Math.max(2, ppu * 0.16 * k);
+    ctx.fillStyle = '#b8b2a8';
+    ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, topo);
+    ctx.fillStyle = '#6e6962';
+    ctx.fillRect(pt.x, pt.y + topo, pt2.x - pt.x, mf);
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.fillRect(pt.x, pt.y + topo + mf, pt2.x - pt.x, mf * 0.8);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(pt.x, pt2.y - topo - mf * 0.9, pt2.x - pt.x, mf * 0.9);
+    ctx.fillStyle = '#b8b2a8';
+    ctx.fillRect(pt.x, pt2.y - topo, pt2.x - pt.x, topo);
     // faixa central amarela
     cam.toScreen(b.minX - 6, ys + m.streetLen / 2, pt);
     cam.toScreen(rx1, ys + m.streetLen / 2, pt2);
@@ -399,6 +412,7 @@ export class OrlaLayer {
     const b = { minX: x0, maxX: x1, minY: j * TILE_M - 0.5, maxY: (j + 1) * TILE_M + 0.5 };
     drawOrlaGround(null, g, fake, b);
     if (game.world) drawLitter(g, game.world, tc, b); // sujeira do chão
+    if (game.world) drawSombras(g, game.world, tc, b, scale); // sombras longas de fim de tarde
     // decoração com base neste bloco e nos 12 m abaixo (objetos altos invadem o bloco de cima)
     const list = orlaDecor(fake, { minX: x0, maxX: x1, minY: j * TILE_M - 1, maxY: (j + 1) * TILE_M + 12 }, []);
     list.sort((a, b2) => a.y - b2.y);
@@ -407,6 +421,77 @@ export class OrlaLayer {
       drawDecor(g, d, { x: pt2.x, y: pt2.y }, tc.ppu, tc.k);
     }
     return c;
+  }
+}
+
+// sombras sem sobreposição dupla: desenhadas cheias num canvas à parte e coladas com transparência
+let sombraCanvas = null;
+const SEM_SOMBRA = new Set(['fios', 'bandeirinhas', 'toalha', 'placa_parede', 'varal']);
+
+/**
+ * Sombras longas no chão do bloco: a base de cada objeto arrastada na direção do sol (SOMBRA), mais o
+ * escurecido na base. Prédios, carros parados, barracas, postes, coqueiros, muros. Tudo estático.
+ */
+function drawSombras(g, w, cam, b, scale) {
+  if (typeof document === 'undefined') return;
+  const S = SOMBRA;
+  const cw = g.canvas.width;
+  const ch = g.canvas.height;
+  if (!sombraCanvas) sombraCanvas = document.createElement('canvas');
+  if (sombraCanvas.width !== cw || sombraCanvas.height !== ch) {
+    sombraCanvas.width = cw;
+    sombraCanvas.height = ch;
+  }
+  const s = sombraCanvas.getContext('2d');
+  s.setTransform(1, 0, 0, 1, 0, 0);
+  s.clearRect(0, 0, cw, ch);
+  s.setTransform(scale, 0, 0, scale, 0, 0);
+  s.fillStyle = '#140a1e';
+  const P = { x: 0, y: 0 };
+  const poly = (x0, y0, x1, y1, h) => {
+    const L = Math.min(S.maxM, h);
+    const dx = S.dx * L;
+    const dy = S.dy * L;
+    if (y1 + dy < b.minY - 1 || y0 > b.maxY + 1) return;
+    const pts = [[x0, y0], [x1, y0], [x1 + dx, y0 + dy], [x1 + dx, y1 + dy], [x0 + dx, y1 + dy], [x0, y1]];
+    s.beginPath();
+    pts.forEach(([x, y], i) => {
+      cam.toScreen(x, y, P);
+      if (i) s.lineTo(P.x, P.y);
+      else s.moveTo(P.x, P.y);
+    });
+    s.closePath();
+    s.fill();
+  };
+  const reach = S.maxM * S.dy + 2;
+  for (const pr of w.predios || []) {
+    const M = PREDIOS.modelos[pr.img];
+    if (pr.y1 < b.minY - reach || pr.y0 > b.maxY + 1) continue;
+    poly(pr.x0, pr.y0, pr.x1, pr.y1, M ? M.alturaM : 18);
+  }
+  for (const p of w.props) {
+    if (SEM_SOMBRA.has(p.kind) || p.y < b.minY - reach || p.y0 > b.maxY + 1) continue;
+    // objetos finos (postes, placas, coqueiros): sombra de um tronco, mais larga que o pé
+    const fino = p.x1 - p.x0 < 0.6;
+    const m = fino ? 0.12 : 0;
+    poly(p.x0 - m, p.y0, p.x1 + m, p.y1, p.h);
+  }
+  g.save();
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.globalAlpha = S.alpha;
+  if ('filter' in g) g.filter = `blur(${S.desfoquePx}px)`;
+  g.drawImage(sombraCanvas, 0, 0);
+  g.restore();
+  // escurecido na base de cada objeto sólido (contato com o chão)
+  g.fillStyle = `rgba(14,8,20,${S.baseAlpha})`;
+  for (const p of w.props) {
+    if (!p.solid || p.y < b.minY - 1 || p.y0 > b.maxY + 1) continue;
+    cam.toScreen((p.x0 + p.x1) / 2, (p.y0 + p.y1) / 2, P);
+    const rx = ((p.x1 - p.x0) / 2 + 0.25) * cam.ppu;
+    const ry = ((p.y1 - p.y0) / 2 + 0.2) * cam.ppu * cam.k;
+    g.beginPath();
+    g.ellipse(P.x, P.y, rx, ry, 0, 0, Math.PI * 2);
+    g.fill();
   }
 }
 

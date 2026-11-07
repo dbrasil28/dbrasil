@@ -1,6 +1,6 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE, GORE, CENARIO } from './config.js';
+import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA } from './config.js';
 import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
@@ -224,11 +224,13 @@ export class Renderer {
           drawPlace(ctx, o, cam, ppu);
           break;
         case 'trafego': {
-          // carro andando na avenida: de frente quando desce, de traseira quando sobe
+          // carro andando na avenida: de frente quando desce, de traseira quando sobe; sombra longa como a do cenário
           const im = images[`trafego_${o.modelo}_${o.sentido > 0 ? 'sul' : 'norte'}`];
-          ctx.fillStyle = 'rgba(0,0,0,0.35)';
+          const sx = SOMBRA.dx * 1.5 * ppu;
+          const sy = SOMBRA.dy * 1.5 * ppu * cam.k;
+          ctx.fillStyle = `rgba(20,10,30,${SOMBRA.alpha})`;
           ctx.beginPath();
-          ctx.ellipse(pt.x + ppu * 0.2, pt.y - o.len * ppu * cam.k * 0.45, o.wid * ppu * 0.55, o.len * ppu * cam.k * 0.55, 0, 0, Math.PI * 2);
+          ctx.ellipse(pt.x + sx * 0.5, pt.y - o.len * ppu * cam.k * 0.5 + sy * 0.5, o.wid * ppu * 0.55 + sx * 0.4, o.len * ppu * cam.k * 0.55, 0, 0, Math.PI * 2);
           ctx.fill();
           if (im) {
             const s = (ppu / 128) * CENARIO.carros.escala;
@@ -406,6 +408,7 @@ export class Renderer {
     this.drawPlayer(ctx, game, pt, playerPx, 0.38);
 
     this.drawFx(ctx, game, ppu, playerPx);
+    if (game.map.bounded) this.drawAtmosfera(ctx, cam);
     if (game.world) {
       drawGoalBeacon(ctx, game, cam, ppu, game.t, 'placa');
       drawEdgeArrow(ctx, game, cam, this.dpr, game.t); // seta na borda quando a saída está fora da tela
@@ -744,6 +747,30 @@ export class Renderer {
       ctx.fillText(String(n.v), pt.x, y);
     }
     ctx.globalAlpha = 1;
+  }
+
+  /** Névoa quente no alto da tela (o que está longe) e um escurecido embaixo: dá distância ao chão reto. */
+  drawAtmosfera(ctx, cam) {
+    const N = SOMBRA.nevoa;
+    const R = SOMBRA.rodape;
+    const top = cam.playTop;
+    const H = cam.playBottom - cam.playTop;
+    if (!this.atmo || this.atmo.h !== H || this.atmo.top !== top) {
+      const gN = ctx.createLinearGradient(0, top, 0, top + H * N.ate);
+      gN.addColorStop(0, `rgba(${N.cor.join(',')},${N.alpha})`);
+      gN.addColorStop(1, `rgba(${N.cor.join(',')},0)`);
+      const gR = ctx.createLinearGradient(0, top + H * R.desde, 0, top + H);
+      gR.addColorStop(0, 'rgba(12,6,18,0)');
+      gR.addColorStop(1, `rgba(12,6,18,${R.alpha})`);
+      this.atmo = { h: H, top, gN, gR };
+    }
+    ctx.save();
+    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.fillStyle = this.atmo.gN;
+    ctx.fillRect(0, top, cam.viewW, H * N.ate);
+    ctx.fillStyle = this.atmo.gR;
+    ctx.fillRect(0, top + H * R.desde, cam.viewW, H * (1 - R.desde));
+    ctx.restore();
   }
 
   /** Ícones do HUD e das cartas usam o mesmo desenho do jogo. */

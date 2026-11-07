@@ -144,13 +144,28 @@ export const PREDIOS = {
   endireitar: 0.5,
   k: Math.sin((55 * Math.PI) / 180), // achatamento do chão na câmera padrão
   modelos: {
-    a: { w: 437, h: 1100, perto: [201, 1099], longe: [436, 712], esq: 0 },
-    b: { w: 429, h: 1100, perto: [190, 1099], longe: [428, 681], esq: 0 },
-    c: { w: 520, h: 1100, perto: [251, 1099], longe: [519, 420], esq: 0 },
-    d: { w: 388, h: 1100, perto: [235, 1099], longe: [387, 630], esq: 0 },
+    a: { w: 437, h: 1100, perto: [201, 1099], longe: [436, 712], esq: 0, alturaM: 20 },
+    b: { w: 429, h: 1100, perto: [190, 1099], longe: [428, 681], esq: 0, alturaM: 23 },
+    c: { w: 520, h: 1100, perto: [251, 1099], longe: [519, 420], esq: 0, alturaM: 14 },
+    d: { w: 388, h: 1100, perto: [235, 1099], longe: [387, 630], esq: 0, alturaM: 30 },
   },
 };
 
+
+// Profundidade do chão (mapa reto, câmera olhando para o norte): sombras longas de fim de tarde,
+// meio-fio com altura e a névoa quente no alto da tela. dx, dy: quanto a sombra anda no chão (m) por
+// metro de altura do objeto (sol baixo vindo do alto à esquerda: a sombra cai para a direita e para baixo).
+export const SOMBRA = {
+  dx: 0.42,
+  dy: 0.28,
+  alpha: 0.38, // força da sombra
+  desfoquePx: 3,
+  maxM: 24, // altura máxima que conta para a sombra (prédios de alturas diferentes dão a borda em degraus)
+  baseAlpha: 0.32, // escurecido na base de cada objeto
+  meioFioM: 0.18, // altura do meio-fio
+  nevoa: { cor: [255, 196, 150], alpha: 0.26, ate: 0.45 }, // névoa no alto da tela (até 45% da altura)
+  rodape: { alpha: 0.14, desde: 0.78 }, // escurecido na parte de baixo da tela
+};
 
 // Avenida da praia (Orla): carros andando nas quatro faixas, dois sentidos. Atropelam o Juninho e a
 // horda. Quem vem por trás do Juninho na faixa dele dá aviso na borda de baixo da tela antes de chegar.
