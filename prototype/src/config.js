@@ -180,6 +180,20 @@ export const AVENIDA = {
   hordaInvulnS: 1.2, // o mesmo inimigo só leva outro atropelamento depois disso (antes o chefe morria embaixo do carro)
   avisoM: 16, // carro vindo por trás, nessa distância, na faixa do Juninho: aviso
   modelos: ['fusca', 'brasilia', 'uno'],
+  // rodas girando (tools/rodas-carros.py): por vista, a caixa de cada roda na imagem do carro [x, y, w, h] e a
+  // linha dela no atlas (<carro>_<sentido>_rodas.webp, um quadro por coluna); quadrosPorM: quadros por metro andado
+  rodas: {
+    quadros: 4,
+    quadrosPorM: 3,
+    fusca_norte: [[268, 262, 109, 109, 0], [331, 79, 99, 99, 109]],
+    fusca_sul: [[278, 322, 92, 92, 0]],
+    brasilia_norte: [[271, 265, 113, 113, 0], [347, 81, 98, 98, 113]],
+    brasilia_sul: [[275, 309, 113, 113, 0], [354, 102, 89, 89, 113]],
+    uno_norte: [[274, 319, 109, 109, 0], [341, 100, 107, 107, 109]],
+    uno_sul: [[279, 348, 104, 104, 0], [344, 176, 105, 105, 104]],
+  },
+  distanciaM: 2.5, // distância mínima entre dois carros na mesma faixa
+  escala: 0.95, // tamanho dos carros da avenida (cabem na faixa de 2,6 m; os parados nas ruas usam CENARIO.carros.escala)
 };
 
 // Rota contínua (docs/design/CARREIRA_E_ROTA.md): a Orla tem fim; a escadaria do pé do morro abre no

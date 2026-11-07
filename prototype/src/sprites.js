@@ -53,6 +53,12 @@ export const IMAGES = {
   trafego_brasilia_sul: 'assets/veiculos/brasilia_sul.webp',
   trafego_uno_norte: 'assets/veiculos/uno_norte.webp',
   trafego_uno_sul: 'assets/veiculos/uno_sul.webp',
+  trafego_fusca_norte_rodas: 'assets/veiculos/fusca_norte_rodas.webp',
+  trafego_fusca_sul_rodas: 'assets/veiculos/fusca_sul_rodas.webp',
+  trafego_brasilia_norte_rodas: 'assets/veiculos/brasilia_norte_rodas.webp',
+  trafego_brasilia_sul_rodas: 'assets/veiculos/brasilia_sul_rodas.webp',
+  trafego_uno_norte_rodas: 'assets/veiculos/uno_norte_rodas.webp',
+  trafego_uno_sul_rodas: 'assets/veiculos/uno_sul_rodas.webp',
   // objetos que o Juninho pega e arremessa (Figma, recortados); altura no chão em OBJ_ALTURA (config.js)
   obj_cadeira: 'assets/objetos/cadeira.webp',
   obj_mesa: 'assets/objetos/mesa.webp',

@@ -1394,7 +1394,7 @@ export class Game {
     const m = this.map;
     if (!w || m.avenidaX0 === undefined) return;
     const A = AVENIDA;
-    const E = CENARIO.carros.escala;
+    const E = A.escala;
     const p = this.player;
     const len = 4.0 * E;
     const wid = 1.8 * E;
@@ -1412,9 +1412,24 @@ export class Game {
       this.traffic.push({ x: f.x, y, faixa: i, sentido: f.sentido, v, len, wid, modelo: A.modelos[Math.floor(this.rng() * A.modelos.length)], warned: false });
     });
     const list = this.traffic;
+    // fila na faixa: quem vem atrás de um carro mais lento freia e mantém distância (não passa por dentro)
+    for (const c of list) {
+      let ahead = null;
+      for (const o of list) {
+        if (o === c || o.faixa !== c.faixa) continue;
+        const d = (o.y - c.y) * c.sentido; // > 0: o outro está na frente
+        if (d > 0 && (!ahead || d < (ahead.y - c.y) * c.sentido)) ahead = o;
+      }
+      c.vAtual = c.v;
+      if (ahead) {
+        const gap = (ahead.y - c.y) * c.sentido - (c.len + ahead.len) / 2;
+        if (gap < A.distanciaM) c.vAtual = Math.min(c.v, ahead.v * Math.max(0, gap / A.distanciaM));
+      }
+    }
     for (let i = list.length - 1; i >= 0; i--) {
       const c = list[i];
-      c.y += c.sentido * c.v * dt;
+      c.y += c.sentido * c.vAtual * dt;
+      c.giro = (c.giro || 0) + c.vAtual * dt; // metros andados: as rodas giram com isso
       if (Math.abs(c.y - p.y) > A.raioM + 6 || c.y < y0 || c.y > y1) {
         list[i] = list[list.length - 1];
         list.pop();

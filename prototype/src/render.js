@@ -1,6 +1,6 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA } from './config.js';
+import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA } from './config.js';
 import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
@@ -234,8 +234,18 @@ export class Renderer {
           ctx.ellipse(pt.x + sx * 0.5, pt.y - o.len * ppu * cam.k * 0.5 + sy * 0.5, o.wid * ppu * 0.55 + sx * 0.4, o.len * ppu * cam.k * 0.55, 0, 0, Math.PI * 2);
           ctx.fill();
           if (im) {
-            const s = (ppu / 128) * CENARIO.carros.escala;
-            ctx.drawImage(im, pt.x - (im.width * s) / 2, pt.y - im.height * s, im.width * s, im.height * s);
+            const s = (ppu / 128) * AVENIDA.escala;
+            const ox = pt.x - (im.width * s) / 2;
+            const oy = pt.y - im.height * s;
+            ctx.drawImage(im, ox, oy, im.width * s, im.height * s);
+            // rodas girando: o quadro avança com os metros andados
+            const vista = `${o.modelo}_${o.sentido > 0 ? 'sul' : 'norte'}`;
+            const R = AVENIDA.rodas;
+            const atlas = images[`trafego_${vista}_rodas`];
+            if (atlas && R[vista]) {
+              const q = Math.floor((o.giro || 0) * R.quadrosPorM) % R.quadros;
+              for (const [rx, ry, rw, rh, ay] of R[vista]) ctx.drawImage(atlas, q * rw, ay, rw, rh, ox + rx * s, oy + ry * s, rw * s, rh * s);
+            }
           } else {
             ctx.fillStyle = '#7f8896';
             ctx.fillRect(pt.x - (o.wid * ppu) / 2, pt.y - o.len * ppu * cam.k - 1.4 * ppu, o.wid * ppu, o.len * ppu * cam.k + 1.4 * ppu);
