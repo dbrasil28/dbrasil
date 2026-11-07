@@ -3,6 +3,7 @@ import { WEAPONS, PASSIVES, SLOTS, ENEMIES, verdictFor, TRECHOS, MELHORIAS, RELI
 import { upgradeLevel, upgradeCost } from './progresso.js';
 import { SETTINGS_SCHEMA } from './settings.js';
 import { formatTime, fmt } from './math.js';
+import { fmtT } from './ranking.js';
 import { weaponMaxLevel } from './upgrades.js';
 
 const $ = (id) => document.getElementById(id);
@@ -49,6 +50,13 @@ export class UI {
     $('btn-rota').addEventListener('click', () => this.fire('rota'));
     $('btn-melhorias').addEventListener('click', () => this.fire('melhorias'));
     $('btn-rota-back').addEventListener('click', () => this.fire('back'));
+    $('btn-horda').addEventListener('click', () => this.fire('horda'));
+    $('btn-desafio').addEventListener('click', () => this.fire('desafio'));
+    $('btn-ranking').addEventListener('click', () => this.fire('ranking'));
+    $('btn-horda-back').addEventListener('click', () => this.fire('back'));
+    $('btn-desafio-back').addEventListener('click', () => this.fire('back'));
+    $('btn-ranking-back').addEventListener('click', () => this.fire('back'));
+    $('btn-desafio-play').addEventListener('click', () => this.fire('desafioPlay'));
     $('btn-mel-back').addEventListener('click', () => this.fire('back'));
   }
 
@@ -71,7 +79,7 @@ export class UI {
 
   // ---------- telas ----------
   show(screen) {
-    for (const id of ['screen-title', 'screen-pause', 'screen-result', 'screen-settings', 'screen-rota', 'screen-melhorias']) $(id).hidden = id !== screen;
+    for (const id of ['screen-title', 'screen-pause', 'screen-result', 'screen-settings', 'screen-rota', 'screen-melhorias', 'screen-horda', 'screen-desafio', 'screen-ranking']) $(id).hidden = id !== screen;
     document.body.classList.toggle('in-menu', !!screen);
   }
 
@@ -565,7 +573,7 @@ export class UI {
   showResult(game, perfSummary, settings, meta, adsSummary) {
     const s = game.summary();
     const win = game.over === 'victory';
-    $('result-title').textContent = game.delivered ? 'ENTREGA FEITA' : win ? 'TURNO CONCLUÍDO' : 'FIM DO TURNO';
+    $('result-title').textContent = game.modo === 'desafio' ? 'FIM DO DESAFIO' : game.modo === 'horda' ? 'FIM DA HORDA' : game.delivered ? 'ENTREGA FEITA' : win ? 'TURNO CONCLUÍDO' : 'FIM DO TURNO';
     $('result-headline').textContent = game.delivered
       ? 'ENTREGA FEITA NO ALTO DO MORRO: UMA PIZZA DE CALABRESA. GORJETA: NENHUMA'
       : win
@@ -661,6 +669,95 @@ export class UI {
       if (open) item.addEventListener('click', () => onPlay(t.id));
       li.append(item);
       list.append(li);
+    }
+  }
+
+  /** Modo Horda: os mapas conquistados na Carreira (derrubou o chefão); o resto, trancado ou ???. */
+  buildHorda(progress, ranking, onPlay, aberta = false) {
+    const list = $('horda-list');
+    list.textContent = '';
+    for (const t of TRECHOS.filter((x) => x.jogavel)) {
+      const st = progress.trechos[t.id];
+      const conquistado = aberta || st.estrelas[0];
+      const li = document.createElement('li');
+      const item = document.createElement(conquistado ? 'button' : 'div');
+      item.className = `rota-item ${conquistado ? 'is-open' : 'is-locked'}`;
+      if (conquistado) item.type = 'button';
+      const left = document.createElement('span');
+      const name = document.createElement('span');
+      name.className = 'rota-name';
+      name.textContent = st.liberado || aberta ? t.nome : '???';
+      left.append(name);
+      const right = document.createElement('span');
+      right.className = conquistado ? 'rota-play' : 'rota-lock';
+      right.textContent = conquistado ? 'JOGAR' : '🔒';
+      item.append(left, right);
+      const goal = document.createElement('span');
+      goal.className = 'rota-goal';
+      const best = (ranking.horda[t.id] || [])[0];
+      goal.textContent = conquistado
+        ? (best ? `Seu recorde: ${fmtT(best.s)}` : 'Ainda sem recorde')
+        : st.liberado ? 'Derrube o chefão deste trecho na Carreira' : '';
+      item.append(goal);
+      if (conquistado) item.addEventListener('click', () => onPlay(t.id));
+      li.append(item);
+      list.append(li);
+    }
+  }
+
+  /** Desafio da Semana: a regra, o recorde da semana neste aparelho. */
+  buildDesafio(d, ranking) {
+    const box = $('desafio-info');
+    box.textContent = '';
+    const h = document.createElement('div');
+    h.innerHTML = '<b></b>';
+    h.firstChild.textContent = d.nome;
+    const p1 = document.createElement('div');
+    p1.textContent = `${d.desc}. Orla do Desespero, o mesmo sorteio para todo mundo, sem melhorias permanentes.`;
+    const best = (ranking.desafio[d.id] || [])[0];
+    const p2 = document.createElement('div');
+    p2.textContent = best ? `Seu melhor nesta semana: ${fmtT(best.s)}` : 'Você ainda não jogou o desafio desta semana.';
+    box.append(h, p1, p2);
+  }
+
+  /** Entregador do Mês: os recordes deste aparelho. */
+  buildRanking(ranking, desafio) {
+    const box = $('ranking-list');
+    box.textContent = '';
+    const bloco = (titulo, lista, vazio) => {
+      const h = document.createElement('div');
+      h.innerHTML = '<b></b>';
+      h.firstChild.textContent = titulo;
+      box.append(h);
+      if (!lista || !lista.length) {
+        const v = document.createElement('div');
+        v.textContent = vazio;
+        box.append(v);
+        return;
+      }
+      lista.slice(0, 5).forEach((e, i) => {
+        const r = document.createElement('div');
+        r.textContent = `${i + 1}º  ${fmtT(e.s)}  ·  ${e.d.split('-').reverse().join('/')}`;
+        box.append(r);
+      });
+    };
+    bloco('Carreira · Orla: menor tempo para derrubar o Especulador', ranking.carreira.orla, 'Ainda ninguém derrubou o Especulador.');
+    bloco('Carreira · Morro: menor tempo para derrubar o Chefe do Tráfico', ranking.carreira.morro, 'Ainda ninguém derrubou o Chefe do Tráfico.');
+    bloco('Horda · Orla: mais tempo vivo', ranking.horda.orla, 'Sem partidas de Horda na Orla.');
+    bloco('Horda · Morro: mais tempo vivo', ranking.horda.morro, 'Sem partidas de Horda no Morro.');
+    bloco(`Desafio da Semana · ${desafio.nome}`, ranking.desafio[desafio.id], 'Sem partidas do desafio desta semana.');
+  }
+
+  /** No resultado: o que entrou no ranking (ou por que não entrou). */
+  showRankingResult(res) {
+    const box = $('result-tips');
+    if (!res) return;
+    const linhas = res.fora ? [res.fora] : res.linhas;
+    for (const l of linhas) {
+      const d = document.createElement('div');
+      d.className = 'ranking-linha';
+      d.textContent = res.fora ? l : `ENTREGADOR DO MÊS · ${l}`;
+      box.append(d);
     }
   }
 

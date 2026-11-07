@@ -5,10 +5,11 @@ import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA,
+  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
 import { updateCrises, criseLentidao } from './crises.js';
+import { emHorda, iniciarHorda, updateHorda, durezaHorda } from './horda.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside, routeRemaining } from './mundo.js';
@@ -147,6 +148,12 @@ export class Game {
     this.covil = covilDe(this, 'orla'); // a obra do Especulador; no Morro, a laje do topo
     this.achados = this.world ? sortearAchados(this) : []; // isopores, cofres e a relíquia (D40)
     this.abertura = null;
+    // modo: 'carreira' (a viagem), 'horda' (um mapa, sobreviver) ou 'desafio' (a Horda da semana)
+    this.modo = this.meta.modo || 'carreira';
+    this.desafio = this.meta.desafio || null;
+    this.spawnExtra = 1;
+    this.horda = null;
+    if (emHorda(this) && this.world) iniciarHorda(this);
     if (this.meta.abertura && this.world && this.startTrecho === 'orla') iniciarAbertura(this); // o dia em que o sinal pegou
     if (this.meta.melhorias && this.meta.melhorias.armaInicial) this.pendingInicial = true;
 
@@ -387,7 +394,7 @@ export class Game {
     // a horda fica mais resistente com o tempo dentro do trecho; cada trecho começa mais duro (D39)
     const tt = this.world ? tempoNoTrecho(this) : this.t;
     const base = this.world ? CARREIRA.trechoHpMul[this.segment] || 1 : 1;
-    const hpScale = DIRECTOR.hpScale(tt) * base * (def.boss ? this.mods.bossHpMul : this.mods.enemyHpMul);
+    const hpScale = DIRECTOR.hpScale(tt) * base * durezaHorda(this) * (def.boss ? this.mods.bossHpMul : this.mods.enemyHpMul);
     const hp = def.hp * (type === 'isca' ? 1 : hpScale);
     const e = {
       id: this.nextId++, type, x, y, r: def.radius, hp, maxHp: hp, speed: def.speed * (0.9 + this.rng() * 0.2),
@@ -473,7 +480,7 @@ export class Game {
 
   // ---------- dano ----------
   damageEnemy(e, amount, source, kx = 0, ky = 0, quiet = false) {
-    if (e.dead) return;
+    if (e.dead || ENEMIES[e.type].invencivel) return; // o Rabecão não morre
     let dmg = amount;
     if (e.elite) dmg *= this.stats.eliteDmgMul;
     const dw = this.metrics.damageByWeapon;
@@ -864,7 +871,8 @@ export class Game {
       this.updateRoute(dt);
       updateAbertura(this, dt);
       if (!emAbertura(this)) {
-        updateCovil(this, dt);
+        if (this.horda) updateHorda(this, dt);
+        else updateCovil(this, dt);
         updateCrises(this, dt);
         this.updateDirector(dt);
         this.updateWeapons(dt);
@@ -1012,8 +1020,8 @@ export class Game {
     const s = this.settings;
     const cap = s.maxEnemies;
     const pz = this.pressao;
-    const target = Math.min(cap, DIRECTOR.targetAlive(pz) * s.spawnMul);
-    this.spawnAcc += DIRECTOR.spawnPerSec(pz) * s.spawnMul * dt;
+    const target = Math.min(cap, DIRECTOR.targetAlive(pz) * s.spawnMul * this.spawnExtra);
+    this.spawnAcc += DIRECTOR.spawnPerSec(pz) * s.spawnMul * this.spawnExtra * dt;
     let alive = 0;
     for (const e of this.enemies) if (!e.dead && !e.elite) alive++;
     while (this.spawnAcc >= 1) {
@@ -1700,6 +1708,7 @@ export class Game {
     }
     if (this.segment !== 'morro') return;
     if (p.ri >= 0) w.visto.add(p.ri);
+    if (this.horda) return; // Modo Horda: não há entrega, é sobreviver
     w.exitOpen = !!this.settings.aberta || this.chefeKilled;
     const top = w.top;
     if (w.exitOpen && inside(top, p.x, p.y) && p.y < (top.y0 + top.y1) / 2 && !this.chefe) this.deliver();
@@ -1901,6 +1910,7 @@ export class Game {
     if (this.bossKilled) parts.push(['Chefe vencido', G.chefe]);
     if (this.delivered) parts.push(['Entrega feita', G.entrega]);
     if (this.metrics.achadosGorjeta) parts.push(['Achados pelo caminho', this.metrics.achadosGorjeta]);
+    if (emHorda(this)) for (const p of parts) p[1] = Math.round(p[1] * HORDA.gorjetaMul); // a Carreira rende mais
     return { total: parts.reduce((a, p) => a + p[1], 0), parts };
   }
 

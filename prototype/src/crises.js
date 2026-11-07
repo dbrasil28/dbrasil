@@ -3,6 +3,7 @@
 // sem fechar a passagem. Orla: Ressaca do mar e Apagão. Morro: Baile na laje e Gato de luz em curto.
 // Sem DOM: roda igual no navegador e nos testes.
 import { CRISES } from './config.js';
+import { proximaCriseHorda, criseAcabouNaHorda } from './horda.js';
 
 const tmp = [];
 
@@ -13,7 +14,8 @@ export function updateCrises(game, dt) {
   if (!game.crisesFeitas) game.crisesFeitas = new Set();
   let c = game.crise;
   if (!c && !game.caosParado) {
-    const def = lista.find((d) => !game.crisesFeitas.has(d.id) && game.caos >= d.caos);
+    // na Horda, as crises são sorteadas e voltam (horda.js); na Carreira, cada uma acontece uma vez
+    const def = game.horda ? proximaCriseHorda(game) : lista.find((d) => !game.crisesFeitas.has(d.id) && game.caos >= d.caos);
     if (def) {
       c = game.crise = { id: def.id, def, fase: 'aviso', t: 0 };
       game.tv(`crise_${def.id}_aviso`);
@@ -36,6 +38,7 @@ export function updateCrises(game, dt) {
     FIM[c.id]?.(game, c);
     game.crisesFeitas.add(c.id);
     game.crise = null;
+    criseAcabouNaHorda(game);
   }
 }
 

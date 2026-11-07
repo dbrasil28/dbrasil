@@ -10,6 +10,8 @@ import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
 import { loadImages, images, prewarm } from './sprites.js';
 import { loadProgress, applyRun, buyUpgrade } from './progresso.js';
+import { loadRanking, registrarPartida } from './ranking.js';
+import { desafioDaSemana } from './horda.js';
 
 const $ = (id) => document.getElementById(id);
 const STEP = 1 / 60;
@@ -97,13 +99,22 @@ function updateReadout() {
 // carreira: progresso no aparelho (gorjetas, melhorias, trechos) e o trecho da próxima partida
 const progress = loadProgress();
 let runTrecho = 'orla';
+let runModo = 'carreira'; // 'carreira' | 'horda' | 'desafio'
+const ranking = loadRanking();
 let menuFrom = 'screen-title';
 
 function newGame() {
   // abertura (o sinal da TV pegando) em toda partida que começa na Orla; da 2ª partida em diante, dá para pular
-  const meta = { melhorias: progress.melhorias, trecho: runTrecho, abertura: runTrecho === 'orla' };
+  const desafio = runModo === 'desafio' ? desafioDaSemana() : null;
+  const meta = {
+    melhorias: runModo === 'desafio' ? {} : progress.melhorias, // no desafio, todo mundo igual
+    trecho: desafio ? desafio.trecho : runTrecho,
+    abertura: runModo === 'carreira' && runTrecho === 'orla',
+    modo: runModo,
+    desafio,
+  };
   ui.podePular = progress.partidas > 0;
-  game = new Game(settings, { meta });
+  game = new Game(settings, desafio ? { meta, seed: desafio.seed } : { meta });
   layout();
   modalOpen = false;
   ui.closeModal();
@@ -207,6 +218,7 @@ function frame(now) {
       const res = applyRun(progress, game);
       ui.showResult(game, perfSummary(), settings, deviceMeta(), ads.summary());
       ui.showTips(res, progress);
+      ui.showRankingResult(registrarPartida(ranking, game));
       ui.setTitleTips(progress);
       updateBanner();
     }
@@ -263,13 +275,15 @@ function applySetting(id, value) {
 
 // ---------- eventos da interface ----------
 ui.on('start', () => {
-  if (state !== 'paused') runTrecho = settings.trecho === 'morro' ? 'morro' : 'orla';
+  if (state === 'title') runModo = 'carreira'; // "Começar turno" é a Carreira; "Recomeçar" repete o modo
+  if (state !== 'paused' && runModo === 'carreira') runTrecho = settings.trecho === 'morro' ? 'morro' : 'orla';
   start();
   updateBanner();
 });
 // Mapa da Rota e Melhorias (só nos menus)
 function openRota() {
   ui.buildRota(progress, (id) => {
+    runModo = 'carreira';
     runTrecho = id;
     start();
     updateBanner();
@@ -297,6 +311,33 @@ ui.on('melhorias', () => {
   openMelhorias();
 });
 ui.on('back', () => ui.show(menuFrom));
+// Modo Horda, Desafio da Semana e o ranking (D43, D44)
+ui.on('horda', () => {
+  menuFrom = 'screen-title';
+  ui.buildHorda(progress, ranking, (id) => {
+    runModo = 'horda';
+    runTrecho = id;
+    start();
+    updateBanner();
+  }, settings.aberta);
+  ui.show('screen-horda');
+});
+ui.on('desafio', () => {
+  menuFrom = 'screen-title';
+  ui.buildDesafio(desafioDaSemana(), ranking);
+  ui.show('screen-desafio');
+});
+ui.on('desafioPlay', () => {
+  runModo = 'desafio';
+  runTrecho = 'orla';
+  start();
+  updateBanner();
+});
+ui.on('ranking', () => {
+  menuFrom = 'screen-title';
+  ui.buildRanking(ranking, desafioDaSemana());
+  ui.show('screen-ranking');
+});
 ui.setTitleTips(progress);
 ui.on('again', () => leaveResult(() => {
   start();

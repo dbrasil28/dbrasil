@@ -65,6 +65,7 @@ function acabar(game) {
   ab.fase = 'feito';
   ab.lentoAte = game.t + ABERTURA.lentosS;
   game.trechoT0 = game.t;
+  game.metrics.inicioOrlaS = Math.round(game.t); // o ranking conta a partir do sinal
   game.nextWaveAt = game.t + SESSION.firstWaveAt; // a horda e os elites contam a partir do sinal
   game.nextEliteAt = game.t + SESSION.firstEliteAt;
   game.emit('aberturaFim', {});

@@ -77,6 +77,11 @@
           <button id="btn-rota" class="btn" type="button">Mapa da Rota</button>
           <button id="btn-melhorias" class="btn" type="button">Melhorias <span id="title-tips" class="tips-chip"></span></button>
         </div>
+        <div class="actions actions-row">
+          <button id="btn-horda" class="btn" type="button">Modo Horda</button>
+          <button id="btn-desafio" class="btn" type="button">Desafio da Semana</button>
+        </div>
+        <button id="btn-ranking" class="btn" type="button">Entregador do Mês</button>
         <button id="btn-title-settings" class="btn btn-ghost" type="button">Ajustes de teste</button>
       </div>
       <p class="fine">Arte provisória: personagens e ícones recortados do mockup aprovado; casas, quiosques e areia ainda desenhados em código. A arte final sai do guia de produção. No computador, use WASD ou as setas.</p>
@@ -121,6 +126,42 @@
       <ol id="rota-list" class="rota"></ol>
       <div class="actions">
         <button id="btn-rota-back" class="btn btn-primary" type="button">Voltar</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-horda" class="screen" hidden>
+    <div class="screen-inner">
+      <p class="eyebrow">SOBREVIVA O MÁXIMO QUE DER</p>
+      <h2 class="screen-title">MODO HORDA</h2>
+      <p class="fine">Escolha um mapa que você já conquistou na Carreira. Não tem saída: o chefão volta a cada 5 minutos, mais forte, e a horda endurece a cada minuto. Aos 30 minutos chega o Rabecão.</p>
+      <ol id="horda-list" class="rota"></ol>
+      <div class="actions">
+        <button id="btn-horda-back" class="btn btn-primary" type="button">Voltar</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-desafio" class="screen" hidden>
+    <div class="screen-inner">
+      <p class="eyebrow">A MESMA PARTIDA PARA TODO MUNDO</p>
+      <h2 class="screen-title">DESAFIO DA SEMANA</h2>
+      <div id="desafio-info" class="tips-box"></div>
+      <div class="actions">
+        <button id="btn-desafio-play" class="btn btn-primary" type="button">Jogar o desafio</button>
+        <button id="btn-desafio-back" class="btn" type="button">Voltar</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-ranking" class="screen" hidden>
+    <div class="screen-inner">
+      <p class="eyebrow">RANKING DO APLICATIVO · NESTE APARELHO</p>
+      <h2 class="screen-title">ENTREGADOR DO MÊS</h2>
+      <p class="fine">Os mais produtivos do turno. Partida com segunda chance por anúncio não entra. O ranking online vem no lançamento.</p>
+      <div id="ranking-list" class="tips-box"></div>
+      <div class="actions">
+        <button id="btn-ranking-back" class="btn btn-primary" type="button">Voltar</button>
       </div>
     </div>
   </section>

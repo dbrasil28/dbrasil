@@ -236,6 +236,8 @@ export const ENEMY_ART = {
   politico: { img: 'politico', walk: WALK_ATLAS.pc, throwAnim: WALK_ATLAS.pa },
   // Rival: o Político tingido de laranja até chegar a arte dele; aparece pouco, então não é preparado antes
   rival: { img: 'politico', tint: [240, 122, 26, 0.32], walk: WALK_ATLAS.pc, lazy: true },
+  // Rabecão (Modo Horda): o camburão escurecido até chegar a arte do rabecão
+  rabecao: { img: 'cen_camburao_a', tint: [18, 18, 22, 0.6], lazy: true },
   especulador: { img: 'especulador', hardhat: true },
 };
 

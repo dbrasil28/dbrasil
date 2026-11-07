@@ -104,6 +104,12 @@ export const ENEMIES = {
     reforco: { cadaS: 12, gritoS: 1.0, traficantes: 2 },
     fases: { tirosMais: 1, cadenciaMul: 0.8, reforco: [[], ['traficante', 'funkeiro'], ['traficante', 'traficante', 'funkeiro']] },
   },
+  // Modo Horda: aos 30 minutos chega o Rabecão; não morre e não para (D44)
+  rabecao: {
+    name: 'Rabecão',
+    hp: 1e9, speed: 6.4, dmg: 400, radius: 1.4, size: 2.2, xp: 0,
+    elite: true, invencivel: true,
+  },
   especulador: {
     name: 'Especulador Imobiliário',
     hp: 4500, speed: 1.45, dmg: 26, radius: 1.2, size: 3.6, xp: 0, // gigante (D39), com três fases
@@ -373,6 +379,28 @@ export const CARREIRA = {
   obra: { x0: -13.6, x1: -6.2, dy0: 1.2, fundoM: 10.5 },
   recomeco: 'ATUALIZAÇÃO OBRIGATÓRIA DO APLICATIVO: SEUS ITENS EXPIRARAM',
   trechoHpMul: { orla: 1, morro: 1.25 }, // cada trecho começa mais duro que o anterior
+};
+
+// Modo Horda (D44, docs/design/MODOS_E_RANKING.md): um mapa já conquistado, sobreviver o máximo que der.
+export const HORDA = {
+  chefaoVoltaS: 300, // derrubado, o chefão volta depois desse tempo...
+  chefaoHpMais: 0.5, // ...com +50% de vida a cada volta
+  durezaPorMin: 0.15, // passados os 100%, a horda fica 15% mais resistente a cada minuto
+  criseCadaS: 90, // crises sorteadas entre as do mapa
+  achadosCadaS: 120, // isopores reaparecem nos esconderijos
+  isopores: 3,
+  rabecaoS: 1800, // aos 30 minutos chega o Rabecão, que não morre
+  gorjetaMul: 0.7, // gorjeta um pouco menor que a da Carreira
+};
+// Desafio da Semana (D43): uma partida de Horda igual para todo mundo, com a regra da semana.
+export const DESAFIO = {
+  trecho: 'orla',
+  regras: [
+    { id: 'apagao', nome: 'Semana do Apagão', desc: 'O apagão chega e a luz não volta' },
+    { id: 'ressaca', nome: 'Semana da Ressaca', desc: 'A ressaca chega e o mar não recua' },
+    { id: 'feriadao', nome: 'Feriadão', desc: 'A horda vem em dobro' },
+    { id: 'chinelada', nome: 'Semana da Chinelada', desc: 'Começa com o Chinelo no nível 3' },
+  ],
 };
 
 // Abertura do jogo (D39): a Orla começa normal até o sinal da TV pegar.
@@ -741,6 +769,8 @@ export const TV = {
   fase_orla: ['ESPECULADOR ANUNCIA FASE 2 DO EMPREENDIMENTO: AGORA COM DOIS LOTES', 'ESPECULADOR CERCA A ÁREA: "CONDOMÍNIO FECHADO, PRIVATIVO E EXCLUSIVO"'],
   fase_morro: ['CHEFE DO TRÁFICO CHAMA A FIRMA INTEIRA', 'CHEFE DECRETA TOQUE DE RECOLHER NA LAJE'],
   chefaoCaiu: ['ESPECULADOR SOFRE DESPEJO. O SINAL DA TV CAI JUNTO COM ELE'],
+  hordaChefaoVolta: ['ELE VOLTOU. E MAIS FORTE: A TV CHAMA DE "SEGUNDA TEMPORADA"'],
+  rabecao: ['O RABECÃO CHEGOU. ELE NÃO PARA PARA NINGUÉM. AUDIÊNCIA RECORDE'],
   aberturaPlantao: ['PLANTÃO: TV CAOS TESTA SINAL NOVO NA ORLA. "VOCÊ NÃO VAI CONSEGUIR DESLIGAR"'],
   aberturaSinal: ['O SINAL PEGOU. FIQUE LIGADO. FIQUE LIGADO. FIQUE LIGADO.'],
   crise_ressaca_aviso: ['PREVISÃO: RESSACA NA ORLA EM 20 SEGUNDOS. DEFESA CIVIL PEDE CALMA (E SOME)'],

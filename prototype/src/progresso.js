@@ -50,6 +50,11 @@ export function applyRun(p, game) {
   };
   const semReviver = !game.metrics.ads.aceitos.reviver;
   const m = game.metrics;
+  // estrelas e descoberta só na Carreira (Horda e Desafio rendem gorjeta e ranking)
+  if (game.modo && game.modo !== 'carreira') {
+    saveProgress(p);
+    return { tips, novas };
+  }
   // estrelas (D39): derrubar o chefão, achar a relíquia, sem reviver
   if (game.startTrecho !== 'morro') {
     star('orla', 0, m.chefaoOrlaS != null);

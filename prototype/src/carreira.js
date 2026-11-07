@@ -1,7 +1,7 @@
 // Regra da carreira (D39, docs/design/CARREIRA_E_ROTA.md): o Caos de cada trecho chama o chefão, que
 // mora num covil do mapa e guarda a saída; pistas que crescem em vez de setas; recomeço a cada trecho.
 // Sem DOM: roda igual no navegador e nos testes.
-import { CARREIRA, ENEMIES, SESSION, xpToNext } from './config.js';
+import { CARREIRA, ENEMIES, SESSION, HORDA, xpToNext } from './config.js';
 import { clamp } from './math.js';
 import { removeSolid, addSolid, deliveryPoint, inside } from './mundo.js';
 import { playerStats } from './upgrades.js';
@@ -91,7 +91,7 @@ export function soltarChefao(game, C) {
   game.emit('boss', {});
   if (C.trecho === 'orla') {
     removeSolid(w, w.obraSolid);
-    addSolid(w, w.obraFundoSolid); // a frente cai; o fundo fica até o chefão cair
+    if (!w.solids.includes(w.obraFundoSolid) && !w.gateOpen) addSolid(w, w.obraFundoSolid); // a frente cai; o fundo fica até o chefão cair
     w.obraAbertaT = game.t;
     for (let i = 0; i < 4; i++) game.burst(w.obra.x0 + ((i + 0.5) / 4) * (w.obra.x1 - w.obra.x0), w.obra.y1, 8, 'poeira');
     const e = game.spawnEnemy('especulador', C.x, w.obra.y1 - 1.6, { lotT: 3.5, despejoT: ENEMIES.especulador.despejoS[0], fase: 0 });
@@ -158,6 +158,17 @@ export function chefaoCaiu(game, e) {
   game.shake(0.8);
   game.emit('flash', {});
   cofreDoChefao(game, e); // o chefão sempre solta um cofre
+  if (game.horda) {
+    // Modo Horda: sem porta e sem zerar o Caos; ele volta mais forte (horda.js)
+    game.caosParado = false;
+    game.chefe = null;
+    if (e.type === 'chefe_trafico') game.chefeKilled = true;
+    game.metrics[e.type === 'especulador' ? 'chefaoOrlaS' : 'chefaoMorroS'] ??= Math.round(game.t);
+    game.horda.chefoes++;
+    game.horda.proxChefao = game.t + HORDA.chefaoVoltaS;
+    game.tv(e.type === 'especulador' ? 'chefaoCaiu' : 'chefeVencido');
+    return;
+  }
   if (e.type === 'especulador') {
     game.metrics.chefaoOrlaS = Math.round(game.t);
     game.tv('chefaoCaiu');

@@ -1854,3 +1854,9 @@ body.mapa-aberto #warn {
   font-size: 14px;
   pointer-events: auto;
 }
+
+.ranking-linha {
+  margin-top: 6px;
+  font-weight: 800;
+  color: var(--caution);
+}
