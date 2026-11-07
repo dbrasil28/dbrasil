@@ -1,9 +1,12 @@
 // Gera um único HTML autocontido (CSS + JS embutidos) a partir de prototype/.
 // Útil para mandar o protótipo por link ou abrir direto no celular sem servidor.
-// Uso: node tools/build-single.mjs [saida.html] [--fragment]
+// Uso: node tools/build-single.mjs [saida.html] [--fragment] [--separado]
 //   --fragment  gera só o conteúdo da página (sem <html>/<head>/<body>), para hospedagens
 //               que já fornecem esse esqueleto.
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+//   --separado  as imagens não vão dentro do HTML: são copiadas para assets/ ao lado dele (o HTML fica
+//               só com o código, sem limite de tamanho por causa das imagens); grava a lista em
+//               arquivos.json para publicar junto.
+import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,6 +14,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const proto = path.join(root, 'prototype');
 const args = process.argv.slice(2);
 const fragment = args.includes('--fragment');
+const separado = args.includes('--separado');
+const assets = new Set();
 const out = path.resolve(args.find((a) => !a.startsWith('--')) || path.join(root, 'dist', 'brasil-estado-de-caos.html'));
 
 const order = [];
@@ -33,6 +38,10 @@ async function inlineAssets(code) {
   const re = /'(assets\/[^']+\.(png|jpg|jpeg|webp))'/g;
   const found = [...code.matchAll(re)];
   for (const [whole, rel, ext] of found) {
+    if (separado) {
+      assets.add(rel); // o caminho relativo continua no código: a imagem vai ao lado do HTML
+      continue;
+    }
     const buf = await readFile(path.join(proto, rel));
     const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
     code = code.replace(whole, `'data:${mime};base64,${buf.toString('base64')}'`);
@@ -69,4 +78,13 @@ const page = fragment
 
 await mkdir(path.dirname(out), { recursive: true });
 await writeFile(out, page);
+if (separado) {
+  const dir = path.dirname(out);
+  for (const rel of assets) {
+    await mkdir(path.join(dir, path.dirname(rel)), { recursive: true });
+    await copyFile(path.join(proto, rel), path.join(dir, rel));
+  }
+  await writeFile(path.join(dir, 'arquivos.json'), JSON.stringify([...assets].sort(), null, 1));
+  console.log(`${assets.size} imagens copiadas para ${path.relative(process.cwd(), path.join(dir, 'assets'))}`);
+}
 console.log(`Gerado: ${path.relative(process.cwd(), out)} (${(page.length / 1024).toFixed(0)} KB, ${order.length} módulos)`);

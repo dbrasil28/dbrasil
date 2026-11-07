@@ -26,6 +26,8 @@ npm test                                   # testes de unidade + partidas simula
 npm start                                  # servidor local (mostra o endereço para o celular)
 node tools/balance-report.mjs 20 alternar  # 20 partidas com o bot (aceitar | recusar, --reviver, --sem-desvio)
 node tools/build-single.mjs                # gera dist/brasil-estado-de-caos.html (arquivo único)
+node tools/build-single.mjs <saida.html> --fragment --separado
+                                           # para a página de teste: HTML só com o código e as imagens em assets/ ao lado
 node tools/planta-mundo.mjs <saida.html>   # planta da rota vista de cima, com cada objeto no lugar (a partir do jogo)
 python3 -I tools/montar-atlas.py <pacote> prototype/assets/personagens/<pasta> <pasta-nova> x
                                            # atlas 16×6 de caminhada (+ pose de acordado na horda); Pillow, numpy, opencv
