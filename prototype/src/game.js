@@ -102,6 +102,9 @@ export class Game {
     this.eventIndex = 0;
     this.rivalAt = -1;
     this.boss = null;
+    this.chefe = null; // Chefe do Tráfico (laje do topo)
+    this.chefeKilled = false;
+    this.bossName = '';
     this.bossWarned = false;
     this.tvCooldown = {};
     this.chunks = new Map();
@@ -437,6 +440,7 @@ export class Game {
   spawnBoss() {
     const p = this.fitSpawn(this.edgePoint(-Math.PI / 2, 80));
     this.boss = this.spawnEnemy('especulador', p.x, p.y, { lotT: 3.5, despejoT: 9 });
+    this.bossName = ENEMIES.especulador.name;
     this.caosBonus += 10;
     this.tv('boss');
     this.emit('boss', {});
@@ -507,7 +511,7 @@ export class Game {
     if (def.wakes && !this.settings.gore) this.wake(e); // sem sangue: a horda acorda (MECH-001)
     else this.gib(e, source);
 
-    if (e.boss) this.bossDefeated();
+    if (e.boss) this.bossDefeated(e);
   }
 
   /** Jogo de zumbi: sangue, poça no chão e pedaços que voam, quicam e param (com o gore ligado). */
@@ -552,7 +556,19 @@ export class Game {
     this.fx.woken.push({ x: e.x, y: e.y, vx: (dx / l) * WAKE.walkSpeed, vy: (dy / l) * WAKE.walkSpeed, t: 0, tint: e.tint, walk: e.walk, id: e.id, flipFix: e.flipFix });
   }
 
-  bossDefeated() {
+  bossDefeated(e) {
+    if (e && e.type === 'chefe_trafico') {
+      // chefe do morro: cai, os traficantes debandam e a entrega fica livre (a partida segue até a entrega)
+      this.chefe = null;
+      this.chefeKilled = true;
+      this.boss = null;
+      this.bossKilled = true;
+      for (const o of this.enemies) if (!o.dead && o.type === 'traficante') { o.dead = true; this.burst(o.x, o.y, 4, 'blood'); }
+      this.tv('chefeVencido');
+      this.shake(0.8);
+      this.emit('flash', {});
+      return;
+    }
     this.boss = null;
     this.bossKilled = true;
     this.lots.length = 0;
@@ -1083,6 +1099,66 @@ export class Game {
             e.ay = p.y;
           }
         }
+      } else if (e.behavior === 'chefe') {
+        // Chefe do Tráfico: distância, rajada com mira travada e aviso; reforço pelo rádio
+        const def = ENEMIES.chefe_trafico;
+        const R = def.reforco;
+        if (e.throwT > 0) e.throwT -= dt;
+        if (d < def.keepM) {
+          mx = -ux * 0.6;
+          my = -uy * 0.6;
+        } else if (d < def.range) {
+          mx = -uy * 0.3;
+          my = ux * 0.3;
+        }
+        if (e.callT > 0) {
+          e.callT -= dt;
+          mx = 0;
+          my = 0;
+          if (e.callT <= 0 && !this.over) {
+            for (let i = 0; i < R.traficantes; i++) {
+              const sp = this.fitSpawn({ x: e.x + (i ? 2.5 : -2.5), y: e.y - 1.5 });
+              const t = this.spawnEnemy('traficante', sp.x, sp.y);
+              t.saw = true;
+            }
+            this.fogos(e);
+          }
+        } else if (e.burst > 0) {
+          // rajada: um tiro a cada intervalo, abrindo um pouco em volta do ponto travado
+          e.burstT -= dt;
+          mx = 0;
+          my = 0;
+          if (e.burstT <= 0) {
+            const b = def.bullet;
+            const k = def.rajada.tiros - e.burst;
+            const a = Math.atan2(e.ay - e.y, e.ax - e.x) + (k - (def.rajada.tiros - 1) / 2) * def.rajada.abertura;
+            this.enemyShots.push({ kind: 'bala', x: e.x, y: e.y, vx: Math.cos(a) * b.speed, vy: Math.sin(a) * b.speed, life: b.life, r: b.radius, dmg: b.dmg, spin: 0 });
+            e.burst--;
+            e.burstT = def.rajada.intervaloS;
+            e.throwT = 0.3;
+          }
+        } else if (e.aimT > 0) {
+          e.aimT -= dt;
+          mx *= 0.1;
+          my *= 0.1;
+          if (e.aimT <= 0) {
+            e.burst = def.rajada.tiros;
+            e.burstT = 0;
+          }
+        } else if (!this.over) {
+          e.callCd = (e.callCd ?? R.cadaS * 0.6) - dt;
+          e.fireT -= dt;
+          if (e.callCd <= 0) {
+            e.callCd = R.cadaS;
+            e.callT = R.gritoS;
+            this.tv('chefeRadio', 30);
+          } else if (d < def.range && e.fireT <= 0) {
+            e.fireT = def.fireEvery;
+            e.aimT = def.aimS;
+            e.ax = p.x;
+            e.ay = p.y;
+          }
+        }
       } else if (e.behavior === 'investida') {
         // Funkeiro: abre os braços (fúria) com a direção travada e parte reto; depois volta a andar
         const I = ENEMIES.funkeiro.investida;
@@ -1507,7 +1583,19 @@ export class Game {
     if (this.segment !== 'morro') return;
     w.exitOpen = !!this.settings.aberta || p.level >= ROUTE.morro.unlockLevel;
     const top = w.top;
-    if (inside(top, p.x, p.y) && p.y < (top.y0 + top.y1) / 2) {
+    if (!this.chefe && !this.chefeKilled && inside(top, p.x, p.y)) {
+      // chega na laje do topo: o Chefe do Tráfico aparece no fundo da laje
+      const c = this.spawnEnemy('chefe_trafico', (top.x0 + top.x1) / 2, top.y0 + (top.y1 - top.y0) * 0.4);
+      c.ri = w.path.length - 1;
+      c.fireT = 1.5;
+      this.chefe = c;
+      this.boss = c;
+      this.bossName = ENEMIES.chefe_trafico.name;
+      this.tv('chefe');
+      this.emit('boss', {});
+      this.shake(0.5);
+    }
+    if (inside(top, p.x, p.y) && p.y < (top.y0 + top.y1) / 2 && !this.chefe) {
       if (w.exitOpen) this.deliver();
       else if (this.exitWarnT <= this.t) {
         this.exitWarnT = this.t + 6;
@@ -1530,6 +1618,7 @@ export class Game {
     if (!w.routeTotal) w.routeTotal = routeRemaining(w, (w.gate.x0 + w.gate.x1) / 2, w.gate.y1 - 1, 1);
     const d = routeRemaining(w, p.x, p.y, p.ri);
     const m = Math.round(d);
+    if (this.chefe) return { text: 'DERRUBE O CHEFE DO TRÁFICO', frac: 1 - this.chefe.hp / this.chefe.maxHp };
     const text = w.exitOpen
       ? `SUBA E ENTREGUE NO ALTO · ${m} M`
       : `SUBA ATÉ O ALTO · ${m} M · NÍVEL ${ROUTE.morro.unlockLevel}`;

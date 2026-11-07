@@ -134,7 +134,10 @@ export class UI {
 
     const boss = game.boss;
     $('boss-bar').hidden = !boss;
-    if (boss) this.setWidth('boss-fill', boss.hp / boss.maxHp);
+    if (boss) {
+      this.setWidth('boss-fill', boss.hp / boss.maxHp);
+      this.setText('boss-name', (game.bossName || 'ESPECULADOR IMOBILIÁRIO').toUpperCase());
+    }
 
     // objetivo do trecho: o que fazer e quantos metros faltam
     const obj = game.objective ? game.objective() : null;

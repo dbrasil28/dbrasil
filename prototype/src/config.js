@@ -92,6 +92,17 @@ export const ENEMIES = {
     behavior: 'investida',
     investida: { rangeM: 6, windupS: 0.7, dashS: 0.5, dashMul: 3.4, every: 3.2 },
   },
+  // Chefe do morro (laje do topo): rajadas de 3 tiros com a linha de aviso antes; de tempo em tempo para,
+  // grita no rádio (pose de raiva) e chama traficantes. A entrega só sai com ele derrubado.
+  chefe_trafico: {
+    name: 'Chefe do Tráfico',
+    hp: 2600, speed: 1.3, dmg: 20, radius: 0.6, size: 1.5, xp: 0,
+    behavior: 'chefe', elite: true, boss: true,
+    range: 11, keepM: 6, aimS: 0.7, fireEvery: 2.8,
+    rajada: { tiros: 3, intervaloS: 0.12, abertura: 0.08 }, // abertura: desvio (rad) entre os tiros
+    bullet: { speed: 16, life: 1.0, radius: 0.2, dmg: 9 },
+    reforco: { cadaS: 12, gritoS: 1.0, traficantes: 2 },
+  },
   especulador: {
     name: 'Especulador Imobiliário',
     hp: 3000, speed: 1.45, dmg: 26, radius: 0.85, size: 1.9 / 0.75, xp: 0,
@@ -589,6 +600,9 @@ export const TV = {
   elite: ['POLÍTICO APARECE PARA FOTO. TRAZ MALETA'],
   unlock: ['MAPA LIBERADO: SUBIDA DO MORRO. PEDIDO NO ALTO DA LAJE', 'ENTREGADOR LIBERADO PARA SUBIR O MORRO. GPS DESISTE'],
   morro: ['ENTREGADOR COMEÇA A SUBIDA. APP CALCULA 3 MINUTOS (MENTIRA)'],
+  chefe: ['CHEFE DO TRÁFICO DECRETA: PIZZA SÓ PASSA COM AUTORIZAÇÃO DA FIRMA'],
+  chefeRadio: ['CHEFE CHAMA REFORÇO NO RÁDIO. MORADORES FECHAM AS JANELAS'],
+  chefeVencido: ['CHEFE DO TRÁFICO CAI NA LAJE. ENTREGADOR SEGUE COM A PIZZA'],
   fogos: ['FOGOS NO MORRO: CHEGOU ENCOMENDA', 'SOLTARAM FOGOS. O MORRO INTEIRO SABE QUE ELE CHEGOU'],
   botijao: ['BOTIJÃO VOA NA ORLA. PREÇO DO GÁS SOBE DE NOVO', 'EXPLOSÃO DE BOTIJÃO. GOVERNO PROMETE "VALE-GÁS" PARA 2040'],
   objeto: ['ENTREGADOR ARREMESSA CADEIRA DE BOTECO. DONO COBRA A MESA'],

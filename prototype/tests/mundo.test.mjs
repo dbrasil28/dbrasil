@@ -71,7 +71,14 @@ test('no topo do morro, a entrega só vale no nível da meta', () => {
   g.player.y = top.y0 + 1;
   g.updateRoute();
   assert.equal(g.delivered, false);
+  // o Chefe do Tráfico aparece na laje do topo e segura a entrega até cair
+  assert.ok(g.chefe && g.chefe.type === 'chefe_trafico', 'o chefe não apareceu no topo');
   g.player.level = ROUTE.morro.unlockLevel;
+  g.updateRoute();
+  assert.equal(g.delivered, false, 'entregou com o chefe de pé');
+  g.damageEnemy(g.chefe, 1e6, 'teste');
+  assert.equal(g.chefe, null);
+  assert.equal(g.over, null, 'derrubar o chefe não acaba a partida: falta entregar');
   g.updateRoute();
   assert.equal(g.delivered, true);
   assert.equal(g.over, 'victory');

@@ -22,6 +22,8 @@ export const IMAGES = {
   fiscal_walk_atlas: 'assets/personagens/fiscal/caminhada_atlas.webp', // Fiscal do Impossível
   funkeiro_walk_atlas: 'assets/personagens/funkeiro/caminhada_atlas.webp', // Funkeiro Raivoso (Morro)
   traficante_walk_atlas: 'assets/personagens/traficante/caminhada_atlas.webp', // Traficante do Morro (Figma)
+  chefe_trafico_walk_atlas: 'assets/personagens/chefe_trafico/caminhada_atlas.webp', // Chefe do Tráfico (Figma)
+  chefe_trafico_poses_atlas: 'assets/personagens/chefe_trafico/poses_atlas.webp', // ataque e raiva em 16 direções
   traficante_poses_atlas: 'assets/personagens/traficante/poses_atlas.webp', // mira com o fuzil em 16 direções
   funkeiro_poses_atlas: 'assets/personagens/funkeiro/poses_atlas.webp', // fúria de braços abertos em 16 direções
   politico_walk_atlas: 'assets/personagens/politico/caminhada_atlas.webp', // Político Corrupto (e o Rival, tingido)
@@ -46,6 +48,7 @@ export const IMAGES = {
   fiscal: 'assets/personagens/fiscal.png',
   funkeiro: 'assets/personagens/funkeiro.webp',
   traficante: 'assets/personagens/traficante.webp',
+  chefe_trafico: 'assets/personagens/chefe_trafico.webp',
   politico: 'assets/personagens/politico.png',
   especulador: 'assets/personagens/especulador.png',
   // poste de luz cheio de gato (Figma); o antigo com o cartaz "vote em mim de novo" saiu
@@ -163,6 +166,7 @@ export const WALK_ATLAS = {
   pc: { atlas: 'politico_walk_atlas', prefix: 'pc', figureH: 158 },
   fk: { atlas: 'funkeiro_walk_atlas', prefix: 'fk', figureH: 158 },
   tf: { atlas: 'traficante_walk_atlas', prefix: 'tf', figureH: 157 },
+  ct: { atlas: 'chefe_trafico_walk_atlas', prefix: 'ct', figureH: 157 },
   pa: { atlas: 'politico_attack_atlas', prefix: 'pa', figureH: 158 }, // mesma escala da caminhada
 };
 
@@ -174,6 +178,7 @@ export const POSE_ATLAS = {
   bp: { atlas: 'burocrata_poses_atlas', prefix: 'bp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
   fkp: { atlas: 'funkeiro_poses_atlas', prefix: 'fkp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { furia: 0 } },
   tfp: { atlas: 'traficante_poses_atlas', prefix: 'tfp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { mira: 0 } },
+  ctp: { atlas: 'chefe_trafico_poses_atlas', prefix: 'ctp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
 };
 export const POSE_OPTS = { shadowScale: 0.4 };
 
@@ -213,6 +218,8 @@ export const ENEMY_ART = {
   funkeiro: { img: 'funkeiro', walk: WALK_ATLAS.fk, poses: POSE_ATLAS.fkp, fury: true },
   // aim: pose de mira (fuzil no ombro) virada para o ponto travado, enquanto mira e logo depois do tiro
   traficante: { img: 'traficante', walk: WALK_ATLAS.tf, poses: POSE_ATLAS.tfp, aim: true },
+  // chefe: ataque (rajada) enquanto mira e atira; raiva (grito no rádio) enquanto chama reforço
+  chefe_trafico: { img: 'chefe_trafico', walk: WALK_ATLAS.ct, poses: POSE_ATLAS.ctp, aim: 'ataque', fury: true },
   // throwAnim: quadros 0–2 na preparação, 3 ao soltar a maleta
   politico: { img: 'politico', walk: WALK_ATLAS.pc, throwAnim: WALK_ATLAS.pa },
   // Rival: o Político tingido de laranja até chegar a arte dele; aparece pouco, então não é preparado antes

@@ -410,7 +410,7 @@ button {
 }
 
 #boss-bar {
-  top: calc(var(--safe-t) + 142px);
+  top: calc(var(--safe-t) + 174px); /* abaixo do letreiro da TV mesmo com 3 linhas */
   left: 50%;
   width: min(320px, calc(100% - 32px));
   transform: translateX(-50%);
