@@ -104,8 +104,9 @@ function placeOrla(w, map) {
     } else if (side === 'salva_vidas') {
       const yp = y0 + 16;
       const x = map.sandX + 1.6;
-      const st = rect(x + 1.0, yp + 3, x + 2.2, yp + 6.5, { dir: 'n' });
-      const P = addPlatform(w, x, yp, x + 3.2, yp + 3, PLACES.salvaVidasH, st, 'salva_vidas');
+      // deque e escada nas medidas do desenho (PLACES.salvaVidasArte): 3,2 × 1,8 m, escada de 1,8 m na frente
+      const st = rect(x + 1.0, yp + 3, x + 2.2, yp + 4.8, { dir: 'n' });
+      const P = addPlatform(w, x, yp + 1.2, x + 3.2, yp + 3, PLACES.salvaVidasH, st, 'salva_vidas');
       w.places.push({ kind: 'salva_vidas', plat: P });
     }
   }

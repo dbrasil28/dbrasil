@@ -1,6 +1,6 @@
 // Desenho provisório (em código) do mundo da rota: lajes com escada, objetos de cena, boteco,
 // tapume da escadaria, setas da rota, mira do traficante e balas. Sai quando a arte do guia chegar.
-import { ROUTE, OBJ_ALTURA, OBJ_ESCALA } from './config.js';
+import { ROUTE, OBJ_ALTURA, OBJ_ESCALA, PLACES } from './config.js';
 import { inside, deliveryPoint } from './mundo.js';
 import { images } from './sprites.js';
 import { ART, ART_S, artKey } from './arte_cenario.js';
@@ -38,8 +38,17 @@ const PLAT_COLORS = {
   laje_casa: { top: '#8e877e', front: '#a98a6a', win: true },
 };
 
+/** Torre do salva-vidas desenhada (deque, cabine, bandeiras e a escada): o canto da frente, à esquerda, no chão. */
+function drawSalvaVidasArte(ctx, P, cam, ppu, im) {
+  const A = PLACES.salvaVidasArte;
+  const s = ppu / A.pxPorM;
+  cam.toScreen(P.x0, P.y1, a);
+  ctx.drawImage(im, a.x - A.canto[0] * s, a.y - A.canto[1] * s, im.width * s, im.height * s);
+}
+
 /** Laje, terraço ou torre: tampo na altura h e a fachada da frente. */
 export function drawPlatform(ctx, P, cam, ppu) {
+  if (P.kind === 'salva_vidas' && images.salva_vidas) return drawSalvaVidasArte(ctx, P, cam, ppu, images.salva_vidas);
   const hp = P.h * ppu;
   const col = PLAT_COLORS[P.kind] || PLAT_COLORS.laje_casa;
   // fachada da frente (do chão até o tampo)
@@ -76,6 +85,7 @@ export function drawPlatform(ctx, P, cam, ppu) {
 
 /** Escada: rampa com degraus do chão até o tampo da laje. */
 export function drawStair(ctx, P, cam, ppu) {
+  if (P.kind === 'salva_vidas' && images.salva_vidas) return; // a escada já está no desenho da torre
   const S = P.stair;
   const hp = P.h * ppu;
   const z = (x, y, k, out) => {
@@ -240,16 +250,19 @@ export function drawPlace(ctx, pl, cam, ppu) {
     const s = ((k.x1 - k.x0) / art.w) * (ppu / ART_S);
     ctx.drawImage(im, a.x - art.padX * ART_S * s, a.y - art.top * ART_S * s, im.width * s, im.height * s);
     const label = pl.sign || pl.kind.toUpperCase();
-    const [px, py, pw] = art.placa;
+    const [px, py, pw, inc = 0] = art.placa;
     const fs = Math.max(8, ppu * 0.3);
+    const ox = a.x - art.padX * ART_S * s;
+    const oy = a.y - art.top * ART_S * s;
+    // o texto segue a inclinação da placa no desenho: as letras ficam em pé e a linha desce junto com a placa
+    ctx.save();
+    ctx.transform(1, inc, 0, 1, ox + px * s, oy + py * s);
     ctx.font = `900 ${fs}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = look.letra;
-    const ox = a.x - art.padX * ART_S * s;
-    const oy = a.y - art.top * ART_S * s;
-    ctx.fillText(label, ox + px * s, oy + py * s, pw * s * 0.9);
-    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(label, 0, 0, pw * s * 0.9);
+    ctx.restore();
     return;
   }
   const hp = 1.1 * ppu;

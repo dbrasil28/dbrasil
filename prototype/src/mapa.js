@@ -3,7 +3,7 @@
 import { hash2 } from './math.js';
 import { images } from './sprites.js';
 import { Camera } from './camera.js';
-import { PREDIOS, SOMBRA } from './config.js';
+import { PREDIOS, SOMBRA, PLACES } from './config.js';
 import { drawLitter, drawFachada, pixo, cartaz, bandeira } from './render_cenario.js';
 
 const pt = { x: 0, y: 0 };
@@ -824,6 +824,14 @@ function drawQuiosque(ctx, d, p, ppu) {
 }
 
 function drawSalvaVidas(ctx, p, ppu) {
+  const im = images.salva_vidas;
+  if (im) {
+    // a mesma torre desenhada do posto de subir, ao longe na areia (p = meio da frente, no chão)
+    const A = PLACES.salvaVidasArte;
+    const s = ppu / A.pxPorM;
+    ctx.drawImage(im, p.x - 1.6 * ppu - A.canto[0] * s, p.y - A.canto[1] * s, im.width * s, im.height * s);
+    return;
+  }
   const w = 2.4 * ppu;
   const h = 4.2 * ppu * 0.75;
   const x = p.x - w / 2;

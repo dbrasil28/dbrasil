@@ -225,6 +225,8 @@ export const PLACES = {
   orla: ['boteco', 'nada', 'boteco', 'nada', 'boteco', 'nada', 'boteco', 'nada', 'boteco'], // 'nada': entra um boteco a mais encostado no prédio (cenario.js)
   praia: ['quiosque', 'salva_vidas', 'quiosque', 'nada', 'salva_vidas', 'quiosque', 'nada', 'salva_vidas', 'quiosque'],
   salvaVidasH: 2.8, // torre do salva-vidas
+  // desenho da torre (Figma): px da imagem no canto da frente, à esquerda, no chão (embaixo do deque) e px por metro
+  salvaVidasArte: { canto: [1, 1218], pxPorM: 159 },
   lajeH: 3.2, // casa com laje no morro
 };
 

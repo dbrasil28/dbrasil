@@ -80,6 +80,7 @@ export const IMAGES = {
   obj_engradado_ne: 'assets/objetos/engradado_ne.webp',
   obj_engradado_n: 'assets/objetos/engradado_n.webp',
   // prédios da Orla (Figma), desenhados no ângulo do jogo (PREDIOS em config.js)
+  salva_vidas: 'assets/cenario/orla/salva_vidas.webp',
   predio_a: 'assets/cenario/predios/predio_a.webp',
   predio_b: 'assets/cenario/predios/predio_b.webp',
   predio_c: 'assets/cenario/predios/predio_c.webp',
