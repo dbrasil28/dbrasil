@@ -116,15 +116,16 @@ function loja(w, kind, side, x, yb, seed) {
 /** Rua transversal: carros e às vezes um ônibus nas duas faixas, buraco com cones, bueiro e óleo. */
 function rua(w, map, s) {
   const C = CENARIO.carros;
+  const E = C.escala;
   const ys = -map.blockLen * s + (map.blockLen - map.streetLen);
   const ye = ys + map.streetLen;
   for (let L = 0; L < 2; L++) {
     const used = [false, false, false, false];
     if (H(s, L, 501) < C.onibusChance) {
-      const i = 1 + Math.floor(H(s, L, 502) * 2);
-      const yy0 = L === 0 ? ys + 0.35 : ye - 0.35 - C.onibusLarg;
+      const i = Math.floor(H(s, L, 502) * 2);
+      const yy0 = L === 0 ? ys + 0.35 : ye - 0.35 - C.onibusLarg * E;
       const x0 = C.vagaX[i];
-      if (prop(w, 'onibus', x0, yy0, x0 + C.onibusLen, yy0 + C.onibusLarg, C.onibusH, H(s, L, 503), { piece: w.orla })) {
+      if (prop(w, 'onibus', x0, yy0, x0 + C.onibusLen * E, yy0 + C.onibusLarg * E, C.onibusH * E, H(s, L, 503), { piece: w.orla })) {
         used[i] = used[i + 1] = true;
       }
     }
@@ -137,8 +138,8 @@ function rua(w, map, s) {
     want.forEach((ok, i) => {
       if (!ok) return;
       const x0 = C.vagaX[i] + (H(s, L * 7 + i, 506) - 0.5) * 0.3;
-      const yy0 = L === 0 ? ys + 0.35 : ye - 0.35 - C.larg;
-      prop(w, 'carro', x0, yy0, x0 + C.len, yy0 + C.larg, C.h, H(s, L * 7 + i, 507), { piece: w.orla });
+      const yy0 = L === 0 ? ys + 0.35 : ye - 0.35 - C.larg * E;
+      prop(w, 'carro', x0, yy0, x0 + C.len * E, yy0 + C.larg * E, C.h * E, H(s, L * 7 + i, 507), { piece: w.orla });
     });
   }
   // buraco no meio da rua, cercado de cones
@@ -235,8 +236,11 @@ function policia(w, map) {
   const P = CENARIO.policia;
   // pé do morro: rua do fim da Orla, ao lado da escadaria
   const ys = w.orlaTop + 0.35;
-  prop(w, 'camburao', P.peX0, ys, P.peX0 + P.len, ys + P.larg, P.h, 0.3, { piece: w.orla });
-  for (const [x, y, v] of [[P.peX0 - 0.9, ys + 2.9, 0.1], [P.peX0 + P.len + 0.6, ys + 2.5, 0.8], [P.peX0 + 1.5, ys + 3.3, 0.45]]) {
+  const E = CENARIO.carros.escala;
+  const len = P.len * E;
+  const larg = P.larg * E;
+  prop(w, 'camburao', P.peX0, ys, P.peX0 + len, ys + larg, P.h * E, 0.3, { piece: w.orla });
+  for (const [x, y, v] of [[P.peX0 - 0.9, ys + larg + 0.9, 0.1], [P.peX0 + len + 0.6, ys + larg + 0.5, 0.8], [P.peX0 + 1.5, ys + larg + 1.3, 0.45]]) {
     prop(w, 'policial', x - 0.25, y - 0.2, x + 0.25, y, 1.8, v, { solid: false });
   }
   let lajes = 0;
@@ -246,10 +250,13 @@ function policia(w, map) {
     const sd = (i) => H(idx, i, 901);
     if (k.kind === 'laje' && lajes < P.lajesComCamburao) {
       const x0 = k.x0 + 0.3;
-      if (prop(w, 'camburao', x0, k.y1 - 0.4 - P.larg, x0 + P.len, k.y1 - 0.4, P.h, 0.7, { piece: k, juntaM: 2.4 })) {
+      const E = CENARIO.carros.escala;
+      const len = P.len * E;
+      const larg = P.larg * E;
+      if (prop(w, 'camburao', x0, k.y1 - 0.4 - larg, x0 + len, k.y1 - 0.4, P.h * E, 0.7, { piece: k, juntaM: 2.4 })) {
         lajes++;
-        prop(w, 'policial', x0 + P.len + 0.5, k.y1 - 1.0, x0 + P.len + 1.0, k.y1 - 0.8, 1.8, 0.2, { solid: false });
-        prop(w, 'policial', x0 + 1.2, k.y1 - P.larg - 1.2, x0 + 1.7, k.y1 - P.larg - 1.0, 1.8, 0.65, { solid: false });
+        prop(w, 'policial', x0 + len + 0.5, k.y1 - 1.0, x0 + len + 1.0, k.y1 - 0.8, 1.8, 0.2, { solid: false });
+        prop(w, 'policial', x0 + 1.2, k.y1 - larg - 1.2, x0 + 1.7, k.y1 - larg - 1.0, 1.8, 0.65, { solid: false });
       }
     }
     if (k.kind === 'viela' && P.vielas.includes(idx)) {

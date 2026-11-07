@@ -184,7 +184,9 @@ export const ACAI_BUFF = { speedMul: 1.25, s: 6 };
 // placas e lixo no meio do caminho. Tudo determinístico (a mesma rota em toda partida).
 export const CENARIO = {
   // carros estacionados nas duas faixas de cada rua transversal (vagas: começo de cada carro em x)
-  carros: { vagaX: [-5.5, -0.7, 4.1, 8.9], chance: 0.6, len: 4.0, larg: 1.8, h: 1.45, onibusChance: 0.3, onibusLen: 8.8, onibusLarg: 2.5, onibusH: 3.0 },
+  // medidas reais em metros; escala: os personagens são desenhados maiores que a escala real (para ler
+  // bem no celular), então os veículos crescem junto para não parecerem de brinquedo ao lado deles
+  carros: { vagaX: [-6.0, 0.0, 6.2], chance: 0.6, len: 4.0, larg: 1.8, h: 1.45, onibusChance: 0.3, onibusLen: 8.8, onibusLarg: 2.5, onibusH: 3.0, escala: 1.3 },
   buracoChance: 0.4, // buraco no meio da rua, com cones em volta
   livreInicioM: 7, // área livre em volta do começo da partida
   livreJuntaM: 3, // nada sólido perto das passagens entre pedaços da rota
