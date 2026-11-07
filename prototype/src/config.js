@@ -508,11 +508,11 @@ export const WEAPONS = {
     name: 'Cachorro Caramelo',
     role: 'O vira-lata corre, morde dois e volta',
     levels: [
-      { dmg: 40, cd: 1.0, count: 1, speed: 9, range: 7, bark: 0, combo: 2, comboM: 2.5 },
-      { dmg: 15, desc: 'Mordida mais forte' },
+      { dmg: 50, cd: 1.0, count: 1, speed: 9, range: 7, bark: 0, combo: 2, comboM: 2.5 },
+      { dmg: 20, desc: 'Mordida mais forte' },
       { speed: 2.5, cd: -0.3, desc: 'Corre mais rápido' },
-      { bark: 2.4, desc: 'AU AU!: a horda em volta recua a cada mordida' },
-      { count: 1, combo: 1, desc: '2º caramelo, e cada um morde 3' },
+      { bark: 2.4, desc: 'AU AU!: depois de morder, late e a horda em volta recua' },
+      { count: 2, combo: 1, desc: 'A matilha: mais 2 caramelos, e cada um morde 3' },
     ],
   },
   // Evolução (1 no MVP): Capacete nível máximo + Tênis Gasto.
@@ -532,6 +532,10 @@ export const WEAPON_FX = {
   maletaPierce: 0.5, // dano de quem a maleta atravessa na queda (fração do dano)
   caochegaM: 0.5, // distância da mordida
   caoSegueM: 1.0, // o cachorro anda a essa distância do Juninho
+  mordidaS: 0.36, // a mordida inteira (6 quadros da arte): prepara, dá o bote, fecha a boca, recua
+  mordidaContato: 0.5, // o dano sai no quadro 3 de 6, quando a boca fecha
+  latidoS: 0.45, // o latido do nível 4 (6 quadros), uma vez por corrida, depois da última mordida
+  latidoPico: 0.45, // a horda recua no pico do latido
   raioDur: 0.28, // quanto o choque fica visível
 };
 export const EVOLUTIONS = [

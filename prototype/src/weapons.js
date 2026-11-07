@@ -227,7 +227,7 @@ export function fireWeapon(game, w, ps) {
     case 'caramelo': {
       // Cachorro Caramelo: o vira-lata que está ao lado do Juninho corre até o inimigo mais perto
       const dogs = game.dogs;
-      while (dogs.length < st.count) dogs.push({ x: p.x - 0.8, y: p.y + 0.3, st: 'segue', tgt: null, fx: 1, t: 0, wag: 0 });
+      while (dogs.length < st.count) dogs.push({ x: p.x - 0.8, y: p.y + 0.3, st: 'segue', tgt: null, fx: 1, fy: 0, t: 0, wag: 0, at: 0, walk: 0 });
       const taken = new Set(dogs.filter((d) => d.tgt).map((d) => d.tgt.id));
       for (const d of dogs) {
         if (d.st !== 'segue') continue;
@@ -487,35 +487,36 @@ export function updateZones(game, dt) {
 /** Cachorro Caramelo: segue o Juninho, corre até o alvo, morde (AU AU! empurra a horda) e volta. */
 export function updateDogs(game, dt) {
   const p = game.player;
+  const F = WEAPON_FX;
   for (const d of game.dogs) {
     d.t += dt;
     d.wag += dt;
+    const x0 = d.x;
+    const y0 = d.y;
     if (d.st === 'segue') {
-      const tx = p.x - p.faceX * WEAPON_FX.caoSegueM + 0.35;
-      const ty = p.y - p.faceY * WEAPON_FX.caoSegueM + 0.25;
+      const tx = p.x - p.faceX * F.caoSegueM + 0.35;
+      const ty = p.y - p.faceY * F.caoSegueM + 0.25;
       const k = Math.min(1, dt * 5);
-      d.fx = tx - d.x || d.fx;
       d.x += (tx - d.x) * k;
       d.y += (ty - d.y) * k;
-      continue;
-    }
-    const goal = d.st === 'corre' ? d.tgt : p;
-    if (d.st === 'corre' && (!d.tgt || d.tgt.dead)) {
-      d.st = 'volta';
-      d.tgt = null;
-      continue;
-    }
-    const dx = goal.x - d.x;
-    const dy = goal.y - d.y;
-    const l = Math.hypot(dx, dy) || 1;
-    const sp = (d.speed || 7) * dt;
-    d.x += (dx / l) * Math.min(sp, l);
-    d.y += (dy / l) * Math.min(sp, l);
-    d.fx = dx;
-    if (d.st === 'corre' && l < WEAPON_FX.caochegaM + (goal.r || 0.3)) {
-      game.damageEnemy(goal, d.dmg || 20, 'caramelo', (dx / l) * 2, (dy / l) * 2);
-      game.word(goal.x, goal.y, 'NHAC!', '#e0a14a');
-      if (d.bark > 0) {
+    } else if (d.st === 'morde' || d.st === 'late') {
+      // parado no bote: a arte da mordida e do latido tem 6 quadros; o golpe sai no quadro do contato
+      d.at += dt;
+      const g = d.tgt && !d.tgt.dead ? d.tgt : null;
+      if (g) {
+        d.fx = g.x - d.x;
+        d.fy = g.y - d.y;
+      }
+      if (d.st === 'morde' && !d.hitDone && d.at >= F.mordidaS * F.mordidaContato) {
+        d.hitDone = true;
+        if (g && Math.hypot(g.x - d.x, g.y - d.y) < F.caochegaM + (g.r || 0.3) + 0.6) {
+          const l = Math.hypot(d.fx, d.fy) || 1;
+          game.damageEnemy(g, d.dmg || 20, 'caramelo', (d.fx / l) * 2, (d.fy / l) * 2);
+          game.word(g.x, g.y, 'NHAC!', '#e0a14a');
+        }
+      }
+      if (d.st === 'late' && !d.hitDone && d.at >= F.latidoS * F.latidoPico) {
+        d.hitDone = true;
         game.word(d.x, d.y - 0.2, 'AU AU!', '#f2efe8');
         game.hash.query(d.x, d.y, d.bark + 0.6, tmp);
         for (const e of tmp) {
@@ -528,16 +529,61 @@ export function updateDogs(game, dt) {
           e.ky += (ey / (el || 1)) * 5;
         }
       }
-      // ainda tem fôlego: pula no vizinho mais perto antes de voltar
-      d.bites = (d.bites || 0) + 1;
-      const viz = d.bites < (d.combo || 1) ? nearestEnemies(game, d.x, d.y, d.comboM || 2, 2).find((e) => e !== goal && !e.boss) : null;
-      if (viz) d.tgt = viz;
-      else {
+      if (d.st === 'morde' && d.at >= F.mordidaS) proximaMordida(game, d);
+      else if (d.st === 'late' && d.at >= F.latidoS) {
         d.st = 'volta';
         d.tgt = null;
       }
-    } else if (d.st === 'volta' && l < WEAPON_FX.caoSegueM + 0.2) {
-      d.st = 'segue';
+    } else {
+      const goal = d.st === 'corre' ? d.tgt : p;
+      if (d.st === 'corre' && (!d.tgt || d.tgt.dead)) {
+        d.st = 'volta';
+        d.tgt = null;
+      } else {
+        const dx = goal.x - d.x;
+        const dy = goal.y - d.y;
+        const l = Math.hypot(dx, dy) || 1;
+        const sp = (d.speed || 7) * dt;
+        d.x += (dx / l) * Math.min(sp, l);
+        d.y += (dy / l) * Math.min(sp, l);
+        if (d.st === 'corre' && l < F.caochegaM + (goal.r || 0.3)) {
+          d.st = 'morde';
+          d.at = 0;
+          d.hitDone = false;
+        } else if (d.st === 'volta' && l < F.caoSegueM + 0.2) {
+          d.st = 'segue';
+        }
+      }
     }
+    // para onde olha e quanto andou (a caminhada troca de quadro pela distância)
+    const mx = d.x - x0;
+    const my = d.y - y0;
+    const m = Math.hypot(mx, my);
+    d.vel = m / Math.max(dt, 1e-6);
+    if (m > 1e-4 && d.st !== 'morde' && d.st !== 'late') {
+      d.fx = mx;
+      d.fy = my;
+    } else if (d.st === 'segue' && d.vel < 0.3) {
+      d.fx = p.faceX; // parado ao lado do Juninho, olha para onde ele olha
+      d.fy = p.faceY;
+    }
+    d.walk = (d.walk || 0) + m;
+  }
+}
+
+/** Depois da mordida: ainda tem fôlego, pula no vizinho mais perto; senão late para a horda (nível 4) e volta. */
+function proximaMordida(game, d) {
+  d.bites = (d.bites || 0) + 1;
+  const viz = d.bites < (d.combo || 1) ? nearestEnemies(game, d.x, d.y, d.comboM || 2, 2).find((e) => e !== d.tgt && !e.boss) : null;
+  d.at = 0;
+  d.hitDone = false;
+  if (viz) {
+    d.tgt = viz;
+    d.st = 'corre';
+  } else if (d.bark > 0) {
+    d.st = 'late';
+  } else {
+    d.st = 'volta';
+    d.tgt = null;
   }
 }

@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA } from './config.js';
-import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
+import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX } from './config.js';
+import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
 import { drawMinimap } from './minimapa.js';
@@ -457,7 +457,7 @@ export class Renderer {
           drawBoletoGirando(ctx, o, it.q, pt, playerPx, game.t);
           break;
         case 'dog':
-          drawCaramelo(ctx, o, pt, playerPx, game.t);
+          drawCaramelo(ctx, o, pt, playerPx, game.t, cam, this.cache);
           break;
         case 'shot':
           if (o.kind === 'bala') drawBullet(ctx, o, pt, ppu, playerPx);
@@ -1681,8 +1681,57 @@ function drawBoletoGirando(ctx, z, q, pt, playerPx, t) {
   ctx.globalAlpha = 1;
 }
 
-/** Cachorro Caramelo (provisório, até a arte): vira-lata caramelo de rabo abanando. */
-function drawCaramelo(ctx, d, pt, playerPx, t) {
+const dogPt = { x: 0, y: 0 };
+
+/**
+ * Cachorro Caramelo com a arte: caminhada (seguindo e correndo), mordida e latido em 16 direções.
+ * Parado ao lado do Juninho fica no primeiro quadro do latido, que é o cachorro em guarda.
+ */
+function drawCaramelo(ctx, d, pt, playerPx, t, cam, cache) {
+  const W = walkReady(WALK_ATLAS.cw);
+  const M = walkReady(WALK_ATLAS.cm);
+  const L = walkReady(WALK_ATLAS.cl);
+  if (!W || !M || !L) return drawCarameloCodigo(ctx, d, pt, playerPx, t);
+  cam.toScreen(d.x + (d.fx || 1), d.y + (d.fy || 0), dogPt);
+  const row = atlasRow(dogPt.x - pt.x, dogPt.y - pt.y);
+  let A = W;
+  let f;
+  if (d.st === 'morde') {
+    A = M;
+    f = Math.min(5, Math.floor((d.at / WEAPON_FX.mordidaS) * 6));
+  } else if (d.st === 'late') {
+    A = L;
+    f = Math.min(5, Math.floor((d.at / WEAPON_FX.latidoS) * 6));
+  } else if (d.st === 'segue' && (d.vel || 0) < 0.3) {
+    A = L; // em guarda
+    f = 0;
+  } else if ((d.vel || 0) > CARAMELO_CORRIDA_MS) {
+    // correndo: a folha de corrida ainda não chegou inteira; a caminhada roda no ritmo máximo dela
+    f = Math.floor(t * CARAMELO_QUADROS_S) % 6;
+  } else {
+    f = Math.floor(((d.walk || 0) / CARAMELO_PASSO_M) * 6) % 6;
+  }
+  const h = playerPx * CARAMELO_ALTURA;
+  const hc = h * (ATLAS.ch / A.figureH);
+  const spr = cache.get(`${A.prefix}_${row}_${f}`, hc, CARAMELO_OPTS);
+  if (!spr) return drawCarameloCodigo(ctx, d, pt, playerPx, t);
+  // sombra própria (mais comprida de lado) e o desenho descido até as patas tocarem o chão
+  const lado = Math.abs(Math.sin((row * 22.5 * Math.PI) / 180));
+  ctx.fillStyle = 'rgba(0,0,0,0.32)';
+  ctx.beginPath();
+  ctx.ellipse(pt.x, pt.y, h * (0.32 + 0.28 * lado), h * 0.11, 0, 0, Math.PI * 2);
+  ctx.fill();
+  const desce = ((ATLAS.ch - A.feetRows[row]) / ATLAS.ch) * hc;
+  blit(ctx, spr, pt.x, pt.y + desce, false);
+}
+const CARAMELO_ALTURA = 0.55; // altura da figura (com o rabo) em relação ao Juninho
+const CARAMELO_PASSO_M = 0.85; // metros andados num ciclo de 6 quadros da caminhada
+const CARAMELO_CORRIDA_MS = 3.5; // acima dessa velocidade, a caminhada troca de quadro pelo tempo
+const CARAMELO_QUADROS_S = 16; // quadros por segundo da caminhada no máximo
+const CARAMELO_OPTS = { noShadow: true };
+
+/** Reserva enquanto a arte não carrega: vira-lata desenhado em código, de rabo abanando. */
+function drawCarameloCodigo(ctx, d, pt, playerPx, t) {
   const u = playerPx * 0.55;
   const f = (d.fx || 1) >= 0 ? 1 : -1;
   const run = d.st !== 'segue';

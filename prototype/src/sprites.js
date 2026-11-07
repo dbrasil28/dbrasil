@@ -26,6 +26,10 @@ export const IMAGES = {
   chefe_trafico_poses_atlas: 'assets/personagens/chefe_trafico/poses_atlas.webp', // ataque e raiva em 16 direções
   traficante_poses_atlas: 'assets/personagens/traficante/poses_atlas.webp', // mira com o fuzil em 16 direções
   funkeiro_poses_atlas: 'assets/personagens/funkeiro/poses_atlas.webp', // fúria de braços abertos em 16 direções
+  // Cachorro Caramelo (habilidade): caminhada, mordida e latido em 16 direções × 6 quadros
+  caramelo_walk_atlas: 'assets/personagens/caramelo/caminhada_atlas.webp',
+  caramelo_mordida_atlas: 'assets/personagens/caramelo/mordida_atlas.webp',
+  caramelo_latido_atlas: 'assets/personagens/caramelo/latido_atlas.webp',
   politico_walk_atlas: 'assets/personagens/politico/caminhada_atlas.webp', // Político Corrupto (e o Rival, tingido)
   politico_attack_atlas: 'assets/personagens/politico/ataque_atlas.webp', // arremesso da maleta (quadros 0–3)
   politico_maleta: 'assets/personagens/politico/maleta_voo.png', // maleta fechada em voo
@@ -168,6 +172,11 @@ export const WALK_ATLAS = {
   tf: { atlas: 'traficante_walk_atlas', prefix: 'tf', figureH: 157 },
   ct: { atlas: 'chefe_trafico_walk_atlas', prefix: 'ct', figureH: 157 },
   pa: { atlas: 'politico_attack_atlas', prefix: 'pa', figureH: 158 }, // mesma escala da caminhada
+  // Caramelo: as três na mesma escala. feetRows: onde ficam as patas em cada direção (px da célula de 160);
+  // de lado o cachorro pisa mais alto na folha, então o desenho desce até as patas tocarem o chão
+  cw: { atlas: 'caramelo_walk_atlas', prefix: 'cw', figureH: 152, feetRows: [153.7, 150.3, 147.5, 148.9, 136.0, 136.0, 143.3, 152.3, 153.0, 148.2, 144.3, 138.1, 129.0, 138.4, 146.1, 151.3] },
+  cm: { atlas: 'caramelo_mordida_atlas', prefix: 'cm', figureH: 152, feetRows: [156.9, 156.5, 156.2, 151.0, 131.1, 136.0, 139.5, 145.4, 156.5, 153.0, 149.9, 145.4, 132.9, 138.8, 143.7, 148.9] },
+  cl: { atlas: 'caramelo_latido_atlas', prefix: 'cl', figureH: 152, feetRows: [155.1, 151.7, 150.3, 150.6, 136.3, 139.5, 144.0, 152.3, 156.5, 153.0, 150.3, 143.7, 130.1, 140.5, 144.7, 151.7] },
 };
 
 /**
@@ -235,6 +244,7 @@ export const ICON_ART = {
   maleta: 'w_maleta',
   chinelo: 'w_chinelo',
   microfone: 'w_megafone',
+  caramelo: 'caramelo_icone', // recortado do atlas do latido quando ele carrega
 };
 
 export const images = {};
@@ -252,6 +262,7 @@ export function loadImages(onEach) {
       if (id === 'juninho_atlas') sliceAtlas(im, 'ja');
       if (id === 'juninho_walk_atlas') sliceAtlas(im, 'jw');
       for (const w of Object.values(WALK_ATLAS)) if (id === w.atlas) sliceAtlas(im, w.prefix);
+      if (id === WALK_ATLAS.cl.atlas) images.caramelo_icone = cropAlpha(images[`${WALK_ATLAS.cl.prefix}_2_3`]); // latindo, de 3/4
       for (const p of Object.values(POSE_ATLAS)) if (id === p.atlas) sliceAtlas(im, p.prefix, p);
       pending--;
       onEach?.(id);
@@ -278,6 +289,25 @@ function sliceAtlas(im, prefix, g = ATLAS) {
       images[`${prefix}_${r}_${f}`] = c;
     }
   }
+}
+
+/** Recorta a célula até onde há desenho (para ícones: a célula do atlas tem muita margem). */
+function cropAlpha(src) {
+  const d = src.getContext('2d').getImageData(0, 0, src.width, src.height).data;
+  let x0 = src.width, y0 = src.height, x1 = 0, y1 = 0;
+  for (let y = 0; y < src.height; y++) {
+    for (let x = 0; x < src.width; x++) {
+      if (d[(y * src.width + x) * 4 + 3] < 24) continue;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+    }
+  }
+  if (x1 < x0) return src;
+  const c = canvas(x1 - x0 + 1, y1 - y0 + 1);
+  c.getContext('2d').drawImage(src, -x0, -y0);
+  return c;
 }
 
 /** Linha do atlas para uma direção na tela (dx para a direita, dy para baixo). */

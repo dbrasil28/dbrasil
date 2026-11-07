@@ -89,8 +89,10 @@ scale = CH / (FEET - TOP)
 half = CW / 2 / scale  # meia largura da célula em px da folha
 atlas = Image.new('RGBA', (CW * 6, CH * 16), (0, 0, 0, 0))
 clip = 0
+feet_rows = []  # pés de cada direção (mediana dos 6 quadros), em px da célula: quadrúpede de lado pisa mais alto na folha
 for ri, a in enumerate(angs):
     line = []
+    feet_rows.append(round((float(np.median([figs[(a, f)]['feet'] for f in range(6)])) - TOP) * scale, 1))
     for f in range(6):
         v = figs[(a, f)]
         x0 = int(round(v['cx'] - half))
@@ -137,7 +139,7 @@ full = Image.new('RGBA', atlas.size, (70, 70, 70, 255))
 full.alpha_composite(atlas)
 full.convert('RGB').resize((atlas.width // 2, atlas.height // 2)).save(f'{ref}/{tag}_atlas.jpg', quality=85)
 
-json.dump({'figureH': figH, 'top': TOP, 'feet': FEET}, open(META, 'w'))
+json.dump({'figureH': figH, 'top': TOP, 'feet': FEET, 'feetRows': feet_rows}, open(META, 'w'))
 # poses extras (extras/<personagem>_<pose>.png, ex.: telespectador_acordado, burocrata_ataque) viram
 # <pose>.png com 320 px de altura. Ficam os pedaços grandes (papéis soltos, por exemplo); somem os pontinhos.
 exdir = os.path.join(pkg, 'extras')

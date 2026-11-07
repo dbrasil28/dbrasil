@@ -25,7 +25,7 @@ Pedido do autor (07/11/2026): as habilidades eram diferentes no papel, mas na te
 | Mototáxi Amigo (só Morro) | Faixa vermelha piscando e "BI-BI!", e a moto rasga a viela | 40 de dano, a cada 4,2 s | +10 · moto mais larga · passa mais vezes · +1 moto e +5 |
 | Megafone da TV | Círculo sempre ligado em volta dele: pulsa, machuca de leve e empurra | 6 por pulso (0,5 s), raio 1,9 m | maior · empurra mais · +3 · ainda maior e +2 |
 | Gato de Luz | Choque em zigue-zague que pula de um inimigo para o vizinho e trava por um instante | 24 de dano, pula 3 | +2 pulos · pula mais longe · +10 · 2 choques de cada vez |
-| Cachorro Caramelo | Vira-lata ao lado do Juninho: corre, morde ("NHAC!") 2 inimigos e volta | 1 cachorro, 40 por mordida | mordida +15 · mais rápido · "AU AU!": a horda em volta recua · 2º caramelo, e cada um morde 3 |
+| Cachorro Caramelo | Vira-lata ao lado do Juninho, com a arte do autor: corre, dá o bote e morde ("NHAC!") 2 inimigos e volta. Parado, fica em guarda | 1 cachorro, 50 por mordida | mordida +20 · mais rápido · "AU AU!": depois de morder, late e a horda em volta recua · a matilha: mais 2 caramelos, e cada um morde 3 |
 | Entrega Expressa (evolução) | Capacetes dourados que ricocheteiam | 3 capacetes de 30, 5 ricochetes | — |
 
 ### Por que o Capacete e o Chinelo miram a horda
@@ -38,8 +38,8 @@ Na arena de teste, cada habilidade fica sozinha contra 40 inimigos de 60 de vida
 
 | | Capacete | Chinelo | Boleto | Carimbo | Maleta | Picolé | Mototáxi | Megafone | Gato | Caramelo |
 |---|---|---|---|---|---|---|---|---|---|---|
-| nv 1 | 173 | 59 | 68 | 134 | 98 | 113 | 246 | 77 | 50 | 68 |
-| nv 5 | 388 | 258 | 416 | 393 | 236 | 467 | 552 | 228 | 229 | 219 |
+| nv 1 | 173 | 59 | 68 | 134 | 98 | 113 | 246 | 77 | 50 | 60 |
+| nv 5 | 388 | 258 | 416 | 393 | 236 | 467 | 552 | 228 | 229 | 210 |
 
 Antes do ajuste, o Chinelo dava 5, o Caramelo 16 e o Gato 23 no nível 1. As que acertam um inimigo de cada vez (Gato e Caramelo) ficam abaixo das de área nessa arena. O Megafone e o Boleto também empurram a horda.
 
@@ -47,6 +47,6 @@ Bot (60 partidas, sementes 1000 e 3000): 12 vitórias, contra 8 na versão anter
 
 ## Provisório e pendente
 
-- O Cachorro Caramelo, a moto, o choque e o megafone ainda são desenhados em código, até a arte chegar no Figma. Os boletos, o carimbo, o chinelo, a maleta e o capacete usam os ícones que já existiam.
+- O Cachorro Caramelo tem a arte do autor (caminhada, mordida e latido em 16 direções; `prototype/assets/personagens/caramelo/`). A mordida dura 0,36 s e o dano sai no quadro 3 de 6, quando a boca fecha; o latido, uma vez por corrida, empurra no pico. Falta a Parte 1 do pacote de caminhada e corrida: sem ela, a corrida usa a caminhada no ritmo máximo. A moto, o choque e o megafone ainda são desenhados em código. Os boletos, o carimbo, o chinelo, a maleta e o capacete usam os ícones que já existiam.
 - Falta evolução para 10 das 11 habilidades. Proposta a fazer: uma evolução por habilidade, cada uma ligada a uma passiva, como Capacete + Tênis.
 - Enfeite no corpo do Juninho (o capacete na cabeça, o megafone na mão) só existe no megafone (o círculo). O resto fica para quando houver arte.
