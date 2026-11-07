@@ -247,7 +247,7 @@ Medido com o bot (30 partidas, sementes 1000 e 3000, sem melhorias): o covil abr
 - o helicóptero da TV (hoje só o facho de luz);
 - o Rabecão (hoje o camburão escurecido);
 - a Bola da Altinha (hoje desenhada em código);
-- gente normal passeando na abertura (hoje a arte da horda, sem o brilho da TV);
+- gente normal passeando na abertura, de braços abaixados, e o momento em que vira horda (hoje a arte da horda, sem o brilho da TV): pedido com os prompts em `docs/arte/PEDIDO_CIDADAOS_COMUNS.md`;
 - o interior da obra do Especulador (hoje terra, entulho e tapume).
 
 ## 14. Ordem de construção

@@ -254,6 +254,10 @@ Pose única, corpo inteiro, fundo transparente. O mesmo homem da folha anterior,
 ```
 - **Mulheres (leva 4):** `telespectadora_a_folha.png`, com o mesmo prompt trocando para "mulher brasileira comum, [roupa]".
 
+#### Cidadãos comuns (os mesmos A, B e C antes do sinal pegar) · urgente
+
+Para a abertura do jogo: a mesma pessoa andando de braços abaixados, sem brilho nos olhos, e os 6 quadros em que o sinal pega e os braços sobem. Formato e prompts prontos em `PEDIDO_CIDADAOS_COMUNS.md`.
+
 #### `golpista_folha.png` — Golpista Digital · Leva 2
 - **Leitura:** celular erguido com tela brilhando em verde-ciano, roupa escura de influenciador, anel de luz pequeno. Rápido.
 ```
