@@ -1,51 +1,19 @@
-// Desenho das crises da cidade (crises.js): a Ressaca (o mar na areia e as ondas), o Apagão (escuro,
-// só a luz dos postes e do Juninho, os olhos da horda brilhando), o Baile (luzes coloridas no chão) e o
-// Gato de luz em curto (faísca estalando antes do choque).
+// Desenho das crises da cidade (crises.js): o Apagão (escuro, só a luz dos postes e do Juninho, os olhos da
+// horda brilhando), o Baile (luzes coloridas no chão) e o Gato de luz em curto (faísca estalando antes do
+// choque). A água da Ressaca vem com o mar (render_mar.js).
 import { CRISES } from './config.js';
 
 const a = { x: 0, y: 0 };
 const b = { x: 0, y: 0 };
-const c2 = { x: 0, y: 0 };
-const d2 = { x: 0, y: 0 };
 
 const ativa = (game, id) => game.crise && game.crise.fase === 'ativa' && game.crise.id === id;
 
-/** Faixa do chão entre x0 e x1 (de y0 a y1), já na projeção da câmera. */
-function faixa(ctx, cam, x0, x1, y0, y1) {
-  cam.toScreen(x0, y0, a);
-  cam.toScreen(x1, y0, b);
-  cam.toScreen(x1, y1, c2);
-  cam.toScreen(x0, y1, d2);
-  ctx.beginPath();
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-  ctx.lineTo(c2.x, c2.y);
-  ctx.lineTo(d2.x, d2.y);
-  ctx.closePath();
-}
-
-/** No chão, antes dos personagens: água da Ressaca, luzes do Baile, faíscas do curto. */
+/** No chão, antes dos personagens: luzes do Baile, faíscas do curto. */
 export function drawCriseChao(ctx, game, cam, ppu, t, bounds) {
   const c = game.crise;
   if (!c || c.fase !== 'ativa') return;
-  const y0 = bounds.minY - 4;
-  const y1 = bounds.maxY + 4;
-  if (c.id === 'ressaca') {
-    const m = game.map;
-    faixa(ctx, cam, c.agua, m.seaX + 12, y0, y1);
-    ctx.fillStyle = 'rgba(64,132,168,0.5)';
-    ctx.fill();
-    // espuma na linha da água
-    faixa(ctx, cam, c.agua - 0.25, c.agua + 0.45, y0, y1);
-    ctx.fillStyle = `rgba(236,246,250,${0.55 + 0.2 * Math.sin(t * 5)})`;
-    ctx.fill();
-    if (c.onda >= 0) {
-      const x = m.seaX - (m.seaX - c.agua) * c.onda;
-      faixa(ctx, cam, x - 0.5, x + 0.9, y0, y1);
-      ctx.fillStyle = 'rgba(245,252,255,0.75)';
-      ctx.fill();
-    }
-  } else if (c.id === 'baile') {
+  // a água da Ressaca é desenhada com o mar (render_mar.js), por baixo dos coqueiros e da gente
+  if (c.id === 'baile') {
     // luzes de festa girando em volta do Juninho
     const p = game.player;
     const cores = ['255,60,200', '60,220,255', '255,210,31'];

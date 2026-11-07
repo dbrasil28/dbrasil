@@ -2,7 +2,8 @@
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA } from './config.js';
 import { images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS } from './sprites.js';
-import { OrlaLayer, drawImageProp, drawTallDecor } from './mapa.js';
+import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto } from './mapa.js';
+import { drawMar } from './render_mar.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
 import { drawCasasFundo, drawCasaFavela } from './render_favela.js';
 import {
@@ -133,7 +134,9 @@ export class Renderer {
     if (game.map.bounded) {
       cam.visibleWorldBounds(1, bounds);
       this.orla.draw(ctx, game, bounds, this.dpr);
-      if (game.world) drawTallDecor(ctx, game, bounds); // prédios e o que fica em pé, sem inclinar
+      const altos = game.world ? decorAlto(game, bounds) : null;
+      drawMar(ctx, game, cam, game.t, bounds, altos); // a água mexe a cada quadro e fica por baixo do que está em pé
+      if (altos) drawTallDecor(ctx, game, bounds, altos); // prédios e o que fica em pé, sem inclinar
     } else this.drawGround(ctx, game);
 
     // manchas no chão
@@ -174,7 +177,7 @@ export class Renderer {
       drawObraChao(ctx, game.world, cam, ppu);
       drawHolofoteChao(ctx, game, cam, ppu, game.t);
       cam.visibleWorldBounds(3, bounds);
-      drawCriseChao(ctx, game, cam, ppu, game.t, bounds); // Ressaca, Baile, Curto
+      drawCriseChao(ctx, game, cam, ppu, game.t, bounds); // Baile, Curto (a Ressaca vem com o mar)
     }
 
     // lista de desenho com ordenação por profundidade

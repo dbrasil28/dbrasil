@@ -5,6 +5,7 @@ import { images } from './sprites.js';
 import { Camera } from './camera.js';
 import { PREDIOS, SOMBRA, PLACES } from './config.js';
 import { drawLitter, drawFachada, pixo, cartaz, bandeira } from './render_cenario.js';
+import { recorteMar, ALCANCE_MAR } from './render_mar.js';
 
 const pt = { x: 0, y: 0 };
 const pt2 = { x: 0, y: 0 };
@@ -271,14 +272,46 @@ function drawOrlaOnly(r, ctx, game, b) {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // areia (com marcas de pisadas) e mar
-  band(m.sandX, m.seaX, '#bfa47c', 0.42);
+  // areia: tom que varia com o vento e o sol, marcas de pisadas, linha da maré e a areia molhada da beira
+  band(m.sandX, m.seaX + 1, '#bfa47c', 0.42);
+  const ty0 = Math.floor(b.minY / 3);
+  const ty1 = Math.ceil(b.maxY / 3);
+  for (let j = ty0; j <= ty1; j++) {
+    for (let i = 0; i < 4; i++) {
+      const h = hash2(i, j, 31);
+      const x = m.sandX + 0.6 + hash2(i, j, 32) * (m.seaX - m.sandX - 3);
+      const y = j * 3 + hash2(i, j, 33) * 3;
+      cam.toScreen(x, y, pt);
+      ctx.fillStyle = h < 0.5 ? 'rgba(255,238,206,0.07)' : 'rgba(112,84,52,0.06)';
+      ctx.beginPath();
+      ctx.ellipse(pt.x, pt.y, ppu * (1.1 + h * 1.4), ppu * k * (0.5 + hash2(i, j, 34) * 0.6), 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // marcas do vento: risquinhos claros com a sombra embaixo
+    for (let i = 0; i < 6; i++) {
+      const x = m.sandX + 0.8 + hash2(i, j, 35) * (m.seaX - m.sandX - 4);
+      const y = j * 3 + hash2(i, j, 36) * 3;
+      const L = ppu * (0.4 + hash2(i, j, 37) * 0.5);
+      cam.toScreen(x, y, pt);
+      ctx.strokeStyle = 'rgba(120,92,58,0.13)';
+      ctx.lineWidth = Math.max(1, ppu * 0.05);
+      ctx.beginPath();
+      ctx.moveTo(pt.x - L, pt.y + 1);
+      ctx.quadraticCurveTo(pt.x, pt.y - ppu * 0.12 + 1, pt.x + L, pt.y + 1);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(244,228,196,0.12)';
+      ctx.beginPath();
+      ctx.moveTo(pt.x - L, pt.y);
+      ctx.quadraticCurveTo(pt.x, pt.y - ppu * 0.12, pt.x + L, pt.y);
+      ctx.stroke();
+    }
+  }
   const sy0 = Math.floor(b.minY / 2);
   const sy1 = Math.ceil(b.maxY / 2);
   ctx.fillStyle = 'rgba(120,95,60,0.18)';
   for (let j = sy0; j <= sy1; j++) {
     for (let i = 0; i < 5; i++) {
-      const x = m.sandX + 0.5 + hash2(i, j, 7) * (m.seaX - m.sandX - 1);
+      const x = m.sandX + 0.5 + hash2(i, j, 7) * (m.seaX - m.sandX - 3.5);
       const y = j * 2 + hash2(i, j, 8) * 2;
       cam.toScreen(x, y, pt);
       ctx.beginPath();
@@ -286,10 +319,51 @@ function drawOrlaOnly(r, ctx, game, b) {
       ctx.fill();
     }
   }
-  band(m.seaX, b.maxX + 5, '#2c5f70', 0.25);
-  band(m.seaX - 0.6, m.seaX + 0.3, 'rgba(235,245,240,0.55)'); // espuma
-  // linha de chegada da areia molhada
-  band(m.seaX - 2, m.seaX - 0.6, 'rgba(150,120,80,0.35)');
+  // areia molhada até onde a onda chega (a água em si mexe e é desenhada a cada quadro: render_mar.js)
+  const repouso = m.seaX - ALCANCE_MAR.respiro;
+  const topo = repouso - ALCANCE_MAR.sobe; // o mais longe que a onda corre, sem o recorte
+  const passo = 0.5;
+  const ny = Math.ceil((b.maxY - b.minY) / passo) + 1;
+  const X0 = topo - 1.1;
+  const X1 = m.seaX + 3;
+  cam.toScreen(X0, b.minY, pt);
+  cam.toScreen(X1, b.minY, pt2);
+  const molhada = ctx.createLinearGradient(pt.x, 0, pt2.x, 0); // no bloco o giro é zero: x do mundo = x da tela
+  const at = (x) => Math.max(0, Math.min(1, (x - X0) / (X1 - X0)));
+  molhada.addColorStop(0, 'rgba(140,112,78,0)');
+  molhada.addColorStop(at(X0 + 0.7), 'rgba(140,112,78,0.5)');
+  molhada.addColorStop(at(repouso - 0.6), 'rgba(126,102,72,0.78)');
+  molhada.addColorStop(at(m.seaX + 0.2), 'rgba(86,94,84,0.92)');
+  molhada.addColorStop(at(m.seaX + 1.2), '#3d6c72');
+  molhada.addColorStop(1, '#2c5f70');
+  ctx.beginPath();
+  for (let i = 0; i < ny; i++) {
+    const y = Math.min(b.maxY, b.minY + i * passo);
+    cam.toScreen(topo - 0.9 + recorteMar(y), y, pt);
+    if (i) ctx.lineTo(pt.x, pt.y);
+    else ctx.moveTo(pt.x, pt.y);
+  }
+  cam.toScreen(b.maxX + 5, b.maxY, pt);
+  ctx.lineTo(pt.x, pt.y);
+  cam.toScreen(b.maxX + 5, b.minY, pt);
+  ctx.lineTo(pt.x, pt.y);
+  ctx.closePath();
+  ctx.fillStyle = molhada;
+  ctx.fill();
+  // linha da maré: o que a água traz e deixa na areia (alga seca, graveto, concha)
+  for (let i = 0; i < ny; i++) {
+    const y = b.minY + i * passo + hash2(i, Math.floor(b.minY), 41) * passo;
+    const h = hash2(Math.floor(y * 4), 0, 42);
+    if (h < 0.35) continue;
+    const x = topo - 0.55 + recorteMar(y) * 0.8 + (hash2(Math.floor(y * 4), 1, 43) - 0.5) * 0.5;
+    cam.toScreen(x, y, pt);
+    const concha = h > 0.88;
+    ctx.fillStyle = concha ? 'rgba(236,228,210,0.75)' : 'rgba(72,60,44,0.5)';
+    const r = ppu * (concha ? 0.05 : 0.04 + (h - 0.35) * 0.12);
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y, r * (concha ? 1 : 1.8), r * k, h * 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   // ruas transversais de asfalto com faixa de pedestre
   const y0 = Math.floor(b.minY / m.blockLen) - 1;
@@ -508,12 +582,18 @@ const TALL = new Set(['predio', 'fachada', 'casa', 'coqueiro', 'quiosque', 'salv
 const tallTmp = [];
 const tallPt = { x: 0, y: 0 };
 
-/** Prédios, fachadas e o que mais fica em pé na borda, do fundo para a frente. */
-export function drawTallDecor(ctx, game, vb) {
+/** O que fica em pé na borda e aparece na tela, do fundo para a frente (o mar usa para a espuma no pé). */
+export function decorAlto(game, vb) {
   tallTmp.length = 0;
   orlaDecor(game, { minX: vb.minX, maxX: vb.maxX, minY: vb.minY - 2, maxY: vb.maxY + 8 }, tallTmp);
   const list = tallTmp.filter((d) => TALL.has(d.kind));
   list.sort((a, b) => a.y - b.y);
+  return list;
+}
+
+/** Prédios, fachadas e o que mais fica em pé na borda, do fundo para a frente. */
+export function drawTallDecor(ctx, game, vb, pronta) {
+  const list = pronta || decorAlto(game, vb);
   const cam = game.camera;
   for (const d of list) {
     cam.toScreen(d.x, d.y, tallPt);
