@@ -220,14 +220,15 @@ export function drawPlace(ctx, pl, cam, ppu) {
     const s = ((k.x1 - k.x0) / art.w) * (ppu / ART_S);
     ctx.drawImage(im, a.x - art.padX * ART_S * s, a.y - art.top * ART_S * s, im.width * s, im.height * s);
     const label = pl.sign || pl.kind.toUpperCase();
+    const [px, py, pw] = art.placa;
     const fs = Math.max(8, ppu * 0.3);
     ctx.font = `900 ${fs}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = look.letra;
-    const cx = a.x + ((k.x1 - k.x0) / 2) * ppu;
-    const cy = a.y + 0.36 * ppu * cam.k - 2.77 * ppu;
-    ctx.fillText(label, cx, cy, 1.9 * ppu);
+    const ox = a.x - art.padX * ART_S * s;
+    const oy = a.y - art.top * ART_S * s;
+    ctx.fillText(label, ox + px * s, oy + py * s, pw * s * 0.9);
     ctx.textBaseline = 'alphabetic';
     return;
   }

@@ -13,16 +13,26 @@ export const ART = {
   onibus: { w: 8.8, d: 2.5, h: 3.0, padX: 0.6, top: 5.4, bot: 0.5, files: ['a'], espelha: true },
   banca: { w: 2.4, d: 1.6, h: 2.3, padX: 0.5, top: 3.9, bot: 0.4, files: ['a'] },
   milho: { w: 1.4, d: 0.8, h: 1.1, padX: 0.8, top: 2.9, bot: 0.35, files: ['a'], espelha: true },
-  picole: { w: 1.2, d: 0.8, h: 1.0, padX: 0.8, top: 2.8, bot: 0.35, files: [] },
-  banco: { w: 1.9, d: 0.55, h: 0.9, padX: 0.35, top: 1.5, bot: 0.3, files: [] },
-  lixeira: { w: 0.5, d: 0.5, h: 1.0, padX: 0.45, top: 1.6, bot: 0.3, files: [] },
-  orelhao: { w: 0.6, d: 0.5, h: 2.1, padX: 0.55, top: 2.7, bot: 0.3, files: [] },
-  muro: { w: 4.4, d: 0.4, h: 2.4, padX: 0.3, top: 3.0, bot: 0.35, files: [] },
-  tapume: { w: 4.6, d: 0.3, h: 2.2, padX: 0.3, top: 2.7, bot: 0.35, files: [] },
-  // barracas soltas no meio do calçadão: o retângulo é o balcão (o toldo passa 0,4 m de cada lado)
-  barraca_acai: { w: 3.4, d: 1.3, h: 1.1, padX: 0.75, top: 3.6, bot: 0.4, files: [] },
-  barraca_pastelaria: { w: 3.4, d: 1.3, h: 1.1, padX: 0.75, top: 3.6, bot: 0.4, files: [] },
-  barraca_boteco: { w: 3.4, d: 1.3, h: 1.1, padX: 0.75, top: 3.6, bot: 0.4, files: [] },
+  picole: { w: 1.2, d: 0.8, h: 1.0, padX: 0.8, top: 2.8, bot: 0.35, files: ['a'], espelha: true },
+  banco: { w: 1.9, d: 0.55, h: 0.9, padX: 0.35, top: 1.5, bot: 0.3, files: ['a'], espelha: true },
+  lixeira: { w: 0.5, d: 0.5, h: 1.0, padX: 0.45, top: 1.6, bot: 0.3, files: ['a'], espelha: true },
+  orelhao: { w: 0.6, d: 0.5, h: 2.1, padX: 0.55, top: 2.7, bot: 0.3, files: ['laranja'], espelha: true },
+  muro: { w: 4.4, d: 0.4, h: 2.4, padX: 0.3, top: 3.0, bot: 0.35, files: ['a', 'b'] },
+  tapume: { w: 4.6, d: 0.3, h: 2.2, padX: 0.3, top: 2.7, bot: 0.35, files: ['a'] },
+  // veículos e coisas do morro
+  camburao: { w: 4.6, d: 2.0, h: 2.1, padX: 0.7, top: 4.0, bot: 0.45, files: ['a'], espelha: true },
+  moto: { w: 1.9, d: 0.7, h: 1.1, padX: 0.4, top: 2.0, bot: 0.3, files: ['a'], espelha: true },
+  caixa_dagua: { w: 1.5, d: 1.5, h: 1.3, padX: 0.3, top: 2.6, bot: 0.3, files: ['a'] },
+  sinuca: { w: 2.4, d: 1.3, h: 0.85, padX: 0.3, top: 2.8, bot: 0.3, files: ['a'] },
+  barricada: { w: 2.4, d: 0.9, h: 1.0, padX: 0.4, top: 2.2, bot: 0.3, files: ['a'], espelha: true },
+  tambor: { w: 0.6, d: 0.6, h: 0.9, padX: 0.5, top: 2.2, bot: 0.3, files: ['a'] },
+  entulho: { w: 1.3, d: 1.0, h: 0.7, padX: 0.4, top: 1.8, bot: 0.3, files: ['a'], espelha: true },
+  pneus: { w: 0.85, d: 0.8, h: 0.6, padX: 0.35, top: 1.6, bot: 0.3, files: ['a'] },
+  // barracas soltas no meio do calçadão: o retângulo é o balcão. placa: centro e largura (px na imagem)
+  // da placa em branco do toldo, onde o jogo escreve o nome do lugar
+  barraca_acai: { w: 3.4, d: 1.3, h: 1.1, padX: 0.75, top: 3.6, bot: 0.4, files: ['a'], placa: [287, 155, 179] },
+  barraca_pastelaria: { w: 3.4, d: 1.3, h: 1.1, padX: 0.75, top: 4.4, bot: 0.4, files: ['a'], placa: [305, 197, 289] },
+  barraca_boteco: { w: 3.4, d: 1.3, h: 1.1, padX: 0.75, top: 3.6, bot: 0.4, files: ['a'], placa: [287, 176, 182] },
 };
 
 export const artKey = (kind, file) => `cen_${kind}_${file}`;
