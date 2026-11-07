@@ -1428,7 +1428,7 @@ export class Game {
       this.trafficT[i] = A.intervaloS[0] + this.rng() * (A.intervaloS[1] - A.intervaloS[0]);
       const y = p.y - f.sentido * A.raioM;
       if (y < y0 + len || y > y1 - len) return;
-      if (this.traffic.some((c) => c.faixa === i && Math.abs(c.y - y) < len * 2.2)) return;
+      if (this.traffic.some((c) => c.faixa === i && Math.abs(c.y - y) < A.espacoM)) return;
       const v = A.velocidade[0] + this.rng() * (A.velocidade[1] - A.velocidade[0]);
       this.traffic.push({ x: f.x, y, faixa: i, sentido: f.sentido, v, len, wid, modelo: A.modelos[Math.floor(this.rng() * A.modelos.length)], warned: false });
     });

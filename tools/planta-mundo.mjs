@@ -117,10 +117,11 @@ canvas { display: block; max-width: none; touch-action: pan-x pan-y; }
       <h3>Faixas da Orla (da esquerda para o mar)</h3>
       <ul>
         <li><b>Prédios</b>, fora do caminho, de lado para a câmera: a fachada com as lojas no térreo dá para o calçadão (linha amarela) e o prédio sobe em direção à cidade. As ruas transversais passam entre eles.</li>
-        <li><b>Calçadão, lado das lojas</b> (7 m): botecos, açaí, pastelaria, prédio com terraço.</li>
-        <li><b>Calçadão, meio</b> (8 m): barraca do meio, carrinho, orelhão, bancos e postes na beira da avenida, garotas na esquina.</li>
+        <li><b>Frente das lojas</b> (3 m, encostada nos prédios): mesas e cadeiras dos botecos, açaí e pastelaria do térreo.</li>
+        <li><b>Faixa livre</b> (6,4 m, no meio): nada sólido, só sujeira no chão, para correr.</li>
+        <li><b>Faixa do mobiliário</b> (5,6 m, junto da avenida): postes no meio-fio, bancos com lixeira, a barraca do quarteirão, banca ou carrinho nas esquinas, orelhão, garotas na esquina.</li>
         <li><b>Avenida</b> (11 m, quatro faixas, dois sentidos): carros andando que atropelam o Juninho e a horda; faixa de pedestre em cada rua.</li>
-        <li><b>Ciclovia</b> e <b>areia</b>: quiosque, salva-vidas, guarda-sóis, coqueiros, futevôlei. O <b>mar</b> vem depois da areia.</li>
+        <li><b>Ciclovia</b> e <b>areia</b>: coqueiros em fila na beira da ciclovia, guarda-sóis em duas filas desencontradas, quiosque, posto de salva-vidas, mate e futevôlei. O <b>mar</b> vem depois da areia.</li>
         <li><b>Ruas transversais</b>: uma entre cada quarteirão, 8 m de largura, saindo dos prédios e terminando na avenida, com carros e ônibus parados nas duas mãos, buraco com cones e bandeirinhas.</li>
       </ul>
     </div>

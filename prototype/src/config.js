@@ -201,6 +201,7 @@ export const AVENIDA = {
     uno_sul: [[279, 348, 104, 104, 0], [344, 176, 105, 105, 104]],
   },
   distanciaM: 2.5, // distância mínima entre dois carros na mesma faixa
+  espacoM: 11.4, // um carro novo só entra na faixa com essa folga para o anterior (o trânsito não fica mais denso com carro menor)
   escala: 0.95, // tamanho dos carros da avenida (cabem na faixa de 2,6 m; os parados nas ruas usam CENARIO.carros.escala)
 };
 
@@ -279,7 +280,28 @@ export const CENARIO = {
   esquerda2: ['pastelaria', 'acai', 'boteco', 'acai', 'pastelaria', 'boteco', 'acai', 'boteco', 'pastelaria'],
   carrinho: ['milho', 'banca', 'picole', 'milho', 'banca', 'milho', 'picole', 'banca', 'milho'],
   posteCadaM: 12, // postes no meio-fio da avenida
-  postes: { avenidaDe: 2, ruaX: -7.0, ruaCima: 0.76, ruaBaixo: 39.6 }, // y no quarteirão (0 = rua de cima); ruaX: postes das ruas transversais
+  postes: { avenidaDe: 2, ruaX: -4.8, ruaCima: 0.76, ruaBaixo: 39.6 }, // y no quarteirão (0 = rua de cima); ruaX: postes das ruas transversais
+  // faixas do calçadão (x de −14 nos prédios a 1 na avenida): frente das lojas até −11, faixa livre de −11 a
+  // −4,6 (nada sólido) e faixa do mobiliário junto do meio-fio da avenida. y no quarteirão (0 = rua de cima)
+  // areia (x a partir do começo dela, y no quarteirão): coqueiros na beira da ciclovia, duas filas de
+  // guarda-sol desencontradas perto do mar
+  areia: {
+    coqueiroX: 0.5,
+    coqueirosY: [3, 13, 33],
+    filas: [[3.0, [6, 18, 30]], [5.0, [12, 24, 36]]],
+    quadraY: 31,
+    mateY: 9,
+  },
+  calcadao: {
+    faixaX: -2.6, // centro da faixa do mobiliário (barraca, banca, carrinhos, orelhão)
+    bancoX: -2.85, // começo do banco (1,9 m)
+    lixeiraX: -4.2, // lixeira do lado do banco
+    bancos: [9, 29],
+    barracaY: 16,
+    orelhaoY: 32,
+    cantoY: [4.5, 35.5], // banca ou carrinho nas duas esquinas
+    garotas: [[-4.2, 1.8, 1], [-0.2, 3.2, 2], [-4.3, 38.4, 3], [-0.3, 37.2, 4]],
+  },
   posteAlturaM: 6.4, // altura do poste de luz com o gato de fios
   lixoPorQuarteirao: 34, // sujeira no chão (só desenho): manchas, latinhas, papel, sacos, poças
   santinhos: 10, // santinhos de candidato no chão, por rua e por quarteirão

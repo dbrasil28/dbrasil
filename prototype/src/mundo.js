@@ -83,8 +83,7 @@ function placeOrla(w, map) {
     if (kind === 'boteco') {
       const x = map.minX;
       const yb = y0 + 14;
-      const counter = rect(x, yb, x + 1.4, yb + 4.2, { kind: 'balcao' });
-      w.solids.push(counter);
+      const counter = rect(x, yb, x + 1.4, yb + 4.2, { kind: 'balcao' }); // no térreo do prédio: não é sólido
       w.places.push({ kind: 'boteco', side: 'esq', sign: 'BOTECO', x0: x, y0: yb - 1.2, x1: x + 6.5, y1: yb + 5.4, counter });
       for (const [mx, my] of [[x + 3.6, yb + 0.9], [x + 4.4, yb + 3.6]]) {
         addSlot(w, 'mesa', mx, my);

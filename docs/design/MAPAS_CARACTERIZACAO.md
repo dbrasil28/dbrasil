@@ -113,6 +113,8 @@ Pedido do autor (06/11/2026): mapas bem dinâmicos. O Juninho pega a mesa e a ca
 
 ## Cenário vivo: obstáculos no meio do caminho
 
+Organização (07/11/2026, pedido do autor: "cheio, mas sem travar o fluxo"): nada mais é sorteado para aparecer ou não; cada coisa fica na faixa em que ficaria na vida real, e o meio do calçadão fica livre. Os balcões das lojas do térreo deixaram de ser sólidos (eram uma parede invisível na frente dos prédios). Números em `CENARIO.calcadao` e `CENARIO.areia`.
+
 Pedido do autor (06/11/2026): mais obstáculos no meio do mapa, mais botecos, açaí e pastelaria, carros parados, ruas, postes, placas e sujeira; depois, muros pichados, garotas de programa paradas, cartazes de candidatos e bandeira do Brasil; e, na favela, camburão e policiais armados.
 
 Regras do cenário:
@@ -131,11 +133,12 @@ Da esquerda para o mar, como em Copacabana (decisão do autor): **prédios, cal�
 | Faixa | Largura | O que tem |
 | --- | --- | --- |
 | Prédios | fora do caminho | Quatro modelos gerados no Figma já com volume (Art Déco creme, pastilhas azuis, sobrado caindo aos pedaços, modernista com piscina no telhado): telhado visto de cima, a ponta curta virada para a rua e a lateral comprida com as lojas no térreo virada para o calçadão. Encostados um no outro ao longo do quarteirão; as ruas transversais passam entre eles (`PREDIOS` em config.js). A primeira tentativa, com a fachada de frente entortada, parecia papelão e foi descartada |
-| Calçadão, lado das lojas | 7 m | Botecos, açaí, pastelaria, prédio com terraço |
-| Calçadão, meio | 8 m | Barraca do meio, carrinho, tapume, orelhão; bancos e postes na beira da avenida; garotas na esquina |
+| Calçadão, frente das lojas | 3 m | Mesas e cadeiras dos botecos, açaí e pastelaria do térreo dos prédios (dá para pegar e arremessar; nada sólido) |
+| Calçadão, faixa livre | 6,4 m | Nada sólido, só sujeira no chão: o caminho para correr |
+| Calçadão, faixa do mobiliário | 5,6 m | Junto do meio-fio da avenida, sempre no mesmo ritmo: poste em cada esquina e a cada 12 m, banco com lixeira em cada metade do quarteirão, a barraca do quarteirão, banca ou carrinho nas esquinas, orelhão; garotas na esquina |
 | Avenida | 11 m | Quatro faixas, dois sentidos. Carros andando atropelam o Juninho (28 de dano e um empurrão) e matam a horda. Carro vindo por trás na faixa do Juninho dá aviso na borda de baixo da tela. Faixa de pedestre em cada rua |
 | Ciclovia | 1,6 m | Faixa vermelha |
-| Areia | 6 m de andar | Quiosque, salva-vidas, guarda-sóis, coqueiros, futevôlei |
+| Areia | 6 m de andar | Coqueiros em fila na beira da ciclovia, guarda-sóis com toalha e isopor em duas filas desencontradas (com espaço para passar), quiosque, posto de salva-vidas, mate e futevôlei |
 | Mar | — | Depois da areia |
 
 **Profundidade (07/11/2026, opção 2 do autor):** o mapa continua reto, com a câmera olhando para o norte, mas o chão ganhou sombras longas de fim de tarde (o sol baixo vem do alto à esquerda, então os prédios sombreiam o calçadão e cada objeto arrasta a sua sombra para a direita), meio-fio com altura nas ruas e na beira da avenida, escurecido na base dos objetos, névoa quente no alto da tela e um escurecido embaixo. Números em `SOMBRA` (config.js). Depois, a pedido do autor, um giro pequeno: o eixo da profundidade inclina 18° (ajuste "Giro do mapa", de 0 a 25°), então o calçadão, a avenida e a praia sobem para a direita na tela, as ruas transversais continuam retas e tudo o que está em pé continua em pé (projeção oblíqua). Os prédios foram desenhados de novo nesse ângulo (`docs/arte/cenario_orla/predio_obliquo_*_figma.png`): a frente curta fica reta, virada para a rua transversal, e a lateral comprida com as lojas sobe quase em pé, junto da beira do calçadão. A imagem entra inteira, só na escala; o pé do canto da frente com a lateral fica na esquina (`PREDIOS.modelos[].canto`). Foram desenhados para a câmera padrão (inclinação de 55°); com outra inclinação o chão muda e os prédios não. O isométrico de verdade (girar 45°) segue como opção para depois: exige refazer a arte no ângulo diagonal.

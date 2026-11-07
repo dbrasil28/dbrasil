@@ -89,7 +89,7 @@ function loja(w, kind, side, x, yb, seed) {
     heal = [x + 0.2, yb + 2.0];
   }
   if (!livre(w, area)) return false;
-  w.solids.push(counter);
+  if (side !== 'esq') w.solids.push(counter); // a loja 'esq' fica no térreo do prédio: o balcão é só referência
   const nomes = LETREIROS[kind];
   w.places.push({ kind, side, ...area, counter, sign: nomes[Math.floor(seed * nomes.length)] });
   const assento = kind === 'boteco' ? 'cadeira' : 'banquinho';
@@ -166,68 +166,73 @@ function rua(w, map, s) {
   for (let i = 0; i < 4; i++) litter(w, 'oleo', -13 + H(s, i, 513) * 13, ys + 1 + H(s, i, 514) * 6, H(s, i, 515));
 }
 
+/**
+ * Calçadão em faixas, como uma calçada de verdade (pedido do autor: cheio, mas sem travar o caminho):
+ * - frente das lojas (encostada nos prédios): mesas e cadeiras dos botecos, que dá para pegar;
+ * - faixa livre no meio: nada sólido, só sujeira no chão, para correr à vontade;
+ * - faixa do mobiliário junto do meio-fio da avenida: postes, bancos com lixeira, banca ou carrinho nas
+ *   esquinas, a barraca do quarteirão e o orelhão, sempre no mesmo ritmo.
+ */
 function calcadao(w, map, b) {
   const y0 = -map.blockLen * b; // calçadão deste quarteirão: y0 .. y0 + 40
   const seed = (i) => H(b, i, 601);
-  // lojas: a segunda do lado do morro, a barraca do meio, e um boteco a mais onde não havia nada
+  const F = CENARIO.calcadao;
+  const fx = F.faixaX;
+  // lojas do térreo dos prédios: mesas na frente (o balcão fica dentro do prédio)
   if (PLACES.orla[b % PLACES.orla.length] === 'nada') loja(w, 'boteco', 'esq', map.minX, y0 + 13, seed(1));
   loja(w, CENARIO.esquerda2[b % CENARIO.esquerda2.length], 'esq', map.minX, y0 + 28, seed(2));
-  const meio = CENARIO.meio[b % CENARIO.meio.length];
-  if (!loja(w, meio, 'meio', -3.4 + (seed(3) - 0.5), y0 + 15, seed(4))) loja(w, meio, 'meio', -3.4, y0 + 24, seed(4));
-  // carrinho de milho, banca de jornal ou carrinho de picolé, perto de uma das ruas
-  const car = CENARIO.carrinho[b % CENARIO.carrinho.length];
-  for (const [cx, cy] of [[-4.5 + seed(5) * 2.5, y0 + 5], [-4 + seed(6) * 2.5, y0 + 34.5]]) {
-    const dim = car === 'banca' ? [2.4, 1.6, 2.3] : car === 'milho' ? [1.4, 0.8, 1.1] : [1.2, 0.8, 1.0];
-    const p = prop(w, car, cx - dim[0] / 2, cy - dim[1], cx + dim[0] / 2, cy, dim[2], seed(7));
-    if (p) {
-      if (car === 'milho') w.heals.push({ kind: 'milho', x: cx + 0.2, y: cy + 0.9, plat: null });
-      break;
-    }
-  }
-  // bancos de frente para o mar e no lado do morro, com lixeira do lado
-  // na beira da avenida, de frente para o mar, e no meio do calçadão
-  for (const [bx, yy, i] of [[-1.5, 5, 1], [-1.5, 12.5, 2], [-1.5, 31, 3], [-1.5, 37, 4], [-6.2, 8, 5], [-6.2, 22, 6]]) {
-    if (H(b, i, 602) > 0.62) continue;
-    const bn = prop(w, 'banco', bx, y0 + yy, bx + 1.9, y0 + yy + 0.55, 0.9, H(b, i, 603));
-    if (bn && H(b, i, 604) < 0.6) {
-      const lx = bx + (bx > -3 ? -1.35 : 2.75);
-      if (prop(w, 'lixeira', lx, y0 + yy, lx + 0.5, y0 + yy + 0.5, 1.0, H(b, i, 605))) {
-        for (let k = 0; k < 4; k++) litter(w, k ? 'papel' : 'saco', lx + 0.25 + (H(b, i * 9 + k, 606) - 0.5) * 2.2, y0 + yy + 0.6 + H(b, i * 9 + k, 607) * 1.2, H(b, k, 608));
-      }
-    }
-  }
-  // sem muro nem tapume no calçadão (pedido do autor, 07/11/2026): muro no meio da calçada não faz sentido
-  // garotas de programa paradas na esquina, perto do poste (figuras de ambiente: não bloqueiam nem lutam)
-  // na esquina da avenida e na do lado das lojas
-  for (const [gx, gy, i] of [[-1.1, 37.0, 1], [-0.4, 36.6, 2], [-8.4, 1.6, 3], [-1.2, 3.4, 4]]) {
-    if (H(b, i, 630) < 0.5) prop(w, 'garota', gx - 0.25, y0 + gy - 0.2, gx + 0.25, y0 + gy, 1.68, H(b, i, 631), { solid: false });
-  }
-  // orelhão (um a cada dois quarteirões)
-  if (b % 2 === 1) prop(w, 'orelhao', -6.2, y0 + 30.6, -5.6, y0 + 31.1, 2.1, seed(8));
-  // postes na beira das vias (nunca no meio do calçadão): fileira no meio-fio da avenida, com um em cada
-  // esquina, e um no meio-fio de cada rua transversal (as bandeirinhas atravessam a rua entre eles)
+  // postes no meio-fio da avenida (um em cada esquina) e no meio-fio das ruas transversais, na linha do
+  // mobiliário (as bandeirinhas atravessam a rua entre eles)
   const P = CENARIO.postes;
+  const ax = map.avenidaX0 - 0.45;
   const poste = (px, py, i) => prop(w, 'poste', px - 0.18, py - 0.36, px + 0.18, py, CENARIO.posteAlturaM, H(b, i, 609));
-  for (let yy = P.avenidaDe; yy < 40; yy += CENARIO.posteCadaM) poste(map.avenidaX0 - 0.45, y0 + yy, Math.round(yy));
+  for (let yy = P.avenidaDe; yy < 40; yy += CENARIO.posteCadaM) poste(ax, y0 + yy, Math.round(yy));
   poste(P.ruaX, y0 + P.ruaCima, 90);
   poste(P.ruaX, y0 + P.ruaBaixo, 91);
+  // a barraca do quarteirão, na faixa do mobiliário, com as mesas na frente
+  loja(w, CENARIO.meio[b % CENARIO.meio.length], 'meio', fx, y0 + F.barracaY, seed(4));
+  // esquinas: banca de jornal ou carrinho (milho, picolé) junto do meio-fio
+  const car = CENARIO.carrinho[b % CENARIO.carrinho.length];
+  const dim = (k) => (k === 'banca' ? [2.4, 1.6, 2.3] : k === 'milho' ? [1.4, 0.8, 1.1] : [1.2, 0.8, 1.0]);
+  F.cantoY.forEach((cy, i) => {
+    const kind = i === 0 ? car : car === 'banca' ? 'milho' : 'picole';
+    const [dw, dd, dh] = dim(kind);
+    if (prop(w, kind, fx - dw / 2, y0 + cy - dd, fx + dw / 2, y0 + cy, dh, seed(7 + i)) && kind === 'milho') {
+      w.heals.push({ kind: 'milho', x: fx + 0.2, y: y0 + cy + 0.9, plat: null });
+    }
+  });
+  // bancos virados para a avenida, um no meio de cada metade do quarteirão, com a lixeira do lado
+  F.bancos.forEach((yy, i) => {
+    const bx = F.bancoX;
+    prop(w, 'banco', bx, y0 + yy, bx + 1.9, y0 + yy + 0.55, 0.9, H(b, i, 603));
+    const lx = F.lixeiraX;
+    if (prop(w, 'lixeira', lx, y0 + yy, lx + 0.5, y0 + yy + 0.5, 1.0, H(b, i, 605))) {
+      for (let k = 0; k < 4; k++) litter(w, k ? 'papel' : 'saco', lx + 0.25 + (H(b, i * 9 + k, 606) - 0.5) * 1.6, y0 + yy + 0.6 + H(b, i * 9 + k, 607) * 1.0, H(b, k, 608));
+    }
+  });
+  // orelhão na linha do mobiliário, um a cada dois quarteirões
+  if (b % 2 === 1) prop(w, 'orelhao', fx - 0.3, y0 + F.orelhaoY - 0.5, fx + 0.3, y0 + F.orelhaoY, 2.1, seed(8));
+  // garotas de programa paradas nas esquinas, perto dos postes (figuras de ambiente: não bloqueiam nem lutam)
+  for (const [gx, gy, i] of F.garotas) {
+    if (H(b, i, 630) < 0.5) prop(w, 'garota', gx - 0.25, y0 + gy - 0.2, gx + 0.25, y0 + gy, 1.68, H(b, i, 631), { solid: false });
+  }
   // placa com o nome da rua presa no poste da esquina (cada rua tem um nome só, nas duas esquinas)
   const nomeRua = (r) => PLACAS.rua[r % PLACAS.rua.length];
-  const ax = map.avenidaX0 - 0.45;
   prop(w, 'placa', ax - 0.5, y0 + 38.0 - 0.3, ax - 0.2, y0 + 38.0, 2.6, 0, { solid: false, extra: { text: nomeRua(b), tipo: 'rua' } });
   prop(w, 'placa', ax - 0.5, y0 + 2.0 - 0.3, ax - 0.2, y0 + 2.0, 2.6, 0, { solid: false, extra: { text: nomeRua(b + 1), tipo: 'rua' } });
   const aviso = PLACAS.aviso[Math.floor(H(b, 2, 611) * PLACAS.aviso.length)];
   prop(w, 'placa', ax - 0.5, y0 + 26.0 - 0.3, ax - 0.2, y0 + 26.0, 2.4, 0, { solid: false, extra: { text: aviso, tipo: 'aviso' } });
-  // santinhos de candidato espalhados perto das ruas (depois da eleição ninguém varre)
+  // santinhos de candidato perto das ruas (depois da eleição ninguém varre)
   for (let i = 0; i < CENARIO.santinhos; i++) {
     const top = i % 2 === 0;
     litter(w, 'santinho', map.minX + 1 + H(b, i, 640) * (map.avenidaX0 - map.minX - 1.5), y0 + (top ? H(b, i, 641) * 5 : 35 + H(b, i, 641) * 5), H(b, i, 642));
   }
-  // sujeira espalhada (só desenho)
+  // sujeira: acumula na sarjeta da avenida e na frente das lojas; um pouco espalhada no meio
   const n = CENARIO.lixoPorQuarteirao;
   const kinds = ['mancha', 'mancha', 'latinha', 'papel', 'bituca', 'saco', 'poca', 'papelao', 'garrafa', 'mancha', 'papel', 'chiclete'];
   for (let i = 0; i < n; i++) {
-    const x = map.minX + 0.5 + H(b, i, 620) * (map.avenidaX0 - map.minX - 1);
+    const r = H(b, i, 624);
+    const x = r < 0.4 ? map.avenidaX0 - 1.2 + H(b, i, 620) * 1.0 : r < 0.7 ? map.minX + 0.3 + H(b, i, 620) * 2.5 : map.minX + 0.5 + H(b, i, 620) * (map.avenidaX0 - map.minX - 1);
     const y = y0 + H(b, i, 621) * 40;
     litter(w, kinds[Math.floor(H(b, i, 622) * kinds.length)], x, y, H(b, i, 623));
   }
@@ -254,10 +259,15 @@ function predios(w, map, b) {
   }
 }
 
-/** Areia: coqueiros, guarda-sóis com toalha e isopor, carrinho de mate e, às vezes, a rede de futevôlei. */
+/**
+ * Areia em fileiras: coqueiros na beira da ciclovia, guarda-sóis com toalha e isopor em duas filas perto do
+ * mar (com espaço entre eles para passar), carrinho de mate a cada dois quarteirões e a quadra de futevôlei
+ * a cada três. O quiosque e o posto de salva-vidas vêm de mundo.js.
+ */
 function praia(w, map, b) {
   const y0 = -map.blockLen * b;
   const sd = (i) => H(b, i, 1101);
+  const A = CENARIO.areia;
   const x0 = map.sandX + 0.3;
   const x1 = map.maxX - 0.3;
   // flat: estendido no chão (desenho sem colisão, conta como chão para a ordem de desenho)
@@ -266,20 +276,27 @@ function praia(w, map, b) {
     p.y = p.y0 - 0.3;
     return p;
   };
-  for (const [cx, yy, i] of [[x1 - 0.6, 4, 1], [x1 - 0.4, 33, 2], [x0 + 1.4, 14, 3]]) {
-    if (sd(i) < 0.75) prop(w, 'coqueiro', cx - 0.25, y0 + yy - 0.5, cx + 0.25, y0 + yy, 7.5, sd(10 + i));
-  }
-  for (const [cx, yy, i] of [[x0 + 2.0, 8, 1], [x0 + 3.6, 27.5, 2], [x0 + 1.4, 36, 3], [x0 + 4.2, 18, 4]]) {
-    if (sd(20 + i) > 0.8) continue;
-    const gs = prop(w, 'guarda_sol', cx - 0.1, y0 + yy - 0.2, cx + 0.1, y0 + yy, 2.6, sd(30 + i));
-    if (!gs) continue;
-    if (cx + 1.6 < x1) chao('toalha', cx + 0.35, y0 + yy - 1.2, cx + 1.35, y0 + yy + 0.6, sd(40 + i));
-    if (sd(50 + i) < 0.7) prop(w, 'isopor', cx - 1.7, y0 + yy - 0.1, cx - 0.95, y0 + yy + 0.4, 0.5, sd(60 + i));
-  }
-  if (b % 2 === 0) prop(w, 'mate', x1 - 2.0, y0 + 11.4, x1 - 0.6, y0 + 12.2, 1.2, sd(70));
-  // quadra de futevôlei (a cada 3 quarteirões): linhas no chão, rede com os postes sólidos
-  if (b % 3 === 1) {
-    const ry = y0 + 31;
+  const quadra = b % 3 === 1; // quarteirão com a quadra de futevôlei
+  // coqueiros em fila na beira da ciclovia
+  A.coqueirosY.forEach((yy, i) => {
+    const cx = map.sandX + A.coqueiroX;
+    prop(w, 'coqueiro', cx - 0.25, y0 + yy - 0.5, cx + 0.25, y0 + yy, 7.5, sd(10 + i));
+  });
+  // guarda-sóis em duas filas, desencontradas, com a toalha do lado e às vezes o isopor
+  A.filas.forEach(([fx, ys], f) => {
+    ys.forEach((yy, i) => {
+      if (quadra && Math.abs(yy - A.quadraY) < 4.5) return; // a quadra ocupa esse pedaço da areia
+      const cx = map.sandX + fx;
+      const gs = prop(w, 'guarda_sol', cx - 0.1, y0 + yy - 0.2, cx + 0.1, y0 + yy, 2.6, sd(30 + f * 9 + i));
+      if (!gs) return;
+      chao('toalha', cx + 0.35, y0 + yy - 1.2, cx + 1.35, y0 + yy + 0.6, sd(40 + f * 9 + i));
+      if ((i + f) % 2 === 0) prop(w, 'isopor', cx - 1.7, y0 + yy - 0.1, cx - 0.95, y0 + yy + 0.4, 0.5, sd(60 + f * 9 + i));
+    });
+  });
+  if (b % 2 === 0) prop(w, 'mate', x1 - 2.0, y0 + A.mateY, x1 - 0.6, y0 + A.mateY + 0.8, 1.2, sd(70));
+  // quadra de futevôlei: linhas no chão, rede com os postes sólidos nas pontas
+  if (quadra) {
+    const ry = y0 + A.quadraY;
     for (const px of [x0, x1 - 0.3]) prop(w, 'poste_rede', px, ry - 0.25, px + 0.3, ry, 2.2, 0, { extra: { invisivel: true } });
     const r = prop(w, 'rede', x0, ry - 0.2, x1, ry, 2.2, sd(80), { solid: false });
     if (r) litter(w, 'quadra', (x0 + x1) / 2, ry, (x1 - x0) / 2);
