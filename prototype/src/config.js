@@ -84,6 +84,14 @@ export const ENEMIES = {
     bullet: { speed: 16, life: 1.0, radius: 0.18, dmg: 9 },
     fogosM: 12, fogosPack: 6,
   },
+  // Subida do Morro: chega perto, para de braços abertos (fúria, o aviso) e parte reto para cima do Juninho.
+  // A direção trava quando ele abre os braços: dá para sair da frente.
+  funkeiro: {
+    name: 'Funkeiro Raivoso',
+    hp: 55, speed: 1.8, dmg: 12, radius: 0.34, size: 1.1, xp: 6,
+    behavior: 'investida',
+    investida: { rangeM: 6, windupS: 0.7, dashS: 0.5, dashMul: 3.4, every: 3.2 },
+  },
   especulador: {
     name: 'Especulador Imobiliário',
     hp: 3000, speed: 1.45, dmg: 26, radius: 0.85, size: 1.9 / 0.75, xp: 0,
@@ -348,6 +356,7 @@ export const DIRECTOR = {
   morroComposition: [
     { type: 'telespectador', w: 1 },
     { type: 'traficante', w: 0.22 },
+    { type: 'funkeiro', w: 0.18 },
   ],
   maxBurocratas: 22,
   eliteEvery: (caos) => (caos >= 60 ? 40 : 60),

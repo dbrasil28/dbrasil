@@ -313,6 +313,16 @@ export class Renderer {
             if (!spr) spr = this.cache.get(art.attack, h * art.attackH, attackOpts(pt2.x < pt.x));
             animated = !!spr;
           }
+          if (!spr && art && art.fury && walk && o.windup > 0) {
+            // Funkeiro preparando a investida: braços abertos, virado para onde vai correr
+            const poses = walkReady(art.poses);
+            if (poses) {
+              cam.toScreen(o.x + o.dashX, o.y + o.dashY, pt2);
+              const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+              spr = this.cache.get(`${poses.prefix}_${row}_${poses.col.furia}`, h * (poses.ch / poses.figureH), POSE_OPTS);
+              animated = !!spr;
+            }
+          }
           if (!spr && art && art.throwAnim && walk && (o.windup > 0 || o.throwT > 0)) {
             // Político arremessando a maleta, virado para o Juninho: preparação em 3 quadros, depois a soltura
             const A = walkReady(art.throwAnim);

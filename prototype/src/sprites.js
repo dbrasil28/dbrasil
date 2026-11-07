@@ -20,6 +20,8 @@ export const IMAGES = {
   burocrata_poses_atlas: 'assets/personagens/burocrata/poses_atlas.webp', // ataque e fúria em 16 direções
   burocrata_papel: 'assets/personagens/burocrata/papel.png', // folha solta da pose de ataque: o projétil
   fiscal_walk_atlas: 'assets/personagens/fiscal/caminhada_atlas.webp', // Fiscal do Impossível
+  funkeiro_walk_atlas: 'assets/personagens/funkeiro/caminhada_atlas.webp', // Funkeiro Raivoso (Morro)
+  funkeiro_poses_atlas: 'assets/personagens/funkeiro/poses_atlas.webp', // fúria de braços abertos em 16 direções
   politico_walk_atlas: 'assets/personagens/politico/caminhada_atlas.webp', // Político Corrupto (e o Rival, tingido)
   politico_attack_atlas: 'assets/personagens/politico/ataque_atlas.webp', // arremesso da maleta (quadros 0–3)
   politico_maleta: 'assets/personagens/politico/maleta_voo.png', // maleta fechada em voo
@@ -40,6 +42,7 @@ export const IMAGES = {
   golpista: 'assets/personagens/golpista.png',
   burocrata: 'assets/personagens/burocrata.png',
   fiscal: 'assets/personagens/fiscal.png',
+  funkeiro: 'assets/personagens/funkeiro.webp',
   politico: 'assets/personagens/politico.png',
   especulador: 'assets/personagens/especulador.png',
   // poste de luz cheio de gato (Figma); o antigo com o cartaz "vote em mim de novo" saiu
@@ -97,9 +100,6 @@ export const IMAGES = {
   cen_banco_a: 'assets/cenario/orla/banco_a.webp',
   cen_lixeira_a: 'assets/cenario/orla/lixeira_a.webp',
   cen_orelhao_laranja: 'assets/cenario/orla/orelhao_laranja.webp',
-  cen_muro_a: 'assets/cenario/orla/muro_a.webp',
-  cen_muro_b: 'assets/cenario/orla/muro_b.webp',
-  cen_tapume_a: 'assets/cenario/orla/tapume_a.webp',
   cen_coqueiro_a: 'assets/cenario/orla/coqueiro_a.webp',
   cen_guarda_sol_a: 'assets/cenario/orla/guarda_sol_a.webp',
   cen_guarda_sol_b: 'assets/cenario/orla/guarda_sol_b.webp',
@@ -158,6 +158,7 @@ export const WALK_ATLAS = {
   bm: { atlas: 'burocrata_walk_atlas', prefix: 'bm', figureH: 158 },
   fi: { atlas: 'fiscal_walk_atlas', prefix: 'fi', figureH: 158 },
   pc: { atlas: 'politico_walk_atlas', prefix: 'pc', figureH: 158 },
+  fk: { atlas: 'funkeiro_walk_atlas', prefix: 'fk', figureH: 158 },
   pa: { atlas: 'politico_attack_atlas', prefix: 'pa', figureH: 158 }, // mesma escala da caminhada
 };
 
@@ -167,6 +168,7 @@ export const WALK_ATLAS = {
  */
 export const POSE_ATLAS = {
   bp: { atlas: 'burocrata_poses_atlas', prefix: 'bp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
+  fkp: { atlas: 'funkeiro_poses_atlas', prefix: 'fkp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { furia: 0 } },
 };
 export const POSE_OPTS = { shadowScale: 0.4 };
 
@@ -202,6 +204,8 @@ export const ENEMY_ART = {
   // poses: fúria enquanto mira e ataque ao soltar, nas 16 direções; attack/attackH: pose única de reserva
   burocrata: { img: 'burocrata', front: 'burocrata_frente', papers: true, walk: WALK_ATLAS.bm, poses: POSE_ATLAS.bp, attack: 'burocrata_ataque', attackH: 0.92 },
   fiscal: { img: 'fiscal', vest: true, walk: WALK_ATLAS.fi }, // vest pinta o colete só no recorte antigo
+  // fury: pose de fúria (braços abertos) virada para o Juninho enquanto prepara a investida
+  funkeiro: { img: 'funkeiro', walk: WALK_ATLAS.fk, poses: POSE_ATLAS.fkp, fury: true },
   // throwAnim: quadros 0–2 na preparação, 3 ao soltar a maleta
   politico: { img: 'politico', walk: WALK_ATLAS.pc, throwAnim: WALK_ATLAS.pa },
   // Rival: o Político tingido de laranja até chegar a arte dele; aparece pouco, então não é preparado antes

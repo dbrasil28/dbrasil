@@ -55,7 +55,7 @@ Cada mapa tem os seus personagens, tirados da lista de estereótipos do autor (`
 | Trecho | Horda | Inimigos | Elite e chefe | Aliados e eventos |
 | --- | --- | --- | --- | --- |
 | Orla do Desespero | Banhistas: Mulher de Biquíni Minúsculo, Tiozão de Sunga, Rato de Academia, telespectadores A, B e C | Golpista do Pix, Fiscal do Impossível | Político Corrupto, Bicheiro; chefe: Especulador | Vendedor de Picolé; desfile com a Rainha de Escola de Samba |
-| Subida do Morro | Moradores | Traficante do PCC do Morro (armado), Cracudo, Trombadinha, Mototáxi | Chefe do Tráfico (armado) | Funkeiro e o baile na laje; o gatonet que cai |
+| Subida do Morro | Moradores | Traficante do PCC do Morro (armado), Funkeiro Raivoso (investida de braços abertos, no protótipo), Cracudo, Trombadinha, Mototáxi | Chefe do Tráfico (armado) | Funkeiro e o baile na laje; o gatonet que cai |
 | Rodovias | Gente do engarrafamento | 2 Caras numa Moto, Playboy (carro importado) | Fiscal do pedágio | Vendedor de água e de milho |
 | Centro do Desespero | Gente do centro: telemarketing, peão de obra | Faria Limer, Coach Picareta, Influencer da Bet, Agiota, Burocrata-Monstro | O Rapa | Jogador de Futebol, na várzea |
 | Acordópolis | Servidores e turistas | Laranja, Assessor Aspone, Candidato a Político, Encostado do INSS | O Barbudo e O Capitão | Márcia, a Servidora |

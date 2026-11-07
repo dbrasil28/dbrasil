@@ -1082,6 +1082,27 @@ export class Game {
             e.ay = p.y;
           }
         }
+      } else if (e.behavior === 'investida') {
+        // Funkeiro: abre os braços (fúria) com a direção travada e parte reto; depois volta a andar
+        const I = ENEMIES.funkeiro.investida;
+        if (e.dashT > 0) {
+          e.dashT -= dt;
+          mx = e.dashX * I.dashMul;
+          my = e.dashY * I.dashMul;
+        } else if (e.windup > 0) {
+          e.windup -= dt;
+          mx = 0;
+          my = 0;
+          if (e.windup <= 0) e.dashT = I.dashS;
+        } else if (d < I.rangeM && !this.over) {
+          e.fireT -= dt;
+          if (e.fireT <= 0) {
+            e.fireT = I.every;
+            e.windup = I.windupS;
+            e.dashX = dpx / d;
+            e.dashY = dpy / d;
+          }
+        }
       } else if (e.behavior === 'intercept') {
         // mira no ponto onde o jogador estará daqui a ~1 s
         const lead = Math.min(1.2, d / 4);
