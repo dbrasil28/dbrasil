@@ -229,22 +229,17 @@ export class Renderer {
           const im = images[`trafego_${o.modelo}_${o.sentido > 0 ? 'sul' : 'norte'}`];
           const sx = SOMBRA.dx * 1.5 * ppu;
           const sy = SOMBRA.dy * 1.5 * ppu * cam.k;
-          // com o giro do mapa a faixa sobe inclinada (atan(sh) da vertical): o carro gira junto, inteiro
-          ctx.save();
-          ctx.translate(pt.x, pt.y);
-          ctx.rotate(Math.atan(cam.sh));
           ctx.fillStyle = `rgba(20,10,30,${SOMBRA.alpha})`;
           ctx.beginPath();
-          ctx.ellipse(sx * 0.5, -o.len * ppu * cam.k * 0.5 + sy * 0.5, o.wid * ppu * 0.55 + sx * 0.4, o.len * ppu * cam.k * 0.55, 0, 0, Math.PI * 2);
+          ctx.ellipse(pt.x + sx * 0.5, pt.y - o.len * ppu * cam.k * 0.5 + sy * 0.5, o.wid * ppu * 0.55 + sx * 0.4, o.len * ppu * cam.k * 0.55, 0, 0, Math.PI * 2);
           ctx.fill();
           if (im) {
             const s = (ppu / 128) * CENARIO.carros.escala;
-            ctx.drawImage(im, -(im.width * s) / 2, -im.height * s, im.width * s, im.height * s);
+            ctx.drawImage(im, pt.x - (im.width * s) / 2, pt.y - im.height * s, im.width * s, im.height * s);
           } else {
             ctx.fillStyle = '#7f8896';
-            ctx.fillRect(-(o.wid * ppu) / 2, -o.len * ppu * cam.k - 1.4 * ppu, o.wid * ppu, o.len * ppu * cam.k + 1.4 * ppu);
+            ctx.fillRect(pt.x - (o.wid * ppu) / 2, pt.y - o.len * ppu * cam.k - 1.4 * ppu, o.wid * ppu, o.len * ppu * cam.k + 1.4 * ppu);
           }
-          ctx.restore();
           break;
         }
         case 'cen': {

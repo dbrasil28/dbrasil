@@ -42,6 +42,7 @@ Rode `npm test` antes de qualquer commit.
 - `game.js` não acessa o DOM, para continuar testável no Node.
 - **Anúncios:** nunca durante a partida; assistir anúncio nunca aumenta a Corrupção; vídeos com recompensa são sempre opcionais.
 - O bot de balanceamento compara versões. Ele não substitui playtest com pessoas.
+- **Arte no ângulo do jogo:** quando o autor pedir para desenhar de novo, gerar arte nova no Figma já no ângulo certo. Nunca girar, espremer, estreitar ou entortar uma imagem no código para fingir o ângulo. Medir o ângulo da arte nova contra o chão do jogo antes de publicar.
 
 ## Skills e agentes de game dev instalados
 
