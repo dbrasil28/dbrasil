@@ -706,7 +706,7 @@ export const EVOLUTIONS = [
 export const PASSIVES = {
   tenis: { name: 'Tênis Gasto', desc: '+8% de velocidade', max: 5 },
   marmita: { name: 'Marmita da Mãe', desc: '+20 de vida máxima e cura 20', max: 5 },
-  mochila: { name: 'Mochila Térmica', desc: '+10% de área', max: 5 },
+  mochila: { name: 'Mochila Térmica', desc: '+10% no tamanho e no alcance de todas as habilidades', max: 5 },
   cafe: { name: 'Café Requentado', desc: '−7% de recarga', max: 5 },
   ima: { name: 'Ímã de Geladeira', desc: '+25% de raio de coleta', max: 5 },
   raiva: { name: 'Raiva Acumulada', desc: '+10% de dano', max: 5 },

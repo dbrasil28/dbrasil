@@ -8,7 +8,7 @@ Pedido do autor (07/11/2026): as habilidades eram diferentes no papel, mas na te
 - A cada nível do Juninho saem **3 cartas** sorteadas entre: subir uma habilidade que ele tem (peso 1,2), habilidade nova (peso 1,4; exclusiva do trecho 2,4), passiva nova ou subir passiva (peso 1).
 - **4 vagas de habilidade** e **4 de passiva**; passiva vai até o nível 5.
 - **Exclusivas:** o Picolé só é oferecido na Orla e o Mototáxi só no Morro. Quem pega leva para os próximos trechos.
-- **Passivas valem para todas:** Raiva (+10% de dano), Café (−7% de recarga, multiplicando), Mochila (+10% de área: raio da órbita, poça, carimbo, explosão, megafone, latido), Tênis (+8% de velocidade), Marmita (+20 de vida), Ímã (+25% de coleta).
+- **Passivas valem para todas:** Raiva (+10% de dano), Café (−7% de recarga, multiplicando), Mochila Térmica (+10% no tamanho e no alcance de todas as habilidades: golpe do capacete e do chinelo, roda dos boletos, carimbo, explosão e isca da maleta, poça, faixa do mototáxi, aura do megafone, alcance e pulo do Gato de Luz, latido), Tênis (+8% de velocidade), Marmita (+20 de vida), Ímã (+25% de coleta).
 - **Evolução:** só uma no MVP. Capacete no nível 5 com o Tênis Gasto em qualquer nível vira **Entrega Expressa** (3 capacetes dourados que ricocheteiam 5 vezes). A carta de evolução aparece sempre primeiro e ocupa a vaga do Capacete.
 - Com tudo no máximo: cartas de consolo (Pastel, cura 40; Hora Extra, +5% de dano permanente).
 

@@ -208,10 +208,10 @@ export function fireWeapon(game, w, ps) {
       break;
     }
     case 'gato': {
-      // Gato de Luz: o choque acerta o mais perto e pula para os vizinhos
+      // Gato de Luz: o choque acerta o mais perto e pula para os vizinhos (a Mochila Térmica aumenta o alcance e o pulo)
       const seen = new Set();
       for (let c = 0; c < st.count; c++) {
-        let cur = nearestEnemies(game, p.x, p.y, st.range, 1, seen)[0];
+        let cur = nearestEnemies(game, p.x, p.y, st.range * area, 1, seen)[0];
         if (!cur) break;
         const pts = [{ x: p.x, y: p.y }];
         for (let k = 0; k < st.chain && cur; k++) {
@@ -223,7 +223,7 @@ export function fireWeapon(game, w, ps) {
           game.efeito('luz', cur.x, cur.y, { dur: 0.3, tam: 4.5, cor: '170,210,255' });
           cur.slowT = Math.max(cur.slowT, st.stunS);
           cur.slowF = Math.min(cur.slowF || 1, 0.2);
-          const nx = nearestEnemies(game, cur.x, cur.y, st.jumpM, 1, seen)[0];
+          const nx = nearestEnemies(game, cur.x, cur.y, st.jumpM * area, 1, seen)[0];
           cur = nx || null;
         }
         game.fx.bolts.push({ pts, t: 0, dur: WEAPON_FX.raioDur, seed: game.fxRng() * 1000 });
