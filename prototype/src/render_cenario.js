@@ -84,8 +84,10 @@ export function drawCenario(ctx, p, cam, ppu, dpr, t, alpha = 1, playerPx = 0) {
         ctx.translate(2 * pt.x + (p.x1 - p.x0) * ppu, 0);
         ctx.scale(-1, 1);
       }
-      // veículo que explodiu: a mesma arte, queimada (escurecida); a fumaça sai como efeito (reacoes.js)
-      ctx.drawImage(p.queimado ? queimado(im) : im, pt.x - A.padX * ART_S * k, pt.y - A.top * ART_S * k, im.width * k, im.height * k);
+      // veículo que explodiu: a carcaça desenhada (<arquivo>_queimado), ou a mesma arte escurecida enquanto ela
+      // não existe; a fumaça sai como efeito (reacoes.js)
+      const imq = p.queimado ? images[`${artKey(p.kind, f)}_queimado`] || queimado(im) : im;
+      ctx.drawImage(imq, pt.x - A.padX * ART_S * k, pt.y - A.top * ART_S * k, im.width * k, im.height * k);
       ctx.restore();
       return;
     }

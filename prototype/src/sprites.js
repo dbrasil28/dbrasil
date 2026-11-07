@@ -132,6 +132,9 @@ export const IMAGES = {
   cen_carro_brasilia: 'assets/cenario/orla/carro_brasilia.webp',
   cen_carro_uno: 'assets/cenario/orla/carro_uno.webp', // o Uno com escada no teto
   cen_carro_taxi: 'assets/cenario/orla/carro_taxi.webp',
+  // carcaças depois da explosão (Weave do Figma, a partir da arte de cima): mesmo tamanho e enquadramento
+  cen_carro_fusca_queimado: 'assets/cenario/orla/carro_fusca_queimado.webp',
+  cen_carro_brasilia_queimado: 'assets/cenario/orla/carro_brasilia_queimado.webp',
   cen_onibus_a: 'assets/cenario/orla/onibus_a.webp',
   cen_banca_a: 'assets/cenario/orla/banca_a.webp',
   cen_milho_a: 'assets/cenario/orla/milho_a.webp',
