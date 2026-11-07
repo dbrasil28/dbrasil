@@ -3,7 +3,7 @@
 //
 // No chão, a peça é deitada com a mesma conta do chão do jogo (vista de cima e projetada no plano), e por
 // isso pode girar e pulsar. Em pé, a peça fica de frente para a câmera, como os personagens.
-import { FX, quadro, quadroNoTempo } from './efeitos_arte.js';
+import { FX, quadro, quadroNoTempo, quadroMisto } from './efeitos_arte.js';
 
 // caminhos literais: o build acha as imagens pelo texto
 const FX_SRC = {
@@ -186,10 +186,23 @@ export function drawFxChao(ctx, game, cam, ppu) {
       for (let i = 0; i < n; i++) drawChao(ctx, cam, ppu, im, src, q.x, q.y - a.comp / 2 + L * (i + 0.5), L, Math.PI / 2, fimSuave(a) * 0.8, a.larg);
       continue;
     }
-    quadro(F, im, quadroNoTempo(F, a.t, a.dur), src);
     const larg = (a.tam || F.cobreM || 2) / (F.borda || 1);
     const alpha = (F.laco || a.nome === 'aura_pulso' || a.nome === 'latido_onda' ? fimSuave(a) : Math.min(1, a.t / 0.08) * fimSuave(a)) * (F.alpha ?? 1);
-    drawChao(ctx, cam, ppu, F.suave ? fxSuave(a.nome) : im, src, q.x, q.y, larg, a.rot || 0, alpha);
+    const img = F.suave ? fxSuave(a.nome) : im;
+    const n = F.n || F.cols * F.rows;
+    if (n > 1 && !F.laco) {
+      // animação no chão: um quadro se mistura no seguinte
+      const [f0, f1, w] = quadroMisto(F, a.t, a.dur, 0, mix);
+      quadro(F, im, f0, src);
+      drawChao(ctx, cam, ppu, img, src, q.x, q.y, larg, a.rot || 0, alpha * (1 - w * w));
+      if (w > 0.02 && f1 !== f0) {
+        quadro(F, im, f1, src);
+        drawChao(ctx, cam, ppu, img, src, q.x, q.y, larg, a.rot || 0, alpha * w);
+      }
+    } else {
+      quadro(F, im, quadroNoTempo(F, a.t, a.dur), src);
+      drawChao(ctx, cam, ppu, img, src, q.x, q.y, larg, a.rot || 0, alpha);
+    }
     if (a.nome === 'carimbo_marca') textoNoChao(ctx, cam, ppu, 'INDEFERIDO', q.x, q.y, larg * 0.17, a.rot || 0, alpha);
   }
 }
@@ -232,9 +245,23 @@ export function drawFxEmPe(ctx, a, game, cam, ppu, playerPx) {
   let y = pt.y - (q.z || 0) * ppu - (q.alt || 0) * ppu;
   const wPx = a.tam ? a.tam * ppu : F.tamP ? F.tamP * playerPx : (F.cobreM || 1.5) * ppu;
   y -= a.z != null ? a.z * ppu : F.zP != null ? F.zP * playerPx : (F.zM || 0) * ppu;
-  quadro(F, im, quadroNoTempo(F, a.t, a.dur), src);
-  drawEmPe(ctx, im, src, pt.x, y, wPx, F.laco ? 1 : fimSuave(a));
+  if (a.sobe) y -= a.sobe * a.t * ppu; // a fumaça sobe devagar
+  if (F.laco) {
+    quadro(F, im, quadroNoTempo(F, a.t, a.dur), src);
+    drawEmPe(ctx, im, src, pt.x, y, wPx, 1);
+    return;
+  }
+  // um quadro se mistura no seguinte (sem pular), entrando aos poucos e saindo no fim
+  const alpha = fimSuave(a) * (a.entra ? Math.min(1, a.t / a.entra) : 1);
+  const [f0, f1, w] = quadroMisto(F, a.t, a.dur, a.de || 0, mix);
+  quadro(F, im, f0, src);
+  drawEmPe(ctx, im, src, pt.x, y, wPx, alpha * (1 - w * w));
+  if (w > 0.02 && f1 !== f0) {
+    quadro(F, im, f1, src);
+    drawEmPe(ctx, im, src, pt.x, y, wPx, alpha * w);
+  }
 }
+const mix = [0, 0, 0];
 
 /** Por cima do inimigo: o gelo do picolé e os arcos do choque. h: altura do inimigo na tela. */
 export function drawSobreInimigo(ctx, e, pt0, h, t) {

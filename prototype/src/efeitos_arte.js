@@ -28,9 +28,9 @@ export const FX = {
   carimbo_marca: { cols: 1, rows: 1, chao: true },
   carimbo_baque: { cols: 3, rows: 2, dur: 0.55, cobreM: 4.2, zM: 0.55 },
   // Maleta de Dinheiro
-  explosao: { cols: 3, rows: 2, dur: 0.7 },
-  explosao_fumaca: { cols: 3, rows: 2, dur: 1.9 },
-  chamuscado: { cols: 1, rows: 1, chao: true, dur: 7 },
+  explosao: { cols: 3, rows: 2, dur: 0.95 },
+  explosao_fumaca: { cols: 3, rows: 2, dur: 1.6 }, // entra pelos quadros só de fumaça (de: 3), por cima do fim da explosão
+  chamuscado: { cols: 1, rows: 1, chao: true, dur: 4 },
   notas: { cols: 4, rows: 4 },
   // Isopor de Picolé: 4 poças (2 × 2)
   pocas: { cols: 2, rows: 2, chao: true },
@@ -83,6 +83,19 @@ export function quadro(F, im, f, out) {
   out.sy = Math.floor(k / F.cols) * ch;
   out.sw = cw;
   out.sh = ch;
+  return out;
+}
+
+/**
+ * Animação suave: a posição entre dois quadros no tempo t, para misturar um no outro em vez de pular.
+ * de: primeiro quadro usado (a fumaça da maleta começa nos quadros que só têm fumaça). Devolve [f0, f1, w].
+ */
+export function quadroMisto(F, t, dur = F.dur, de = 0, out = [0, 0, 0]) {
+  const n = F.n || F.cols * F.rows;
+  const p = de + Math.max(0, Math.min(1, t / (dur || 1))) * (n - 1 - de);
+  out[0] = Math.floor(p);
+  out[1] = Math.min(n - 1, out[0] + 1);
+  out[2] = p - out[0];
   return out;
 }
 

@@ -469,7 +469,8 @@ export function updateZones(game, dt) {
         game.fx.rings.push({ x: z.x, y: z.y, r0: 0.3, r1: z.radius * 1.15, t: 0, dur: 0.35, color: 'blast' });
         // fogo de verdade: a explosão, a fumaça com notas queimando e a marca preta no chão
         game.efeito('explosao', z.x, z.y, { tam: z.radius * 2.6, z: z.radius * 0.38 });
-        game.efeito('explosao_fumaca', z.x, z.y, { tam: z.radius * 2.4, z: z.radius * 0.7, delay: 0.3 });
+        // a fumaça continua a da explosão: mesmo ponto, só os quadros de fumaça, entrando aos poucos e subindo devagar
+        game.efeito('explosao_fumaca', z.x, z.y, { tam: z.radius * 2.5, z: z.radius * 0.42, delay: 0.55, de: 3, entra: 0.4, sobe: 0.45 });
         game.efeito('chamuscado', z.x, z.y, { tam: z.radius * 2.3, rot: giroFixo(z.x, z.y) });
         game.efeito('luz', z.x, z.y, { dur: 0.5, tam: z.radius * 3, cor: '255,150,60' });
         game.moneyBurst(z.x, z.y, 22);

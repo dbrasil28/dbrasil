@@ -1051,6 +1051,7 @@ export class Renderer {
     }
     ctx.globalAlpha = 1;
     for (const r of game.fx.rings) {
+      if (r.color === 'blast' && fxImg('explosao')) continue; // com a arte, a explosão não tem anel
       cam.toScreen(r.x, r.y, pt);
       const k = r.t / r.dur;
       const rad = (r.r0 + (r.r1 - r.r0) * k) * ppu;
