@@ -607,12 +607,20 @@ function drawPredio(ctx, pr, p, ppu, sh = 0) {
   const im = images[`predio_${pr.img}`];
   if (!M || !im) return;
   const sc = pr.mpp * ppu * (im.height / M.h); // px de tela por px da imagem
-  const c = P.compressaoX;
-  const r = ((M.longe[0] - M.perto[0]) / (M.perto[1] - M.longe[1])) * c; // inclinação da base da fachada
-  // com o giro do mapa, a beira do calçadão já sobe para a direita (sh): a fachada só é endireitada no
-  // que passar disso; sem giro, endireita em parte e divide o resto meio a meio com a beira
-  const corte = sh ? r - sh : P.endireitar * r;
-  const resto = sh ? 0 : (r - corte) * (M.perto[1] - M.longe[1]) * sc;
+  const rImg = (M.longe[0] - M.perto[0]) / (M.perto[1] - M.longe[1]); // recuo da lateral na imagem
+  let c;
+  let corte;
+  let resto = 0;
+  if (sh) {
+    // com o giro do mapa, a imagem é só estreitada até a lateral recuar no mesmo ângulo da beira do
+    // calçadão: as paredes continuam retas (sem entortar) e a base da fachada assenta na beira
+    c = Math.max(P.estreitoMin, Math.min(1, sh / rImg));
+    corte = rImg * c - sh; // só sobra algo quando o prédio não pode ficar mais estreito
+  } else {
+    c = P.compressaoX;
+    corte = P.endireitar * rImg * c;
+    resto = (rImg * c - corte) * (M.perto[1] - M.longe[1]) * sc;
+  }
   const tx = p.x + (P.x1 - pr.x0) * ppu - resto / 2;
   const ox = tx - c * sc * M.perto[0];
   const oy = p.y - M.perto[1] * sc;

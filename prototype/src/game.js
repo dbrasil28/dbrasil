@@ -174,7 +174,7 @@ export class Game {
     const s = this.settings;
     const { viewW, viewH, playTop, playBottom } = this.view;
     // mapa da rota: ruas retas, com um giro pequeno do eixo da profundidade (ajuste 'giro')
-    this.camera.setAngles(s.elevation, this.map.bounded ? 0 : Number(s.yaw), this.map.bounded ? Number(s.giro ?? 10) : 0);
+    this.camera.setAngles(s.elevation, this.map.bounded ? 0 : Number(s.yaw), this.map.bounded ? Number(s.giroMapa ?? 18) : 0);
     this.camera.setView(viewW, viewH, playTop, playBottom, s.playerPct, PLAYER.heightM);
     this.camera.x = this.player.x;
     this.camera.y = this.player.y;
@@ -1439,8 +1439,11 @@ export class Game {
       // atropelou a horda
       this.hash.query(c.x, c.y, hy + 1, tmp);
       for (const e of tmp) {
-        if (e.dead || e.plat) continue;
-        if (Math.abs(e.x - c.x) < hx + e.r && Math.abs(e.y - c.y) < hy + e.r) this.damageEnemy(e, A.danoHorda, 'carro', (e.x < c.x ? -1 : 1) * 6, c.sentido * 4);
+        if (e.dead || e.plat || e.carroT > this.t) continue;
+        if (Math.abs(e.x - c.x) < hx + e.r && Math.abs(e.y - c.y) < hy + e.r) {
+          e.carroT = this.t + A.hordaInvulnS; // um atropelamento por vez (o chefe quase não é empurrado)
+          this.damageEnemy(e, A.danoHorda, 'carro', (e.x < c.x ? -1 : 1) * 6, c.sentido * 4);
+        }
       }
     }
   }

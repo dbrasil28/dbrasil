@@ -140,8 +140,9 @@ export const MAPS = {
 export const PREDIOS = {
   x1: -14.6, // beira do calçadão
   frenteM: 6,
-  compressaoX: 0.65,
-  endireitar: 0.5,
+  compressaoX: 0.65, // sem giro do mapa
+  endireitar: 0.5, // sem giro do mapa
+  estreitoMin: 0.45, // com giro: o quanto a imagem pode ser estreitada para a lateral seguir a beira
   k: Math.sin((55 * Math.PI) / 180), // achatamento do chão na câmera padrão
   modelos: {
     a: { w: 437, h: 1100, perto: [201, 1099], longe: [436, 712], esq: 0, alturaM: 20 },
@@ -179,6 +180,7 @@ export const AVENIDA = {
   empurraoM: 2.2, // joga o Juninho para o lado
   invulnS: 0.8,
   danoHorda: 400, // atropelou zumbi: morre
+  hordaInvulnS: 1.2, // o mesmo inimigo só leva outro atropelamento depois disso (antes o chefe morria embaixo do carro)
   avisoM: 16, // carro vindo por trás, nessa distância, na faixa do Juninho: aviso
   modelos: ['fusca', 'brasilia', 'uno'],
 };

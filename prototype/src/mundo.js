@@ -373,6 +373,8 @@ const CORNER_SLIDE = 0.035;
  * Empurra para fora dos sólidos do chão (balcões, carros, barracas, postes). Só vale para quem está no
  * chão. slide > 0 (inimigos): ao bater de frente, escorrega para a ponta mais perto e contorna.
  */
+const cabe = (w, x, y, hint) => pathIndex(w, x, y, hint ?? -1) >= 0;
+
 export function collideSolids(w, e, slide = 0) {
   if (e.lvl === 1 || e.plat) return;
   const r = e.r || 0.3;
@@ -382,8 +384,16 @@ export function collideSolids(w, e, slide = 0) {
     const side = pushOut(k, e, r);
     if (!side) continue;
     if (slide) {
-      if (side === 2) e.x += e.x < (k.x0 + k.x1) / 2 ? -slide : slide;
-      else e.y += e.y < (k.y0 + k.y1) / 2 ? -slide : slide;
+      // contorna pelo lado mais perto, a não ser que ali não caiba (sólido encostado na borda da rota)
+      if (side === 2) {
+        let dir = e.x < (k.x0 + k.x1) / 2 ? -1 : 1;
+        if (!cabe(w, dir < 0 ? k.x0 - 2 * r : k.x1 + 2 * r, e.y, e.ri)) dir = -dir;
+        e.x += dir * slide;
+      } else {
+        let dir = e.y < (k.y0 + k.y1) / 2 ? -1 : 1;
+        if (!cabe(w, e.x, dir < 0 ? k.y0 - 2 * r : k.y1 + 2 * r, e.ri)) dir = -dir;
+        e.y += dir * slide;
+      }
     } else if (side === 2) {
       // quina: encostou perto da ponta, escorrega para fora (não enrosca no canto do carro)
       if (e.x < k.x0 + CORNER_M) e.x -= CORNER_SLIDE;
