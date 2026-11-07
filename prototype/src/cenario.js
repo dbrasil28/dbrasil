@@ -211,9 +211,10 @@ function calcadao(w, map, b) {
       prop(w, 'poste', px - 0.18, y0 + yy - 0.36, px + 0.18, y0 + yy, CENARIO.posteAlturaM, H(b, Math.round(yy), 609 + row));
     }
   }
-  const nome = PLACAS.rua[Math.floor(H(b, 0, 611) * PLACAS.rua.length)];
-  prop(w, 'placa', -6.9, y0 + 38.4, -6.6, y0 + 38.7, 2.6, 0, { extra: { text: nome, tipo: 'rua' } });
-  prop(w, 'placa', 6.4, y0 + 1.0, 6.7, y0 + 1.3, 2.6, 0, { extra: { text: PLACAS.rua[Math.floor(H(b, 1, 611) * PLACAS.rua.length)], tipo: 'rua' } });
+  // cada rua tem um nome só, nas duas esquinas: a de baixo do quarteirão b é a rua b, a de cima é a b + 1
+  const nomeRua = (r) => PLACAS.rua[r % PLACAS.rua.length];
+  prop(w, 'placa', -6.9, y0 + 38.4, -6.6, y0 + 38.7, 2.6, 0, { extra: { text: nomeRua(b), tipo: 'rua' } });
+  prop(w, 'placa', 6.4, y0 + 1.0, 6.7, y0 + 1.3, 2.6, 0, { extra: { text: nomeRua(b + 1), tipo: 'rua' } });
   const aviso = PLACAS.aviso[Math.floor(H(b, 2, 611) * PLACAS.aviso.length)];
   prop(w, 'placa', 3.6 + H(b, 3, 611) * 3, y0 + 26.5, 3.9 + H(b, 3, 611) * 3, y0 + 26.8, 2.4, 0, { extra: { text: aviso, tipo: 'aviso' } });
   // santinhos de candidato espalhados perto das ruas (depois da eleição ninguém varre)

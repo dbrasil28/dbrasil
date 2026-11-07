@@ -103,7 +103,7 @@ canvas { display: block; max-width: none; touch-action: pan-x pan-y; }
   </header>
   <div class="legend" id="legend"></div>
   <section class="grid2">
-    <div class="card"><h2>Um quarteirão da Orla</h2><p class="sub">Quarteirão 2, do calçadão à areia. As faixas mostram como o cenário está organizado hoje.</p><div class="scroll"><canvas id="zoomOrla" aria-label="Planta de um quarteirão da Orla"></canvas></div><span class="scale" id="escalaOrla"></span></div>
+    <div class="card"><h2>Um quarteirão da Orla</h2><p class="sub">Quarteirão 2 entre as duas ruas de carro que o cercam, do calçadão à areia. As faixas mostram como o cenário está organizado hoje.</p><div class="scroll"><canvas id="zoomOrla" aria-label="Planta de um quarteirão da Orla"></canvas></div><span class="scale" id="escalaOrla"></span></div>
     <div class="card"><h2>Um trecho do morro</h2><p class="sub">A primeira viela, a primeira laje e a viela de cima, com a passagem entre elas.</p><div class="scroll"><canvas id="zoomMorro" aria-label="Planta de um trecho do morro"></canvas></div><span class="scale" id="escalaMorro"></span></div>
   </section>
   <section class="strip">
@@ -120,7 +120,7 @@ canvas { display: block; max-width: none; touch-action: pan-x pan-y; }
         <li><b>Meio do calçadão</b>: barraca do meio, carrinho, tapume, orelhão, garotas na esquina.</li>
         <li><b>Lado do mar</b>: bancos, lixeiras, postes, placas.</li>
         <li><b>Ciclovia e areia</b>: quiosque, salva-vidas, guarda-sóis, coqueiros, futevôlei.</li>
-        <li><b>Ruas</b> entre os quarteirões: carros e ônibus nas duas faixas, buraco com cones, bandeirinhas.</li>
+        <li><b>Ruas de carro</b>: dez ruas atravessam o calçadão, uma entre cada quarteirão (8 m de largura, do lado das casas até a areia), com carros e ônibus parados nas duas mãos, buraco com cones e bandeirinhas. Não há avenida ao longo da praia.</li>
       </ul>
     </div>
   </section>
@@ -185,6 +185,7 @@ function draw(v, opts = {}) {
   const Y = (y) => (y - v.y0) * ppm;
   const R = (b) => [X(b[0]), Y(b[1]), (b[2] - b[0]) * ppm, (b[3] - b[1]) * ppm];
   v.hits = [];
+  const ruasDesenhadas = [];
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   // fundo: casas do morro, depois o mar à direita
   g.fillStyle = '#4a3c34'; g.fillRect(0, 0, v.c.width, v.c.height);
@@ -207,13 +208,19 @@ function draw(v, opts = {}) {
 
       });
     }
-    // ruas
+    // ruas de carro: asfalto atravessando o calçadão entre os quarteirões, meio-fio branco, faixa
+    // amarela no meio e faixa de pedestre perto das lojas
     for (const ys of D.ruas) {
       const a = Math.max(ys, D.orlaTop), b = Math.min(ys + D.mapa.streetLen, D.startY);
       if (b <= a || b < v.y0 || a > v.y1) continue;
-      g.fillStyle = '#3d3d42'; g.fillRect(X(D.mapa.minX - 2.5), Y(a), (D.mapa.sandX - D.mapa.minX + 2.5) * ppm, (b - a) * ppm);
-      g.strokeStyle = 'rgba(230,190,40,0.7)'; g.setLineDash([ppm * 1.6, ppm * 1.2]); g.lineWidth = Math.max(1, ppm * 0.1);
-      g.beginPath(); g.moveTo(X(D.mapa.minX - 2.5), Y(ys + 4)); g.lineTo(X(D.mapa.sandX), Y(ys + 4)); g.stroke(); g.setLineDash([]);
+      const rx0 = X(D.mapa.minX - 2.5), rw = (D.mapa.sandX - D.mapa.minX + 2.5) * ppm;
+      g.fillStyle = '#26262b'; g.fillRect(rx0, Y(a), rw, (b - a) * ppm);
+      g.fillStyle = '#f1ece2'; g.fillRect(rx0, Y(a), rw, Math.max(2, ppm * 0.25)); g.fillRect(rx0, Y(b) - Math.max(2, ppm * 0.25), rw, Math.max(2, ppm * 0.25));
+      g.strokeStyle = '#ffd21f'; g.setLineDash([ppm * 1.6, ppm * 1.2]); g.lineWidth = Math.max(1.5, ppm * 0.15);
+      g.beginPath(); g.moveTo(rx0, Y(ys + 4)); g.lineTo(rx0 + rw, Y(ys + 4)); g.stroke(); g.setLineDash([]);
+      g.fillStyle = 'rgba(241,236,226,0.85)';
+      for (let x = D.mapa.minX + 2; x < D.mapa.minX + 8; x += 0.9) g.fillRect(X(x), Y(Math.max(a, ys + 1)), 0.5 * ppm, (Math.min(b, ys + 7) - Math.max(a, ys + 1)) * ppm);
+      ruasDesenhadas.push(ys);
     }
   }
   // morro: pedaços da rota
@@ -266,6 +273,13 @@ function draw(v, opts = {}) {
   const top = D.path[D.path.length - 1];
   if (top.b[1] > v.y0 - 5 && top.b[1] < v.y1) lbl((top.b[0] + top.b[2]) / 2, top.b[1] + 4, 'ENTREGA', '#ffd21f');
   if (D.orlaTop > v.y0 && D.orlaTop < v.y1) lbl((D.gate[0] + D.gate[2]) / 2, D.orlaTop + 2.5, 'ESCADARIA', '#ffd21f');
+  // nome de cada rua, no meio do asfalto
+  for (const ys of ruasDesenhadas) {
+    const perto = D.props.filter((p) => p.kind === 'placa' && /^(R\.|AV\.|TRAV\.)/.test(p.t) && Math.abs(p.b[1] - (ys + 4)) < 7);
+    const placa = perto.sort((p, q) => Math.abs(p.b[1] - ys - 4) - Math.abs(q.b[1] - ys - 4))[0];
+    const nome = 'RUA DE CARRO' + (placa ? ' · ' + placa.t : '');
+    lbl(-1, Math.min(ys + 5.2, D.startY - 0.5), nome, '#ffd21f');
+  }
   if (opts.faixas) {
     // nome de cada faixa logo abaixo da rua de cima do quarteirão
     const yl = Math.ceil(v.y0 / D.mapa.blockLen) * D.mapa.blockLen + 2.2;
@@ -276,7 +290,7 @@ function draw(v, opts = {}) {
     D.path.forEach((k) => { if (k.i < 2) return; lbl(k.b[0] - 3.5, (k.b[1] + k.b[3]) / 2, k === top ? 'TOPO' : k.kind.toUpperCase(), '#f1ece2'); });
   }
 }
-const vo = setup('zoomOrla', D.mapa.minX - 3, D.mapa.seaX + 1, -2 * D.mapa.blockLen - 8, -2 * D.mapa.blockLen + 40.5, 11, 'escalaOrla');
+const vo = setup('zoomOrla', D.mapa.minX - 3, D.mapa.seaX + 1, -2 * D.mapa.blockLen - 8.5, -2 * D.mapa.blockLen + 48.5, 11, 'escalaOrla');
 const p2 = D.path[2], p3 = D.path[3], p4 = D.path[4];
 const vm = setup('zoomMorro', Math.min(p2.b[0], p3.b[0], p4.b[0]) - 3, Math.max(p2.b[2], p3.b[2], p4.b[2]) + 3, p4.b[3] - 14, p2.b[1] + 12, 11, 'escalaMorro');
 const xs = D.path.flatMap((k) => [k.b[0], k.b[2]]);
