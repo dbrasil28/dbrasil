@@ -1,6 +1,6 @@
 // Desenho provisório (em código) do mundo da rota: lajes com escada, objetos de cena, boteco,
 // tapume da escadaria, setas da rota, mira do traficante e balas. Sai quando a arte do guia chegar.
-import { ROUTE } from './config.js';
+import { ROUTE, OBJ_ALTURA } from './config.js';
 import { inside, deliveryPoint } from './mundo.js';
 import { images } from './sprites.js';
 import { ART, ART_S, artKey } from './arte_cenario.js';
@@ -119,6 +119,18 @@ export function drawStair(ctx, P, cam, ppu) {
 
 /** Objeto de cena: s = tamanho de referência em px (altura do Juninho). */
 export function drawObject(ctx, kind, x, y, s, rot = 0) {
+  // arte gerada: base do objeto no chão em (x, y); s = 0,42 da altura do Juninho na tela
+  const im = images[`obj_${kind}`];
+  if (im && OBJ_ALTURA[kind]) {
+    const h = ((s / 0.42) * OBJ_ALTURA[kind]) / 1.75;
+    const w = (im.width / im.height) * h;
+    ctx.save();
+    ctx.translate(x, y - h / 2);
+    if (rot) ctx.rotate(rot);
+    ctx.drawImage(im, -w / 2, -h / 2, w, h);
+    ctx.restore();
+    return;
+  }
   ctx.save();
   ctx.translate(x, y);
   if (rot) ctx.rotate(rot);

@@ -176,6 +176,9 @@ export const THROWABLES = {
 };
 // Curas dos lugares: coco do quiosque, marmita do terraço, açaí, pastel e milho das barracas.
 // Voltam depois de um tempo, fora da tela. O açaí também deixa o Juninho mais rápido por uns segundos.
+// Altura de cada objeto arremessável quando está no chão (m, na escala dos personagens, que são
+// desenhados com 1,75 m): a imagem gerada é desenhada com essa altura.
+export const OBJ_ALTURA = { cadeira: 0.85, mesa: 0.8, engradado: 0.45, botijao: 0.65, cadeira_praia: 0.85, banquinho: 0.5, pneu: 0.4 };
 export const HEALS = { coco: 20, marmita: 35, acai: 15, pastel: 30, milho: 12 };
 export const HEAL_RESPAWN_S = 45;
 export const ACAI_BUFF = { speedMul: 1.25, s: 6 };

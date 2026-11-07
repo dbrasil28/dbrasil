@@ -44,6 +44,13 @@ export const IMAGES = {
   especulador: 'assets/personagens/especulador.png',
   poste: 'assets/cenario/poste_cartaz_meio.png',
   cone: 'assets/cenario/cone.png',
+  // objetos que o Juninho pega e arremessa (Figma, recortados); altura no chão em OBJ_ALTURA (config.js)
+  obj_cadeira: 'assets/objetos/cadeira.webp',
+  obj_mesa: 'assets/objetos/mesa.webp',
+  obj_engradado: 'assets/objetos/engradado.webp',
+  obj_botijao: 'assets/objetos/botijao.webp', // o botijão de gás que explode
+  obj_cadeira_praia: 'assets/objetos/cadeira_praia.webp',
+  obj_banquinho: 'assets/objetos/banquinho.webp',
   // cenário com arte gerada (Figma, IA de imagem) e recortada; medidas em arte_cenario.js
   cen_carro_fusca: 'assets/cenario/orla/carro_fusca.webp',
   cen_carro_brasilia: 'assets/cenario/orla/carro_brasilia.webp',
