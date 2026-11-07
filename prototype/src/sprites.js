@@ -424,6 +424,10 @@ export const attackOpts = (flip) => ATTACK_OPTS[flip ? 1 : 0];
 
 /** Máximo de sprites prontos guardados; acima disso saem os mais antigos (ordem de inserção). */
 const CACHE_MAX = 1600;
+// Figuras prontas da horda: no máximo esta densidade (a 2 ou 3 o cache passava de 120 MB no celular) e no
+// máximo MONTAR_POR_QUADRO figuras novas por quadro; quem fica sem a figura nova usa a do quadro anterior.
+export const FIGURAS_DPR_MAX = 1.6;
+const MONTAR_POR_QUADRO = 4;
 
 function canvas(w, h) {
   const c = document.createElement('canvas');
@@ -444,10 +448,16 @@ export class SpriteCache {
 
   clear(dpr) {
     this.map.clear();
-    if (dpr) this.dpr = dpr;
+    if (dpr) this.dpr = Math.min(dpr, FIGURAS_DPR_MAX);
   }
 
-  get(imgId, heightCss, opts = {}) {
+  /** Começo de cada quadro: zera a conta das figuras montadas. */
+  novoQuadro() {
+    this.montadas = 0;
+  }
+
+  /** adiavel: se já montou o bastante neste quadro, devolve null (quem chama usa a figura anterior). */
+  get(imgId, heightCss, opts = {}, adiavel = false) {
     const im = images[imgId];
     if (!im) return null;
     const flip = opts.flip ? 1 : 0;
@@ -455,6 +465,8 @@ export class SpriteCache {
     const key = `${imgId}|${Math.round(heightCss)}|${flip}|${flash}|${opts.mode || ''}|${opts.tint ? opts.tint.join() : ''}|${opts.shadowScale || ''}|${opts.noShadow ? 1 : 0}`;
     let c = this.map.get(key);
     if (c) return c;
+    if (adiavel && this.montadas >= MONTAR_POR_QUADRO) return null;
+    this.montadas = (this.montadas || 0) + 1;
     c = this.build(im, heightCss, opts);
     if (this.map.size >= CACHE_MAX) {
       let n = CACHE_MAX >> 3;

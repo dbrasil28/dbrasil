@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA } from './config.js';
-import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS } from './sprites.js';
+import { images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
 import { drawCasasFundo, drawCasaFavela } from './render_favela.js';
@@ -73,7 +73,7 @@ export class Renderer {
     this.sprites.clear();
     // os sprites prontos dependem só da densidade de pixels (o tamanho entra na chave do cache);
     // limpar a cada partida nova jogava fora o preparo feito no menu e travava o começo da partida
-    if (dpr !== this.cache.dpr) this.cache.clear(dpr);
+    if (Math.min(dpr, FIGURAS_DPR_MAX) !== this.cache.dpr) this.cache.clear(dpr);
     this.orla.clear();
     this.vignette = null;
   }
@@ -112,6 +112,7 @@ export class Renderer {
 
   draw(game, settings, perf) {
     const { ctx, dpr } = this;
+    this.cache.novoQuadro();
     const cam = game.camera;
     const ppu = cam.ppu;
     const playerPx = settings.playerPct / 100 * (cam.playBottom - cam.playTop);
@@ -456,7 +457,9 @@ export class Renderer {
             cam.toScreen(o.x + (o.mx ?? game.player.x - o.x), o.y + (o.my ?? game.player.y - o.y), pt2);
             const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
             const frame = Math.floor((o.walk / (Math.PI * 2)) * 6) % 6;
-            spr = this.cache.get(`${walk.prefix}_${row}_${frame}`, h * (ATLAS.ch / walk.figureH), anim ? CROWD_WALK_OPTS : enemyWalkOpts(art));
+            // a figura nova pode ficar para o próximo quadro (limite de montagem): enquanto isso, a anterior
+            spr = this.cache.get(`${walk.prefix}_${row}_${frame}`, h * (ATLAS.ch / walk.figureH), anim ? CROWD_WALK_OPTS : enemyWalkOpts(art), true) || o.ultimaFig || null;
+            if (spr) o.ultimaFig = spr;
             animated = !!spr;
           }
           if (!spr && o.type === 'telespectador') {

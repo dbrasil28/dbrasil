@@ -124,20 +124,83 @@ const pt = { x: 0, y: 0 };
 
 /** Peça deitada no chão: centro (x, y), largura em metros, giro no plano do chão. */
 export function drawChao(ctx, cam, ppu, im, s, x, y, largM, rot = 0, alpha = 1, altM = null) {
+  // a peça projetada no chão é guardada pronta (no tamanho da tela e num dos ROT_PASSOS giros): desenhar uma
+  // imagem grande torta a cada quadro é o que pesava (Picolé, Boleto, Megafone), e colar uma pronta é rápido
+  const t0 = ctx.getTransform();
+  const esc = Math.hypot(t0.a, t0.b) || 1; // densidade da tela (o dpr)
+  const h = altM ?? (largM * s.sh) / s.sw;
+  const pronto = projetado(cam, ppu, esc, im, s, largM, h, rot);
   cam.toScreen(x, y, pt);
+  if (alpha < 1) {
+    const a0 = ctx.globalAlpha;
+    ctx.globalAlpha = a0 * Math.max(0, alpha);
+    ctx.drawImage(pronto, pt.x + pronto.ox, pt.y + pronto.oy, pronto.cw, pronto.ch);
+    ctx.globalAlpha = a0;
+  } else ctx.drawImage(pronto, pt.x + pronto.ox, pt.y + pronto.oy, pronto.cw, pronto.ch);
+}
+
+const ROT_PASSOS = 48;
+const projCache = new Map();
+let projChave = '';
+
+/** A peça já deitada no chão (projeção do jogo), num canvas; centro da peça em (−ox, −oy) do canvas, em px da tela. */
+function projetado(cam, ppu, esc, im, s, largM, altM, rot) {
+  const chaveCam = `${ppu.toFixed(3)}|${cam.k.toFixed(4)}|${cam.sh.toFixed(4)}|${cam.c.toFixed(3)}|${esc}`;
+  if (chaveCam !== projChave) {
+    projCache.clear();
+    projChave = chaveCam;
+  }
+  const r = Math.round((((rot % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / ((Math.PI * 2) / ROT_PASSOS)) % ROT_PASSOS;
+  let ids = imgIds.get(im);
+  if (ids == null) imgIds.set(im, (ids = ++imgSeq));
+  const key = `${ids}|${s.sx | 0}|${s.sy | 0}|${s.sw | 0}|${Math.round(largM * 20)}|${Math.round(altM * 20)}|${r}`;
+  let c = projCache.get(key);
+  if (c) return c;
+  if (projCache.size > 260) projCache.clear();
+  const ang = (r * Math.PI * 2) / ROT_PASSOS;
   const k = cam.k;
   const sh = cam.sh;
-  const c = cam.c;
+  const cc = cam.c;
   const sn = cam.s;
-  ctx.save();
-  if (alpha < 1) ctx.globalAlpha *= Math.max(0, alpha);
-  ctx.translate(pt.x, pt.y);
-  ctx.transform(ppu * (c - sh * k * sn), ppu * k * sn, ppu * (-sn - sh * k * c), ppu * k * c, 0, 0);
-  if (rot) ctx.rotate(rot);
-  const h = altM ?? (largM * s.sh) / s.sw;
-  ctx.drawImage(im, s.sx, s.sy, s.sw, s.sh, -largM / 2, -h / 2, largM, h);
-  ctx.restore();
+  // a projeção (metros do chão -> px da tela), com o giro no plano do chão
+  const A = ppu * (cc - sh * k * sn);
+  const B = ppu * k * sn;
+  const C = ppu * (-sn - sh * k * cc);
+  const D = ppu * k * cc;
+  const co = Math.cos(ang);
+  const si = Math.sin(ang);
+  const ma = A * co + C * si;
+  const mb = B * co + D * si;
+  const mc = -A * si + C * co;
+  const md = -B * si + D * co;
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  for (const [u, v] of [[-largM / 2, -altM / 2], [largM / 2, -altM / 2], [largM / 2, altM / 2], [-largM / 2, altM / 2]]) {
+    const X = ma * u + mc * v;
+    const Y = mb * u + md * v;
+    x0 = Math.min(x0, X);
+    y0 = Math.min(y0, Y);
+    x1 = Math.max(x1, X);
+    y1 = Math.max(y1, Y);
+  }
+  c = typeof document !== 'undefined' ? document.createElement('canvas') : null;
+  if (!c) return im;
+  c.width = Math.max(1, Math.ceil((x1 - x0) * esc));
+  c.height = Math.max(1, Math.ceil((y1 - y0) * esc));
+  const g = c.getContext('2d');
+  g.setTransform(ma * esc, mb * esc, mc * esc, md * esc, -x0 * esc, -y0 * esc);
+  g.drawImage(im, s.sx, s.sy, s.sw, s.sh, -largM / 2, -altM / 2, largM, altM);
+  c.ox = x0;
+  c.oy = y0;
+  c.cw = x1 - x0;
+  c.ch = y1 - y0;
+  projCache.set(key, c);
+  return c;
 }
+const imgIds = new WeakMap();
+let imgSeq = 0;
 
 /** Peça em pé, de frente: centro na tela e largura em px. */
 function drawEmPe(ctx, im, s, cx, cy, wPx, alpha = 1) {
@@ -160,17 +223,12 @@ export function drawFxChao(ctx, game, cam, ppu) {
       cam.toScreen(q.x, q.y, pt);
       const R = (a.tam / 2) * ppu;
       const f = Math.pow(1 - a.t / a.dur, 1.6);
+      const luz = luzPronta(a.cor);
+      if (!luz) continue;
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
-      ctx.translate(pt.x, pt.y);
-      ctx.scale(1, cam.k);
-      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
-      g.addColorStop(0, `rgba(${a.cor},${0.5 * f})`);
-      g.addColorStop(1, `rgba(${a.cor},0)`);
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(0, 0, R, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.globalAlpha = 0.5 * f;
+      ctx.drawImage(luz, pt.x - R, pt.y - R * cam.k, R * 2, R * 2 * cam.k);
       ctx.restore();
       continue;
     }
@@ -189,21 +247,22 @@ export function drawFxChao(ctx, game, cam, ppu) {
     const larg = (a.tam || F.cobreM || 2) / (F.borda || 1);
     const alpha = (F.laco || a.nome === 'aura_pulso' || a.nome === 'latido_onda' ? fimSuave(a) : Math.min(1, a.t / 0.08) * fimSuave(a)) * (F.alpha ?? 1);
     const img = F.suave ? fxSuave(a.nome) : im;
+    const giro = a.rot ? Math.round(a.rot / (Math.PI / 8)) * (Math.PI / 8) : 0; // 16 giros: menos imagens prontas a guardar
     const n = F.n || F.cols * F.rows;
     if (n > 1 && !F.laco) {
       // animação no chão: um quadro se mistura no seguinte
       const [f0, f1, w] = quadroMisto(F, a.t, a.dur, 0, mix);
       quadro(F, im, f0, src);
-      drawChao(ctx, cam, ppu, img, src, q.x, q.y, larg, a.rot || 0, alpha * (1 - w * w));
+      drawChao(ctx, cam, ppu, img, src, q.x, q.y, larg, giro, alpha * (1 - w * w));
       if (w > 0.02 && f1 !== f0) {
         quadro(F, im, f1, src);
-        drawChao(ctx, cam, ppu, img, src, q.x, q.y, larg, a.rot || 0, alpha * w);
+        drawChao(ctx, cam, ppu, img, src, q.x, q.y, larg, giro, alpha * w);
       }
     } else {
       quadro(F, im, quadroNoTempo(F, a.t, a.dur), src);
-      drawChao(ctx, cam, ppu, img, src, q.x, q.y, larg, a.rot || 0, alpha);
+      drawChao(ctx, cam, ppu, img, src, q.x, q.y, larg, giro, alpha);
     }
-    if (a.nome === 'carimbo_marca') textoNoChao(ctx, cam, ppu, 'INDEFERIDO', q.x, q.y, larg * 0.17, a.rot || 0, alpha);
+    if (a.nome === 'carimbo_marca') textoNoChao(ctx, cam, ppu, 'INDEFERIDO', q.x, q.y, larg * 0.17, giro, alpha);
   }
 }
 
@@ -223,6 +282,23 @@ function textoNoChao(ctx, cam, ppu, txt, x, y, altM, rot, alpha) {
   ctx.fillStyle = 'rgba(232,222,240,0.95)';
   ctx.fillText(txt, 0, 0);
   ctx.restore();
+}
+
+const luzes = {};
+/** A poça de luz pronta (degradê redondo da cor), para não criar um degradê a cada quadro. */
+function luzPronta(cor) {
+  if (luzes[cor]) return luzes[cor];
+  if (typeof document === 'undefined') return null;
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, `rgba(${cor},1)`);
+  gr.addColorStop(1, `rgba(${cor},0)`);
+  g.fillStyle = gr;
+  g.fillRect(0, 0, 128, 128);
+  luzes[cor] = c;
+  return c;
 }
 
 /** Efeitos em pé entram na ordem por profundidade, como os projéteis. */
@@ -319,7 +395,8 @@ export function drawBoletoVento(ctx, cam, ppu, z) {
   if (!im) return false;
   const a = z.t < 0.2 ? z.t / 0.2 : z.t > z.dur - 0.3 ? Math.max(0, (z.dur - z.t) / 0.3) : 1;
   quadro(FX.boleto_vento, im, 0, src);
-  drawChao(ctx, cam, ppu, im, src, z.x, z.y, (z.r + 0.6) * 2, z.ang, a * 0.85);
+  // o redemoinho gira com os boletos, em 24 posições prontas
+  drawChao(ctx, cam, ppu, im, src, z.x, z.y, (z.r + 0.6) * 2, Math.round(z.ang / (Math.PI / 12)) * (Math.PI / 12), a * 0.85);
   return true;
 }
 
@@ -329,7 +406,8 @@ export function drawPoca(ctx, cam, ppu, z) {
   if (!im) return false;
   const a = Math.min(1, z.t / 0.15, (z.dur - z.t) / 0.6);
   quadro(FX.pocas, im, Math.floor(z.rot * 7) % 4, src);
-  drawChao(ctx, cam, ppu, im, src, z.x, z.y, z.r * 2 * 1.3, z.rot, a);
+  // 8 giros só (as poças são muitas: cada giro novo é uma imagem a mais para guardar pronta)
+  drawChao(ctx, cam, ppu, im, src, z.x, z.y, z.r * 2 * 1.3, Math.round(z.rot / (Math.PI / 4)) * (Math.PI / 4), a);
   return true;
 }
 
@@ -339,7 +417,7 @@ export function drawAura(ctx, cam, ppu, p, t) {
   if (!im) return false;
   const F = FX.aura_base;
   quadro(F, im, 0, src);
-  drawChao(ctx, cam, ppu, fxSuave('aura_base'), src, p.x, p.y, (p.auraR * 2) / F.borda, t * 0.2, F.alpha);
+  drawChao(ctx, cam, ppu, fxSuave('aura_base'), src, p.x, p.y, (p.auraR * 2) / F.borda, 0, F.alpha);
   return true;
 }
 
@@ -370,6 +448,23 @@ export function drawFaixaMoto(ctx, cam, ppu, pr, blink) {
   const n = Math.max(1, Math.round(pr.lenM / passo));
   for (let i = 0; i < n; i++) drawChao(ctx, cam, ppu, im, src, pr.x, pr.y0 - passo * (i + 0.5), larg, 0, blink, passo);
   return true;
+}
+
+let brilhoRaioC = null;
+function brilhoRaio() {
+  if (brilhoRaioC || typeof document === 'undefined') return brilhoRaioC;
+  const c = document.createElement('canvas');
+  c.width = 4;
+  c.height = 64;
+  const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, 64);
+  gr.addColorStop(0, 'rgba(120,180,255,0)');
+  gr.addColorStop(0.5, 'rgba(150,200,255,0.6)');
+  gr.addColorStop(1, 'rgba(120,180,255,0)');
+  g.fillStyle = gr;
+  g.fillRect(0, 0, 4, 64);
+  brilhoRaioC = c;
+  return c;
 }
 
 const raioA = { x: 0, y: 0 };
@@ -403,12 +498,7 @@ export function drawRaio(ctx, b, cam, ppu, playerPx) {
     ctx.rotate(Math.atan2(dy, dx));
     // o brilho azul em volta do arco (luz do curto, somada), para o raio ler bem no celular
     const gw = playerPx * 0.34 * (b.grosso || 1);
-    const g = ctx.createLinearGradient(0, -gw, 0, gw);
-    g.addColorStop(0, 'rgba(120,180,255,0)');
-    g.addColorStop(0.5, 'rgba(150,200,255,0.6)');
-    g.addColorStop(1, 'rgba(120,180,255,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, -gw, len, gw * 2);
+    ctx.drawImage(brilhoRaio(), 0, -gw, len, gw * 2); // faixa de brilho pronta (sem degradê novo por quadro)
     // o arco da arte, duas vezes (núcleo mais forte), sem esticar: o pedaço mais comprido vira dois
     for (let pass = 0; pass < 2; pass++) {
       for (let j = 0; j < n; j++) {
