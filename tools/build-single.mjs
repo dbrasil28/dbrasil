@@ -35,7 +35,7 @@ async function visit(rel) {
 }
 
 async function inlineAssets(code) {
-  const re = /'(assets\/[^']+\.(png|jpg|jpeg|webp))'/g;
+  const re = /'(assets\/[^']+\.(png|jpg|jpeg|webp|mp3))'/g;
   const found = [...code.matchAll(re)];
   for (const [whole, rel, ext] of found) {
     if (separado) {
@@ -43,7 +43,7 @@ async function inlineAssets(code) {
       continue;
     }
     const buf = await readFile(path.join(proto, rel));
-    const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+    const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : ext === 'mp3' ? 'audio/mpeg' : 'image/jpeg';
     code = code.replace(whole, `'data:${mime};base64,${buf.toString('base64')}'`);
   }
   return code;

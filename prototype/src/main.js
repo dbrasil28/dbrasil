@@ -12,6 +12,7 @@ import { loadImages, images, prewarm } from './sprites.js';
 import { loadProgress, applyRun, buyUpgrade } from './progresso.js';
 import { loadRanking, registrarPartida } from './ranking.js';
 import { desafioDaSemana } from './horda.js';
+import { Musica } from './musica.js';
 
 const $ = (id) => document.getElementById(id);
 const STEP = 1 / 60;
@@ -26,6 +27,7 @@ ads.provider.start();
 ui.rewardedOk = () => ads.rewardedAvailable();
 let game = new Game(settings);
 let state = 'title'; // title | playing | paused | result
+const musica = new Musica(); // a música de cada trecho (musica.js)
 let settingsFrom = 'title';
 let modalOpen = false;
 let acc = 0;
@@ -125,6 +127,8 @@ function newGame() {
 }
 
 function start() {
+  musica.liberar(); // veio de um toque: o navegador deixa tocar
+  musica.setVolume(Number(settings.musica ?? 60));
   newGame();
   game.fastForward(Number(settings.startAt));
   state = 'playing';
@@ -225,6 +229,10 @@ function frame(now) {
     }
   }
 
+  // música: a do trecho em que o Juninho está; mais baixa fora da partida (pausa, menus, resultado)
+  if (state !== 'title') musica.tocar(game.segment === 'morro' ? 'morro' : 'orla');
+  musica.abafar(state !== 'playing' || !!game.modal);
+  musica.update(dtReal);
   renderer.draw(game, settings, { dt: dtReal, mapa: mapaAberto });
   updateMapaButton();
   ui.updateHud(game, now);
@@ -258,13 +266,16 @@ function updateBanner() {
 async function leaveResult(next) {
   if (ads.canShowInterstitial()) {
     ui.setBanner(false);
+    musica.calar(true); // sem música durante o anúncio
     await ads.showInterstitial('fim_de_turno');
+    musica.calar(false);
   }
   next();
 }
 
 function applySetting(id, value) {
   settings[id] = value;
+  if (id === 'musica') musica.setVolume(Number(value));
   saveSettings(settings);
   ads.configure(settings);
   updateBanner();
@@ -366,7 +377,9 @@ ui.on('revive', async (accept) => {
   let watched = false;
   if (accept) {
     ui.closeModal();
+    musica.calar(true);
     watched = await ads.showRewarded('reviver');
+    musica.calar(false);
   }
   game.chooseRevive(watched);
   modalOpen = false;
@@ -380,7 +393,9 @@ ui.on('rerollGratis', () => {
 });
 ui.on('reroll', async () => {
   if (!game.modal || !game.modal.options) return;
+  musica.calar(true);
   const ok = await ads.showRewarded('trocar_cartas');
+  musica.calar(false);
   if (ok) game.rerollOptions();
   ui.openModal(game, performance.now());
 });
@@ -474,7 +489,7 @@ window.addEventListener('resize', () => {
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // expõe estado para testes automatizados (Playwright)
-window.__bec = { get game() { return game; }, get state() { return state; }, settings: () => settings, ads, renderer };
+window.__bec = { get game() { return game; }, get state() { return state; }, settings: () => settings, ads, renderer, musica };
 
 $('fps').hidden = !settings.showFps;
 
