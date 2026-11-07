@@ -118,6 +118,10 @@ function estalo(ctx, x, y, s, seed) {
 
 let escuroCanvas = null;
 
+// Olhos no Apagão: de frente (até 60° da câmera) os dois; de perfil (até 100°) um; de costas, nenhum.
+const OLHO_FRENTE = (60 * Math.PI) / 180;
+const OLHO_LADO = (100 * Math.PI) / 180;
+
 /** Por cima de tudo: o escuro do Apagão (com a luz dos postes e do Juninho) e os olhos da horda. */
 export function drawCriseCeu(ctx, game, cam, ppu, t, playerPx, propsVisiveis) {
   const c = game.crise;
@@ -166,9 +170,19 @@ export function drawCriseCeu(ctx, game, cam, ppu, t, playerPx, propsVisiveis) {
     if (e.dead) continue;
     cam.toScreen(e.x, e.y, a);
     if (a.x < -20 || a.x > cam.viewW + 20 || a.y < -20 || a.y > cam.viewH + 40) continue;
+    // só brilha o olho que aparece: para onde ele anda (como a figura dele), de frente para a câmera = 0°
+    cam.toScreen(e.x + (e.mx ?? p.x - e.x), e.y + (e.my ?? p.y - e.y), b);
+    const ang = Math.atan2(b.x - a.x, b.y - a.y); // 0: vem para a câmera; ±π: de costas
+    const fr = Math.abs(ang);
+    if (fr > OLHO_LADO) continue; // de costas: sem olho
     const hy = a.y - playerPx * 0.84 * (e.boss ? 2.6 : 1);
-    ctx.fillRect(a.x - s * 2.2, hy, s * 1.6, s);
-    ctx.fillRect(a.x + s * 0.6, hy, s * 1.6, s);
+    const lado = Math.sin(ang) * s * 2.2; // o rosto vira para o lado em que ele anda
+    if (fr <= OLHO_FRENTE) {
+      ctx.fillRect(a.x + lado - s * 2.2, hy, s * 1.6, s);
+      ctx.fillRect(a.x + lado + s * 0.6, hy, s * 1.6, s);
+    } else {
+      ctx.fillRect(a.x + lado * 1.3 - s * 0.8, hy, s * 1.6, s); // de perfil: um olho só
+    }
   }
   // o que de dia ninguém nota: no escuro, brilha
   for (const q of game.achados) {
