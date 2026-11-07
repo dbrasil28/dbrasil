@@ -50,8 +50,8 @@ export function applyRun(p, game) {
   };
   const semReviver = !game.metrics.ads.aceitos.reviver;
   const m = game.metrics;
-  // estrelas e descoberta só na Carreira (Horda e Desafio rendem gorjeta e ranking)
-  if (game.modo && game.modo !== 'carreira') {
+  // estrelas e descoberta só na Carreira de verdade (Horda, Desafio e o atalho de teste rendem só gorjeta)
+  if ((game.modo && game.modo !== 'carreira') || game.teste) {
     saveProgress(p);
     return { tips, novas };
   }

@@ -157,3 +157,15 @@ test('abertura: o Juninho não pega cadeira nem mesa antes de a horda atacar', a
   assert.equal(g.player.carry, null, 'pegou o objeto na abertura');
   assert.ok(s.obj, 'o objeto sumiu do chão');
 });
+
+test('atalho Testar a Favela: rende gorjeta, mas não libera o Morro no Mapa da Rota', async () => {
+  const { loadProgress, applyRun } = await import('../src/progresso.js');
+  const prog = loadProgress();
+  const g = new Game({ ...defaultSettings(), elenco: false, aberta: false }, { seed: 4, meta: { trecho: 'morro', teste: true } });
+  g.t = 200;
+  g.metrics.morroAt = 1;
+  const antes = prog.gorjetas;
+  applyRun(prog, g);
+  assert.ok(prog.gorjetas > antes, 'sem gorjeta');
+  assert.equal(prog.trechos.morro.liberado, false, 'o teste liberou o Morro');
+});

@@ -112,6 +112,7 @@ function newGame() {
     abertura: runModo === 'carreira' && runTrecho === 'orla',
     modo: runModo,
     desafio,
+    teste: runModo === 'carreira' && trechoTeste === runTrecho, // "Testar a Favela": não libera trecho no Mapa da Rota
   };
   ui.podePular = progress.partidas > 0;
   game = new Game(settings, desafio ? { meta, seed: desafio.seed } : { meta });
@@ -320,6 +321,11 @@ ui.on('rota', () => {
 });
 ui.on('melhorias', () => {
   menuFrom = 'screen-title';
+  openMelhorias();
+});
+ui.on('melhoriasFim', () => {
+  // do fim do turno: compra e volta para o resultado, de onde "Jogar de novo" já sai com as melhorias novas
+  menuFrom = 'screen-result';
   openMelhorias();
 });
 ui.on('back', () => ui.show(menuFrom));

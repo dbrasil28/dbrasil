@@ -50,6 +50,7 @@ export class UI {
     $('btn-settings-reset').addEventListener('click', () => this.fire('settingsReset'));
     $('btn-rota').addEventListener('click', () => this.fire('rota'));
     $('btn-melhorias').addEventListener('click', () => this.fire('melhorias'));
+    $('btn-result-melhorias').addEventListener('click', () => this.fire('melhoriasFim')); // gastar as gorjetas antes de jogar de novo
     $('btn-rota-back').addEventListener('click', () => this.fire('back'));
     $('btn-horda').addEventListener('click', () => this.fire('horda'));
     $('btn-desafio').addEventListener('click', () => this.fire('desafio'));
@@ -614,6 +615,7 @@ export class UI {
   // ---------- carreira ----------
   setTitleTips(progress) {
     $('title-tips').textContent = progress.gorjetas ? `${progress.gorjetas}` : '';
+    $('result-tips-chip').textContent = progress.gorjetas ? `${progress.gorjetas}` : '';
   }
 
   /** Mapa da Rota: trechos de baixo para cima; liberado = jogar; bloqueado = cadeado e a meta. */

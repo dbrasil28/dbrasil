@@ -5,7 +5,7 @@ import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX,
+  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
 import { updateCrises, criseLentidao } from './crises.js';
@@ -150,6 +150,7 @@ export class Game {
     this.abertura = null;
     // modo: 'carreira' (a viagem), 'horda' (um mapa, sobreviver) ou 'desafio' (a Horda da semana)
     this.modo = this.meta.modo || 'carreira';
+    this.teste = !!this.meta.teste; // atalho de teste (Testar a Favela): rende gorjeta, mas não libera trecho nem estrela
     this.desafio = this.meta.desafio || null;
     this.spawnExtra = 1;
     this.horda = null;
@@ -670,6 +671,26 @@ export class Game {
     this.gems.push({ x, y, v, pull: false });
   }
 
+  /**
+   * Com o Juninho na laje P: este inimigo sobe pela escada? A maioria cerca a casa; de tempos em tempos um é
+   * sorteado para subir, no máximo LAJE.maxSubindo de cada vez. O chefão sempre sobe.
+   */
+  vaiSubir(e, P) {
+    if (e.boss) return true;
+    if (e.sobeP !== P) {
+      e.sobeP = P;
+      e.sobe = false;
+      e.sobeT = this.t + LAJE.sorteioS[0] * this.rng();
+    }
+    if (e.sobe) return true;
+    if (this.t < e.sobeT) return false;
+    e.sobeT = this.t + LAJE.sorteioS[0] + (LAJE.sorteioS[1] - LAJE.sorteioS[0]) * this.rng();
+    let subindo = 0;
+    for (const o of this.enemies) if (!o.dead && ((o.sobeP === P && o.sobe) || o.plat === P)) subindo++;
+    if (subindo < LAJE.maxSubindo && this.rng() < LAJE.subirChance) e.sobe = true;
+    return e.sobe;
+  }
+
   hurtPlayer(amount, source) {
     const p = this.player;
     if (p.invulnT > 0) return;
@@ -1093,7 +1114,27 @@ export class Game {
         tx = rt.x;
         ty = rt.y;
       } else if (this.world) {
-        if (e.plat !== p.plat) {
+        const PP = p.plat;
+        if (PP && !e.plat && !this.vaiSubir(e, PP)) {
+          // cerco: fica em volta da casa (e da escada), colado na parede, sem subir
+          const S = PP.stair;
+          const m = (e.r || 0.3) + 0.15;
+          const x0 = Math.min(PP.x0, S.x0) - m;
+          const x1 = Math.max(PP.x1, S.x1) + m;
+          const y0 = Math.min(PP.y0, S.y0) - m;
+          const y1 = Math.max(PP.y1, S.y1) + m;
+          tx = Math.max(x0, Math.min(x1, e.x));
+          ty = Math.max(y0, Math.min(y1, e.y));
+          if (tx > x0 && tx < x1 && ty > y0 && ty < y1) {
+            // já encostado: fica na borda mais perto
+            const dl = [tx - x0, x1 - tx, ty - y0, y1 - ty];
+            const k = dl.indexOf(Math.min(...dl));
+            if (k === 0) tx = x0;
+            else if (k === 1) tx = x1;
+            else if (k === 2) ty = y0;
+            else ty = y1;
+          }
+        } else if (e.plat !== p.plat) {
           if (e.plat) stairFoot(e.plat, rt); // descer da laje pela escada
           else stairFoot(p.plat, rt); // ir até o pé da escada da laje do Juninho
           if (e.plat && e.lvl === 1 && !inside(e.plat.stair, e.x, e.y)) stairTopOf(e.plat, rt);

@@ -300,6 +300,9 @@ export const PLACES = {
 
 // Objetos de cena: o Juninho pega sozinho ao passar perto e arremessa no inimigo mais próximo
 // (docs/design/MAPAS_CARACTERIZACAO.md). Cada lugar repõe os seus depois de um tempo, fora da tela.
+// Juninho em cima da laje (ou na escada dela): a horda cerca a casa, colada nas paredes; de tempos em tempos um
+// é sorteado para subir pela escada, no máximo maxSubindo de cada vez. O chefão sempre sobe.
+export const LAJE = { subirChance: 0.12, maxSubindo: 3, sorteioS: [3, 6] };
 export const INTERACT = { pickR: 1.0, holdS: 0.25, throwRange: 8, flightS: 0.5, arcM: 2.4, respawnS: 35, respawnMinDistM: 14 };
 export const THROWABLES = {
   cadeira: { name: 'Cadeira de plástico', dmg: 28, radius: 1.3 },

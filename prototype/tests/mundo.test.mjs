@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
-import { INTERACT, CARREIRA } from '../src/config.js';
+import { INTERACT, CARREIRA, LAJE } from '../src/config.js';
 import { constrain, applyLevels, inside } from '../src/mundo.js';
 
 const newGame = (extra = {}) => {
@@ -288,4 +288,40 @@ test('favela: casas dos dois lados de cada pedaço do Morro, sem entrar no chão
   // lados variados: a mesma peça não aparece duas vezes seguidas no mesmo lado
   const pecas = new Set(w.casas.map((c) => c.peca));
   assert.ok(pecas.size >= 7, 'pouca variedade de casas');
+});
+
+test('laje: com o Juninho lá em cima, a horda cerca a casa e só uns poucos sobem pela escada', () => {
+  const g = new Game({ ...defaultSettings(), elenco: false, aberta: false }, { seed: 5, meta: { trecho: 'morro' } });
+  const P = g.world.platforms.find((q) => q.kind === 'laje_casa');
+  const p = g.player;
+  p.x = (P.x0 + P.x1) / 2;
+  p.y = (P.y0 + P.y1) / 2;
+  p.plat = P;
+  p.lvl = 1;
+  p.z = P.h;
+  g.enemies.length = 0;
+  g.spawnAcc = -1e9;
+  g.eventIndex = 99;
+  p.xpNext = 1e9;
+  p.weapons.length = 0;
+  for (let i = 0; i < 40; i++) {
+    const a = (i / 40) * Math.PI * 2;
+    g.spawnEnemy('telespectador', p.x + Math.cos(a) * 7, p.y + Math.sin(a) * 7);
+  }
+  let maxEmCima = 0;
+  for (let i = 0; i < 30 * 15; i++) {
+    g.update(1 / 30, { x: 0, y: 0 });
+    p.hp = Math.max(p.hp, 50);
+    maxEmCima = Math.max(maxEmCima, g.enemies.filter((e) => !e.dead && e.plat === P).length);
+  }
+  const S = P.stair;
+  const bx0 = Math.min(P.x0, S.x0);
+  const bx1 = Math.max(P.x1, S.x1);
+  const by0 = Math.min(P.y0, S.y0);
+  const by1 = Math.max(P.y1, S.y1);
+  const vivos = g.enemies.filter((e) => !e.dead && !e.plat);
+  const colados = vivos.filter((e) => Math.hypot(Math.max(bx0 - e.x, 0, e.x - bx1), Math.max(by0 - e.y, 0, e.y - by1)) < 1.5);
+  assert.ok(colados.length >= vivos.length * 0.8, `só ${colados.length} de ${vivos.length} cercando a casa`);
+  assert.ok(maxEmCima <= LAJE.maxSubindo + 1, `${maxEmCima} subiram ao mesmo tempo`);
+  assert.ok(vivos.every((e) => !(e.x > P.x0 + 0.1 && e.x < P.x1 - 0.1 && e.y > P.y0 + 0.1 && e.y < P.y1 - 0.1)), 'inimigo do chão dentro da casa');
 });
