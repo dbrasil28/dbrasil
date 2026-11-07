@@ -70,9 +70,16 @@ export function drawCenario(ctx, p, cam, ppu, dpr, t, alpha = 1, playerPx = 0) {
     const im = f && images[artKey(p.kind, f)];
     if (im) {
       const k = ((p.x1 - p.x0) / A.w) * (ppu / ART_S);
+      const flip = A.espelha && Math.floor(p.v * 97) % 2 === 1;
+      ctx.save();
       if (alpha < 1) ctx.globalAlpha = alpha;
+      if (flip) {
+        // espelhado em torno do meio do objeto (a moldura tem a mesma folga dos dois lados)
+        ctx.translate(2 * pt.x + (p.x1 - p.x0) * ppu, 0);
+        ctx.scale(-1, 1);
+      }
       ctx.drawImage(im, pt.x - A.padX * ART_S * k, pt.y - A.top * ART_S * k, im.width * k, im.height * k);
-      if (alpha < 1) ctx.globalAlpha = 1;
+      ctx.restore();
       return;
     }
   }

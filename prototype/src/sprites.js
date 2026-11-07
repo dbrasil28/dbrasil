@@ -46,6 +46,8 @@ export const IMAGES = {
   cone: 'assets/cenario/cone.png',
   // cenário com arte gerada (Figma, IA de imagem) e recortada; medidas em arte_cenario.js
   cen_carro_fusca: 'assets/cenario/orla/carro_fusca.webp',
+  cen_carro_brasilia: 'assets/cenario/orla/carro_brasilia.webp',
+  cen_carro_uno: 'assets/cenario/orla/carro_uno.webp', // o Uno com escada no teto
   chao: 'assets/chao/pedra_portuguesa_ondas.jpg',
   w_capacete: 'assets/hud/w_capacete.png',
   w_boleto: 'assets/hud/w_boleto.png',

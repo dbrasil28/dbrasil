@@ -7,8 +7,9 @@ export const ART_K = Math.sin((55 * Math.PI) / 180);
 
 // w, d, h: largura, fundo e altura (m). padX: folga dos lados; top: quanto o quadro sobe acima da origem;
 // bot: quanto desce abaixo dela (sombra). files: variações (arquivo <tipo>_<variação>.webp).
+// espelha: metade dos objetos aparece virada para o outro lado (carro estacionado nos dois sentidos).
 export const ART = {
-  carro: { w: 4.0, d: 1.8, h: 1.45, padX: 0.5, top: 3.2, bot: 0.45, files: ['fusca'] },
+  carro: { w: 4.0, d: 1.8, h: 1.45, padX: 0.7, top: 3.2, bot: 0.45, files: ['fusca', 'brasilia', 'uno'], espelha: true },
   onibus: { w: 8.8, d: 2.5, h: 3.0, padX: 0.5, top: 5.4, bot: 0.5, files: [] },
   banca: { w: 2.4, d: 1.6, h: 2.3, padX: 0.5, top: 3.9, bot: 0.4, files: [] },
   milho: { w: 1.4, d: 0.8, h: 1.1, padX: 0.8, top: 2.9, bot: 0.35, files: [] },
