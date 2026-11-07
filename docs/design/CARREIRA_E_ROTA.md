@@ -117,6 +117,12 @@ Candidatas: na Orla, **Bola da Altinha** (a bola quica de inimigo em inimigo com
 
 **As crises também revelam achados:** na Ressaca o mar recua e aparece um cofre na areia molhada; no Apagão uma coisa brilha num lugar que de dia ninguém nota.
 
+**O faro do Caramelo:** quem tem a habilidade Cachorro Caramelo ganha uma pista viva, sem seta:
+- Quando passa a menos de uns 8 m de um isopor ou cofre ainda fechado, o cachorro para, vira a cabeça para lá e late uma vez. A direção do latido é a pista.
+- Repete a cada uns 6 s enquanto o achado estiver perto. Nunca interrompe uma mordida no meio.
+- A relíquia ele só fareja bem de perto (uns 4 m), para ela continuar sendo o segredo mais difícil.
+- Vale desde o nível 1 da habilidade. O faro é o que faz o Caramelo valer a pena além do dano: é a habilidade de quem gosta de explorar.
+
 **Regras:** nada disso se compra nem se abre com anúncio (não é caixa de recompensa paga, e não há anúncio durante a partida). Achado aberto fica marcado no minimapa para as próximas vezes.
 
 ## 7. Brasília: os palanques
@@ -234,7 +240,7 @@ O protótipo foi feito com a regra antiga (D22: a saída abre por nível, com se
 ## 14. Ordem de construção
 
 1. **A Orla na regra nova:** tirar as setas, a obra do Especulador com as pistas, o Caos chamando o chefão, o chefão em três fases, a porta para o morro e o recomeço.
-2. **Achados na Orla:** isopor, cofre com a abertura e a Bola da Altinha no alto da torre do salva-vidas.
+2. **Achados na Orla:** isopor, cofre com a abertura, a Bola da Altinha no alto da torre do salva-vidas e o faro do Caramelo.
 3. **Crises da Orla:** Ressaca e Apagão.
 4. **A abertura do jogo.**
 5. **O Morro na regra nova**, com as crises dele.
