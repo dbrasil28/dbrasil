@@ -5,10 +5,41 @@ Lista do que falta desenhar para a favela sair do provisório, com as medidas ti
 ## Regras para toda a arte
 
 - **Estilo:** o prompt de estilo do guia (`GUIA_DE_PRODUCAO_DE_ARTE.md`, seção 3), o mesmo dos pacotes já entregues.
-- **Ângulo:** câmera de cima a 55°, luz quente vindo do alto à esquerda. O mapa tem giro de 18° (o eixo da profundidade inclina): quem está em pé continua em pé, então objeto e personagem de frente para a câmera funcionam. Parede comprida que corre na direção da subida precisa ser desenhada já no ângulo, como os prédios da Orla. Nada é girado, espremido ou entortado no jogo; a arte entra inteira, só na escala.
+- **Ângulo:** leia a seção "O ângulo do jogo" logo abaixo e mande junto o gabarito de cada peça (`gabaritos_favela/`). Nada é girado, espremido ou entortado no jogo; a arte entra inteira, só na escala.
+- **Luz:** quente, vindo do alto à esquerda.
 - **Escala dos objetos:** cerca de 150 px por metro de altura real, base do objeto encostada embaixo, folga de uns 10% em volta. Os personagens são desenhados 1,4 vez maiores que a escala real para ler bem no celular, e os objetos que eles pegam crescem junto; as medidas abaixo são as reais.
 - **Formato:** PNG com fundo transparente de verdade (chão: sem transparência), sem sombra no chão (o jogo desenha), sem texto, logotipo ou escudo, a não ser onde a lista pedir.
 - **Personagens:** o formato dos pacotes já entregues (4 folhas de 1536×1024, grade 6×4, células de 256×256, 16 direções × 6 quadros; pés em y240, corpo em x128; 0° de frente, 90° direita, 180° costas, 270° esquerda). Poses extras em folhas 4×4 com as 16 direções, como as do Traficante.
+
+## O ângulo do jogo (leia antes de desenhar)
+
+A primeira versão deste pedido só dizia "câmera a 55°, giro de 18°" e "3/4 de frente". Isso não basta: o gerador desenhou as peças retas, de frente, e elas não encaixam no chão do jogo. As regras abaixo são as da câmera do jogo (`prototype/src/camera.js`), e os gabaritos em `gabaritos_favela/` foram gerados com a mesma conta (`python3 -I tools/gabaritos-favela.py docs/arte/gabaritos_favela`).
+
+**1. Projeção paralela, sem ponto de fuga.** Linhas que são paralelas no mundo continuam paralelas na imagem. Nada diminui com a distância. Não é foto, não é perspectiva de 3/4 com fuga.
+
+**2. As três direções, a 150 px por metro:**
+
+| Direção no mundo | Na imagem | Por metro |
+| --- | --- | --- |
+| Altura (para cima) | vertical, reta | 150 px para cima |
+| Largura (esquerda para direita) | horizontal, reta | 150 px para o lado |
+| Profundidade (para o fundo do mapa, a direção da subida) | **linha inclinada que sobe para a direita, 18° da vertical** | 123 px para cima e 40 px para a direita |
+
+**3. O que aparece de uma caixa (casa, barraco, objeto):** a frente, reta e sem distorção (um retângulo); o tampo (laje ou telhado), que vira um paralelogramo com os lados inclinados 18° para a direita; e a **lateral direita**, que vira uma faixa estreita e inclinada (40 px de largura para cada metro de fundo). **A lateral esquerda, o fundo e a base nunca aparecem.** Veja `objeto_caixa_1m.png`.
+
+**4. Consequências nas vielas, que correm todas na direção da profundidade:**
+- do lado **esquerdo** da viela aparece a parede da casa virada para a viela (faixa estreita e inclinada) e a beira do telhado em cima;
+- do lado **direito** a parede fica de costas para a câmera e não aparece: só se vê o telhado e a frente da casa no começo da fileira. O telhado da direita cobre cerca de 1 m do chão da viela;
+- nas pracinhas, as casas do fundo mostram a frente (as fachadas), o tampo e a lateral direita; as casas dos lados seguem a regra das vielas.
+- `cena_exemplo.png` mostra um pedaço de morro montado assim, com o Juninho em pé na viela para dar a escala.
+
+**5. Como pedir ao gerador:** anexe o gabarito da peça e cole o prompt abaixo, trocando [PEÇA] pela descrição da tabela. O gabarito é branco, com a grade de 1 m no chão; as cores dele não são as da arte, só separam as faces (bege claro = tampo, bege = frente, marrom = lateral direita, cinza = degraus).
+
+> Use a imagem anexada como gabarito de forma e de ângulo. Desenhe [PEÇA] ocupando exatamente a forma do gabarito, com os mesmos contornos, no mesmo tamanho e na mesma posição. Mantenha a projeção do gabarito: projeção paralela, sem ponto de fuga e sem perspectiva; as linhas verticais continuam verticais, as linhas de largura continuam horizontais e as linhas de profundidade sobem inclinadas para a direita, todas paralelas entre si, como no gabarito. Mostre só as faces que o gabarito mostra (frente, tampo e lateral direita); a lateral esquerda não aparece. Não gire, não mude o ângulo, não mostre a peça de frente reta. Fundo transparente, sem a grade, sem sombra no chão, sem texto. Luz quente vindo do alto à esquerda.
+
+**6. Exemplo de peça que já entrou certa:** os prédios da Orla (`prototype/assets/cenario/predios/predio_a.webp`): a frente curta fica reta e a lateral comprida com as lojas sobe inclinada para a direita.
+
+**7. Conferência:** quando a arte chegar, eu meço as linhas de profundidade (têm que dar 18° da vertical) e encaixo no gabarito antes de pôr no jogo. Peça que vier reta, de frente, volta.
 
 ## O mapa, em metros
 
@@ -25,6 +56,8 @@ A subida tem uns 250 m, de baixo para cima, em zigue-zague, alternando:
 
 ## 1. Chão (vista totalmente de cima, 90°, emenda perfeita nas quatro bordas)
 
+O chão é o único que vai reto, visto de cima: ele é plano, e o jogo o deita no ângulo da câmera como faz com a pedra portuguesa da Orla.
+
 | Arquivo | O que é | Imagem | Cobre |
 | --- | --- | --- | --- |
 | `chao/cimento_viela.png` | Cimento rachado e remendado de beco, com escoamento de água, marcas de chinelo e manchas | 1024×1024, sem transparência | 6 × 6 m |
@@ -34,15 +67,20 @@ A subida tem uns 250 m, de baixo para cima, em zigue-zague, alternando:
 
 ## 2. Construções
 
-| Arquivo | O que é | Medida real | Imagem | Vista |
-| --- | --- | --- | --- | --- |
-| `cenario/casa_laje_dir.png` | Casa de 1 andar de tijolo aparente e reboco gasto, com a laje em cima (onde o Juninho sobe) e a escada de concreto sem corrimão encostada do lado **direito**, subindo para o fundo | casa 5 × 5 m, 3,2 m de altura; escada 1,3 m de largura | ~1100×1100 | 3/4 de frente, a 55° |
-| `cenario/casa_laje_esq.png` | A mesma casa com a escada do lado **esquerdo** (não espelhar: a luz vem da esquerda) | igual | ~1100×1100 | igual |
-| `cenario/fachada_a.png`, `_b`, `_c` | Frente de casa da favela, de frente para a câmera, para a ponta das vielas e o fundo das pracinhas: porta de ferro, janela com a luz azul de TV, reboco colorido gasto, fios na fachada; a, b e c com 1, 2 e 3 andares | 4 m de largura; 3, 6 e 9 m de altura | 600 de largura × 450, 900 e 1350 | de frente, a 55° |
-| `cenario/parede_viela_esq.png`, `_dir.png` | Parede lateral de casa que corre ao longo da viela, de um lado e do outro, com janela acesa e grafite sem texto. **Tem que ser desenhada no ângulo do jogo**, como os prédios da Orla. Antes de pedir, eu mando uma imagem de referência tirada do jogo, com as linhas do chão | módulo de 6 m de comprimento × 3 m de altura | a medir na referência | no ângulo de 18° |
-| `cenario/barraco_a.png`, `_b` | Barraco de madeira, telha e lona, colorido e remendado (borda das vielas mais altas) | 3 m de largura × 3,5 m de altura | 450×600 | de frente |
+Todas no ângulo do jogo (seção acima). O tamanho da imagem é o do gabarito, que já tem a folga de 10%.
 
-## 3. Objetos em pé (transparentes, de frente para a câmera)
+| Arquivo | O que é | Medida real | Gabarito (tamanho da imagem) |
+| --- | --- | --- | --- |
+| `cenario/casa_laje_dir.png` | Casa de 1 andar de tijolo aparente e reboco gasto, com a laje em cima (onde o Juninho sobe) e a escada de concreto maciça, sem corrimão, encostada do lado **direito**, subindo da frente para o fundo (18 degraus) | casa 5 × 5 m, 3,2 m de altura; escada 1,3 × 5 m | `casa_laje_dir.png` (1830×1523) |
+| `cenario/casa_laje_esq.png` | A mesma casa com a escada do lado **esquerdo**. Não espelhar: a luz vem da esquerda, e deste lado a casa esconde a beira de dentro da escada | igual | `casa_laje_esq.png` (1830×1523) |
+| `cenario/fachada_a.png`, `_b`, `_c` | Casa da favela para a ponta das vielas e o fundo das pracinhas: na frente, porta de ferro, janela com a luz azul de TV, reboco colorido gasto, fios; em cima, a laje com caixa d'água; a lateral direita com reboco e tijolo. a, b e c com 1, 2 e 3 andares | 4 m de frente, 5 m de fundo; 3, 6 e 9 m de altura | `fachada_a.png` (1417×1425), `_b` (1507×1965), `_c` (1597×2505) |
+| `cenario/parede_viela_esq.png` | Módulo de casa do lado **esquerdo** da viela: a parede virada para a viela (faixa estreita e inclinada), com janela acesa, porta e grafite sem texto, e a beira do telhado em cima. Os módulos se encaixam um atrás do outro, então a frente não aparece | 3 m de largura, 6 m de comprimento, 3 m de altura | `parede_viela_esq.png` (1377×1425) |
+| `cenario/telhado_viela_dir.png` | Módulo de casa do lado **direito** da viela: aqui a parede fica de costas e não aparece. Só o telhado (laje, amianto, caixa d'água, varal) e a frente, que só se vê no começo da fileira | igual | `telhado_viela_dir.png` (1377×1425) |
+| `cenario/barraco_a.png`, `_b` | Barraco de madeira, telha e lona, colorido e remendado (borda das vielas mais altas) | 3 × 3 m, 3,5 m de altura | `barraco_a.png` (1153×1220) |
+
+## 3. Objetos em pé (transparentes, no ângulo do jogo)
+
+Mesma regra das construções, numa caixa menor (`objeto_caixa_1m.png`): frente reta, tampo e lateral direita inclinados para a direita, sem ponto de fuga. Em objeto pequeno o erro aparece menos, mas a mesa, o sofá e o paredão de som são largos o bastante para destoar se vierem retos.
 
 **Já existem e ficam como estão:** moto estacionada, caixa d'água, mesa de sinuca, barricada de pneus, tambor, entulho, pneus, botijão, mesa, cadeira de plástico, engradado e banquinho.
 
@@ -105,6 +143,6 @@ A minha recomendação é o Paredão de som, que combina com o Baile e não tem 
 4. **Objetos que faltam**, a começar pelo paredão de som (usado no Baile) e pelos fios do gatonet.
 5. **Cracudo, Trombadinha e Mototaxista.**
 6. **Efeitos e a relíquia.**
-7. **Paredes laterais das vielas**, com a imagem de referência do ângulo que eu preparo antes.
+7. **Paredes e telhados das vielas** (`parede_viela_esq` e `telhado_viela_dir`), com os gabaritos.
 
 Quando cada pacote chegar, eu recorto, meço o ângulo contra o chão do jogo e coloco no lugar do provisório.
