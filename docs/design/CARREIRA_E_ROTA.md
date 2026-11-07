@@ -21,7 +21,8 @@ Base no gênero: cada capítulo do Survivor.io termina num chefão e recomeça d
 
 - **Rodovias:** são o começo do trecho da cidade seguinte, não um trecho à parte. Uns 3 a 4 minutos de perseguição de moto entre caminhões, pedágio, posto e borracharia, sem chefão, até chegar na cidade.
 - **Duração:** cada trecho dura uns 10 minutos até o chefão (seção 2), mais a luta. A viagem inteira passa de 40 minutos, jogada em pedaços.
-- **Depois de Brasília:** os trechos da rota antiga (Paraíso à Venda no Nordeste, Rede do Pânico no estúdio de TV e Entrega Final na sede do aplicativo) ficam para decidir depois: expansão ou corte.
+- **Depois de Brasília:** Paraíso à Venda (Nordeste), Rede do Pânico (estúdio da TV) e Entrega Final (sede do aplicativo) são a segunda parte, numa atualização grátis depois do lançamento (D42, `MODOS_E_RANKING.md`).
+- **Modo Horda:** cada mapa conquistado na Carreira também pode ser jogado no Modo Horda, para sobreviver o máximo que der (D44).
 
 ## 2. O ritmo de um trecho
 
@@ -173,7 +174,8 @@ Tirado da lista de estereótipos do autor (`ELENCO_v0.3_BRASIL.md`).
 - **Difícil, mas lida na tela:** a dificuldade vem de ameaças que dá para ler, com aviso antes do golpe, da horda mais densa e dos gargalos do mapa. Cada trecho começa mais duro que o anterior.
 - **Perder rende:** as gorjetas compram as melhorias pequenas e as de opção (seção 5).
 - **Corrupção na carreira:** a Corrupção acumulada na viagem decide o epílogo em Brasília.
-- **Depois de zerar:** abre o "Turno da Madrugada", a rota inteira mais difícil.
+- **Depois de zerar:** o Modo Horda e o Desafio da Semana (`MODOS_E_RANKING.md`). O "Turno da Madrugada", a rota inteira mais difícil, fica para depois.
+- **Ranking:** "Entregador do Mês", com o menor tempo para derrubar o chefão de cada trecho (D43).
 - **Personagens:** os jogáveis se desbloqueiam pela rota (o Funkeiro sai do Morro, o Jogador de Futebol de São Paulo, a Márcia de Brasília).
 - **Anúncios:** reviver e dobrar as gorjetas no fim, sempre opcionais e nunca durante a partida.
 
