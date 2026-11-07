@@ -3,6 +3,7 @@ import { Camera } from './camera.js';
 import { SpatialHash } from './spatial.js';
 import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
+  ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
   ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO,
 } from './config.js';
@@ -879,6 +880,7 @@ export class Game {
       const rr = p.r + e.r + 0.05;
       if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 > rr * rr) continue;
       const d = e.dmg * dt;
+      e.atkT = ENEMY_POSE.ataqueS; // encostou: pose de ataque virada para o Juninho
       if (d > worstDmg) {
         worstDmg = d;
         worst = e.type;
@@ -1025,6 +1027,7 @@ export class Game {
       const dl = Math.hypot(dtx, dty) || 1;
       const ux = dtx / dl;
       const uy = dty / dl;
+      if (e.atkT > 0) e.atkT -= dt;
       const spd = e.speed * (e.slowT > 0 ? e.slowF : 1) * (this.over ? 0.2 : 1);
       let mx = ux;
       let my = uy;

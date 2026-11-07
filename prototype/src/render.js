@@ -344,6 +344,16 @@ export class Renderer {
               animated = !!spr;
             }
           }
+          if (!spr && art && art.poses && walk && o.atkT > 0) {
+            // encostou no Juninho: pose de ataque virada para ele (todo inimigo com poses tem ataque)
+            const poses = walkReady(art.poses);
+            if (poses && poses.col.ataque !== undefined) {
+              cam.toScreen(game.player.x, game.player.y, pt2);
+              const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+              spr = this.cache.get(`${poses.prefix}_${row}_${poses.col.ataque}`, h * (poses.ch / poses.figureH), POSE_OPTS);
+              animated = !!spr;
+            }
+          }
           if (!spr && art && art.throwAnim && walk && (o.windup > 0 || o.throwT > 0)) {
             // Político arremessando a maleta, virado para o Juninho: preparação em 3 quadros, depois a soltura
             const A = walkReady(art.throwAnim);

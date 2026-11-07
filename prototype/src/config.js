@@ -110,6 +110,9 @@ export const ENEMIES = {
   },
 };
 
+// Poses dos inimigos: quanto tempo a pose de ataque fica depois de encostar no Juninho.
+export const ENEMY_POSE = { ataqueS: 0.35 };
+
 // Jogo de zumbi (D27): com "Respingos e manchas" ligado, todo inimigo morre explodindo em sangue e
 // pedaços; desligado, a horda volta a acordar (MECH-001), para versões com classificação menor.
 export const GORE = {
