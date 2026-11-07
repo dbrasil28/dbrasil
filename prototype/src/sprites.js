@@ -48,6 +48,10 @@ export const IMAGES = {
   cen_carro_fusca: 'assets/cenario/orla/carro_fusca.webp',
   cen_carro_brasilia: 'assets/cenario/orla/carro_brasilia.webp',
   cen_carro_uno: 'assets/cenario/orla/carro_uno.webp', // o Uno com escada no teto
+  cen_carro_taxi: 'assets/cenario/orla/carro_taxi.webp',
+  cen_onibus_a: 'assets/cenario/orla/onibus_a.webp',
+  cen_banca_a: 'assets/cenario/orla/banca_a.webp',
+  cen_milho_a: 'assets/cenario/orla/milho_a.webp',
   chao: 'assets/chao/pedra_portuguesa_ondas.jpg',
   w_capacete: 'assets/hud/w_capacete.png',
   w_boleto: 'assets/hud/w_boleto.png',
