@@ -74,7 +74,7 @@ function addSlot(w, kind, x, y, plat = null, place = null, dir = 's') {
   w.slots.push({ kind, x, y, plat, place, dir, obj: { kind, x, y, plat, dir }, emptyT: 0 });
 }
 
-/** Orla: boteco, quiosque, prédio com escada de incêndio e posto de salva-vidas, por quarteirão. */
+/** Orla: boteco e, do lado da praia, quiosque ou posto de salva-vidas, por quarteirão. */
 function placeOrla(w, map) {
   const bl = map.blockLen;
   for (let b = 0; b <= ROUTE.orla.blocks; b++) {
@@ -92,14 +92,6 @@ function placeOrla(w, map) {
         addSlot(w, 'cadeira', mx + CADEIRA_DIST, my, null, null, 'sw');
       }
       addSlot(w, 'engradado', x + 1.9, yb + 4.9);
-    } else if (kind === 'predio') {
-      const x = map.minX;
-      const yb = y0 + 10;
-      const st = rect(x + 4.2, yb, x + 5.5, yb + 6.5, { dir: 'n' });
-      const P = addPlatform(w, x, yb, x + 4.2, yb + 6.5, PLACES.terracoH, st, 'terraco');
-      w.places.push({ kind: 'predio', plat: P });
-      addSlot(w, 'botijao', x + 1.0, yb + 1.0, P);
-      w.heals.push({ kind: 'marmita', x: x + 2.6, y: yb + 1.2, plat: P });
     }
     // lado da praia: quiosque com cadeiras de praia e coco, ou o posto de salva-vidas para subir
     const side = PLACES.praia[b % PLACES.praia.length];

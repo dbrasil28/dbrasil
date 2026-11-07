@@ -28,7 +28,7 @@ test('a escadaria do morro fica fechada até o nível da meta e abre sozinha', (
 
 test('quem está no chão não atravessa a laje; pela escada, sobe', () => {
   const g = newGame();
-  const P = g.world.platforms.find((q) => q.kind === 'terraco');
+  const P = g.world.platforms.find((q) => q.kind === 'laje_casa');
   const e = { x: (P.x0 + P.x1) / 2, y: (P.y0 + P.y1) / 2, r: 0.3, plat: null, lvl: 0, z: 0 };
   applyLevels(g.world, e);
   assert.ok(!inside(P, e.x, e.y) || e.plat, 'ficou dentro da laje estando no chão');

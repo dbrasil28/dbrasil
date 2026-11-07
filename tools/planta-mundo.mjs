@@ -52,7 +52,6 @@ const data = {
   ruas: Array.from({ length: ROUTE.orla.blocks + 2 }, (_, s) => r2(-m.blockLen * s + (m.blockLen - m.streetLen))),
   nome: NOME,
   sujeira: w.litter.length,
-  terracoH: PLACES.terracoH,
 };
 
 const html = `<title>Planta da Rota</title>

@@ -208,9 +208,8 @@ export const ROUTE = {
 
 // Lugares de cada quarteirão da Orla (índice 0 = quarteirão do começo) e altura das lajes (m).
 export const PLACES = {
-  orla: ['boteco', 'predio', 'boteco', 'nada', 'predio', 'boteco', 'nada', 'boteco', 'predio'],
+  orla: ['boteco', 'nada', 'boteco', 'nada', 'boteco', 'nada', 'boteco', 'nada', 'boteco'], // 'nada': entra um boteco a mais encostado no prédio (cenario.js)
   praia: ['quiosque', 'salva_vidas', 'quiosque', 'nada', 'salva_vidas', 'quiosque', 'nada', 'salva_vidas', 'quiosque'],
-  terracoH: 3.6, // terraço do prédio com escada de incêndio
   salvaVidasH: 2.8, // torre do salva-vidas
   lajeH: 3.2, // casa com laje no morro
 };
@@ -227,7 +226,7 @@ export const THROWABLES = {
   banquinho: { name: 'Banquinho de plástico', dmg: 22, radius: 1.2 },
   pneu: { name: 'Pneu velho', dmg: 30, radius: 1.5 },
 };
-// Curas dos lugares: coco do quiosque, marmita do terraço, açaí, pastel e milho das barracas.
+// Curas dos lugares: coco do quiosque, açaí, pastel e milho das barracas.
 // Voltam depois de um tempo, fora da tela. O açaí também deixa o Juninho mais rápido por uns segundos.
 // Altura de cada objeto arremessável quando está no chão (m, na escala dos personagens, que são
 // desenhados com 1,75 m): a imagem gerada é desenhada com essa altura.
