@@ -143,3 +143,17 @@ test('melhorias de opção: arma a mais no começo do trecho e troca de cartas s
   const max = (id) => MELHORIAS[id].step * MELHORIAS[id].custo.length;
   assert.ok(max('vida') <= 20 && max('velocidade') <= 0.061 && max('dano') <= 0.101 && max('recarga') <= 0.061);
 });
+
+test('abertura: o Juninho não pega cadeira nem mesa antes de a horda atacar', async () => {
+  const { emAbertura } = await import('../src/abertura.js');
+  const g = new Game({ ...defaultSettings(), elenco: false, aberta: false }, { seed: 12, meta: { abertura: true } });
+  assert.ok(emAbertura(g), 'a partida não começou na abertura');
+  const s = g.world.slots.find((x) => x.obj && !x.obj.plat);
+  assert.ok(s, 'sem objeto no chão');
+  g.player.x = s.obj.x;
+  g.player.y = s.obj.y + 0.2;
+  g.player.plat = null;
+  for (let i = 0; i < 10; i++) g.update(DT, parado);
+  assert.equal(g.player.carry, null, 'pegou o objeto na abertura');
+  assert.ok(s.obj, 'o objeto sumiu do chão');
+});

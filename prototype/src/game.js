@@ -1569,6 +1569,7 @@ export class Game {
     }
     const myPlat = p.plat && p.lvl === 1 ? p.plat : null;
     if (!p.carry) {
+      if (emAbertura(this)) return; // na abertura ninguém ataca ainda: pegar cadeira ou mesa só deixaria o Juninho andando com ela na cabeça
       if (p.plat && p.lvl === 0 && p.z > 0.5) return; // no meio da escada
       let best = null;
       let bd = I.pickR * I.pickR;
