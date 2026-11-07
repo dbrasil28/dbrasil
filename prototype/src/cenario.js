@@ -156,7 +156,9 @@ function rua(w, map, s) {
     const P = CENARIO.postes;
     const ay = ys - (40 - P.ruaBaixo) - 0.18; // poste do meio-fio de cima (quarteirão de cima)
     const by = ye + P.ruaCima - 0.18; // poste do meio-fio de baixo
-    prop(w, 'bandeirinhas', P.ruaX - 0.2, ay, P.ruaX + 0.2, by, 4.4, H(s, 3, 517), { solid: false, extra: { ax: P.ruaX, ay, bx: P.ruaX, by } });
+    // só pendura se os dois postes existem (perto da largada e das passagens não entra poste)
+    const tem = (yy) => w.props.some((q) => q.kind === 'poste' && Math.abs(q.x - P.ruaX) < 0.05 && Math.abs((q.y0 + q.y1) / 2 - yy) < 0.1);
+    if (tem(ay) && tem(by)) prop(w, 'bandeirinhas', P.ruaX - 0.2, ay, P.ruaX + 0.2, by, 4.4, H(s, 3, 517), { solid: false, extra: { ax: P.ruaX, ay, bx: P.ruaX, by } });
   }
   for (let i = 0; i < CENARIO.santinhos; i++) litter(w, 'santinho', -13 + H(s, i, 518) * 13, ys + 0.5 + H(s, i, 519) * 7, H(s, i, 520));
   litter(w, 'bueiro', -11 + H(s, 1, 512) * 3, ys + 1.0, 0);
