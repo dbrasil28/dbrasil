@@ -40,7 +40,29 @@ for sheet, base in GROUPS:
     rh = (im.shape[0] - 2 * PAD) // 4
     cwid = (im.shape[1] - 2 * PAD) // 6
     a = im[:, :, 3]
-    n, lab, st, _ = cv2.connectedComponentsWithStats((a > TH).astype(np.uint8), connectivity=8)
+    fig = (a > TH).astype(np.uint8)
+    n, lab, st, _ = cv2.connectedComponentsWithStats(fig, connectivity=8)
+    big = [i for i in range(1, n) if st[i, 4] > 2000]
+    if len(big) < 24:
+        # duas figuras vizinhas se encostando (braço esticado de uma toca a outra): corta a mancha que
+        # ocupa mais de uma coluna da grade na divisa entre as colunas, só onde as duas se tocam
+        # (ou o pé de uma toca a cabeça da de baixo: corta na divisa das linhas)
+        for i in big:
+            x0, w = st[i, 0] - PAD, st[i, 2]
+            y0, h = st[i, 1] - PAD, st[i, 3]
+            c0, c1 = int(x0 // cwid), int((x0 + w - 1) // cwid)
+            r0, r1 = int(y0 // rh), int((y0 + h - 1) // rh)
+            if c1 > c0 and w > cwid * 1.25:
+                for c in range(c0 + 1, c1 + 1):
+                    sl = np.s_[:, PAD + c * cwid - 1:PAD + c * cwid + 1]
+                    fig[sl][lab[sl] == i] = 0
+                notes.append(f'folha {sheet}: figuras encostadas separadas na divisa das colunas')
+            if r1 > r0 and h > rh * 1.25:
+                for r in range(r0 + 1, r1 + 1):
+                    sl = np.s_[PAD + r * rh - 1:PAD + r * rh + 1, :]
+                    fig[sl][lab[sl] == i] = 0
+                notes.append(f'folha {sheet}: figuras encostadas separadas na divisa das linhas')
+        n, lab, st, _ = cv2.connectedComponentsWithStats(fig, connectivity=8)
     # as 24 maiores manchas são as figuras; o resto (dedos, maleta no ar, notas) é pedaço solto
     big = sorted((i for i in range(1, n) if st[i, 4] > 2000), key=lambda i: -st[i, 4])[:24]
     assert len(big) == 24, (sheet, len(big))

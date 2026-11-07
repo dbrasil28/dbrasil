@@ -410,8 +410,8 @@ export const ABERTURA = {
   passeioMs: 0.9,
   plantaoS: 10, // a TV anuncia o sinal novo
   sinalS: 20, // o sinal pega
-  travaS: 0.6, // a pessoa trava, o olho acende...
-  viraS: 4, // ...e todas viram horda nesse tempo, a mais perto do Juninho por último
+  transfS: 1.2, // a transformação (6 quadros da arte): trava, o olho acende, os braços sobem
+  viraS: 4, // todas viram horda nesse tempo, a mais perto do Juninho por último
   lentoMul: 0.6, // logo depois, só telespectadores lentos (o tutorial sem texto)
   lentosS: 30,
 };

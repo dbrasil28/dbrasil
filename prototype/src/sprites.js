@@ -13,6 +13,13 @@ export const IMAGES = {
   tele_b_walk_atlas: 'assets/personagens/telespectador_b/caminhada_atlas.webp', // B: regata cinza
   tele_b_acordado: 'assets/personagens/telespectador_b/acordado.png',
   tele_c_walk_atlas: 'assets/personagens/telespectador_c/caminhada_atlas.webp', // C: camisa rubro-negra e chinelos
+  // os mesmos A, B e C antes do sinal pegar (abertura): caminhada de cidadão e a transformação em horda
+  cid_a_walk_atlas: 'assets/personagens/cidadao_a/caminhada_atlas.webp',
+  cid_a_transf_atlas: 'assets/personagens/cidadao_a/transformacao_atlas.webp',
+  cid_b_walk_atlas: 'assets/personagens/cidadao_b/caminhada_atlas.webp',
+  cid_b_transf_atlas: 'assets/personagens/cidadao_b/transformacao_atlas.webp',
+  cid_c_walk_atlas: 'assets/personagens/cidadao_c/caminhada_atlas.webp',
+  cid_c_transf_atlas: 'assets/personagens/cidadao_c/transformacao_atlas.webp',
   tele_c_acordado: 'assets/personagens/telespectador_c/acordado.png',
   golpista_walk_atlas: 'assets/personagens/golpista/caminhada_atlas.webp', // Golpista Digital (e o Perfil Falso)
   burocrata_walk_atlas: 'assets/personagens/burocrata/caminhada_atlas.webp', // Burocrata-Monstro
@@ -166,6 +173,13 @@ export const WALK_ATLAS = {
   ta: { atlas: 'tele_a_walk_atlas', prefix: 'ta', figureH: 158 },
   tb: { atlas: 'tele_b_walk_atlas', prefix: 'tb', figureH: 158 },
   tc: { atlas: 'tele_c_walk_atlas', prefix: 'tc', figureH: 158 },
+  // cidadãos (abertura), na escala dos telespectadores: caminhada e transformação (6 quadros, toca uma vez)
+  ca: { atlas: 'cid_a_walk_atlas', prefix: 'ca', figureH: 158 },
+  cb: { atlas: 'cid_b_walk_atlas', prefix: 'cb', figureH: 158 },
+  cc: { atlas: 'cid_c_walk_atlas', prefix: 'cc', figureH: 158 },
+  cat: { atlas: 'cid_a_transf_atlas', prefix: 'cat', figureH: 158 },
+  cbt: { atlas: 'cid_b_transf_atlas', prefix: 'cbt', figureH: 158 },
+  cct: { atlas: 'cid_c_transf_atlas', prefix: 'cct', figureH: 158 },
   gd: { atlas: 'golpista_walk_atlas', prefix: 'gd', figureH: 157 },
   bm: { atlas: 'burocrata_walk_atlas', prefix: 'bm', figureH: 158 },
   fi: { atlas: 'fiscal_walk_atlas', prefix: 'fi', figureH: 158 },
@@ -199,9 +213,9 @@ export const walkReady = (w) => (w && images[`${w.prefix}_0_0`] ? w : null);
 
 /** Telespectadores animados: atlas de caminhada e pose de acordado de cada roupa. */
 export const CROWD_ANIM = {
-  a: { walk: WALK_ATLAS.ta, acordado: 'tele_a_acordado' },
-  b: { walk: WALK_ATLAS.tb, acordado: 'tele_b_acordado' },
-  c: { walk: WALK_ATLAS.tc, acordado: 'tele_c_acordado' },
+  a: { walk: WALK_ATLAS.ta, acordado: 'tele_a_acordado', civil: WALK_ATLAS.ca, transf: WALK_ATLAS.cat },
+  b: { walk: WALK_ATLAS.tb, acordado: 'tele_b_acordado', civil: WALK_ATLAS.cb, transf: WALK_ATLAS.cbt },
+  c: { walk: WALK_ATLAS.tc, acordado: 'tele_c_acordado', civil: WALK_ATLAS.cc, transf: WALK_ATLAS.cct },
 };
 
 /** Atlas animado da roupa (tint), quando ela tem um e ele já carregou; senão null (usa o recorte). */

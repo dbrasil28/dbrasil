@@ -1,6 +1,6 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA } from './config.js';
+import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA } from './config.js';
 import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
@@ -317,16 +317,28 @@ export class Renderer {
           drawPickup(ctx, o, pt, ppu, t);
           break;
         case 'civil': {
-          // abertura: gente normal passeando (a arte da horda sem o brilho da TV); travando, o olho acende
+          // abertura: o cidadão passeando de braços abaixados; quando o sinal pega nele, a transformação
+          // (6 quadros: trava, o olho acende, os braços sobem) e depois ele vira horda
           const anim = crowdAnim(o.tint);
           if (!anim) break;
           const h = playerPx * ENEMIES.telespectador.size * enemyMul;
           const mv = Math.hypot(o.vx, o.vy) > 0.01;
-          cam.toScreen(o.x + (mv ? o.vx : 0), o.y + (mv ? o.vy : 1), pt2);
-          const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
-          const frame = mv ? Math.floor((o.walk / (Math.PI * 2)) * 6) % 6 : 0;
-          const spr = this.cache.get(`${anim.walk.prefix}_${row}_${frame}`, h * (ATLAS.ch / anim.walk.figureH), o.viraT >= 0 ? CROWD_WALK_OPTS : CIVIL_OPTS);
-          if (spr) blit(ctx, spr, pt.x, pt.y, o.viraT >= 0 && Math.sin(t * 40) > 0);
+          if (mv || o.row === undefined) {
+            cam.toScreen(o.x + (mv ? o.vx : 0), o.y + (mv ? o.vy : 1), pt2);
+            o.row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+          }
+          const tr = walkReady(anim.transf);
+          const S = ABERTURA.transfS;
+          let A = walkReady(anim.civil) || anim.walk;
+          let frame = mv ? Math.floor((o.walk / (Math.PI * 2)) * 6) % 6 : 0;
+          let opts = CIVIL_OPTS;
+          if (o.viraT >= 0 && o.viraT <= S) {
+            frame = Math.min(5, Math.floor((1 - o.viraT / S) * 6));
+            if (tr) A = tr;
+            if (frame >= 2) opts = CROWD_WALK_OPTS; // o brilho da TV a partir do 3º quadro
+          }
+          const spr = this.cache.get(`${A.prefix}_${o.row}_${frame}`, h * (ATLAS.ch / A.figureH), opts);
+          if (spr) blit(ctx, spr, pt.x, pt.y, false);
           break;
         }
         case 'enemy': {

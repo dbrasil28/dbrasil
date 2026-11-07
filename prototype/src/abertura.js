@@ -31,12 +31,17 @@ export function updateAbertura(game, dt) {
   for (const c of ab.civis) {
     if (c.virou) continue;
     if (c.viraT >= 0) {
-      // travou: olho acendendo
       c.viraT -= dt;
-      c.vx = 0;
-      c.vy = 0;
-      if (c.viraT <= 0) virar(game, c);
-      continue;
+      if (c.viraT <= 0) {
+        virar(game, c);
+        continue;
+      }
+      if (c.viraT <= A.transfS) {
+        // o sinal pegou nele: para, trava, o olho acende e os braços sobem (a arte da transformação)
+        c.vx = 0;
+        c.vy = 0;
+        continue;
+      }
     }
     c.troca -= dt;
     if (c.troca <= 0) {
@@ -80,7 +85,7 @@ function pegarSinal(game) {
   game.shake(0.2);
   const p = game.player;
   const ord = [...ab.civis].sort((a, b) => Math.hypot(b.x - p.x, b.y - p.y) - Math.hypot(a.x - p.x, a.y - p.y));
-  ord.forEach((c, i) => { c.viraT = ABERTURA.travaS + (i / ord.length) * ABERTURA.viraS; });
+  ord.forEach((c, i) => { c.viraT = ABERTURA.transfS + (i / ord.length) * ABERTURA.viraS; });
 }
 
 function virar(game, c) {
