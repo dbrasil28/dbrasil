@@ -400,95 +400,119 @@ export const DIRECTOR = {
 
 // Armas: `levels[0]` é a base; os demais são incrementos. Nível máximo = levels.length.
 export const WEAPONS = {
+  // Cada arma tem um padrão próprio (docs/design/HABILIDADES.md): vai e volta, rajada, órbita, cai do céu,
+  // arco, aura, rastro, atravessa a tela, ricochete, corrente e companheiro.
   capacete: {
     name: 'Capacete Bumerangue',
-    role: 'Vai e volta atravessando a horda',
+    role: 'Vai e volta pela horda, na ida e na volta',
     levels: [
-      { dmg: 14, cd: 1.5, count: 1, speed: 11, outT: 0.45 },
-      { count: 1, desc: '+1 capacete' },
-      { dmg: 7, desc: '+7 de dano' },
-      { cd: -0.25, outT: 0.1, desc: 'Recarga menor e mais alcance' },
-      { count: 1, dmg: 7, desc: '+1 capacete, +7 de dano' },
+      { dmg: 14, cd: 1.5, count: 1, speed: 11, outT: 0.45, spread: 0.45 },
+      { count: 1, desc: '+1 capacete, abrindo em leque' },
+      { outT: 0.12, desc: 'Vai mais longe' },
+      { count: 1, cd: -0.2, desc: '+1 capacete, recarga menor' },
+      { dmg: 10, desc: '+10 de dano' },
     ],
   },
   chinelo: {
     name: 'Chinelo Voador',
-    role: 'Tiro rápido nos alvos mais próximos',
+    role: 'Rajada em linha reta na direção da horda',
     levels: [
-      { dmg: 9, cd: 0.9, count: 1, speed: 15, pierce: 1 },
-      { count: 1, desc: '+1 alvo por disparo' },
+      { dmg: 14, cd: 0.9, count: 2, speed: 15, pierce: 1, gap: 0.08, back: 0, range: 9, cone: 0.5 },
+      { count: 1, desc: '+1 chinelo por rajada' },
       { dmg: 5, desc: '+5 de dano' },
       { pierce: 1, desc: 'Atravessa +1 inimigo' },
-      { count: 1, cd: -0.15, desc: '+1 alvo, recarga menor' },
+      { back: 1, cd: -0.15, desc: 'Chinelada de mãe: 2ª rajada no outro lado da horda' },
     ],
   },
   boleto: {
     name: 'Boleto Atrasado',
-    role: 'Área que cobra juros por segundo',
+    role: 'Boletos giram em volta e cobram de quem encosta',
     levels: [
-      { dmg: 5, cd: 3.2, count: 1, radius: 1.3, duration: 3, tick: 0.5 },
-      { radius: 0.3, desc: 'Área maior' },
-      { count: 1, desc: '+1 boleto' },
-      { dmg: 3, desc: '+3 de dano por cobrança' },
-      { duration: 1.5, count: 1, desc: 'Vence mais tarde, +1 boleto' },
+      { dmg: 14, cd: 3.8, count: 2, radius: 1.6, duration: 3.2, spin: 2.6, hitEvery: 0.5 },
+      { count: 1, desc: '+1 boleto girando' },
+      { radius: 0.35, desc: 'Gira mais longe' },
+      { spin: 0.9, dmg: 6, desc: 'Gira mais rápido, +6 de dano' },
+      { count: 2, duration: 0.9, desc: '+2 boletos, giram mais tempo' },
     ],
   },
   carimbo: {
     name: 'Carimbo Oficial',
-    role: 'INDEFERIDO: dano em área e lentidão',
+    role: 'INDEFERIDO cai do céu: dano em área e lentidão',
     levels: [
-      { dmg: 22, cd: 2.6, count: 1, half: 1.0, slow: 0.5, slowT: 2 },
-      { dmg: 10, desc: '+10 de dano' },
+      { dmg: 22, cd: 2.4, count: 1, half: 1.0, slow: 0.5, slowT: 2, fallS: 0.55 },
+      { count: 1, desc: '+1 carimbo de cada vez' },
       { half: 0.3, desc: 'Carimbo maior' },
-      { count: 1, desc: '+1 carimbo' },
-      { cd: -0.6, slowT: 1, desc: 'Recarga menor, lentidão mais longa' },
+      { cd: -0.6, dmg: 8, desc: 'Cai mais vezes, +8 de dano' },
+      { count: 1, slowT: 1, desc: '+1 carimbo, lentidão mais longa' },
     ],
   },
   maleta: {
     name: 'Maleta de Dinheiro',
-    role: 'Arremesso que explode em área',
+    role: 'Sobe em arco, cai de lado e abre em notas',
     levels: [
-      { dmg: 30, cd: 2.8, count: 1, radius: 1.8, range: 7 },
-      { dmg: 12, desc: '+12 de dano' },
-      { radius: 0.4, desc: 'Explosão maior' },
-      { count: 1, desc: '+1 maleta' },
-      { cd: -0.6, dmg: 12, desc: 'Recarga menor, +12 de dano' },
+      { dmg: 40, cd: 2.3, count: 1, radius: 1.7, sideM: 3.6, arcM: 3.4, flightS: 0.85 },
+      { count: 1, desc: '2ª maleta: uma para cada lado' },
+      { radius: 0.5, desc: 'Explosão maior' },
+      { dmg: 20, desc: '+20 de dano' },
+      { cd: -0.6, sideM: 0.8, desc: 'Mais frequente e vai mais longe' },
     ],
   },
   // Habilidades exclusivas de cada trecho (aparecem só nele; quem pega leva para os próximos)
   picole: {
     name: 'Isopor de Picolé',
-    role: 'Onda gelada em volta: a horda fica lenta',
+    role: 'Deixa poças geladas no caminho: quem pisa fica lento',
     onlyIn: 'orla',
     levels: [
-      { dmg: 6, cd: 2.6, radius: 2.2, slow: 0.45, slowT: 1.6 },
-      { radius: 0.4, desc: 'Onda maior' },
-      { slowT: 0.8, desc: 'O gelo dura mais' },
-      { dmg: 6, cd: -0.4, desc: '+6 de dano e mais frequente' },
-      { radius: 0.5, slow: -0.1, desc: 'Onda maior e horda mais lenta' },
+      { dmg: 4, cd: 0.32, radius: 0.75, duration: 2.6, slow: 0.4, freeze: 0, tick: 0.5 },
+      { radius: 0.25, desc: 'Poças maiores' },
+      { duration: 1.4, desc: 'As poças duram mais' },
+      { freeze: 0.2, desc: 'Às vezes congela quem pisa' },
+      { dmg: 3, radius: 0.2, desc: '+3 de dano e poças maiores' },
     ],
   },
   mototaxi: {
     name: 'Mototáxi Amigo',
-    role: 'A moto sobe a viela atropelando a horda',
+    role: 'Faixa vermelha, buzina e a moto rasga a viela',
     onlyIn: 'morro',
     levels: [
-      { dmg: 40, cd: 4.2, speed: 24, lenM: 22, width: 1.0, startM: 9, count: 1 },
-      { dmg: 15, desc: '+15 de dano' },
+      { dmg: 40, cd: 4.2, speed: 24, lenM: 22, width: 1.0, startM: 9, count: 1, warnS: 0.7 },
+      { dmg: 10, desc: '+10 de dano' },
       { width: 0.5, desc: 'Moto mais larga: atropela mais gente' },
       { cd: -1.0, desc: 'Passa mais vezes' },
-      { count: 1, dmg: 15, desc: '+1 mototáxi e +15 de dano' },
+      { count: 1, dmg: 5, desc: '+1 mototáxi e +5 de dano' },
     ],
   },
   microfone: {
     name: 'Megafone da TV',
-    role: 'Onda sonora em volta, empurra a horda',
+    role: 'Círculo sempre ligado: machuca devagar e empurra',
     levels: [
-      { dmg: 6, cd: 1.0, radius: 1.9, knock: 3.2 },
-      { radius: 0.3, desc: 'Alcance maior' },
-      { dmg: 4, desc: '+4 de dano' },
-      { cd: -0.2, desc: 'Pulsa mais rápido' },
-      { radius: 0.4, dmg: 4, desc: 'Alcance maior, +4 de dano' },
+      { dmg: 6, cd: 0.5, radius: 1.9, knock: 2.2 },
+      { radius: 0.3, desc: 'Círculo maior' },
+      { knock: 1.2, desc: 'Empurra mais longe' },
+      { dmg: 3, desc: '+3 de dano' },
+      { radius: 0.4, dmg: 2, desc: 'Círculo ainda maior, +2 de dano' },
+    ],
+  },
+  gato: {
+    name: 'Gato de Luz',
+    role: 'Choque que pula de um inimigo para o outro',
+    levels: [
+      { dmg: 24, cd: 1.4, count: 1, chain: 3, jumpM: 2.6, range: 7, stunS: 0.35 },
+      { chain: 2, desc: 'Pula para +2 inimigos' },
+      { jumpM: 0.8, desc: 'Pula mais longe' },
+      { dmg: 10, desc: '+10 de dano' },
+      { count: 1, desc: 'Dois choques de cada vez' },
+    ],
+  },
+  caramelo: {
+    name: 'Cachorro Caramelo',
+    role: 'O vira-lata corre, morde dois e volta',
+    levels: [
+      { dmg: 40, cd: 1.0, count: 1, speed: 9, range: 7, bark: 0, combo: 2, comboM: 2.5 },
+      { dmg: 15, desc: 'Mordida mais forte' },
+      { speed: 2.5, cd: -0.3, desc: 'Corre mais rápido' },
+      { bark: 2.4, desc: 'AU AU!: a horda em volta recua a cada mordida' },
+      { count: 1, combo: 1, desc: '2º caramelo, e cada um morde 3' },
     ],
   },
   // Evolução (1 no MVP): Capacete nível máximo + Tênis Gasto.
@@ -500,6 +524,16 @@ export const WEAPONS = {
   },
 };
 
+// Detalhes dos padrões das armas (não mudam com o nível).
+export const WEAPON_FX = {
+  orbitaHitR: 0.45, // alcance de cada boleto girando
+  pocasMax: 16, // poças de picolé no chão ao mesmo tempo
+  congelaS: 1.0, // quanto dura o congelamento da poça
+  maletaPierce: 0.5, // dano de quem a maleta atravessa na queda (fração do dano)
+  caochegaM: 0.5, // distância da mordida
+  caoSegueM: 1.0, // o cachorro anda a essa distância do Juninho
+  raioDur: 0.28, // quanto o choque fica visível
+};
 export const EVOLUTIONS = [
   { from: 'capacete', requires: 'tenis', to: 'entrega' },
 ];

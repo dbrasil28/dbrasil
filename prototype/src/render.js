@@ -158,7 +158,7 @@ export class Renderer {
       ctx.globalAlpha = 1;
     }
 
-    this.drawZones(ctx, game, ppu);
+    this.drawZones(ctx, game, ppu, playerPx);
     if (game.world) {
       drawGoalBeacon(ctx, game, cam, ppu, game.t, 'chao'); // anel e luz no destino do trecho
       drawGroundArrows(ctx, game, cam, ppu, game.t); // seta pintada no chão até a saída liberada
@@ -202,6 +202,11 @@ export class Renderer {
     }
     for (const c of game.traffic || []) list.push({ d: cam.depth(c.x, c.y + c.len / 2), k: 'trafego', o: c, x: c.x, y: c.y + c.len / 2 });
     for (const p of game.projectiles) list.push({ d: cam.depth(p.x, p.y) + 0.3, k: 'proj', o: p });
+    for (const z of game.zones) {
+      if (z.kind !== 'orbita') continue;
+      for (const q of z.pts) list.push({ d: cam.depth(q.x, q.y) + 0.3, k: 'orb', o: z, x: q.x, y: q.y, q });
+    }
+    for (const dg of game.dogs || []) list.push({ d: cam.depth(dg.x, dg.y), k: 'dog', o: dg });
     for (const s of game.enemyShots) list.push({ d: cam.depth(s.x, s.y) + 0.3, k: 'shot', o: s });
     for (const b of game.bribes) list.push({ d: cam.depth(b.x, b.y) + 0.3, k: 'bribe', o: b });
     if (settings.gore) for (const g of game.fx.gibs) list.push({ d: cam.depth(g.x, g.y) + (g.landed ? -0.45 : 0.25), k: 'gib', o: g });
@@ -411,6 +416,15 @@ export class Renderer {
             ctx.textAlign = 'center';
             ctx.fillText('!', pt.x, pt.y - h * 1.25 - 4); // acima do carimbo erguido na fúria
           }
+          if (o.frozenT > 0) {
+            // congelado na poça de picolé: bloco de gelo em volta
+            ctx.fillStyle = 'rgba(170,232,255,0.42)';
+            ctx.strokeStyle = 'rgba(230,250,255,0.9)';
+            ctx.lineWidth = 2;
+            roundRect(ctx, pt.x - h * 0.24, pt.y - h * 1.02, h * 0.48, h * 1.04, h * 0.06);
+            ctx.fill();
+            ctx.stroke();
+          }
           if (o.elite && !o.boss) drawHpPip(ctx, pt, h, o.hp / o.maxHp);
           if ((o.type === 'traficante' || o.type === 'chefe_trafico') && o.aimT > 0) drawAim(ctx, o, cam, pt, h, ppu, t); // aviso antes do tiro
           break;
@@ -439,6 +453,12 @@ export class Renderer {
         case 'proj':
           drawProjectile(ctx, o, pt, ppu, cam, playerPx);
           break;
+        case 'orb':
+          drawBoletoGirando(ctx, o, it.q, pt, playerPx, game.t);
+          break;
+        case 'dog':
+          drawCaramelo(ctx, o, pt, playerPx, game.t);
+          break;
         case 'shot':
           if (o.kind === 'bala') drawBullet(ctx, o, pt, ppu, playerPx);
           else drawPaper(ctx, pt, ppu, o.spin, playerPx);
@@ -459,6 +479,7 @@ export class Renderer {
     pt.y -= game.player.z * ppu;
     this.drawPlayer(ctx, game, pt, playerPx, 0.38);
 
+    this.drawSky(ctx, game, ppu, playerPx);
     this.drawFx(ctx, game, ppu, playerPx);
     if (game.map.bounded) this.drawAtmosfera(ctx, cam);
     if (game.world) {
@@ -604,10 +625,179 @@ export class Renderer {
     ctx.setLineDash([]);
   }
 
-  drawZones(ctx, game, ppu) {
+  /** Por cima de todos: o carimbão descendo do céu e o choque do Gato de Luz. */
+  drawSky(ctx, game, ppu, playerPx) {
     const cam = game.camera;
     for (const z of game.zones) {
+      if (z.kind !== 'stamp' || z.done) continue;
+      const k = Math.min(1, z.t / z.delay);
+      const alt = (1 - k * k) * 9; // metros acima do chão
       cam.toScreen(z.x, z.y, pt);
+      const X = pt.x;
+      const Y = pt.y - alt * ppu;
+      const u = z.half * ppu;
+      ctx.fillStyle = '#5a341e';
+      ctx.fillRect(X - u * 0.14, Y - u * 1.5, u * 0.28, u * 0.8); // cabo
+      ctx.fillStyle = '#2e2019';
+      ctx.beginPath();
+      ctx.arc(X, Y - u * 1.55, u * 0.26, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#8f2424';
+      ctx.fillRect(X - u, Y - u * 0.72, u * 2, u * 0.56); // corpo do carimbo
+      ctx.fillStyle = '#e5252f';
+      ctx.fillRect(X - u, Y - u * 0.18, u * 2, u * 0.18); // borracha
+      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(X - u, Y - u * 0.72, u * 2, u * 0.74);
+    }
+    for (const b of game.fx.bolts) {
+      const a = 1 - b.t / b.dur;
+      // a forma do raio muda a cada quadro (faísca), presa nos pontos do choque
+      let sd = b.seed + Math.floor(b.t * 40) * 13;
+      const rj = () => {
+        sd = (sd * 16807) % 2147483647;
+        return (sd / 2147483647 - 0.5) * 2;
+      };
+      for (let pass = 0; pass < 2; pass++) {
+        ctx.strokeStyle = pass ? `rgba(255,255,255,${a})` : `rgba(255,210,31,${a * 0.75})`;
+        ctx.lineWidth = pass ? 1.6 : 6;
+        ctx.beginPath();
+        b.pts.forEach((q, i) => {
+          cam.toScreen(q.x, q.y, pt);
+          const X = pt.x;
+          const Y = pt.y - playerPx * 0.55;
+          if (!i) {
+            ctx.moveTo(X, Y);
+            return;
+          }
+          cam.toScreen(b.pts[i - 1].x, b.pts[i - 1].y, pt2);
+          const QX = pt2.x;
+          const QY = pt2.y - playerPx * 0.55;
+          for (let k = 1; k <= 5; k++) {
+            const t = k / 5;
+            const j = k < 5 ? playerPx * 0.09 : 0;
+            ctx.lineTo(QX + (X - QX) * t + rj() * j, QY + (Y - QY) * t + rj() * j);
+          }
+        });
+        ctx.stroke();
+      }
+    }
+  }
+
+  drawZones(ctx, game, ppu, playerPx = ppu * 1.6) {
+    const cam = game.camera;
+    const p = game.player;
+    // Megafone: o círculo fica sempre no chão, com as ondas de som saindo
+    if (p.auraR > 0 && p.weapons.some((w) => w.id === 'microfone')) {
+      cam.toScreen(p.x, p.y, pt);
+      const R = p.auraR * ppu;
+      ctx.fillStyle = 'rgba(255,210,31,0.1)';
+      ctx.strokeStyle = 'rgba(255,210,31,0.75)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.ellipse(pt.x, pt.y, R, R * cam.k, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      for (let i = 0; i < 3; i++) {
+        const k = (game.t * 1.6 + i / 3) % 1;
+        ctx.strokeStyle = `rgba(255,210,31,${0.55 * (1 - k)})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(pt.x, pt.y, R * k, R * k * cam.k, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      const pk = Math.min(1, (game.t - (p.auraPulse || 0)) / 0.25);
+      if (pk < 1) {
+        ctx.strokeStyle = `rgba(255,240,170,${0.8 * (1 - pk)})`;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.ellipse(pt.x, pt.y, R, R * cam.k, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+    // Mototáxi: faixa vermelha piscando antes da moto passar
+    for (const pr of game.projectiles) {
+      if (pr.kind !== 'moto' || !(pr.delay > 0)) continue;
+      // a faixa é um retângulo no chão: com a câmera oblíqua ela vira um paralelogramo na tela
+      ctx.beginPath();
+      const cantos = [[-1, 0], [1, 0], [1, 1], [-1, 1]];
+      for (let c = 0; c < 4; c++) {
+        cam.toScreen(pr.x + cantos[c][0] * pr.width, pr.y0 - cantos[c][1] * pr.lenM, pt);
+        if (c === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = `rgba(229,37,47,${0.1 + 0.12 * Math.abs(Math.sin(pr.delay * 22))})`;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,74,82,0.8)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([12, 10]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    for (const z of game.zones) {
+      cam.toScreen(z.x, z.y, pt);
+      if (z.kind === 'orbita') {
+        // trilha dos boletos no chão
+        const a = z.t < 0.2 ? z.t / 0.2 : z.t > z.dur - 0.3 ? Math.max(0, (z.dur - z.t) / 0.3) : 1;
+        ctx.strokeStyle = `rgba(244,226,122,${0.22 * a})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(pt.x, pt.y, z.r * ppu, z.r * ppu * cam.k, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        // rastro de cada boleto, mais forte perto dele
+        const dir = z.spin >= 0 ? 1 : -1;
+        ctx.lineCap = 'round';
+        for (const q of z.pts) {
+          for (let s = 0; s < 6; s++) {
+            const a0 = q.a - dir * s * 0.16;
+            const a1 = a0 - dir * 0.16;
+            cam.toScreen(z.x + Math.cos(a0) * z.r, z.y + Math.sin(a0) * z.r, trailA);
+            cam.toScreen(z.x + Math.cos(a1) * z.r, z.y + Math.sin(a1) * z.r, trailB);
+            ctx.strokeStyle = `rgba(255,236,140,${(0.55 * a * (6 - s)) / 6})`;
+            ctx.lineWidth = Math.max(2, ppu * 0.22 * (1 - s / 7));
+            ctx.beginPath();
+            ctx.moveTo(trailA.x, trailA.y - playerPx * 0.5);
+            ctx.lineTo(trailB.x, trailB.y - playerPx * 0.5);
+            ctx.stroke();
+          }
+        }
+        ctx.lineCap = 'butt';
+        continue;
+      }
+      if (z.kind === 'poca') {
+        // poça de picolé derretido: azul gelado com o palito, some no fim
+        const a = Math.min(1, z.t / 0.15, (z.dur - z.t) / 0.6);
+        const R = z.r * ppu;
+        ctx.globalAlpha = Math.max(0, a);
+        ctx.fillStyle = 'rgba(143,216,255,0.36)';
+        ctx.strokeStyle = 'rgba(220,245,255,0.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(pt.x, pt.y, R, R * cam.k, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.save();
+        ctx.translate(pt.x, pt.y);
+        ctx.rotate(z.rot);
+        ctx.fillStyle = '#e6cf9a';
+        ctx.fillRect(-R * 0.05, -R * 0.35, R * 0.1, R * 0.7);
+        ctx.fillStyle = 'rgba(255,140,190,0.8)';
+        ctx.fillRect(-R * 0.18, -R * 0.42, R * 0.36, R * 0.2);
+        ctx.restore();
+        ctx.globalAlpha = 1;
+        continue;
+      }
+      if (z.kind === 'stamp' && !z.done) {
+        // sombra do carimbão crescendo no chão enquanto ele cai
+        const k = Math.min(1, z.t / z.delay);
+        const R = z.half * ppu * (0.55 + 0.6 * k);
+        ctx.fillStyle = `rgba(0,0,0,${0.18 + 0.32 * k})`;
+        ctx.beginPath();
+        ctx.ellipse(pt.x, pt.y, R, R * cam.k, 0, 0, Math.PI * 2);
+        ctx.fill();
+        continue;
+      }
       if (z.kind === 'boleto') {
         const a = z.t < 0.2 ? z.t / 0.2 : z.t > z.dur - 0.4 ? Math.max(0, (z.dur - z.t) / 0.4) : 1;
         ctx.globalAlpha = a;
@@ -629,8 +819,7 @@ export class Renderer {
       } else if (z.kind === 'stamp') {
         const h = z.half;
         const quad = worldQuad(cam, z.x, z.y, h);
-        const k = Math.min(1, z.t / z.delay);
-        ctx.globalAlpha = z.done ? Math.max(0, 1 - (z.t - z.delay) / (z.life - z.delay)) : 0.35 + k * 0.4;
+        ctx.globalAlpha = Math.max(0, 1 - (z.t - z.delay) / (z.life - z.delay));
         ctx.strokeStyle = '#e5252f';
         ctx.lineWidth = z.done ? 6 : 3; // carimbo bem marcado no chão
         ctx.fillStyle = z.done ? 'rgba(229,37,47,0.22)' : 'rgba(229,37,47,0.08)';
@@ -797,6 +986,18 @@ export class Renderer {
       const y = pt.y - playerPx * 0.9 - n.t * 30;
       ctx.strokeText(String(n.v), pt.x, y);
       ctx.fillText(String(n.v), pt.x, y);
+    }
+    for (const wd of game.fx.words) {
+      cam.toScreen(wd.x, wd.y, pt);
+      const k = wd.t / wd.dur;
+      ctx.globalAlpha = 1 - k * k;
+      ctx.font = `900 ${Math.round(Math.max(14, playerPx * 0.26))}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
+      ctx.fillStyle = wd.color;
+      ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+      ctx.lineWidth = 4;
+      const y = pt.y - playerPx * 1.25 - k * playerPx * 0.35;
+      ctx.strokeText(wd.txt, pt.x, y);
+      ctx.fillText(wd.txt, pt.x, y);
     }
     ctx.globalAlpha = 1;
   }
@@ -1318,6 +1519,7 @@ function drawGib(ctx, g, pt, P) {
 }
 
 function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
+  if (o.delay > 0) return; // chinelo na fila da rajada ou moto ainda no aviso
   if (o.kind === 'moto') {
     // mototáxi provisório: moto vista de 3/4 com o piloto de colete, rastro de velocidade
     const s = playerPx;
@@ -1449,6 +1651,80 @@ function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
     ctx.fill();
     drawIconAt(ctx, 'maleta', pt.x, pt.y - o.h * ppu - s * 0.5, s * 1.4);
   }
+}
+
+/** Boleto Atrasado girando em volta do Juninho, à altura do peito. */
+const trailA = { x: 0, y: 0 };
+const trailB = { x: 0, y: 0 };
+
+function drawBoletoGirando(ctx, z, q, pt, playerPx, t) {
+  const a = z.t < 0.2 ? z.t / 0.2 : z.t > z.dur - 0.3 ? Math.max(0, (z.dur - z.t) / 0.3) : 1;
+  const s = Math.max(14, playerPx * 0.46);
+  const y = pt.y - playerPx * 0.5;
+  ctx.globalAlpha = a;
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(pt.x, pt.y, s * 0.35, s * 0.12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.save();
+  ctx.translate(pt.x, y);
+  ctx.rotate(Math.sin(t * 6 + q.a * 3) * 0.3);
+  const im = images.w_boleto;
+  if (im) ctx.drawImage(im, -s / 2, -s / 2, s, (s * im.height) / im.width);
+  else {
+    ctx.fillStyle = '#f4e27a';
+    ctx.fillRect(-s * 0.35, -s * 0.45, s * 0.7, s * 0.9);
+    ctx.fillStyle = '#222';
+    for (let k = 0; k < 7; k++) ctx.fillRect(-s * 0.28 + k * s * 0.08, s * 0.12, k % 2 ? 1.5 : 3, s * 0.2);
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+/** Cachorro Caramelo (provisório, até a arte): vira-lata caramelo de rabo abanando. */
+function drawCaramelo(ctx, d, pt, playerPx, t) {
+  const u = playerPx * 0.55;
+  const f = (d.fx || 1) >= 0 ? 1 : -1;
+  const run = d.st !== 'segue';
+  const hop = run ? Math.abs(Math.sin(t * 18)) * u * 0.06 : 0;
+  ctx.save();
+  ctx.translate(pt.x, pt.y);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, u * 0.42, u * 0.12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.translate(0, -hop);
+  ctx.fillStyle = '#c8873e';
+  const leg = run ? Math.sin(t * 18) * u * 0.06 : 0;
+  ctx.fillRect(-u * 0.3 + leg, -u * 0.32, u * 0.08, u * 0.32);
+  ctx.fillRect(-u * 0.14 - leg, -u * 0.32, u * 0.08, u * 0.32);
+  ctx.fillRect(u * 0.12 + leg, -u * 0.32, u * 0.08, u * 0.32);
+  ctx.fillRect(u * 0.26 - leg, -u * 0.32, u * 0.08, u * 0.32);
+  ctx.beginPath();
+  ctx.ellipse(0, -u * 0.42, u * 0.38, u * 0.16, 0, 0, Math.PI * 2); // corpo
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(f * u * 0.4, -u * 0.6, u * 0.16, u * 0.13, 0, 0, Math.PI * 2); // cabeça
+  ctx.fill();
+  ctx.fillStyle = '#a86a2c';
+  ctx.beginPath();
+  ctx.ellipse(f * u * 0.33, -u * 0.72, u * 0.06, u * 0.09, f * 0.5, 0, Math.PI * 2); // orelha
+  ctx.fill();
+  ctx.fillStyle = '#3a2615';
+  ctx.fillRect(f * u * 0.53 - u * 0.03, -u * 0.62, u * 0.06, u * 0.05); // focinho
+  ctx.fillStyle = '#e8c79a';
+  ctx.beginPath();
+  ctx.ellipse(f * u * 0.08, -u * 0.36, u * 0.18, u * 0.07, 0, 0, Math.PI * 2); // barriga clara
+  ctx.fill();
+  ctx.strokeStyle = '#c8873e';
+  ctx.lineWidth = Math.max(2, u * 0.06);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-f * u * 0.34, -u * 0.48);
+  ctx.lineTo(-f * u * 0.52, -u * 0.72 + Math.sin(t * 16) * u * 0.08); // rabo abanando
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+  ctx.restore();
 }
 
 /** Papelada do Burocrata em voo: a folha da arte girando à altura do peito, com sombra no chão. */
@@ -1684,6 +1960,46 @@ export function drawIcon(g, kind, S) {
       g.fillRect(c - S * 0.26, c - S * 0.06, S * 0.52, S * 0.14);
       g.fillStyle = '#ff7a1a';
       g.fillRect(c - S * 0.06, c - S * 0.36, S * 0.16, S * 0.3);
+      break;
+    case 'gato':
+      // fio do gato de luz com a faísca
+      g.strokeStyle = '#1b1b1f';
+      g.lineWidth = S * 0.06;
+      g.beginPath();
+      g.moveTo(S * 0.12, S * 0.2);
+      g.quadraticCurveTo(S * 0.5, S * 0.5, S * 0.42, S * 0.86);
+      g.stroke();
+      g.fillStyle = '#ffd21f';
+      g.beginPath();
+      g.moveTo(S * 0.62, S * 0.1);
+      g.lineTo(S * 0.42, S * 0.48);
+      g.lineTo(S * 0.58, S * 0.48);
+      g.lineTo(S * 0.4, S * 0.9);
+      g.lineTo(S * 0.78, S * 0.4);
+      g.lineTo(S * 0.6, S * 0.4);
+      g.lineTo(S * 0.78, S * 0.1);
+      g.closePath();
+      g.fill();
+      g.strokeStyle = 'rgba(0,0,0,0.65)';
+      g.lineWidth = Math.max(1.5, S * 0.04);
+      g.stroke();
+      break;
+    case 'caramelo':
+      g.fillStyle = '#c8873e';
+      g.beginPath();
+      g.ellipse(c - S * 0.06, c + S * 0.08, S * 0.28, S * 0.15, 0, 0, Math.PI * 2);
+      g.fill();
+      g.beginPath();
+      g.arc(c + S * 0.24, c - S * 0.1, S * 0.15, 0, Math.PI * 2);
+      g.fill();
+      g.fillRect(c - S * 0.28, c + S * 0.12, S * 0.07, S * 0.22);
+      g.fillRect(c + S * 0.1, c + S * 0.12, S * 0.07, S * 0.22);
+      g.fillStyle = '#a86a2c';
+      g.beginPath();
+      g.ellipse(c + S * 0.18, c - S * 0.24, S * 0.05, S * 0.09, 0.5, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = '#3a2615';
+      g.fillRect(c + S * 0.36, c - S * 0.12, S * 0.05, S * 0.05);
       break;
     case 'pastel':
       g.fillStyle = '#e8b04a';

@@ -8,7 +8,7 @@ import {
   ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO,
 } from './config.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside, routeRemaining } from './mundo.js';
-import { fireWeapon, updateProjectiles, updateZones } from './weapons.js';
+import { fireWeapon, updateProjectiles, updateZones, updateDogs } from './weapons.js';
 import { rollOptions, applyOption, playerStats } from './upgrades.js';
 
 const CHUNK = 10; // metros por chunk de cenário
@@ -86,7 +86,8 @@ export class Game {
     this.lots = [];
     this.gems = [];
     this.pickups = [];
-    this.fx = { particles: [], rings: [], numbers: [], decals: [], woken: [], gibs: [] };
+    this.fx = { particles: [], rings: [], numbers: [], decals: [], woken: [], gibs: [], bolts: [], words: [] };
+    this.dogs = []; // Cachorro Caramelo
     this.fxRng = makeRng((this.seed ^ 0x9e3779b9) >>> 0); // sorteio só dos efeitos: não mexe no da partida
     this.outbox = [];
 
@@ -141,6 +142,7 @@ export class Game {
       levelUpTimes: [],
       killsByType: {},
       damageBySource: {},
+      damageByWeapon: {}, // dano causado por cada habilidade (para o balanceamento)
       decisions: [],
       peakEnemies: 0,
       causeOfDeath: null,
@@ -453,6 +455,8 @@ export class Game {
     if (e.dead) return;
     let dmg = amount;
     if (e.elite) dmg *= this.stats.eliteDmgMul;
+    const dw = this.metrics.damageByWeapon;
+    dw[source] = (dw[source] || 0) + Math.min(dmg, Math.max(0, e.hp));
     e.hp -= dmg;
     e.flash = 0.09;
     const mass = e.boss ? 0.08 : e.elite ? 0.35 : 1;
@@ -720,6 +724,12 @@ export class Game {
     this.shake(0.4);
   }
 
+  /** Palavra curta flutuando sobre o ponto (PÁ!, BI-BI!, NHAC!, AU AU!). */
+  word(x, y, txt, color) {
+    if (this.fx.words.length > 12) this.fx.words.shift();
+    this.fx.words.push({ x, y, txt, color, t: 0, dur: 0.6 });
+  }
+
   /** Um capacete voltou para a mão (animação de pegar). */
   helmetBack() {
     const p = this.player;
@@ -803,6 +813,7 @@ export class Game {
     this.updateTraffic(dt);
     updateProjectiles(this, dt);
     updateZones(this, dt);
+    updateDogs(this, dt);
     this.updateEnemyShots(dt);
     this.updateBribes(dt);
     this.updateLots(dt);
@@ -1028,6 +1039,7 @@ export class Game {
       const ux = dtx / dl;
       const uy = dty / dl;
       if (e.atkT > 0) e.atkT -= dt;
+      if (e.frozenT > 0) e.frozenT -= dt;
       const spd = e.speed * (e.slowT > 0 ? e.slowF : 1) * (this.over ? 0.2 : 1);
       let mx = ux;
       let my = uy;
@@ -1391,6 +1403,11 @@ export class Game {
     if (this.lures.length && this.lures[0].t >= L.durS) this.lures = this.lures.filter((q) => q.t < L.durS);
   }
 
+  /** Maleta de Dinheiro do Juninho abrindo no chão: notas voando (só efeito, sorteio dos efeitos). */
+  moneyBurst(x, y, n) {
+    this.moneyBits({ seed: (this.fxRng() * 4294967296) >>> 0 }, x, y, 0.4, n, 3);
+  }
+
   /** Notas de dinheiro (só efeito): sorteio próprio da maleta, para não mexer no sorteio da partida. */
   moneyBits(b, x, y, z, n, speed) {
     const parts = this.fx.particles;
@@ -1750,6 +1767,8 @@ export class Game {
       }
     }
     for (const r of fx.rings) r.t += dt;
+    for (const b of fx.bolts) b.t += dt;
+    for (const w of fx.words) w.t += dt;
     for (const n of fx.numbers) n.t += dt;
     for (const d of fx.decals) d.t += dt;
     // pedaços: voam, deixam rastro de sangue, quicam no chão e param com uma mancha
@@ -1783,6 +1802,8 @@ export class Game {
     if (fx.gibs.length && fx.gibs[0].t > GORE.gibLife) fx.gibs = fx.gibs.filter((g) => g.t <= GORE.gibLife);
     fx.particles = fx.particles.filter((q) => q.t < q.life);
     fx.rings = fx.rings.filter((r) => r.t < r.dur);
+    if (fx.bolts.length) fx.bolts = fx.bolts.filter((b) => b.t < b.dur);
+    if (fx.words.length) fx.words = fx.words.filter((w) => w.t < w.dur);
     fx.numbers = fx.numbers.filter((n) => n.t < 0.7);
     fx.decals = fx.decals.filter((d) => d.t < GORE.decalLife);
   }

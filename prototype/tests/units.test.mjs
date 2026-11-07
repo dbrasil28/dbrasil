@@ -98,7 +98,7 @@ test('evolução aparece com Capacete no máximo + Tênis e substitui a arma', (
 test('atributos da arma somam os níveis', () => {
   const s1 = weaponStats('chinelo', 1);
   const s5 = weaponStats('chinelo', 5);
-  assert.equal(s1.count, 1);
+  assert.equal(s1.count, 2); // rajada começa com 2 chinelos
   assert.equal(s5.count, 3);
   assert.equal(s5.pierce, 2);
   assert.ok(close(s5.cd, 0.75));
