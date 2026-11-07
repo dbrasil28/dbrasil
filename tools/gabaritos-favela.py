@@ -9,6 +9,7 @@ preencher, na escala do pedido (150 px por metro), com a grade de 1 m no chão.
   python3 -I tools/gabaritos-favela.py docs/arte/gabaritos_favela
 """
 import math
+import json
 import sys
 from pathlib import Path
 
@@ -63,6 +64,9 @@ def escada(x0, x1, n0, n1, h, degraus, lado_visivel=True):
         perfil.append((x1, n1, 0.0))
         faces.append(('x', x1, perfil, COR['lado_escada']))
     return faces
+
+
+META = {}
 
 
 class Tela:
@@ -148,6 +152,10 @@ class Tela:
     def salvar(self, caminho):
         self.img.save(caminho)
         print(f'{caminho}  {self.w}×{self.h}')
+        # silhueta (o que a arte tem que cobrir) e onde fica o ponto (0, 0, 0) do mundo na imagem
+        if '--mascaras' in sys.argv:  # para conferir a arte: python3 -I tools/gabaritos-favela.py <pasta> --mascaras
+            Image.fromarray(((self.ids >= 0) * 255).astype(np.uint8)).save(Path(caminho).with_suffix('.mascara.png'))
+        META[Path(caminho).stem] = {'canvas': [self.w, self.h], 'origem_px': [round(self.ox, 2), round(self.oy, 2)], 'px_por_m': self.s}
 
 
 def pontos(faces):
@@ -197,7 +205,8 @@ def cena(destino):
 
 
 def main():
-    destino = Path(sys.argv[1] if len(sys.argv) > 1 else 'docs/arte/gabaritos_favela')
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    destino = Path(args[0] if args else 'docs/arte/gabaritos_favela')
     destino.mkdir(parents=True, exist_ok=True)
     # casa com laje 5 × 5 m, 3,2 m de altura; escada 1,3 × 5 m, 18 degraus
     peca(destino, 'casa_laje_dir', caixa(0, 5, 0, 5, 0, 3.2) + escada(5, 6.3, 0, 5, 3.2, 18), chao_ret=(-1, 7.3, -1, 6))
@@ -216,6 +225,7 @@ def main():
     # objeto em pé: caixa de 1 m, para todos os objetos da lista
     peca(destino, 'objeto_caixa_1m', caixa(0, 1, 0, 1, 0, 1), chao_ret=(-0.5, 1.5, -0.5, 1.5))
     cena(destino)
+    (destino / 'gabaritos.json').write_text(json.dumps(META, indent=1, ensure_ascii=False) + '\n', encoding='utf-8')
 
 
 if __name__ == '__main__':

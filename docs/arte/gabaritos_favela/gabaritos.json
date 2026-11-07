@@ -1,0 +1,123 @@
+{
+ "casa_laje_dir": {
+  "canvas": [
+   1830,
+   1523
+  ],
+  "origem_px": [
+   342.37,
+   1246.81
+  ],
+  "px_por_m": 150
+ },
+ "casa_laje_esq": {
+  "canvas": [
+   1830,
+   1523
+  ],
+  "origem_px": [
+   537.37,
+   1246.81
+  ],
+  "px_por_m": 150
+ },
+ "fachada_a": {
+  "canvas": [
+   1417,
+   1425
+  ],
+  "origem_px": [
+   308.65,
+   1183.09
+  ],
+  "px_por_m": 150
+ },
+ "fachada_b": {
+  "canvas": [
+   1507,
+   1965
+  ],
+  "origem_px": [
+   353.65,
+   1678.09
+  ],
+  "px_por_m": 150
+ },
+ "fachada_c": {
+  "canvas": [
+   1597,
+   2505
+  ],
+  "origem_px": [
+   398.65,
+   2173.09
+  ],
+  "px_por_m": 150
+ },
+ "barraco_a": {
+  "canvas": [
+   1153,
+   1220
+  ],
+  "origem_px": [
+   291.57,
+   995.27
+  ],
+  "px_por_m": 150
+ },
+ "barraco_b": {
+  "canvas": [
+   1153,
+   1220
+  ],
+  "origem_px": [
+   291.57,
+   995.27
+  ],
+  "px_por_m": 150
+ },
+ "parede_viela_esq": {
+  "canvas": [
+   1377,
+   1425
+  ],
+  "origem_px": [
+   568.72,
+   1305.96
+  ],
+  "px_por_m": 150
+ },
+ "telhado_viela_dir": {
+  "canvas": [
+   1377,
+   1425
+  ],
+  "origem_px": [
+   568.72,
+   1305.96
+  ],
+  "px_por_m": 150
+ },
+ "objeto_caixa_1m": {
+  "canvas": [
+   456,
+   411
+  ],
+  "origem_px": [
+   132.95,
+   310.86
+  ],
+  "px_por_m": 150
+ },
+ "cena_exemplo": {
+  "canvas": [
+   1424,
+   1628
+  ],
+  "origem_px": [
+   420.27,
+   1567.09
+  ],
+  "px_por_m": 40
+ }
+}

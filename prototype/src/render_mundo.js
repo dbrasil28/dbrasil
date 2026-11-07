@@ -1,6 +1,7 @@
 // Desenho provisório (em código) do mundo da rota: lajes com escada, objetos de cena, boteco,
 // mira do traficante e balas. Sai quando a arte do guia chegar (o tapume e o holofote estão em render_carreira.js).
 import { OBJ_ALTURA, OBJ_ESCALA, PLACES } from './config.js';
+import { drawPecaFavela } from './render_favela.js';
 import { inside } from './mundo.js';
 import { images } from './sprites.js';
 import { ART, ART_S, artKey } from './arte_cenario.js';
@@ -47,8 +48,12 @@ function drawSalvaVidasArte(ctx, P, cam, ppu, im) {
 }
 
 /** Laje, terraço ou torre: tampo na altura h e a fachada da frente. */
+const casaLajePeca = (P) => (P.stair.x1 <= P.x0 + 0.01 ? 'casa_laje_esq' : 'casa_laje_dir');
+
 export function drawPlatform(ctx, P, cam, ppu) {
   if (P.kind === 'salva_vidas' && images.salva_vidas) return drawSalvaVidasArte(ctx, P, cam, ppu, images.salva_vidas);
+  // casa com laje da favela: a arte já traz a escada, do lado em que ela fica
+  if (P.kind === 'laje_casa' && drawPecaFavela(ctx, casaLajePeca(P), P.x0, P.y1, cam, ppu)) return;
   const hp = P.h * ppu;
   const col = PLAT_COLORS[P.kind] || PLAT_COLORS.laje_casa;
   // fachada da frente (do chão até o tampo)
@@ -86,6 +91,7 @@ export function drawPlatform(ctx, P, cam, ppu) {
 /** Escada: rampa com degraus do chão até o tampo da laje. */
 export function drawStair(ctx, P, cam, ppu) {
   if (P.kind === 'salva_vidas' && images.salva_vidas) return; // a escada já está no desenho da torre
+  if (P.kind === 'laje_casa' && images[`fav_${casaLajePeca(P)}`]) return; // a escada já está na arte da casa
   const S = P.stair;
   const hp = P.h * ppu;
   const z = (x, y, k, out) => {

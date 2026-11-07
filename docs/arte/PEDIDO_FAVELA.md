@@ -146,3 +146,13 @@ A minha recomendação é o Paredão de som, que combina com o Baile e não tem 
 7. **Paredes e telhados das vielas** (`parede_viela_esq` e `telhado_viela_dir`), com os gabaritos.
 
 Quando cada pacote chegar, eu recorto, meço o ângulo contra o chão do jogo e coloco no lugar do provisório.
+
+## 8. O que já está no jogo (pacote v2, 07/11/2026)
+
+Conferido contra os gabaritos antes de entrar: as nove construções cobrem de 96% a 99% da forma, sem faltar nada, e as bordas de profundidade dão de 18,0° a 19,3° (o jogo usa 18°). Cada peça entra inteira, só na escala.
+
+- **Casas em volta do caminho** (`prototype/src/favela.js`, desenho em `render_favela.js`): nos dois lados de cada viela, escadaria e pracinha, em módulos de 6 m (`parede_viela_esq` à esquerda, `telhado_viela_dir` à direita); o último módulo de cada lado, mais curto, é cortado no fundo pela silhueta da caixa. No alto de cada pedaço, menos na passagem para o de cima, entram as fachadas a, b e c sorteadas, e barracos a partir das vielas mais altas. As casas a oeste do caminho ficam atrás de quem anda; as a leste entram na ordem pela frente, e por isso o telhado da direita cobre cerca de 1 m da viela, como na câmera do jogo.
+- **Casa com laje:** a arte com a escada do lado certo substitui o desenho em código; subir e descer continua igual.
+- **Objetos:** churrasqueira, varal, bandeira no mastro, paredão de som, sofá velho e cadeiras empilhadas nas pracinhas; lata com planta nas vielas; fios do gatonet e bandeirinhas atravessando as vielas; a placa de parede com o nome escrito pelo jogo.
+
+**Ainda pendente:** o chão (cimento, degraus, laje e telhados vistos de cima), o lixo do chão, os moradores, o Cracudo, o Trombadinha, o Mototaxista, os efeitos e a relíquia. Cada lado da viela tem uma arte só e ela se repete a cada 6 m: duas ou três variações de `parede_viela_esq` e `telhado_viela_dir` deixariam a viela menos repetida.

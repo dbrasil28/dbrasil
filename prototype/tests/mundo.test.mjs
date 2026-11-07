@@ -260,3 +260,27 @@ test('andando de verdade (passos curtos), o Juninho atravessa todas as emendas d
   }
   assert.ok(f.y > g2.world.orlaTop, 'passou pelo tapume fechado');
 });
+
+test('favela: casas dos dois lados de cada pedaço do Morro, sem entrar no chão do caminho', () => {
+  const g = new Game({ ...defaultSettings(), elenco: false, aberta: false }, { seed: 3 });
+  const w = g.world;
+  assert.ok(w.casas && w.casas.length > 40, 'poucas casas');
+  for (const c of w.casas) {
+    for (let a = 0.1; a < 1; a += 0.2) {
+      for (let b = 0.1; b < 1; b += 0.2) {
+        const x = c.x0 + (c.x1 - c.x0) * a;
+        const y = c.y0 + (c.y1 - c.y0) * b;
+        const dentro = w.path.some((r) => r.kind !== 'orla' && x > r.x0 + 0.1 && x < r.x1 - 0.1 && y > r.y0 + 0.1 && y < r.y1 - 0.1);
+        assert.ok(!dentro, `${c.peca} em (${x.toFixed(1)}, ${y.toFixed(1)}) entra no caminho`);
+      }
+    }
+  }
+  w.path.slice(1).forEach((k, i) => {
+    const lado = (peca, x) => w.casas.some((c) => c.peca === peca && Math.abs((peca === 'parede_viela_esq' ? c.x1 : c.x0) - x) < 0.01 && c.y1 > k.y0 && c.y0 < k.y1);
+    assert.ok(lado('parede_viela_esq', k.x0), `pedaço ${i + 1} sem parede à esquerda`);
+    assert.ok(lado('telhado_viela_dir', k.x1), `pedaço ${i + 1} sem casa à direita`);
+  });
+  // a oeste do caminho a casa fica atrás de quem anda; a leste, entra na ordem pela frente
+  assert.ok(w.casas.filter((c) => c.peca === 'parede_viela_esq').every((c) => c.lado === 'fundo'));
+  assert.ok(w.casas.filter((c) => c.peca === 'telhado_viela_dir').every((c) => c.lado === 'frente'));
+});

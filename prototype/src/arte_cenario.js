@@ -37,6 +37,14 @@ export const ART = {
   tambor: { w: 0.6, d: 0.6, h: 0.9, padX: 0.5, top: 2.2, bot: 0.3, files: ['a'] },
   entulho: { w: 1.3, d: 1.0, h: 0.7, padX: 0.4, top: 1.8, bot: 0.3, files: ['a'], espelha: true },
   pneus: { w: 0.85, d: 0.8, h: 0.6, padX: 0.35, top: 1.6, bot: 0.3, files: ['a'] },
+  // favela (pacote v2, docs/arte/PEDIDO_FAVELA.md): no ângulo do jogo, reamostradas para 128 px por metro
+  churrasqueira: { w: 0.8, d: 0.8, h: 0.95, padX: 0.22, top: 1.71, bot: 0.09, files: ['a'], pasta: 'favela' },
+  varal: { w: 4.0, d: 0.2, h: 1.9, padX: 0.5, top: 2.74, bot: 0.14, files: ['a'], pasta: 'favela' },
+  bandeira: { w: 0.2, d: 0.2, h: 3.4, padX: 0.24, top: 3.76, bot: 0.2, files: ['a'], pasta: 'favela' }, // no mastro de cano
+  paredao: { w: 2.0, d: 0.8, h: 1.8, padX: 0.35, top: 2.59, bot: 0.14, files: ['a'], pasta: 'favela' },
+  sofa: { w: 1.8, d: 0.8, h: 0.8, padX: 0.12, top: 1.48, bot: 0.07, files: ['a'], pasta: 'favela' },
+  cadeiras: { w: 0.6, d: 0.6, h: 1.4, padX: 0.15, top: 1.91, bot: 0.09, files: ['a'], pasta: 'favela' },
+  vaso: { w: 0.4, d: 0.4, h: 0.8, padX: 0.11, top: 1.18, bot: 0.06, files: ['a'], pasta: 'favela' },
   // barracas soltas no meio do calçadão: o retângulo é o balcão. placa: centro x e y, largura (px na imagem)
   // e inclinação (quanto a placa desce por px para a direita) da placa em branco do toldo, onde o jogo
   // escreve o nome do lugar seguindo a inclinação dela
@@ -46,7 +54,7 @@ export const ART = {
 };
 
 export const artKey = (kind, file) => `cen_${kind}_${file}`;
-export const artPath = (kind, file) => `assets/cenario/orla/${kind}_${file}.webp`;
+export const artPath = (kind, file) => `assets/cenario/${ART[kind].pasta || 'orla'}/${kind}_${file}.webp`;
 
 /** Escolhe a variação pelo número fixo do objeto (0 a 1). */
 export const artFile = (kind, v) => {

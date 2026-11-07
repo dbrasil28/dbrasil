@@ -526,7 +526,7 @@ export function orlaDecor(game, b, out) {
   const m = game.map;
   const w = game.world;
   // fachadas viradas para a câmera no alto de cada pedaço da rota (pichação, cartazes, bandeira)
-  if (w && w.fachadas) for (const f of w.fachadas) if (f.y >= b.minY && f.y <= b.maxY) out.push({ kind: 'fachada', x: f.x0, y: f.y, f });
+  if (w && w.fachadas) for (const f of w.fachadas) if (f.y >= b.minY && f.y <= b.maxY && (f.orla || !images.fav_fachada_a)) out.push({ kind: 'fachada', x: f.x0, y: f.y, f }); // no morro, as casas de arte (favela.js) ficam no lugar
   // prédios da borda esquerda (altos: entram no bloco mesmo com a base bem abaixo dele)
   if (w && w.predios) for (const pr of w.predios) if (pr.y1 >= b.minY && pr.y1 <= b.maxY + 60) out.push({ kind: 'predio', x: pr.x0, y: pr.y1, pr });
   const j0 = Math.floor(b.minY / SEG) - 1;

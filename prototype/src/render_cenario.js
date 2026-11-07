@@ -6,6 +6,7 @@ import { CANDIDATOS, PIXOS, FIGURAS, lowerBound } from './cenario.js';
 import { images } from './sprites.js';
 import { ART, ART_S, artKey, artFile } from './arte_cenario.js';
 import { hash2 } from './math.js';
+import { drawFiosFavela } from './render_favela.js';
 
 const FONT = '"Barlow Semi Condensed", "Arial Narrow", sans-serif';
 const INK = 'rgba(20,16,14,0.85)';
@@ -63,7 +64,11 @@ function sprite(p, ppu, k, dpr) {
 export function drawCenario(ctx, p, cam, ppu, dpr, t, alpha = 1, playerPx = 0) {
   if (p.invisivel) return; // poste da rede: só colisão (o desenho vem na imagem da rede)
   cam.toScreen(p.x0, p.y1, pt);
-  if (DIRECT.has(p.kind)) return drawOverhead(ctx, p, cam, ppu, t);
+  if (DIRECT.has(p.kind)) {
+    if (p.favela && drawFiosFavela(ctx, p, cam, ppu)) return; // arte da favela: atravessa a viela de frente
+    return drawOverhead(ctx, p, cam, ppu, t);
+  }
+  if (p.kind === 'placa_parede' && images.fav_placa_parede) return drawPlacaParede(ctx, p, ppu, images.fav_placa_parede);
   // arte pintada (PNG do ateliê), quando existe: mesma origem (canto da frente, à esquerda, no chão)
   const A = ART[p.kind];
   if (A) {
@@ -97,6 +102,24 @@ export function drawCenario(ctx, p, cam, ppu, dpr, t, alpha = 1, playerPx = 0) {
   ctx.drawImage(c, pt.x - c.ox, pt.y - c.oy, c.cw, c.ch);
   if (alpha < 1) ctx.globalAlpha = 1;
 }
+
+/**
+ * Placa de comércio saindo da parede da viela, de frente para a câmera, com o nome escrito pelo jogo.
+ * A arte tem 1,4 × 0,6 m; a borda de dentro encosta na parede e a de baixo fica a p.h − 0,6 m do chão.
+ */
+function drawPlacaParede(ctx, p, ppu, im) {
+  const B = PLACA_CAIXA;
+  const s = (1.4 * ppu) / (B[2] - B[0]);
+  const wpx = 1.4 * ppu;
+  const x = p.left ? pt.x + (p.x1 - p.x0) * ppu * 0.5 : pt.x + (p.x1 - p.x0) * ppu * 0.5 - wpx;
+  const yb = pt.y - (p.h - 0.6) * ppu;
+  ctx.drawImage(im, x - B[0] * s, yb - B[3] * s, im.width * s, im.height * s);
+  // o nome na frente da placa (a frente vai até ~90% da caixa: o resto é a lateral e o tampo)
+  const fx = x + wpx * 0.46;
+  const fy = yb - 0.6 * ppu * 0.47;
+  text(ctx, p.text, fx, fy, 0.2 * ppu, '#1d1a18', 800, null, wpx * 0.8);
+}
+const PLACA_CAIXA = [15, 14, 285, 133]; // caixa do desenho na imagem (px): x0, y0, x1, y1
 
 /** Objetos visíveis (lista ordenada por y) entre y0 e y1. */
 export function cenarioInRange(w, y0, y1, out) {

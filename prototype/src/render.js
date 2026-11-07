@@ -4,6 +4,7 @@ import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABE
 import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
+import { drawCasasFundo, drawCasaFavela } from './render_favela.js';
 import { drawMinimap } from './minimapa.js';
 import { drawCriseChao, drawCriseCeu, escondidoDeDia } from './render_crises.js';
 import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado, drawBola } from './render_carreira.js';
@@ -172,6 +173,8 @@ export class Renderer {
     // lista de desenho com ordenação por profundidade
     const list = [];
     cam.visibleWorldBounds(3, bounds);
+    // casas da favela a oeste do caminho: atrás de tudo que anda nele (favela.js)
+    if (game.world && game.world.casas) drawCasasFundo(ctx, game.world, cam, ppu, bounds);
     for (const pr of game.propsInBounds(bounds, propsTmp)) list.push({ d: cam.depth(pr.x, pr.y), k: 'prop', o: pr });
     for (const g of game.gems) list.push({ d: cam.depth(g.x, g.y) - 0.5, k: 'gem', o: g });
     for (const p of game.pickups) {
@@ -184,6 +187,13 @@ export class Renderer {
     list.push({ d: entityDepth(cam, game.player), k: 'player', o: game.player });
     const w = game.world;
     if (w) {
+      // casas da favela a leste do caminho: entram na ordem pela frente delas
+      if (w.casas) {
+        for (const c of w.casas) {
+          if (c.lado !== 'frente' || c.y1 < bounds.minY - 2 || c.y1 > bounds.maxY + 14) continue;
+          list.push({ d: cam.depth(c.x0, c.y1), k: 'casa', o: c, x: c.x0, y: c.y1 });
+        }
+      }
       // lajes com escada, boteco, objetos de cena e o tapume da escadaria
       for (const P of w.platforms) {
         if (P.y0 > bounds.maxY + 4 || P.y1 < bounds.minY - 4) continue;
@@ -247,6 +257,9 @@ export class Renderer {
       }
       if (zz) pt.y -= zz * ppu;
       switch (it.k) {
+        case 'casa':
+          drawCasaFavela(ctx, o, cam, ppu);
+          break;
         case 'plat':
           drawPlatform(ctx, o, cam, ppu);
           break;

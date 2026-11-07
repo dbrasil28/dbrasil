@@ -4,6 +4,7 @@
 // Os sólidos nunca fecham a rota: ficam longe das passagens, das escadas e do começo da partida.
 import { CENARIO, PLACES, ROUTE, CADEIRA_DIST, PREDIOS } from './config.js';
 import { hash2 } from './math.js';
+import { montarFavela } from './favela.js';
 
 const H = hash2;
 
@@ -384,9 +385,15 @@ function morro(w) {
         const sy = y + 0.9;
         if (sy < k.y1 - 0.3 && !w.solids.some((q) => rectDist2(q, sx, sy) < 0.5 * 0.5) && prop(w, 'pneus', x0, y - 0.8, x0 + 0.85, y, 0.6, sd(28), { piece: k })) slot(w, 'pneu', sx, sy);
       }
+      // planta na lata de tinta encostada na parede
+      if (sd(29) < 0.8) {
+        const y = k.y0 + 2 + sd(34) * (len - 4);
+        const x0 = sd(35) < 0.5 ? k.x0 + 0.1 : k.x1 - 0.5;
+        prop(w, 'vaso', x0, y - 0.4, x0 + 0.4, y, 0.8, sd(36), { piece: k });
+      }
       // gato de luz cruzando a viela e placas pintadas nas paredes
-      prop(w, 'fios', k.x0, k.y0 + len * (0.3 + sd(30) * 0.4) - 0.2, k.x1, k.y0 + len * (0.3 + sd(30) * 0.4), 5.2, sd(31), { solid: false });
-      if (sd(32) < 0.7) prop(w, 'bandeirinhas', k.x0, k.y0 + len * 0.8 - 0.2, k.x1, k.y0 + len * 0.8, 4.0, sd(33), { solid: false });
+      prop(w, 'fios', k.x0, k.y0 + len * (0.3 + sd(30) * 0.4) - 0.2, k.x1, k.y0 + len * (0.3 + sd(30) * 0.4), 5.2, sd(31), { solid: false, extra: { favela: true } });
+      if (sd(32) < 0.7) prop(w, 'bandeirinhas', k.x0, k.y0 + len * 0.8 - 0.2, k.x1, k.y0 + len * 0.8, 4.0, sd(33), { solid: false, extra: { favela: true } });
       for (let i = 0; i < 2; i++) {
         const left = i === 0;
         const y = k.y0 + 3 + sd(40 + i) * (len - 6);
@@ -403,6 +410,10 @@ function morro(w) {
       prop(w, 'churrasqueira', cx + 4.2, cy + 3.2, cx + 5.0, cy + 4.0, 0.95, sd(4), { piece: k });
       prop(w, 'varal', cx + 0.5, cy + 4.6, cx + 4.5, cy + 4.8, 1.9, sd(5), { solid: false });
       prop(w, 'bandeira', k.x0 + 0.5, k.y0 + 0.5, k.x0 + 0.7, k.y0 + 0.7, 3.4, sd(6), { piece: k });
+      // paredão de som do baile encostado no fundo, sofá velho e cadeiras empilhadas
+      prop(w, 'paredao', cx - 1.0 + (sd(7) - 0.5) * 3, k.y0 + 0.4, cx + 1.0 + (sd(7) - 0.5) * 3, k.y0 + 1.2, 1.8, sd(8), { piece: k });
+      if (sd(9) < 0.7) prop(w, 'sofa', k.x0 + 1.2, cy - 0.4, k.x0 + 3.0, cy + 0.4, 0.8, sd(10), { piece: k });
+      prop(w, 'cadeiras', k.x1 - 1.3, k.y1 - 1.6, k.x1 - 0.7, k.y1 - 1.0, 1.4, sd(11), { piece: k });
     } else if (k.kind === 'escadaria' && idx > 1) {
       const text = PLACAS.parede[Math.floor(sd(50) * PLACAS.parede.length)];
       prop(w, 'placa_parede', k.x0 - 0.05, k.y0 + len * 0.5 - 0.1, k.x0 + 0.05, k.y0 + len * 0.5, 1.7, sd(51), { solid: false, extra: { text, left: true } });
@@ -453,6 +464,7 @@ export function placeCenario(w, map) {
   for (let s = 0; s <= ROUTE.orla.blocks + 1; s++) rua(w, map, s);
   morro(w);
   fachadas(w);
+  montarFavela(w); // casas da favela em volta do caminho do Morro (arte no ângulo do jogo)
   w.props.sort((p, q) => p.y - q.y);
   w.litter.sort((p, q) => p.y - q.y);
   w.solidGrid = new Map();

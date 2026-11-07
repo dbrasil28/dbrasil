@@ -171,6 +171,32 @@ export const MAPS = {
 // A imagem é desenhada inteira, só na escala. Medidas em px da imagem: canto = pé do canto da frente
 // com a lateral; esq = borda esquerda da frente; topo = beira do telhado na frente; fundo = beira do
 // telhado no fundo (topo − fundo = comprimento do prédio na tela). alturaM: altura do prédio (m).
+// Casas da favela (docs/arte/PEDIDO_FAVELA.md, pacote v2), desenhadas no ângulo do jogo por cima dos
+// gabaritos de tools/gabaritos-favela.py (docs/arte/gabaritos_favela/gabaritos.json). A imagem entra
+// inteira, só na escala: 150 px por metro. origem: px da imagem onde fica o canto da frente da caixa, no
+// chão (à esquerda; na parede da viela, o pé da parede virada para a viela). w, d, h: a caixa (m).
+export const FAVELA = {
+  pxPorM: 150,
+  pecas: {
+    casa_laje_dir: { origem: [342.37, 1246.81], w: 5, d: 5, h: 3.2 },
+    casa_laje_esq: { origem: [537.37, 1246.81], w: 5, d: 5, h: 3.2 },
+    fachada_a: { origem: [308.65, 1183.09], w: 4, d: 5, h: 3 },
+    fachada_b: { origem: [353.65, 1678.09], w: 4, d: 5, h: 6 },
+    fachada_c: { origem: [398.65, 2173.09], w: 4, d: 5, h: 9 },
+    barraco_a: { origem: [291.57, 995.27], w: 3, d: 3, h: 3.5 },
+    barraco_b: { origem: [291.57, 995.27], w: 3, d: 3, h: 3.5 },
+    // módulos de 6 m ao longo da viela: à esquerda a parede virada para a viela (a caixa fica a oeste do
+    // pé da parede); à direita só o telhado e a frente (a caixa fica a leste)
+    parede_viela_esq: { origem: [568.72, 1305.96], w: 3, d: 6, h: 3, oeste: true },
+    telhado_viela_dir: { origem: [568.72, 1305.96], w: 3, d: 6, h: 3 },
+  },
+  // casas de frente no alto de cada pedaço (fundo das pracinhas, ponta das vielas), sorteadas
+  fundo: ['fachada_a', 'fachada_b', 'fachada_a', 'fachada_c', 'fachada_b'],
+  barracoDesde: 8, // índice do pedaço da rota a partir do qual entram barracos (vielas mais altas)
+  barracoChance: 0.5,
+  vaoMinM: 0.8, // vão menor que isso no alto do pedaço fica sem casa
+};
+
 export const PREDIOS = {
   x1: -14.6, // beira do calçadão
   k: Math.sin((55 * Math.PI) / 180), // câmera em que os prédios foram desenhados
