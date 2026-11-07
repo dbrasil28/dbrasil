@@ -8,6 +8,7 @@ import {
   ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
+import { FX, IMPACTO } from './efeitos_arte.js';
 import { updateCrises, criseLentidao } from './crises.js';
 import { emHorda, iniciarHorda, updateHorda, durezaHorda } from './horda.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
@@ -31,6 +32,40 @@ function stairTopOf(P, out) {
   else if (S.dir === 's') { out.x = cx; out.y = S.y1 - 0.3; }
   else if (S.dir === 'e') { out.x = S.x1 - 0.3; out.y = cy; }
   else { out.x = S.x0 + 0.3; out.y = cy; }
+  return out;
+}
+
+/** Posição (m) de (x, y) no contorno do retângulo, do canto de cima à esquerda, no sentido do relógio. */
+function contorno(x, y, x0, y0, x1, y1) {
+  const cx = Math.max(x0, Math.min(x1, x));
+  const cy = Math.max(y0, Math.min(y1, y));
+  const W = x1 - x0;
+  const H = y1 - y0;
+  const d = [Math.abs(cy - y0), Math.abs(x1 - cx), Math.abs(y1 - cy), Math.abs(cx - x0)];
+  const k = d.indexOf(Math.min(...d));
+  if (k === 0) return cx - x0;
+  if (k === 1) return W + (cy - y0);
+  if (k === 2) return W + H + (x1 - cx);
+  return 2 * W + H + (y1 - cy);
+}
+
+/** Ponto do contorno na posição s (m). */
+function pontoContorno(s, x0, y0, W, H, L, out) {
+  let u = ((s % L) + L) % L;
+  if (u < W) {
+    out.x = x0 + u;
+    out.y = y0;
+  } else if ((u -= W) < H) {
+    out.x = x0 + W;
+    out.y = y0 + u;
+  } else if ((u -= H) < W) {
+    out.x = x0 + W - u;
+    out.y = y0 + H;
+  } else {
+    u -= W;
+    out.x = x0;
+    out.y = y0 + H - u;
+  }
   return out;
 }
 
@@ -93,7 +128,7 @@ export class Game {
     this.lots = [];
     this.gems = [];
     this.pickups = [];
-    this.fx = { particles: [], rings: [], numbers: [], decals: [], woken: [], gibs: [], bolts: [], words: [] };
+    this.fx = { particles: [], rings: [], numbers: [], decals: [], woken: [], gibs: [], bolts: [], words: [], anims: [] };
     this.dogs = []; // Cachorro Caramelo
     this.fxRng = makeRng((this.seed ^ 0x9e3779b9) >>> 0); // sorteio só dos efeitos: não mexe no da partida
     this.outbox = [];
@@ -480,6 +515,19 @@ export class Game {
   }
 
   // ---------- dano ----------
+  /**
+   * Efeito com arte (efeitos_arte.js): uma animação no mundo, em pé ou deitada no chão. o: dur, tam (m),
+   * rot (rad, no chão), z (m), delay (s), segue (fica no Juninho), alvo (fica no inimigo). Só visual.
+   */
+  efeito(nome, x, y, o = {}) {
+    const A = this.fx.anims;
+    if (A.length >= 90) return null;
+    const F = FX[nome];
+    const a = { nome, x, y, t: -(o.delay || 0), dur: o.dur ?? F.dur ?? 0.5, ...o };
+    A.push(a);
+    return a;
+  }
+
   damageEnemy(e, amount, source, kx = 0, ky = 0, quiet = false) {
     if (e.dead || ENEMIES[e.type].invencivel) return; // o Rabecão não morre
     let dmg = amount;
@@ -488,6 +536,11 @@ export class Game {
     dw[source] = (dw[source] || 0) + Math.min(dmg, Math.max(0, e.hp));
     e.hp -= dmg;
     e.flash = 0.09;
+    const I = IMPACTO[source];
+    if (I && !(this.t < (e.fxAte || 0)) && (!I.chance || ((e.id * 7 + Math.floor(this.t * 10)) % 100) / 100 < I.chance)) {
+      e.fxAte = this.t + I.espera;
+      this.efeito(I.fx, e.x, e.y, { alvo: e });
+    }
     if (e.boss && e.hp > 0 && this.world) checkFase(this, e);
     const mass = e.boss ? 0.08 : e.elite ? 0.35 : 1;
     e.kx += kx * mass;
@@ -1105,6 +1158,7 @@ export class Game {
         }
       }
       // alvo: o Juninho; no mundo da rota, pela escada (lajes) e pelas juntas das vielas
+      e.cerco = false;
       let tx = p.x;
       let ty = p.y;
       const C = this.covil;
@@ -1123,17 +1177,34 @@ export class Game {
           const x1 = Math.max(PP.x1, S.x1) + m;
           const y0 = Math.min(PP.y0, S.y0) - m;
           const y1 = Math.max(PP.y1, S.y1) + m;
-          tx = Math.max(x0, Math.min(x1, e.x));
-          ty = Math.max(y0, Math.min(y1, e.y));
-          if (tx > x0 && tx < x1 && ty > y0 && ty < y1) {
-            // já encostado: fica na borda mais perto
-            const dl = [tx - x0, x1 - tx, ty - y0, y1 - ty];
-            const k = dl.indexOf(Math.min(...dl));
-            if (k === 0) tx = x0;
-            else if (k === 1) tx = x1;
-            else if (k === 2) ty = y0;
-            else ty = y1;
+          // cada um tem o seu lugar no contorno (pelo número dele), e chega dando a volta pelo lado mais curto
+          const W = x1 - x0;
+          const H = y1 - y0;
+          const L = 2 * (W + H);
+          const se = contorno(e.x, e.y, x0, y0, x1, y1);
+          const st = ((e.id * 0.6180339887) % 1) * L;
+          let dlt = st - se;
+          dlt -= Math.round(dlt / L) * L;
+          let alvo = st;
+          if (Math.abs(dlt) > 0.3) {
+            // a próxima quina no caminho, se o lugar fica em outro lado da casa
+            const quinas = [0, W, W + H, 2 * W + H, L];
+            const ida = dlt > 0;
+            for (const q of ida ? quinas : quinas.slice().reverse()) {
+              const dq = q - se - Math.round((q - se) / L) * L;
+              if (ida ? dq > 0.05 && dq < dlt : dq < -0.05 && dq > dlt) {
+                alvo = se + dq;
+                break;
+              }
+            }
           }
+          pontoContorno(alvo, x0, y0, W, H, L, rt);
+          tx = rt.x;
+          ty = rt.y;
+          e.cerco = alvo === st; // está indo para o lugar dele (não para uma quina)
+          routeTarget(this.world, e, tx, ty, p.ri, rt);
+          tx = rt.x;
+          ty = rt.y;
         } else if (e.plat !== p.plat) {
           if (e.plat) stairFoot(e.plat, rt); // descer da laje pela escada
           else stairFoot(p.plat, rt); // ir até o pé da escada da laje do Juninho
@@ -1145,9 +1216,12 @@ export class Game {
           tx = rt.x;
           ty = rt.y;
         }
-        routeTarget(this.world, e, tx, ty, p.ri, rt);
-        tx = rt.x;
-        ty = rt.y;
+        if (!(PP && !e.plat && !e.sobe && !e.boss)) {
+          e.cerco = false;
+          routeTarget(this.world, e, tx, ty, p.ri, rt);
+          tx = rt.x;
+          ty = rt.y;
+        }
       }
       const dpx = p.x - e.x;
       const dpy = p.y - e.y;
@@ -1158,7 +1232,10 @@ export class Game {
       const ux = dtx / dl;
       const uy = dty / dl;
       if (e.atkT > 0) e.atkT -= dt;
-      if (e.frozenT > 0) e.frozenT -= dt;
+      if (e.frozenT > 0) {
+        e.frozenT -= dt;
+        if (e.frozenT <= 0) this.efeito('gelo_quebra', e.x, e.y, { alvo: e }); // o gelo do picolé estilhaça
+      }
       const corre = e.boss && this.world && d > CARREIRA.chefaoAlcanceM ? CARREIRA.chefaoCorreMul : 1;
       const spd = e.speed * corre * (e.slowT > 0 ? e.slowF : 1) * (this.over ? 0.2 : 1);
       let mx = ux;
@@ -1390,6 +1467,11 @@ export class Game {
           e.vz = undefined;
           this.burst(e.x, e.y, 3, 'poeira');
         }
+      }
+      if (e.cerco && dl < LAJE.chegouM) {
+        // chegou no lugar dele em volta da casa: para, sem empurrar a parede
+        mx = 0;
+        my = 0;
       }
       if (e.dancaT > 0) {
         // baile na laje: dançando, não anda
@@ -1891,6 +1973,7 @@ export class Game {
     }
     for (const r of fx.rings) r.t += dt;
     for (const b of fx.bolts) b.t += dt;
+    for (const an of fx.anims) an.t += dt;
     for (const w of fx.words) w.t += dt;
     for (const n of fx.numbers) n.t += dt;
     for (const d of fx.decals) d.t += dt;
@@ -1926,6 +2009,7 @@ export class Game {
     fx.particles = fx.particles.filter((q) => q.t < q.life);
     fx.rings = fx.rings.filter((r) => r.t < r.dur);
     if (fx.bolts.length) fx.bolts = fx.bolts.filter((b) => b.t < b.dur);
+    if (fx.anims.length) fx.anims = fx.anims.filter((an) => an.t < an.dur);
     if (fx.words.length) fx.words = fx.words.filter((w) => w.t < w.dur);
     fx.numbers = fx.numbers.filter((n) => n.t < 0.7);
     fx.decals = fx.decals.filter((d) => d.t < GORE.decalLife);

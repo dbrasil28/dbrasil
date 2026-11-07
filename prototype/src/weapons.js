@@ -193,6 +193,7 @@ export function fireWeapon(game, w, ps) {
       const r = st.radius * area;
       p.auraR = r;
       p.auraPulse = game.t;
+      game.efeito('aura_pulso', p.x, p.y, { segue: true, tam: r * 2 });
       game.hash.query(p.x, p.y, r + 0.6, tmp);
       for (const e of tmp) {
         if (e.dead) continue;
@@ -217,12 +218,16 @@ export function fireWeapon(game, w, ps) {
           pts.push({ x: cur.x, y: cur.y });
           seen.add(cur.id);
           game.damageEnemy(cur, st.dmg * dmgMul, w.id, 0, 0);
+          cur.choqueAte = game.t + st.stunS + 0.15; // arcos elétricos no corpo enquanto trava
+          game.efeito('chamuscado_raio', cur.x, cur.y, { rot: giroFixo(cur.x, cur.y) });
+          game.efeito('luz', cur.x, cur.y, { dur: 0.3, tam: 4.5, cor: '170,210,255' });
           cur.slowT = Math.max(cur.slowT, st.stunS);
           cur.slowF = Math.min(cur.slowF || 1, 0.2);
           const nx = nearestEnemies(game, cur.x, cur.y, st.jumpM, 1, seen)[0];
           cur = nx || null;
         }
         game.fx.bolts.push({ pts, t: 0, dur: WEAPON_FX.raioDur, seed: game.fxRng() * 1000 });
+        if (c === 0) game.efeito('raio_origem', p.x, p.y, { alvo: p }); // o fio do gato estourando na mão
         fired = true;
       }
       break;
@@ -367,6 +372,12 @@ export function updateProjectiles(game, dt) {
       pr.x += pr.vx * dt;
       pr.y += pr.vy * dt;
       pr.life -= dt;
+      pr.poeiraT = (pr.poeiraT || 0) - dt;
+      if (pr.poeiraT <= 0) {
+        pr.poeiraT = 0.07; // poeira de terra e fumaça de escapamento atrás da moto
+        game.efeito('poeira_moto', pr.x, pr.y + 0.6);
+      }
+      if (pr.life <= 0) game.efeito('pneu_queimado', pr.x, pr.y0 - pr.lenM / 2, { comp: pr.lenM, larg: Math.max(1, pr.width * 1.4) });
       game.hash.query(pr.x, pr.y, pr.width + 1.2, tmp);
       for (const e of tmp) {
         if (e.dead || pr.hit.has(e.id)) continue;
@@ -431,6 +442,9 @@ export function updateProjectiles(game, dt) {
   }
 }
 
+// giro de uma marca no chão pelo lugar (não usa sorteio: efeito não pode mudar a partida)
+const giroFixo = (x, y) => (((Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1) + 1) * Math.PI;
+
 export function updateZones(game, dt) {
   const list = game.zones;
   const p = game.player;
@@ -453,6 +467,11 @@ export function updateZones(game, dt) {
           if (!e.dead && !e.boss) e.vz = z.voo * (e.elite ? 0.5 : 1) * (0.8 + 0.4 * (1 - d / (z.radius + e.r)));
         }
         game.fx.rings.push({ x: z.x, y: z.y, r0: 0.3, r1: z.radius * 1.15, t: 0, dur: 0.35, color: 'blast' });
+        // fogo de verdade: a explosão, a fumaça com notas queimando e a marca preta no chão
+        game.efeito('explosao', z.x, z.y, { tam: z.radius * 2.6, z: z.radius * 0.38 });
+        game.efeito('explosao_fumaca', z.x, z.y, { tam: z.radius * 2.4, z: z.radius * 0.7, delay: 0.3 });
+        game.efeito('chamuscado', z.x, z.y, { tam: z.radius * 2.3, rot: giroFixo(z.x, z.y) });
+        game.efeito('luz', z.x, z.y, { dur: 0.5, tam: z.radius * 3, cor: '255,150,60' });
         game.moneyBurst(z.x, z.y, 22);
         game.burst(z.x, z.y, 14, 'debris');
         game.word(z.x, z.y - 0.5, 'BUM!', '#ffd21f');
@@ -521,6 +540,7 @@ export function updateZones(game, dt) {
       if (!z.done && z.t >= z.delay) {
         z.done = true;
         const h = z.half;
+        game.efeito('carimbo_baque', z.x, z.y, { tam: h * 2 * 1.6 }); // poeira e papelada
         game.hash.query(z.x, z.y, h * 1.5 + 0.6, tmp);
         for (const e of tmp) {
           if (e.dead) continue;
@@ -595,6 +615,7 @@ export function updateDogs(game, dt) {
       }
       if (d.st === 'late' && !d.hitDone && d.at >= F.latidoS * F.latidoPico) {
         d.hitDone = true;
+        game.efeito('latido_onda', d.x, d.y, { rot: Math.atan2(d.fy, d.fx), tam: Math.max(3, d.bark * 2.2) });
         game.word(d.x, d.y - 0.2, 'AU AU!', '#f2efe8');
         game.hash.query(d.x, d.y, d.bark + 0.6, tmp);
         for (const e of tmp) {
@@ -632,6 +653,11 @@ export function updateDogs(game, dt) {
           d.st = 'segue';
         }
       }
+    }
+    // arrancada e freada: poeira das patas
+    if (d.stFx !== d.st) {
+      if (d.st === 'corre' || (d.st === 'segue' && d.stFx === 'volta')) game.efeito('poeira_patas', d.x, d.y);
+      d.stFx = d.st;
     }
     // para onde olha e quanto andou (a caminhada troca de quadro pela distância)
     const mx = d.x - x0;

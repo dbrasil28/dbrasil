@@ -2,7 +2,7 @@
 // Subida do Morro), as áreas onde dá para andar, as lajes com escada, os lugares (boteco, quiosque,
 // prédio, posto de salva-vidas) e as vagas dos objetos que o Juninho pega e arremessa.
 // Plano: docs/design/CARREIRA_E_ROTA.md e docs/design/MAPAS_CARACTERIZACAO.md.
-import { ROUTE, PLACES, CADEIRA_DIST, CARREIRA } from './config.js';
+import { ROUTE, PLACES, CADEIRA_DIST, CARREIRA, LAJE } from './config.js';
 import { clamp } from './math.js';
 import { placeCenario, SOLID_CELL } from './cenario.js';
 
@@ -175,8 +175,13 @@ function placeMorro(w) {
       addSlot(w, 'botijao', m === 1 ? k.x0 + 0.9 : k.x1 - 0.9, k.y0 + 1.2);
       addSlot(w, 'engradado', m === 1 ? k.x1 - 1.0 : k.x0 + 1.0, k.y1 - 1.4);
       if (side) {
-        const y = k.y0 + 0.6;
-        const x = side === 1 ? k.x1 - 5.5 : k.x0 + 0.5;
+        // afastada do fundo e do lado da pracinha (LAJE.vaoM), para a horda cercar; sem a escada entrar na
+        // frente da passagem para o pedaço de cima
+        const up = path[i + 1];
+        const y = k.y0 + LAJE.vaoM;
+        let x = side === 1 ? k.x1 - 5 - LAJE.vaoM : k.x0 + LAJE.vaoM;
+        if (up && side === 1) x = Math.min(k.x1 - 5.5, Math.max(x, up.x1 + 1.8));
+        if (up && side === -1) x = Math.max(k.x0 + 0.5, Math.min(x, up.x0 - 6.8));
         const st = side === 1 ? rect(x - 1.3, y, x, y + 5, { dir: 'n' }) : rect(x + 5, y, x + 6.3, y + 5, { dir: 'n' });
         const P = addPlatform(w, x, y, x + 5, y + 5, PLACES.lajeH, st, 'laje_casa');
         addSlot(w, 'botijao', x + 2.5, y + 1.0, P);

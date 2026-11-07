@@ -14,6 +14,8 @@ const d = { x: 0, y: 0 };
 /** Profundidade de desenho: quem está em cima de uma laje vai depois da laje. */
 export function entityDepth(cam, e) {
   if (e.plat && e.lvl === 1) return cam.depth(e.x, e.plat.y1) + 0.003 + (e.y - e.plat.y0) * 1e-4;
+  // na escada da casa com laje: a escada faz parte do desenho da casa, então quem sobe fica na frente dele
+  if (e.plat) return Math.max(cam.depth(e.x, e.y), cam.depth(e.x, e.plat.y1) + 0.002 + (e.y - e.plat.y0) * 1e-4);
   return cam.depth(e.x, e.y);
 }
 
