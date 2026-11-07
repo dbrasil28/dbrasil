@@ -432,23 +432,29 @@ function drawOverhead(ctx, p, cam, ppu, t) {
     ctx.stroke();
     return;
   }
-  // bandeirinhas verde-amarelas
+  // bandeirinhas verde-amarelas: de uma ponta à outra (presas nos postes, ax/ay -> bx/by no chão)
+  cam.toScreen(p.ax ?? p.x0, p.ay ?? p.y1, pt);
+  const ax = pt.x;
+  const ay = pt.y - H;
+  cam.toScreen(p.bx ?? p.x1, p.by ?? p.y1, pt2);
+  const bx = pt2.x;
+  const by = pt2.y - H;
+  const len = Math.hypot(bx - ax, by - ay);
+  const cai = len * 0.06 + Math.sin(t * 1.3 + p.v * 9) * 2; // o fio cede no meio
+  const at = (u) => [ax + (bx - ax) * u, ay + (by - ay) * u + 4 * cai * u * (1 - u)];
   ctx.strokeStyle = 'rgba(30,30,30,0.6)';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(x0, y);
-  ctx.quadraticCurveTo((x0 + x1) / 2, y + sag * 2, x1, y);
+  ctx.moveTo(ax, ay);
+  ctx.quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + cai * 2, bx, by);
   ctx.stroke();
-  const step = ppu * 0.55;
-  const n = Math.max(2, Math.floor((x1 - x0) / step));
+  const n = Math.max(2, Math.floor(len / (ppu * 0.55)));
   const s = ppu * 0.28;
   for (let pass = 0; pass < 2; pass++) {
     ctx.fillStyle = pass ? '#ffd21f' : '#1f9a44';
     ctx.beginPath();
-    for (let i = pass; i < n; i += 2) {
-      const u = i / n;
-      const x = x0 + (x1 - x0) * u;
-      const yy = y + 4 * sag * 2 * u * (1 - u) * 0.5;
+    for (let i = pass + 1; i < n; i += 2) {
+      const [x, yy] = at(i / n);
       ctx.moveTo(x - s / 2, yy);
       ctx.lineTo(x + s / 2, yy);
       ctx.lineTo(x, yy + s * 1.1);

@@ -151,8 +151,13 @@ function rua(w, map, s) {
       for (const [dx, dy] of [[-1.3, -0.4], [1.3, 0.3], [0.1, 1.1]]) prop(w, 'cone', x + dx - 0.22, y + dy - 0.22, x + dx + 0.22, y + dy + 0.22, 0.7, 0, { piece: w.orla });
     }
   }
-  // bandeirinhas verde-amarelas atravessando a rua (desde a última Copa)
-  if (H(s, 3, 516) < CENARIO.bandeirinhasChance) prop(w, 'bandeirinhas', w.orla.x0, ys + 3.8, CENARIO.bandeirinhasAteX, ys + 4.0, 4.4, H(s, 3, 517), { solid: false });
+  // bandeirinhas verde-amarelas atravessando a rua (desde a última Copa), presas nos postes dos dois meio-fios
+  if (H(s, 3, 516) < CENARIO.bandeirinhasChance) {
+    const P = CENARIO.postes;
+    const ay = ys - (40 - P.ruaBaixo) - 0.18; // poste do meio-fio de cima (quarteirão de cima)
+    const by = ye + P.ruaCima - 0.18; // poste do meio-fio de baixo
+    prop(w, 'bandeirinhas', P.ruaX - 0.2, ay, P.ruaX + 0.2, by, 4.4, H(s, 3, 517), { solid: false, extra: { ax: P.ruaX, ay, bx: P.ruaX, by } });
+  }
   for (let i = 0; i < CENARIO.santinhos; i++) litter(w, 'santinho', -13 + H(s, i, 518) * 13, ys + 0.5 + H(s, i, 519) * 7, H(s, i, 520));
   litter(w, 'bueiro', -11 + H(s, 1, 512) * 3, ys + 1.0, 0);
   litter(w, 'bueiro', -6 + H(s, 2, 512) * 3, ye - 1.0, 0);
@@ -192,25 +197,25 @@ function calcadao(w, map, b) {
   // sem muro nem tapume no calçadão (pedido do autor, 07/11/2026): muro no meio da calçada não faz sentido
   // garotas de programa paradas na esquina, perto do poste (figuras de ambiente: não bloqueiam nem lutam)
   // na esquina da avenida e na do lado das lojas
-  for (const [gx, gy, i] of [[-0.5, 38.2, 1], [0.3, 38.6, 2], [-8.0, 1.4, 3], [-0.6, 2.2, 4]]) {
+  for (const [gx, gy, i] of [[-1.1, 37.0, 1], [-0.4, 36.6, 2], [-8.4, 1.6, 3], [-1.2, 3.4, 4]]) {
     if (H(b, i, 630) < 0.5) prop(w, 'garota', gx - 0.25, y0 + gy - 0.2, gx + 0.25, y0 + gy, 1.68, H(b, i, 631), { solid: false });
   }
   // orelhão (um a cada dois quarteirões)
   if (b % 2 === 1) prop(w, 'orelhao', -6.2, y0 + 30.6, -5.6, y0 + 31.1, 2.1, seed(8));
-  // postes nas duas fileiras e placas nas esquinas
-  const step = CENARIO.posteCadaM;
-  for (let row = 0; row < 2; row++) {
-    const px = row === 0 ? -7.4 : map.avenidaX0 - 0.45; // a segunda fileira ilumina a avenida
-    for (let yy = 2 + row * (step / 2); yy < 39; yy += step) {
-      prop(w, 'poste', px - 0.18, y0 + yy - 0.36, px + 0.18, y0 + yy, CENARIO.posteAlturaM, H(b, Math.round(yy), 609 + row));
-    }
-  }
-  // cada rua tem um nome só, nas duas esquinas: a de baixo do quarteirão b é a rua b, a de cima é a b + 1
+  // postes na beira das vias (nunca no meio do calçadão): fileira no meio-fio da avenida, com um em cada
+  // esquina, e um no meio-fio de cada rua transversal (as bandeirinhas atravessam a rua entre eles)
+  const P = CENARIO.postes;
+  const poste = (px, py, i) => prop(w, 'poste', px - 0.18, py - 0.36, px + 0.18, py, CENARIO.posteAlturaM, H(b, i, 609));
+  for (let yy = P.avenidaDe; yy < 40; yy += CENARIO.posteCadaM) poste(map.avenidaX0 - 0.45, y0 + yy, Math.round(yy));
+  poste(P.ruaX, y0 + P.ruaCima, 90);
+  poste(P.ruaX, y0 + P.ruaBaixo, 91);
+  // placa com o nome da rua presa no poste da esquina (cada rua tem um nome só, nas duas esquinas)
   const nomeRua = (r) => PLACAS.rua[r % PLACAS.rua.length];
-  prop(w, 'placa', -6.9, y0 + 38.4, -6.6, y0 + 38.7, 2.6, 0, { extra: { text: nomeRua(b), tipo: 'rua' } });
-  prop(w, 'placa', -0.1, y0 + 1.0, 0.2, y0 + 1.3, 2.6, 0, { extra: { text: nomeRua(b + 1), tipo: 'rua' } });
+  const ax = map.avenidaX0 - 0.45;
+  prop(w, 'placa', ax - 0.5, y0 + 38.0 - 0.3, ax - 0.2, y0 + 38.0, 2.6, 0, { solid: false, extra: { text: nomeRua(b), tipo: 'rua' } });
+  prop(w, 'placa', ax - 0.5, y0 + 2.0 - 0.3, ax - 0.2, y0 + 2.0, 2.6, 0, { solid: false, extra: { text: nomeRua(b + 1), tipo: 'rua' } });
   const aviso = PLACAS.aviso[Math.floor(H(b, 2, 611) * PLACAS.aviso.length)];
-  prop(w, 'placa', -3.4 + H(b, 3, 611) * 2, y0 + 26.5, -3.1 + H(b, 3, 611) * 2, y0 + 26.8, 2.4, 0, { extra: { text: aviso, tipo: 'aviso' } });
+  prop(w, 'placa', ax - 0.5, y0 + 26.0 - 0.3, ax - 0.2, y0 + 26.0, 2.4, 0, { solid: false, extra: { text: aviso, tipo: 'aviso' } });
   // santinhos de candidato espalhados perto das ruas (depois da eleição ninguém varre)
   for (let i = 0; i < CENARIO.santinhos; i++) {
     const top = i % 2 === 0;

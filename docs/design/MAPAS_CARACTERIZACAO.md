@@ -172,7 +172,7 @@ As ruas transversais saem dos prédios e terminam na avenida, com carros e ônib
 
 ### Postes e muros
 
-Os postes de luz são de concreto, cheios de fio de gato, com transformador e pipa presa. O poste com o cartaz "vote em mim de novo" saiu do jogo. Não há muro nem tapume no calçadão da Orla: muro no meio da calçada não faz sentido (pedido do autor, 07/11/2026). Fica só a fachada pichada do fim da Orla, que marca onde a Orla acaba, ao lado da escadaria do morro. A arte dos muros (horizontais e verticais) continua em `docs/arte/cenario_orla/` para o morro.
+Os postes de luz são de concreto, cheios de fio de gato, com transformador e pipa presa. Ficam sempre na beira das vias, nunca no meio do calçadão: uma fileira no meio-fio da avenida (com um em cada esquina, onde vai a placa com o nome da rua) e um no meio-fio de cada rua transversal. As bandeirinhas atravessam a rua presas nesses dois postes (pedido do autor, 07/11/2026). O poste com o cartaz "vote em mim de novo" saiu do jogo. Não há muro nem tapume no calçadão da Orla: muro no meio da calçada não faz sentido (pedido do autor, 07/11/2026). Fica só a fachada pichada do fim da Orla, que marca onde a Orla acaba, ao lado da escadaria do morro. A arte dos muros (horizontais e verticais) continua em `docs/arte/cenario_orla/` para o morro.
 
 ### Subida do Morro
 

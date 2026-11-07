@@ -145,7 +145,7 @@ export const PREDIOS = {
     a: { w: 328, h: 1463, canto: [219, 1460], esq: 21, topo: 371, fundo: 76, alturaM: 21 },
     b: { w: 311, h: 1473, canto: [244, 1472], esq: 1, topo: 257, fundo: 64, alturaM: 25 },
     c: { w: 369, h: 1484, canto: [238, 1481], esq: 5, topo: 514, fundo: 29, alturaM: 16 },
-    d: { w: 305, h: 1482, canto: [209, 1478], esq: 0, topo: 228, fundo: 25, alturaM: 31 },
+    d: { w: 265, h: 1466, canto: [189, 1465], esq: 1, topo: 205, fundo: 35, alturaM: 31 },
   },
 };
 
@@ -268,12 +268,12 @@ export const CENARIO = {
   meio: ['acai', 'pastelaria', 'boteco', 'pastelaria', 'acai', 'boteco', 'pastelaria', 'acai', 'boteco'],
   esquerda2: ['pastelaria', 'acai', 'boteco', 'acai', 'pastelaria', 'boteco', 'acai', 'boteco', 'pastelaria'],
   carrinho: ['milho', 'banca', 'picole', 'milho', 'banca', 'milho', 'picole', 'banca', 'milho'],
-  posteCadaM: 12, // postes nas duas fileiras do calçadão
+  posteCadaM: 12, // postes no meio-fio da avenida
+  postes: { avenidaDe: 2, ruaX: -7.0, ruaCima: 0.76, ruaBaixo: 39.6 }, // y no quarteirão (0 = rua de cima); ruaX: postes das ruas transversais
   posteAlturaM: 6.4, // altura do poste de luz com o gato de fios
   lixoPorQuarteirao: 34, // sujeira no chão (só desenho): manchas, latinhas, papel, sacos, poças
   santinhos: 10, // santinhos de candidato no chão, por rua e por quarteirão
   bandeirinhasChance: 0.6, // bandeirinhas verde-amarelas atravessando a rua
-  bandeirinhasAteX: 1.0, // a rua transversal termina na avenida
   morro: { motosPorViela: 2, lixoPorPedaco: 14 },
   // polícia na favela (ambiente): camburão no pé do morro (começo em x) e nas primeiras lajes,
   // policiais na entrada das vielas indicadas (índice do pedaço da rota), barricada numa viela
