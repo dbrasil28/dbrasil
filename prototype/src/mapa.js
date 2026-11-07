@@ -554,7 +554,6 @@ export function orlaDecor(game, b, out) {
       const h = hash2(j, 1, 9);
       if (h < 0.45) out.push({ kind: 'coqueiro', x: m.maxX + 1.2 + hash2(j, 2, 9) * 3, y: y + SEG * 0.5, seed: h });
       else if (h < 0.62) out.push({ kind: 'quiosque', x: m.maxX + 2.4, y: y + SEG * 0.5, seed: h });
-      else if (h < 0.68) out.push({ kind: 'salva_vidas', x: m.maxX + 3.2, y: y + SEG * 0.5, seed: h });
     }
   }
   return out;
