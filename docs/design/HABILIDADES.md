@@ -20,7 +20,7 @@ Pedido do autor (07/11/2026): as habilidades eram diferentes no papel, mas na te
 | Chinelo Voador | Rajada em fila, um chinelo atrás do outro, na direção da horda (o mais perto); "PÁ!" | 2 chinelos de 14, atravessa 1 | +1 por rajada · +5 · atravessa +1 · chinelada de mãe: 2ª rajada no outro lado da horda |
 | Boleto Atrasado | Boletos girando em volta do Juninho, com rastro, cobrando de quem encosta | 2 boletos de 14, 3,2 s girando a cada 3,8 s | +1 boleto · gira mais longe · mais rápido e +6 · +2 boletos e gira mais tempo |
 | Carimbo Oficial | Sombra no chão, o carimbo cai do céu e deixa INDEFERIDO (lentidão) | 1 carimbo de 22 | +1 · maior · cai mais vezes e +8 · +1 e lentidão mais longa |
-| Maleta de Dinheiro | Sobe em arco para um lado (alterna esquerda e direita), atravessa quem está embaixo na descida e explode em notas | 1 maleta de 40 | 2ª maleta (uma para cada lado) · explosão maior · +20 · mais frequente e mais longe |
+| Maleta de Dinheiro | Cai aberta a uns 4,5 m, na direção da horda. A horda corre atrás do dinheiro (raio de 7 m, 1,6 vez mais rápido) por 2,2 s; no fim pisca o aviso vermelho e ela explode, jogando para o alto quem sobrevive | 1 maleta, explosão de 26 em 2,6 m | 2ª maleta (duas iscas) · atrai de mais longe e explode maior · +14 · mais frequente, e a horda fica mais tempo em volta |
 | Isopor de Picolé (só Orla) | Poças geladas no caminho, atrás do Juninho: quem pisa fica lento | poça de 0,75 m, 4 de dano a cada 0,5 s | maiores · duram mais · 20% de chance de congelar · +3 e maiores |
 | Mototáxi Amigo (só Morro) | Faixa vermelha piscando e "BI-BI!", e a moto rasga a viela | 40 de dano, a cada 4,2 s | +10 · moto mais larga · passa mais vezes · +1 moto e +5 |
 | Megafone da TV | Círculo sempre ligado em volta dele: pulsa, machuca de leve e empurra | 6 por pulso (0,5 s), raio 1,9 m | maior · empurra mais · +3 · ainda maior e +2 |
@@ -38,10 +38,10 @@ Na arena de teste, cada habilidade fica sozinha contra 40 inimigos de 60 de vida
 
 | | Capacete | Chinelo | Boleto | Carimbo | Maleta | Picolé | Mototáxi | Megafone | Gato | Caramelo |
 |---|---|---|---|---|---|---|---|---|---|---|
-| nv 1 | 173 | 59 | 68 | 134 | 98 | 113 | 246 | 77 | 50 | 60 |
-| nv 5 | 388 | 258 | 416 | 393 | 236 | 467 | 552 | 228 | 229 | 210 |
+| nv 1 | 173 | 59 | 68 | 134 | 136 | 113 | 246 | 77 | 50 | 60 |
+| nv 5 | 388 | 258 | 416 | 393 | 320 | 467 | 552 | 228 | 229 | 210 |
 
-Antes do ajuste, o Chinelo dava 5, o Caramelo 16 e o Gato 23 no nível 1. As que acertam um inimigo de cada vez (Gato e Caramelo) ficam abaixo das de área nessa arena. O Megafone e o Boleto também empurram a horda.
+A Maleta nova (isca e explosão) dava 283 e 687 na primeira versão; com o dano em 26 e a recarga em 4,6 s ficou em 136 e 320. Ela junta a horda num ponto, então rende mais quando outra habilidade de área pega o mesmo grupo. Antes do ajuste, o Chinelo dava 5, o Caramelo 16 e o Gato 23 no nível 1. As que acertam um inimigo de cada vez (Gato e Caramelo) ficam abaixo das de área nessa arena. O Megafone e o Boleto também empurram a horda.
 
 Bot (60 partidas, sementes 1000 e 3000): 12 vitórias, contra 8 na versão anterior. A morte mediana passou de 158 a 167 s para 194 a 223 s. A diferença está dentro do ruído do bot. Confirmar em playtest com pessoas.
 

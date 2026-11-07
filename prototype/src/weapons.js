@@ -143,14 +143,16 @@ export function fireWeapon(game, w, ps) {
       break;
     }
     case 'maleta': {
-      // joga para cima: a maleta faz um arco para um lado (alterna esquerda e direita) e cai abrindo
+      // joga a maleta aberta na direção da horda: ela cai, a horda corre atrás do dinheiro e ela explode
+      const alvos = nearestEnemies(game, p.x, p.y, 12, 8);
+      const base = alvos.length ? Math.atan2(alvos[0].y - p.y, alvos[0].x - p.x) : Math.atan2(p.faceY, p.faceX);
       for (let i = 0; i < st.count; i++) {
-        w.side = st.count > 1 ? (i === 0 ? 1 : -1) : -(w.side || -1);
-        const tx = p.x + w.side * st.sideM;
-        const ty = p.y + (game.rng() - 0.5) * 1.6;
+        const ang = base + i * (Math.PI * 2 / 3); // a 2ª maleta cai do outro lado
+        const tx = p.x + Math.cos(ang) * st.distM;
+        const ty = p.y + Math.sin(ang) * st.distM;
         game.projectiles.push({
-          kind: 'lob', sx: p.x, sy: p.y, x: p.x, y: p.y, tx, ty, t: 0, dur: st.flightS, arcH: st.arcM,
-          dmg: st.dmg * dmgMul, radius: st.radius * area, h: 0, hit: new Set(), src: w.id,
+          kind: 'lob', sx: p.x, sy: p.y, x: p.x, y: p.y, tx, ty, t: 0, dur: st.flightS, arcH: st.arcM, h: 0, src: w.id,
+          isca: { dmg: st.dmg * dmgMul, radius: st.radius * area, r: st.iscaR * area, s: st.iscaS, voo: st.voo },
         });
       }
       p.throwT = 0;
@@ -344,19 +346,17 @@ export function updateProjectiles(game, dt) {
       pr.x = pr.sx + (pr.tx - pr.sx) * k;
       pr.y = pr.sy + (pr.ty - pr.sy) * k;
       pr.h = Math.sin(k * Math.PI) * (pr.arcH || 2.2);
-      if (pr.hit && k > 0.55) {
-        // na descida atravessa quem estiver embaixo
-        game.hash.query(pr.x, pr.y, 1.2, tmp);
-        for (const e of tmp) {
-          if (e.dead || pr.hit.has(e.id)) continue;
-          if ((e.x - pr.x) ** 2 + (e.y - pr.y) ** 2 > (0.55 + e.r) ** 2) continue;
-          pr.hit.add(e.id);
-          game.damageEnemy(e, pr.dmg * WEAPON_FX.maletaPierce, pr.src, 0, 0);
-        }
-      }
       if (k >= 1) {
-        game.explode(pr.x, pr.y, pr.radius, pr.dmg, pr.src);
-        if (pr.hit) game.moneyBurst(pr.x, pr.y, 14);
+        if (pr.isca) {
+          // a maleta da habilidade cai aberta: vira isca de dinheiro e depois explode (updateZones)
+          const I = pr.isca;
+          game.zones.push({ kind: 'maleta', x: pr.x, y: pr.y, t: 0, dur: I.s, dmg: I.dmg, radius: I.radius, voo: I.voo, iscaR: I.r, src: pr.src });
+          game.lures.push({ x: pr.x, y: pr.y, t: 0, dur: I.s, r: I.r, speedMul: 1.6 });
+          game.moneyBurst(pr.x, pr.y, 10);
+          game.word(pr.x, pr.y - 0.5, 'DINHEIRO!', '#7fe08a');
+        } else {
+          game.explode(pr.x, pr.y, pr.radius, pr.dmg, pr.src);
+        }
         remove = true;
       }
     } else if (pr.kind === 'moto') {
@@ -438,7 +438,28 @@ export function updateZones(game, dt) {
     const z = list[i];
     z.t += dt;
     let remove = false;
-    if (z.kind === 'orbita') {
+    if (z.kind === 'maleta') {
+      // maleta aberta no chão: a horda corre atrás do dinheiro; no fim, explode e lança todo mundo para o alto
+      if (z.t >= z.dur) {
+        game.hash.query(z.x, z.y, z.radius + 0.6, tmp);
+        for (const e of tmp) {
+          if (e.dead) continue;
+          const dx = e.x - z.x;
+          const dy = e.y - z.y;
+          const d = Math.hypot(dx, dy);
+          if (d > z.radius + e.r) continue;
+          const l = d || 1;
+          game.damageEnemy(e, z.dmg, z.src, (dx / l) * 9, (dy / l) * 9);
+          if (!e.dead && !e.boss) e.vz = z.voo * (e.elite ? 0.5 : 1) * (0.8 + 0.4 * (1 - d / (z.radius + e.r)));
+        }
+        game.fx.rings.push({ x: z.x, y: z.y, r0: 0.3, r1: z.radius * 1.15, t: 0, dur: 0.35, color: 'blast' });
+        game.moneyBurst(z.x, z.y, 22);
+        game.burst(z.x, z.y, 14, 'debris');
+        game.word(z.x, z.y - 0.5, 'BUM!', '#ffd21f');
+        game.shake(0.3);
+        remove = true;
+      }
+    } else if (z.kind === 'orbita') {
       // boletos girando em volta do Juninho; cada inimigo leva no máximo uma cobrança a cada `every`
       z.x = p.x;
       z.y = p.y;

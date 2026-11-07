@@ -105,15 +105,29 @@ test('Carimbo: a sombra aparece antes e o INDEFERIDO só bate quando cai', () =>
   assert.ok(e.hp < 500 && e.slowT > 0, 'a queda não machucou nem deixou lento');
 });
 
-test('Maleta: sobe em arco e cai de lado, alternando esquerda e direita', () => {
+test('Maleta: cai aberta perto da horda, atrai por uns segundos e explode lançando todo mundo para o alto', () => {
   const g = arena('maleta');
-  const p = g.player;
-  const lados = [];
-  rodar(g, 6, parado, () => {
-    for (const o of g.projectiles) if (o.kind === 'lob' && !o.visto) { o.visto = true; lados.push(Math.sign(o.tx - p.x)); }
-  });
-  assert.ok(lados.length >= 2, 'jogou poucas maletas');
-  for (let i = 1; i < lados.length; i++) assert.notEqual(lados[i], lados[i - 1], 'não alternou o lado');
+  const st = weaponStats('maleta', 1);
+  const longe = inimigo(g, 9, 0); // dentro do alcance da isca, longe da explosão
+  longe.speed = 2;
+  g.update(DT, parado);
+  const pr = g.projectiles.find((o) => o.kind === 'lob');
+  assert.ok(pr, 'não jogou a maleta');
+  assert.ok(pr.tx > g.player.x + 2, 'não jogou na direção da horda');
+  rodar(g, st.flightS + 0.1);
+  const z = g.zones.find((o) => o.kind === 'maleta');
+  assert.ok(z, 'a maleta não caiu aberta');
+  assert.ok(g.lures.length > 0, 'não virou isca');
+  const d0 = Math.hypot(longe.x - z.x, longe.y - z.y);
+  rodar(g, st.iscaS * 0.7);
+  const d1 = Math.hypot(longe.x - z.x, longe.y - z.y);
+  assert.ok(d1 < d0 - 1, `a horda não correu atrás do dinheiro: ${d0.toFixed(1)} → ${d1.toFixed(1)}`);
+  assert.equal(longe.hp, 500, 'machucou antes de explodir');
+  let voou = false;
+  rodar(g, st.iscaS * 0.5, parado, () => { if (longe.alt > 0.3) voou = true; });
+  assert.ok(longe.hp < 500, 'a explosão não machucou');
+  assert.ok(voou, 'a explosão não lançou para o alto');
+  assert.ok(!g.zones.some((o) => o.kind === 'maleta'), 'a maleta não sumiu depois de explodir');
 });
 
 test('Picolé: deixa poças pelo caminho e quem pisa fica lento', () => {

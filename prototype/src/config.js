@@ -566,15 +566,17 @@ export const WEAPONS = {
   },
   maleta: {
     name: 'Maleta de Dinheiro',
-    role: 'Sobe em arco, cai de lado e abre em notas',
+    role: 'Cai aberta, a horda corre atrás do dinheiro e ela explode',
     levels: [
-      { dmg: 40, cd: 2.3, count: 1, radius: 1.7, sideM: 3.6, arcM: 3.4, flightS: 0.85 },
-      { count: 1, desc: '2ª maleta: uma para cada lado' },
-      { radius: 0.5, desc: 'Explosão maior' },
-      { dmg: 20, desc: '+20 de dano' },
-      { cd: -0.6, sideM: 0.8, desc: 'Mais frequente e vai mais longe' },
+      // distM: onde cai, na direção da horda; iscaR/iscaS: até onde e por quanto tempo atrai; voo: o quanto lança para o alto
+      { dmg: 26, cd: 4.6, count: 1, radius: 2.6, iscaR: 7, iscaS: 2.2, distM: 4.5, arcM: 3.4, flightS: 0.85, voo: 6.5 },
+      { count: 1, desc: '2ª maleta: duas iscas de uma vez' },
+      { radius: 0.6, iscaR: 1.5, desc: 'Atrai de mais longe e explode maior' },
+      { dmg: 14, desc: '+14 de dano' },
+      { cd: -0.8, iscaS: 0.6, desc: 'Mais frequente, e a horda fica mais tempo em volta' },
     ],
   },
+
   // Habilidades exclusivas de cada trecho (aparecem só nele; quem pega leva para os próximos)
   picole: {
     name: 'Isopor de Picolé',
@@ -647,7 +649,8 @@ export const WEAPON_FX = {
   orbitaHitR: 0.45, // alcance de cada boleto girando
   pocasMax: 16, // poças de picolé no chão ao mesmo tempo
   congelaS: 1.0, // quanto dura o congelamento da poça
-  maletaPierce: 0.5, // dano de quem a maleta atravessa na queda (fração do dano)
+  maletaAvisoS: 0.6, // antes de explodir, a maleta pisca (aviso)
+  vooGravidade: 22, // m/s² de quem a explosão da maleta lança para o alto
   caochegaM: 0.5, // distância da mordida
   caoSegueM: 1.0, // o cachorro anda a essa distância do Juninho
   mordidaS: 0.36, // a mordida inteira (6 quadros da arte): prepara, dá o bote, fecha a boca, recua

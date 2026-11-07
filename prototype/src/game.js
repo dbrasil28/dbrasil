@@ -5,7 +5,7 @@ import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA,
+  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
 import { updateCrises, criseLentidao } from './crises.js';
@@ -568,7 +568,7 @@ export class Game {
       const s = (heavy ? 4 : 2.2) + r() * 3.5;
       gibs.push({
         kind: parts[i % parts.length], x: e.x, y: e.y, z: 0.7 + r() * 0.7, vx: Math.cos(a) * s + e.kx * 0.3, vy: Math.sin(a) * s + e.ky * 0.3,
-        vz: 3 + r() * 4.5, rot: r() * 6.28, vr: (r() - 0.5) * 20, t: 0, trail: 0, type: e.type, tint: e.tint, landed: false, size: e.elite ? 1.4 : 1,
+        vz: (3 + r() * 4.5) * (source === 'maleta' ? 1.7 : 1), rot: r() * 6.28, vr: (r() - 0.5) * 20, t: 0, trail: 0, type: e.type, tint: e.tint, landed: false, size: e.elite ? 1.4 : 1,
       });
     }
     if (gibs.length > G.maxGibs) gibs.splice(0, gibs.length - G.maxGibs);
@@ -1318,17 +1318,18 @@ export class Game {
         // maleta aberta por perto: corre atrás do dinheiro em vez do Juninho
         const L = ENEMIES.politico.lure;
         let best = null;
-        let bd = L.radiusM * L.radiusM;
+        let bd = Infinity;
         for (const q of this.lures) {
           const qd = (q.x - e.x) ** 2 + (q.y - e.y) ** 2;
-          if (qd < bd) {
+          const r = q.r || L.radiusM; // a da habilidade Maleta tem o alcance dela
+          if (qd < r * r && qd < bd) {
             bd = qd;
             best = q;
           }
         }
         if (best) {
           const ql = Math.sqrt(bd) || 1;
-          const k = ql > L.reachM ? L.speedMul / ql : 0;
+          const k = ql > L.reachM ? (best.speedMul || L.speedMul) / ql : 0;
           mx = (best.x - e.x) * k;
           my = (best.y - e.y) * k;
         }
@@ -1337,6 +1338,18 @@ export class Game {
       e.my = my;
       const sandMul = (this.map.bounded && e.x > this.map.sandX ? this.map.enemySandMul : 1)
         * (this.world ? slowAt(this.world, e.x, e.y, e.ri) * criseLentidao(this, e.x) : 1);
+      if (e.vz !== undefined || e.alt > 0) {
+        // lançado para o alto pela explosão da maleta: no ar, não anda (só o empurrão leva)
+        e.alt = (e.alt || 0) + e.vz * dt;
+        e.vz -= WEAPON_FX.vooGravidade * dt;
+        mx = 0;
+        my = 0;
+        if (e.alt <= 0) {
+          e.alt = 0;
+          e.vz = undefined;
+          this.burst(e.x, e.y, 3, 'poeira');
+        }
+      }
       if (e.dancaT > 0) {
         // baile na laje: dançando, não anda
         e.dancaT -= dt;
@@ -1507,7 +1520,7 @@ export class Game {
     }
     const L = ENEMIES.politico.lure;
     for (const q of this.lures) q.t += dt;
-    if (this.lures.length && this.lures[0].t >= L.durS) this.lures = this.lures.filter((q) => q.t < L.durS);
+    if (this.lures.some((q) => q.t >= (q.dur || L.durS))) this.lures = this.lures.filter((q) => q.t < (q.dur || L.durS));
   }
 
   /** Maleta de Dinheiro do Juninho abrindo no chão: notas voando (só efeito, sorteio dos efeitos). */

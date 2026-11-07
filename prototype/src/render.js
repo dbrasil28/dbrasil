@@ -235,7 +235,16 @@ export class Renderer {
       const o = it.o;
       cam.toScreen(it.x ?? o.x, it.y ?? o.y, pt);
       if (it.x === undefined && (pt.x < -80 || pt.x > this.w + 80 || pt.y < -120 || pt.y > this.h + 120)) continue;
-      const zz = it.z ?? o.z; // altura (laje, escada) em metros: o personagem sobe na tela
+      let zz = it.z ?? o.z; // altura (laje, escada) em metros: o personagem sobe na tela
+      if (it.k === 'enemy' && o.alt > 0) {
+        // lançado para o alto (explosão da maleta): a sombra fica no chão, o corpo sobe
+        const sh = Math.max(0.25, 1 - o.alt / 4);
+        ctx.fillStyle = `rgba(0,0,0,${0.32 * sh})`;
+        ctx.beginPath();
+        ctx.ellipse(pt.x, pt.y, playerPx * 0.22 * sh, playerPx * 0.07 * sh, 0, 0, Math.PI * 2);
+        ctx.fill();
+        zz = (zz || 0) + o.alt;
+      }
       if (zz) pt.y -= zz * ppu;
       switch (it.k) {
         case 'plat':
@@ -789,6 +798,10 @@ export class Renderer {
     }
     for (const z of game.zones) {
       cam.toScreen(z.x, z.y, pt);
+      if (z.kind === 'maleta') {
+        drawMaletaIsca(ctx, z, pt, ppu, cam, game.t);
+        continue;
+      }
       if (z.kind === 'orbita') {
         // trilha dos boletos no chão
         const a = z.t < 0.2 ? z.t / 0.2 : z.t > z.dur - 0.3 ? Math.max(0, (z.dur - z.t) / 0.3) : 1;
@@ -1711,6 +1724,48 @@ function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
 }
 
 /** Boleto Atrasado girando em volta do Juninho, à altura do peito. */
+/**
+ * Maleta de Dinheiro caída aberta: o dinheiro brilhando (a horda corre para ela), o alcance da isca no
+ * chão e, no fim, o aviso piscando em vermelho com o tamanho da explosão.
+ */
+function drawMaletaIsca(ctx, z, pt, ppu, cam, t) {
+  const R = z.iscaR * ppu;
+  ctx.strokeStyle = 'rgba(127,224,138,0.35)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 8]);
+  ctx.lineDashOffset = -t * 30;
+  ctx.beginPath();
+  ctx.ellipse(pt.x, pt.y, R, R * cam.k, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  const g = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, 1.6 * ppu);
+  g.addColorStop(0, `rgba(140,235,120,${0.4 + 0.15 * Math.sin(t * 9)})`);
+  g.addColorStop(1, 'rgba(140,235,120,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.ellipse(pt.x, pt.y, 1.6 * ppu, 1.6 * ppu * cam.k, 0, 0, Math.PI * 2);
+  ctx.fill();
+  const im = images.politico_maleta_aberta || images.w_maleta;
+  if (im) {
+    const w = 1.1 * ppu;
+    const h = (im.height / im.width) * w;
+    ctx.drawImage(im, pt.x - w / 2, pt.y - h * 0.8, w, h);
+  }
+  const falta = z.dur - z.t;
+  if (falta < WEAPON_FX.maletaAvisoS) {
+    // aviso: vai explodir
+    const Rb = z.radius * ppu;
+    const pisca = Math.floor(t * 14) % 2 === 0;
+    ctx.fillStyle = pisca ? 'rgba(229,37,47,0.22)' : 'rgba(229,37,47,0.08)';
+    ctx.strokeStyle = 'rgba(255,74,82,0.85)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y, Rb, Rb * cam.k, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+}
+
 const trailA = { x: 0, y: 0 };
 const trailB = { x: 0, y: 0 };
 
