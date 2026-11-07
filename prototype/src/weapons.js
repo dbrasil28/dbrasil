@@ -541,6 +541,7 @@ export function updateZones(game, dt) {
         z.done = true;
         const h = z.half;
         game.efeito('carimbo_baque', z.x, z.y, { tam: h * 2 * 1.6 }); // poeira e papelada
+        game.efeito('carimbo_marca', z.x, z.y, { tam: h * 2 * 1.35, rot: -0.18, dur: z.slowT + 0.6 }); // a tinta apaga com a lentidão
         game.hash.query(z.x, z.y, h * 1.5 + 0.6, tmp);
         for (const e of tmp) {
           if (e.dead) continue;

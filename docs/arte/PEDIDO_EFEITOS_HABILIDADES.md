@@ -169,3 +169,22 @@ Arquivos em `efeitos/<habilidade>/`. **C** = no chão, **P** = em pé.
 ## 6. Quando chegar
 
 Eu confiro cada peça antes de pôr no jogo: fundo transparente, centro e escala, peça de chão vista de cima, e se a cor está dentro da paleta. Volta a peça com neon, anel de energia, brilho de magia, cor fora da paleta, fundo sólido ou chão oval.
+
+## 7. O que já está no jogo (pacote de 07/11/2026)
+
+Chegaram as 35 peças. 34 estão no jogo (`prototype/assets/efeitos/`, tabela em `prototype/src/efeitos_arte.js`, desenho em `prototype/src/render_fx.js`), e cada folha só carrega quando o Juninho tem a habilidade.
+
+- **Capacete e Entrega Expressa:** o capacete girando (amarelo e dourado), a pancada e o ricochete em quem leva.
+- **Chinelo:** o chinelo girando e a chinelada.
+- **Boleto:** os 4 boletos voando na roda, o redemoinho de poeira e papel no chão e o corte da cobrança.
+- **Carimbo:** o carimbo de madeira caindo, o baque de poeira e papelada e a marca violeta com o INDEFERIDO escrito pelo jogo, que apaga com a lentidão.
+- **Maleta:** as notas voando em volta da maleta aberta, a explosão, a fumaça com notas queimando e a marca preta no chão; no aviso, a luz vira vermelha e a maleta treme.
+- **Picolé:** as 4 poças, o gelo subindo nas pernas de quem congela e o gelo estilhaçando.
+- **Mototáxi:** a faixa pintada com as setas, a poeira atrás da moto, a marca de pneu e o atropelo.
+- **Megafone:** a aura de poeira no chão, o pulso e o empurrão.
+- **Gato de Luz:** os arcos emendados de um inimigo ao outro, com um brilho azul em volta, o estouro, os arcos no corpo de quem trava, a faísca na mão e o chão queimado.
+- **Caramelo:** a mordida, a onda do latido no chão e a poeira das patas.
+
+**Falta:** `notas_chao.png` (o dinheiro espalhado no chão em volta da maleta) veio pegando fogo; a isca precisa do dinheiro inteiro, chamando a horda. Enquanto não chega, a isca usa as notas voando e a luz quente do ouro.
+
+**Ajustes feitos aqui:** o fundo claro da marca de pneu ficou transparente.

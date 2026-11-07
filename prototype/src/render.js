@@ -5,6 +5,10 @@ import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS,
 import { OrlaLayer, drawImageProp, drawTallDecor } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
 import { drawCasasFundo, drawCasaFavela } from './render_favela.js';
+import {
+  precarregarFx, drawFxChao, fxEmPeNaLista, drawFxEmPe, drawSobreInimigo, drawGiro, drawBoletoArte, drawBoletoVento, drawPoca,
+  drawAura, drawCarimboQueda, drawFaixaMoto, drawRaio, drawNotasIsca, fxImg,
+} from './render_fx.js';
 import { drawMinimap } from './minimapa.js';
 import { drawCriseChao, drawCriseCeu, escondidoDeDia } from './render_crises.js';
 import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado, drawBola } from './render_carreira.js';
@@ -161,6 +165,8 @@ export class Renderer {
       ctx.globalAlpha = 1;
     }
 
+    precarregarFx(game);
+    drawFxChao(ctx, game, cam, ppu); // efeitos com arte deitados no chão e a luz que eles jogam na rua
     this.drawZones(ctx, game, ppu, playerPx);
     if (game.world) {
       // carreira (D39): sem seta nem placa; a obra do Especulador e o holofote da TV sobre o covil aberto
@@ -230,6 +236,7 @@ export class Renderer {
     }
     for (const c of game.traffic || []) list.push({ d: cam.depth(c.x, c.y + c.len / 2), k: 'trafego', o: c, x: c.x, y: c.y + c.len / 2 });
     for (const p of game.projectiles) list.push({ d: cam.depth(p.x, p.y) + 0.3, k: 'proj', o: p });
+    fxEmPeNaLista(game, cam, list);
     for (const z of game.zones) {
       if (z.kind !== 'orbita') continue;
       for (const q of z.pts) list.push({ d: cam.depth(q.x, q.y) + 0.3, k: 'orb', o: z, x: q.x, y: q.y, q });
@@ -490,7 +497,9 @@ export class Renderer {
             ctx.textAlign = 'center';
             ctx.fillText('!', pt.x, pt.y - h * 1.25 - 4); // acima do carimbo erguido na fúria
           }
-          if (o.frozenT > 0) {
+          if (drawSobreInimigo(ctx, o, pt, h, game.t)) {
+            // gelo e arcos do choque com a arte (render_fx.js)
+          } else if (o.frozenT > 0) {
             // congelado na poça de picolé: bloco de gelo em volta
             ctx.fillStyle = 'rgba(170,232,255,0.42)';
             ctx.strokeStyle = 'rgba(230,250,255,0.9)';
@@ -526,6 +535,9 @@ export class Renderer {
         }
         case 'proj':
           drawProjectile(ctx, o, pt, ppu, cam, playerPx);
+          break;
+        case 'fx':
+          drawFxEmPe(ctx, o, game, cam, ppu, playerPx);
           break;
         case 'orb':
           drawBoletoGirando(ctx, o, it.q, pt, playerPx, game.t);
@@ -710,6 +722,7 @@ export class Renderer {
       const X = pt.x;
       const Y = pt.y - alt * ppu;
       const u = z.half * ppu;
+      if (drawCarimboQueda(ctx, z, X, Y, ppu)) continue;
       ctx.fillStyle = '#5a341e';
       ctx.fillRect(X - u * 0.14, Y - u * 1.5, u * 0.28, u * 0.8); // cabo
       ctx.fillStyle = '#2e2019';
@@ -725,6 +738,7 @@ export class Renderer {
       ctx.strokeRect(X - u, Y - u * 0.72, u * 2, u * 0.74);
     }
     for (const b of game.fx.bolts) {
+      if (drawRaio(ctx, b, cam, ppu, playerPx)) continue;
       const a = 1 - b.t / b.dur;
       // a forma do raio muda a cada quadro (faísca), presa nos pontos do choque
       let sd = b.seed + Math.floor(b.t * 40) * 13;
@@ -762,7 +776,7 @@ export class Renderer {
     const cam = game.camera;
     const p = game.player;
     // Megafone: o círculo fica sempre no chão, com as ondas de som saindo
-    if (p.auraR > 0 && p.weapons.some((w) => w.id === 'microfone')) {
+    if (p.auraR > 0 && p.weapons.some((w) => w.id === 'microfone') && !drawAura(ctx, cam, ppu, p, game.t)) {
       cam.toScreen(p.x, p.y, pt);
       const R = p.auraR * ppu;
       ctx.fillStyle = 'rgba(255,210,31,0.1)';
@@ -792,6 +806,7 @@ export class Renderer {
     // Mototáxi: faixa vermelha piscando antes da moto passar
     for (const pr of game.projectiles) {
       if (pr.kind !== 'moto' || !(pr.delay > 0)) continue;
+      if (drawFaixaMoto(ctx, cam, ppu, pr, 0.6 + 0.4 * Math.abs(Math.sin(pr.delay * 14)))) continue;
       // a faixa é um retângulo no chão: com a câmera oblíqua ela vira um paralelogramo na tela
       ctx.beginPath();
       const cantos = [[-1, 0], [1, 0], [1, 1], [-1, 1]];
@@ -812,9 +827,10 @@ export class Renderer {
     for (const z of game.zones) {
       cam.toScreen(z.x, z.y, pt);
       if (z.kind === 'maleta') {
-        drawMaletaIsca(ctx, z, pt, ppu, cam, game.t);
+        drawMaletaIsca(ctx, z, pt, ppu, cam, game.t, playerPx);
         continue;
       }
+      if (z.kind === 'orbita' && drawBoletoVento(ctx, cam, ppu, z)) continue;
       if (z.kind === 'orbita') {
         // trilha dos boletos no chão
         const a = z.t < 0.2 ? z.t / 0.2 : z.t > z.dur - 0.3 ? Math.max(0, (z.dur - z.t) / 0.3) : 1;
@@ -843,6 +859,7 @@ export class Renderer {
         ctx.lineCap = 'butt';
         continue;
       }
+      if (z.kind === 'poca' && drawPoca(ctx, cam, ppu, z)) continue;
       if (z.kind === 'poca') {
         // poça de picolé derretido: azul gelado com o palito, some no fim
         const a = Math.min(1, z.t / 0.15, (z.dur - z.t) / 0.6);
@@ -870,10 +887,19 @@ export class Renderer {
         // sombra do carimbão crescendo no chão enquanto ele cai
         const k = Math.min(1, z.t / z.delay);
         const R = z.half * ppu * (0.55 + 0.6 * k);
-        ctx.fillStyle = `rgba(0,0,0,${0.18 + 0.32 * k})`;
+        // sombra macia (sem borda), mais escura à medida que o carimbo desce
+        ctx.save();
+        ctx.translate(pt.x, pt.y);
+        ctx.scale(1, cam.k);
+        const gs = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+        gs.addColorStop(0, `rgba(0,0,0,${0.22 + 0.36 * k})`);
+        gs.addColorStop(0.7, `rgba(0,0,0,${0.12 + 0.22 * k})`);
+        gs.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gs;
         ctx.beginPath();
-        ctx.ellipse(pt.x, pt.y, R, R * cam.k, 0, 0, Math.PI * 2);
+        ctx.arc(0, 0, R, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
         continue;
       }
       if (z.kind === 'boleto') {
@@ -894,6 +920,8 @@ export class Renderer {
           ctx.fillRect(x, pt.y - 4, i % 3 === 0 ? 3 : 1.5, 8);
         }
         ctx.globalAlpha = 1;
+      } else if (z.kind === 'stamp' && z.done && fxImg('carimbo_marca')) {
+        // com a arte, a marca é um efeito no chão (drawFxChao), que dura o tempo da lentidão
       } else if (z.kind === 'stamp') {
         const h = z.half;
         const quad = worldQuad(cam, z.x, z.y, h);
@@ -1643,6 +1671,33 @@ function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
     drawObject(ctx, o.obj, pt.x, pt.y - o.h * ppu - playerPx * 0.3, s, Math.sin(o.t * 9) * 0.5, GIRO[Math.floor(o.t * 16) % GIRO.length]); // gira no ar
     return;
   }
+  if (o.kind === 'boomerang' || o.kind === 'slipper') {
+    const nome = o.kind === 'slipper' ? 'chinelo_giro' : o.evolved ? 'entrega_giro' : 'capacete_giro';
+    if (fxImg(nome)) {
+      const s = Math.max(8, playerPx * (o.kind === 'slipper' ? 0.3 : 0.2));
+      const y = pt.y - playerPx * 0.45;
+      if (o.vx || o.vy) {
+        // rastro de vento atrás, na cor do objeto
+        const tail = o.evolved ? 0.09 : 0.065;
+        const tx = pt.x - o.vx * ppu * tail;
+        const ty = y - o.vy * ppu * cam.k * tail;
+        const g = ctx.createLinearGradient(pt.x, y, tx, ty);
+        const col = o.evolved ? '255,210,31' : o.kind === 'slipper' ? '170,195,215' : '224,165,42';
+        g.addColorStop(0, `rgba(${col},0.5)`);
+        g.addColorStop(1, `rgba(${col},0)`);
+        ctx.strokeStyle = g;
+        ctx.lineWidth = Math.max(3, s * 0.5);
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(pt.x, y);
+        ctx.lineTo(tx, ty);
+        ctx.stroke();
+        ctx.lineCap = 'butt';
+      }
+      drawGiro(ctx, nome, o.spin, pt.x, y, s * 1.45);
+      return;
+    }
+  }
   const artId = o.kind === 'boomerang' ? 'w_capacete' : o.kind === 'slipper' ? 'w_chinelo' : o.kind === 'lob' ? 'w_maleta' : null;
   const art = artId && images[artId];
   if (art) {
@@ -1741,31 +1796,55 @@ function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
  * Maleta de Dinheiro caída aberta: o dinheiro brilhando (a horda corre para ela), o alcance da isca no
  * chão e, no fim, o aviso piscando em vermelho com o tamanho da explosão.
  */
-function drawMaletaIsca(ctx, z, pt, ppu, cam, t) {
+function drawMaletaIsca(ctx, z, pt, ppu, cam, t, playerPx) {
+  // com a arte: sem o círculo tracejado; o dinheiro voando em volta e a luz quente do ouro é que chamam a horda
+  const arte = !!fxImg('notas');
   const R = z.iscaR * ppu;
-  ctx.strokeStyle = 'rgba(127,224,138,0.35)';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([8, 8]);
-  ctx.lineDashOffset = -t * 30;
-  ctx.beginPath();
-  ctx.ellipse(pt.x, pt.y, R, R * cam.k, 0, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  if (!arte) {
+    ctx.strokeStyle = 'rgba(127,224,138,0.35)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 8]);
+    ctx.lineDashOffset = -t * 30;
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y, R, R * cam.k, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  const cor = arte ? '232,190,96' : '140,235,120';
   const g = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, 1.6 * ppu);
-  g.addColorStop(0, `rgba(140,235,120,${0.4 + 0.15 * Math.sin(t * 9)})`);
-  g.addColorStop(1, 'rgba(140,235,120,0)');
+  g.addColorStop(0, `rgba(${cor},${(arte ? 0.26 : 0.4) + 0.12 * Math.sin(t * 9)})`);
+  g.addColorStop(1, `rgba(${cor},0)`);
   ctx.fillStyle = g;
   ctx.beginPath();
   ctx.ellipse(pt.x, pt.y, 1.6 * ppu, 1.6 * ppu * cam.k, 0, 0, Math.PI * 2);
   ctx.fill();
+  const falta = z.dur - z.t;
+  const aviso = falta < WEAPON_FX.maletaAvisoS;
+  const treme = aviso ? Math.sin(t * 70) * ppu * 0.06 : 0; // no aviso, a maleta treme
   const im = images.politico_maleta_aberta || images.w_maleta;
   if (im) {
     const w = 1.1 * ppu;
     const h = (im.height / im.width) * w;
-    ctx.drawImage(im, pt.x - w / 2, pt.y - h * 0.8, w, h);
+    ctx.drawImage(im, pt.x - w / 2 + treme, pt.y - h * 0.8, w, h);
   }
-  const falta = z.dur - z.t;
-  if (falta < WEAPON_FX.maletaAvisoS) {
+  if (arte) drawNotasIsca(ctx, z, pt, ppu, playerPx, t);
+  if (aviso && arte) {
+    // aviso: a luz do ouro vira vermelha e pulsa no tamanho da explosão (sem linha)
+    const Rb = z.radius * ppu;
+    const f = 0.5 + 0.5 * Math.sin(t * 22);
+    ctx.save();
+    ctx.translate(pt.x, pt.y);
+    ctx.scale(1, cam.k);
+    const gr = ctx.createRadialGradient(0, 0, Rb * 0.2, 0, 0, Rb);
+    gr.addColorStop(0, `rgba(201,55,47,${0.1 + 0.18 * f})`);
+    gr.addColorStop(0.85, `rgba(201,55,47,${0.16 + 0.22 * f})`);
+    gr.addColorStop(1, 'rgba(201,55,47,0)');
+    ctx.fillStyle = gr;
+    ctx.beginPath();
+    ctx.arc(0, 0, Rb, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  } else if (aviso) {
     // aviso: vai explodir
     const Rb = z.radius * ppu;
     const pisca = Math.floor(t * 14) % 2 === 0;
@@ -1791,6 +1870,10 @@ function drawBoletoGirando(ctx, z, q, pt, playerPx, t) {
   ctx.beginPath();
   ctx.ellipse(pt.x, pt.y, s * 0.35, s * 0.12, 0, 0, Math.PI * 2);
   ctx.fill();
+  if (drawBoletoArte(ctx, z.pts.indexOf(q), t, pt.x, y, s * 1.15, a)) {
+    ctx.globalAlpha = 1;
+    return;
+  }
   ctx.save();
   ctx.translate(pt.x, y);
   ctx.rotate(Math.sin(t * 6 + q.a * 3) * 0.3);
