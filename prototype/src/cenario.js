@@ -189,15 +189,7 @@ function calcadao(w, map, b) {
       }
     }
   }
-  // muro pichado de terreno baldio, saindo do lado do morro, e tapume de obra parada com cartazes
-  prop(w, 'muro', map.minX, y0 + 23.3, map.minX + 4.4, y0 + 23.7, 2.4, seed(9));
-  // muro na vertical, dividindo o calçadão (um por quarteirão, onde couber)
-  for (const [mx, my] of [[-9.6, 20.6], [-2.4, 26.4], [-5.0, 31.0]]) {
-    if (prop(w, 'muro_v', mx, y0 + my, mx + 0.45, y0 + my + 4.4, 2.4, seed(11))) break;
-  }
-  for (const [tx, ty] of [[-6.2, 32.5], [-6.6, 6.5], [-5.8, 10]]) {
-    if (prop(w, 'tapume', tx, y0 + ty - 0.3, tx + 4.6, y0 + ty, 2.2, seed(10))) break;
-  }
+  // sem muro nem tapume no calçadão (pedido do autor, 07/11/2026): muro no meio da calçada não faz sentido
   // garotas de programa paradas na esquina, perto do poste (figuras de ambiente: não bloqueiam nem lutam)
   // na esquina da avenida e na do lado das lojas
   for (const [gx, gy, i] of [[-0.5, 38.2, 1], [0.3, 38.6, 2], [-8.0, 1.4, 3], [-0.6, 2.2, 4]]) {

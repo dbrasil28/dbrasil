@@ -131,7 +131,7 @@ Da esquerda para o mar, como em Copacabana (decisão do autor): **prédios, cal�
 | Faixa | Largura | O que tem |
 | --- | --- | --- |
 | Prédios | fora do caminho | Quatro modelos gerados no Figma já com volume (Art Déco creme, pastilhas azuis, sobrado caindo aos pedaços, modernista com piscina no telhado): telhado visto de cima, a ponta curta virada para a rua e a lateral comprida com as lojas no térreo virada para o calçadão. Encostados um no outro ao longo do quarteirão; as ruas transversais passam entre eles (`PREDIOS` em config.js). A primeira tentativa, com a fachada de frente entortada, parecia papelão e foi descartada |
-| Calçadão, lado das lojas | 7 m | Botecos, açaí, pastelaria, prédio com terraço, muro |
+| Calçadão, lado das lojas | 7 m | Botecos, açaí, pastelaria, prédio com terraço |
 | Calçadão, meio | 8 m | Barraca do meio, carrinho, tapume, orelhão; bancos e postes na beira da avenida; garotas na esquina |
 | Avenida | 11 m | Quatro faixas, dois sentidos. Carros andando atropelam o Juninho (28 de dano e um empurrão) e matam a horda. Carro vindo por trás na faixa do Juninho dá aviso na borda de baixo da tela. Faixa de pedestre em cada rua |
 | Ciclovia | 1,6 m | Faixa vermelha |
@@ -157,8 +157,6 @@ As ruas transversais saem dos prédios e terminam na avenida, com carros e ônib
 | Postes (com cartaz de político ou bandeira) | Duas fileiras, a cada 12 m | Sólidos finos |
 | Placas de rua e de aviso | Esquinas e meio do quarteirão | Sólidos finos |
 | Orelhão | Um a cada dois quarteirões | Sólido |
-| Muro pichado de terreno baldio | Saindo do lado do morro | Sólido de 4,4 m; pichação, cartaz e, às vezes, a bandeira pintada; caco de vidro no alto |
-| Tapume de obra parada | Meio do calçadão | Sólido de 4,6 m, coberto de cartazes do mesmo candidato e pichação |
 | Garotas de programa | Esquinas, perto do poste | Figuras de ambiente |
 | Casas da borda | Lado do morro | Pichação, cartaz e bandeira na janela |
 | Muro do fim da Orla | Ao lado da escadaria | Pichado e com cartazes; camburão parado na rua com três policiais de guarda |
@@ -174,7 +172,7 @@ As ruas transversais saem dos prédios e terminam na avenida, com carros e ônib
 
 ### Postes e muros
 
-Os postes de luz são de concreto, cheios de fio de gato, com transformador e pipa presa. O poste com o cartaz "vote em mim de novo" saiu do jogo. Os muros têm versão horizontal (de frente) e vertical (correndo de baixo para cima na tela), que divide o calçadão.
+Os postes de luz são de concreto, cheios de fio de gato, com transformador e pipa presa. O poste com o cartaz "vote em mim de novo" saiu do jogo. Não há muro nem tapume no calçadão da Orla: muro no meio da calçada não faz sentido (pedido do autor, 07/11/2026). Fica só a fachada pichada do fim da Orla, que marca onde a Orla acaba, ao lado da escadaria do morro. A arte dos muros (horizontais e verticais) continua em `docs/arte/cenario_orla/` para o morro.
 
 ### Subida do Morro
 

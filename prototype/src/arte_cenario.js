@@ -19,8 +19,6 @@ export const ART = {
   orelhao: { w: 0.6, d: 0.5, h: 2.1, padX: 0.55, top: 2.7, bot: 0.3, files: ['laranja'], espelha: true },
   muro: { w: 4.4, d: 0.4, h: 2.4, padX: 0.3, top: 3.0, bot: 0.35, files: ['a', 'b'] },
   tapume: { w: 4.6, d: 0.3, h: 2.2, padX: 0.3, top: 2.7, bot: 0.35, files: ['a'] },
-  // muro na vertical (correndo de baixo para cima na tela): fino em x, comprido em y
-  muro_v: { w: 0.45, d: 4.4, h: 2.4, padX: 0.45, top: 6.5, bot: 0.3, files: ['a', 'b'], espelha: true },
   // praia
   coqueiro: { w: 0.5, d: 0.5, h: 7.5, padX: 2.6, top: 8.0, bot: 0.3, files: ['a'], espelha: true },
   guarda_sol: { w: 0.2, d: 0.2, h: 2.6, padX: 1.4, top: 3.0, bot: 0.3, files: ['a', 'b'], espelha: true },

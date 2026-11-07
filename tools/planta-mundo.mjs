@@ -18,7 +18,7 @@ const CAT = {
   carro: 'veiculo', onibus: 'veiculo', camburao: 'veiculo', moto: 'veiculo',
   banca: 'comercio', milho: 'comercio', picole: 'comercio', mate: 'comercio',
   banco: 'rua', lixeira: 'rua', orelhao: 'rua', poste: 'rua', placa: 'rua', cone: 'rua', bandeirinhas: 'rua', fios: 'rua', placa_parede: 'rua',
-  muro: 'muro', muro_v: 'muro', tapume: 'muro',
+  muro: 'muro', tapume: 'muro',
   coqueiro: 'praia', guarda_sol: 'praia', toalha: 'praia', isopor: 'praia', rede: 'praia', poste_rede: 'praia',
   caixa_dagua: 'morro', sinuca: 'morro', churrasqueira: 'morro', barricada: 'morro', tambor: 'morro', entulho: 'morro', pneus: 'morro', varal: 'morro', bandeira: 'morro',
   garota: 'gente', policial: 'gente',
@@ -27,7 +27,7 @@ const NOME = {
   carro: 'Carro parado', onibus: 'Ônibus parado', camburao: 'Camburão', moto: 'Moto', banca: 'Banca de jornal', milho: 'Carrinho de milho',
   picole: 'Carrinho de picolé', mate: 'Carrinho de mate', banco: 'Banco', lixeira: 'Lixeira', orelhao: 'Orelhão', poste: 'Poste com gato', placa: 'Placa',
   cone: 'Cone', bandeirinhas: 'Bandeirinhas (no alto)', fios: 'Gato de luz (no alto)', placa_parede: 'Placa na parede', muro: 'Muro pichado',
-  muro_v: 'Muro pichado (vertical)', tapume: 'Tapume com cartazes', coqueiro: 'Coqueiro', guarda_sol: 'Guarda-sol', toalha: 'Toalha', isopor: 'Isopor',
+  tapume: 'Tapume com cartazes', coqueiro: 'Coqueiro', guarda_sol: 'Guarda-sol', toalha: 'Toalha', isopor: 'Isopor',
   rede: 'Rede de futevôlei', poste_rede: 'Poste da rede', caixa_dagua: "Caixa d'água", sinuca: 'Sinuca', churrasqueira: 'Churrasqueira',
   barricada: 'Barricada', tambor: 'Tambor em chamas', entulho: 'Entulho', pneus: 'Pneus', varal: 'Varal', bandeira: 'Mastro com bandeira',
   garota: 'Garota de programa', policial: 'Policial', boteco: 'Boteco', acai: 'Açaí', pastelaria: 'Pastelaria', quiosque: 'Quiosque',
@@ -118,8 +118,8 @@ canvas { display: block; max-width: none; touch-action: pan-x pan-y; }
       <h3>Faixas da Orla (da esquerda para o mar)</h3>
       <ul>
         <li><b>Prédios</b>, fora do caminho, de lado para a câmera: a fachada com as lojas no térreo dá para o calçadão (linha amarela) e o prédio sobe em direção à cidade. As ruas transversais passam entre eles.</li>
-        <li><b>Calçadão, lado das lojas</b> (7 m): botecos, açaí, pastelaria, prédio com terraço, muro.</li>
-        <li><b>Calçadão, meio</b> (8 m): barraca do meio, carrinho, tapume, orelhão, bancos e postes na beira da avenida, garotas na esquina.</li>
+        <li><b>Calçadão, lado das lojas</b> (7 m): botecos, açaí, pastelaria, prédio com terraço.</li>
+        <li><b>Calçadão, meio</b> (8 m): barraca do meio, carrinho, orelhão, bancos e postes na beira da avenida, garotas na esquina.</li>
         <li><b>Avenida</b> (11 m, quatro faixas, dois sentidos): carros andando que atropelam o Juninho e a horda; faixa de pedestre em cada rua.</li>
         <li><b>Ciclovia</b> e <b>areia</b>: quiosque, salva-vidas, guarda-sóis, coqueiros, futevôlei. O <b>mar</b> vem depois da areia.</li>
         <li><b>Ruas transversais</b>: uma entre cada quarteirão, 8 m de largura, saindo dos prédios e terminando na avenida, com carros e ônibus parados nas duas mãos, buraco com cones e bandeirinhas.</li>
@@ -161,7 +161,7 @@ const linhas = [
   D.places.filter((p) => p.kind === 'boteco').length + ' botecos, ' + D.places.filter((p) => p.kind === 'acai').length + ' açaís e ' + D.places.filter((p) => p.kind === 'pastelaria').length + ' pastelarias',
   (kinds.carro || 0) + ' carros, ' + (kinds.onibus || 0) + ' ônibus, ' + (kinds.camburao || 0) + ' camburões e ' + (kinds.moto || 0) + ' motos',
   (kinds.poste || 0) + ' postes com gato, ' + (kinds.banco || 0) + ' bancos, ' + (kinds.lixeira || 0) + ' lixeiras, ' + (kinds.placa || 0) + ' placas',
-  (kinds.muro || 0) + ' muros, ' + (kinds.muro_v || 0) + ' muros verticais, ' + (kinds.tapume || 0) + ' tapumes',
+  (kinds.muro || 0) + ' muros, ' + (kinds.tapume || 0) + ' tapumes',
   (kinds.coqueiro || 0) + ' coqueiros, ' + (kinds.guarda_sol || 0) + ' guarda-sóis, ' + (kinds.rede || 0) + ' quadras de futevôlei',
   D.slots.length + ' objetos para arremessar, ' + D.heals.length + ' curas, ' + D.sujeira + ' manchas e lixo no chão',
 ];
