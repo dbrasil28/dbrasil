@@ -192,6 +192,15 @@ export const FAVELA = {
   },
   // casas de frente no alto de cada pedaço (fundo das pracinhas, ponta das vielas), sorteadas
   fundo: ['fachada_a', 'fachada_b', 'fachada_a', 'fachada_c', 'fachada_b'],
+  fundoBaixo: ['fachada_a'], // à direita da passagem (a leste do pedaço de cima): só casa baixa
+  // o que entra ao longo de cada lado do caminho e o peso de cada peça no sorteio. À direita só casa baixa:
+  // nesta câmera, casa alta a leste da viela esconderia a viela atrás dela. Barraco só nas vielas mais altas.
+  ladoEsq: { parede_viela_esq: 4, fachada_a: 1, fachada_b: 1.4, fachada_c: 0.9, barraco_a: 0.8, barraco_b: 0.8 },
+  ladoDir: { telhado_viela_dir: 4, fachada_a: 1.4, barraco_a: 1, barraco_b: 1 },
+  // variações de arte de cada peça (mesma caixa, outro desenho): arquivo <peça>_<letra>.webp em
+  // assets/cenario/favela/, com a linha fav_<peça>_<letra> em IMAGES (sprites.js). Vazio: só a arte principal.
+  // Pedido em docs/arte/PEDIDO_FAVELA_VARIACOES.md.
+  variantes: { parede_viela_esq: [], telhado_viela_dir: [], fachada_a: [], fachada_b: [], fachada_c: [], barraco_a: [], barraco_b: [], casa_laje_dir: [], casa_laje_esq: [] },
   barracoDesde: 8, // índice do pedaço da rota a partir do qual entram barracos (vielas mais altas)
   barracoChance: 0.5,
   vaoMinM: 0.8, // vão menor que isso no alto do pedaço fica sem casa

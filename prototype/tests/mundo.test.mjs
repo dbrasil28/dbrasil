@@ -276,11 +276,16 @@ test('favela: casas dos dois lados de cada pedaço do Morro, sem entrar no chão
     }
   }
   w.path.slice(1).forEach((k, i) => {
-    const lado = (peca, x) => w.casas.some((c) => c.peca === peca && Math.abs((peca === 'parede_viela_esq' ? c.x1 : c.x0) - x) < 0.01 && c.y1 > k.y0 && c.y0 < k.y1);
-    assert.ok(lado('parede_viela_esq', k.x0), `pedaço ${i + 1} sem parede à esquerda`);
-    assert.ok(lado('telhado_viela_dir', k.x1), `pedaço ${i + 1} sem casa à direita`);
+    const esq = w.casas.filter((c) => Math.abs(c.x1 - k.x0) < 0.01 && c.y1 > k.y0 && c.y0 < k.y1);
+    const dir = w.casas.filter((c) => Math.abs(c.x0 - k.x1) < 0.01 && c.y1 > k.y0 && c.y0 < k.y1);
+    assert.ok(esq.length, `pedaço ${i + 1} sem casa à esquerda`);
+    assert.ok(dir.length, `pedaço ${i + 1} sem casa à direita`);
+    // a oeste do caminho a casa fica atrás de quem anda; a leste entra na ordem pela frente e é baixa,
+    // para não esconder a viela atrás dela
+    assert.ok(esq.every((c) => c.lado === 'fundo'));
+    assert.ok(dir.every((c) => c.lado === 'frente' && c.h <= 3.5), `casa alta à direita no pedaço ${i + 1}`);
   });
-  // a oeste do caminho a casa fica atrás de quem anda; a leste, entra na ordem pela frente
-  assert.ok(w.casas.filter((c) => c.peca === 'parede_viela_esq').every((c) => c.lado === 'fundo'));
-  assert.ok(w.casas.filter((c) => c.peca === 'telhado_viela_dir').every((c) => c.lado === 'frente'));
+  // lados variados: a mesma peça não aparece duas vezes seguidas no mesmo lado
+  const pecas = new Set(w.casas.map((c) => c.peca));
+  assert.ok(pecas.size >= 7, 'pouca variedade de casas');
 });

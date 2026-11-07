@@ -9,8 +9,8 @@ const q = { x: 0, y: 0 };
 const hull = [];
 
 /** Desenha a peça com o canto (ax, ay) no chão; d < fundo da arte corta o que passa do fundo. */
-export function drawPecaFavela(ctx, peca, ax, ay, cam, ppu, d = null) {
-  const im = images[`fav_${peca}`];
+export function drawPecaFavela(ctx, peca, ax, ay, cam, ppu, d = null, arte = peca) {
+  const im = images[`fav_${arte}`] || images[`fav_${peca}`]; // variação que ainda não carregou: a principal
   if (!im) return false;
   const A = FAVELA.pecas[peca];
   const s = ppu / FAVELA.pxPorM;
@@ -41,7 +41,7 @@ export function drawPecaFavela(ctx, peca, ax, ay, cam, ppu, d = null) {
 /** Casa da lista w.casas (favela.js). */
 export function drawCasaFavela(ctx, c, cam, ppu) {
   const A = FAVELA.pecas[c.peca];
-  return drawPecaFavela(ctx, c.peca, A.oeste ? c.x1 : c.x0, c.y1, cam, ppu, c.corte ? c.d : null);
+  return drawPecaFavela(ctx, c.peca, A.oeste ? c.x1 : c.x0, c.y1, cam, ppu, c.corte ? c.d : null, c.arte);
 }
 
 /** Casas a oeste do caminho: atrás de tudo que anda nele, do fundo para a frente. */

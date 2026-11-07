@@ -122,6 +122,7 @@ export const IMAGES = {
   cen_sofa_a: 'assets/cenario/favela/sofa_a.webp',
   cen_cadeiras_a: 'assets/cenario/favela/cadeiras_a.webp',
   cen_vaso_a: 'assets/cenario/favela/vaso_a.webp',
+  // variações das casas (FAVELA.variantes): fav_<peça>_<letra>, uma linha por arquivo (o build acha pelo texto)
   predio_a: 'assets/cenario/predios/predio_a.webp',
   predio_b: 'assets/cenario/predios/predio_b.webp',
   predio_c: 'assets/cenario/predios/predio_c.webp',
