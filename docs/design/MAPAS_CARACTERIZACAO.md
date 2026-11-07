@@ -11,7 +11,7 @@ Pedido do autor (06/11/2026): mapas bem dinâmicos. O Juninho pega a mesa e a ca
 | **Subir** | Escadas, escadarias e escadas de incêndio levam a lajes, telhados e torres. Lá em cima, quem está embaixo só chega **pela escada**, que vira gargalo. Lá de cima o Juninho continua acertando quem está no chão, mas não leva encostão de quem não subiu |
 | **Explosivo** | Botijão e galão explodem quando arremessados e machucam todo mundo em volta, inclusive o Juninho se estiver perto |
 | **Gargalo e arena** | Todo mapa alterna lugares estreitos, onde a horda afunila, com lugares abertos, onde dá para rodar e lutar |
-| **Bloqueio de saída** | A saída do trecho fica fechada até o nível da meta. Depois, uma seta leva até ela |
+| **Bloqueio de saída** | A saída do trecho só abre com o chefão derrubado. Nenhuma seta aponta o caminho: o jogador descobre por pistas (`CARREIRA_E_ROTA.md`, seção 3) |
 
 ## 1. Orla do Desespero (Rio)
 
@@ -23,7 +23,7 @@ Pedido do autor (06/11/2026): mapas bem dinâmicos. O Juninho pega a mesa e a ca
 | Prédio com escada de incêndio | Lado dos prédios | Escada de incêndio até o terraço, onde ficam um botijão e uma marmita esquecida, que cura |
 | Banca de jornal e barraca de pastel | Calçadão | Obstáculos; o pastel cura |
 | Rua transversal | A cada quarteirão | O ônibus atravessa e atropela quem estiver no caminho |
-| Tapume da escadaria | Fim da Orla | Bloqueia a subida para o morro até o nível da meta |
+| Obra do Especulador | Fim da Orla | Cercada de tapume, com barulho estranho atrás: é o covil do chefão. Quando ele cai, o tapume do fundo cai e revela a escadaria do morro |
 
 ## 2. Subida do Morro (Rio)
 

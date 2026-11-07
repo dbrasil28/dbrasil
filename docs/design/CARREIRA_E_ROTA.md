@@ -1,79 +1,183 @@
 # Carreira: o turno do Juninho em rota contínua
 
-Estrutura do jogo pedida pelo autor (06/11/2026):
-- **Carreira:** o Juninho passa por vários mapas até a entrega final.
-- **Liberação por nível:** ao chegar num nível, o próximo mapa libera e aparece uma seta para seguir até ele.
-- **Ligação:** a passagem entre os mapas é direta e contínua.
-- **Visão de cima:** um mapa mostra o que está liberado e o que está bloqueado.
-- **Elenco próprio:** cada mapa tem os seus personagens.
-- **Dificuldade:** o jogo é difícil.
+Estrutura do jogo pedida pelo autor (06/11/2026) e refeita com ele em 07/11/2026 (D39 a D41):
+- **Fluxo contínuo:** o jogo é uma viagem só, da Orla do Rio até Brasília. Não existe "fim de fase": derrubou o chefão, abre a passagem e o Juninho entra andando no mapa seguinte.
+- **O chefão é a porta:** cada trecho tem um chefão gigante que guarda a saída. Ele não aparece do nada: mora num lugar do mapa, e o jogador tem que ir até ele.
+- **Exploração, no espírito do Elden Ring:** o cenário não aponta o caminho. O jogador não sabe que existe um morro nem que existe um chefão; descobre jogando, por pistas pequenas.
+- **Recomeço a cada trecho:** as habilidades ficam para trás a cada mapa novo. Só seguem as melhorias compradas fora da partida, e elas são pequenas.
+- **Achados:** tesouros escondidos pelo caminho, com abertura caprichada, e uma relíquia única por trecho.
+- **Brasília:** o final, com os palanques do Barbudo e do Capitão.
 
-Base no gênero: no Vampire Survivors, chegar a um nível num mapa abre o próximo; no Survivor.io, o maior survivor de celular, cada capítulo vencido abre o seguinte.
+Base no gênero: cada capítulo do Survivor.io termina num chefão e recomeça do zero com o equipamento permanente; no Vampire Survivors, a fase é roteirizada pelo relógio, tem eventos com aviso, e o baú tem a abertura que dá a sensação de ter achado algo superior.
 
 ## 1. A rota
 
-O mundo é **um caminho só**, a rota da entrega. Cada mapa é um trecho dela, e o fim de um trecho é o começo do próximo:
-
-1. **Saída bloqueada:** a saída do trecho começa fechada, com tapume, cancela ou barricada.
-2. **Nível da meta:** quando o Juninho chega ao nível da meta, a saída abre. A TV Caos anuncia "MAPA LIBERADO".
-3. **A seta:** aparece uma **seta** na borda da tela apontando para a saída, e setas pintadas no chão marcam o caminho.
-4. **Passagem:** a partida continua, com a horda vindo, até o Juninho atravessar a saída. Do outro lado já é o próximo trecho, sem tela de carregamento e sem menu.
-
-| # | Trecho | Onde | Nível para abrir o próximo | Chefe do trecho |
+| # | Trecho | Onde | Chefão e covil | Por onde sai |
 | --- | --- | --- | --- | --- |
-| 1 | Orla do Desespero | Rio, calçadão | 15 | Especulador Imobiliário |
-| 2 | Subida do Morro | Rio, favela | 25 | Chefe do Tráfico |
-| 3 | Rodovia | Estrada Rio–São Paulo | 10 | Nenhum (caminhões e pedágio) |
-| 4 | Centro do Desespero | São Paulo | 20 | O Rapa |
-| 5 | Rodovia | Estrada para a capital | 10 | Nenhum |
-| 6 | Acordópolis | Capital | 20 | O Barbudo e O Capitão, que viram O Acordão |
-| 7 | Rodovia | Estrada para o Nordeste | 10 | Nenhum |
-| 8 | Paraíso à Venda | Praia do Nordeste | 20 | Barão do Guarda-Sol |
-| 9 | Rede do Pânico | Estúdio de TV | 20 | Apresentador do Plantão |
-| 10 | Entrega Final | Sede do aplicativo | Entregar o pacote | O Dono do App |
+| 1 | Orla do Desespero | Rio, calçadão | Especulador Imobiliário, na obra cercada de tapume no fim da praia | O tapume do fundo da obra cai e revela a escadaria do morro |
+| 2 | Subida do Morro | Rio, favela | Chefe do Tráfico, na laje do topo | O caminho desce pelo outro lado do morro até a estrada |
+| 3 | São Paulo | Rodovia Rio–São Paulo e Centro do Desespero | O Rapa (a definir) | A definir |
+| 4 | Brasília | Rodovia até a capital e a Esplanada | O Barbudo e O Capitão, nos palanques (seção 7) | Fim da viagem |
 
-- **Os níveis da tabela:** são um ponto de partida. Vão para `config.js` e se acertam com o bot de balanceamento e com playtest.
-- **O Rio é uma partida só:** Orla e Morro são o mesmo capítulo. O nível e as cartas da Orla seguem para o Morro, por isso o Morro pede o nível 25.
-- **Nova cidade:** ao entrar numa cidade nova, as cartas e o nível recomeçam. Ficam só as melhorias permanentes.
-- **O chefe:** continua aparecendo no tempo dele. Vencê-lo não é obrigatório para seguir, mas dá a estrela de chefe e uma gorjeta grande.
-- **Rodovias:** são trechos curtos que ligam as cidades sem corte. O Juninho vai de moto entre caminhões, pedágio, posto de gasolina, borracharia e ambulante vendendo água no engarrafamento.
-- **Ponto de controle:** cada saída atravessada grava o progresso. Quem cai no Morro volta ao pé do morro com o nível que tinha ao entrar.
+- **Rodovias:** são o começo do trecho da cidade seguinte, não um trecho à parte. Uns 3 a 4 minutos de perseguição de moto entre caminhões, pedágio, posto e borracharia, sem chefão, até chegar na cidade.
+- **Duração:** cada trecho dura uns 10 minutos até o chefão (seção 2), mais a luta. A viagem inteira passa de 40 minutos, jogada em pedaços.
+- **Depois de Brasília:** os trechos da rota antiga (Paraíso à Venda no Nordeste, Rede do Pânico no estúdio de TV e Entrega Final na sede do aplicativo) ficam para decidir depois: expansão ou corte.
 
-## 2. O Mapa da Rota (visão de cima)
+## 2. O ritmo de um trecho
 
-Tela com a rota inteira vista de cima, como os mapas de fase dos jogos de celular. Abre pela tela inicial, no botão "Rota", e pela pausa.
+1. **Chegada:** o elenco novo do trecho aparece aos poucos. Os primeiros níveis vêm rápido (3 ou 4 cartas no primeiro minuto), para o recomeço não ficar arrastado.
+2. **O Caos sobe:** a barra de Caos do trecho vai de 0 a 100%. Sobe com o tempo (sozinha chega a 100% em uns 10 minutos), com cada inimigo derrubado (quem joga bem chega antes, em uns 6 ou 7 minutos) e com as propostas de Corrupção aceitas.
+3. **Crises da cidade:** ao cruzar 30% (Crise) e 60% (Colapso), a TV anuncia uns 20 s antes e o trecho muda por 30 a 40 s, sempre com aviso e sem fechar a passagem:
 
-- **Trecho concluído:** mostra as estrelas, de 1 a 3, e o melhor tempo. Tocar repete o trecho para buscar estrela e gorjeta.
-- **Trecho atual:** mostra a moto do Juninho e o botão "Continuar turno".
-- **Trecho bloqueado:** aparece com cadeado, mais escuro, e com a meta escrita, por exemplo "Chegue ao nível 15 na Orla".
-- **A trajetória:** a linha da rota liga um trecho ao outro, e a parte já percorrida aparece pintada.
+| Faixa | Orla | Morro |
+| --- | --- | --- |
+| Crise (30%) | **Ressaca do mar:** o mar avança sobre a areia, a faixa molhada deixa todo mundo lento e as ondas derrubam a horda | **Baile na laje:** o batidão faz a horda parar para dançar, mas chega uma leva de Funkeiros com investida |
+| Colapso (60%) | **Apagão:** a tela escurece e só a luz dos postes ilumina; os olhos da horda brilham no escuro | **Gato de luz em curto:** os postes soltam faíscas que dão choque em quem passa perto, inclusive no Juninho |
 
-## 3. Elenco de cada trecho
+4. **Calamidade (85%):** o covil começa a dar sinal (barulho, tremor perto dele), para quem estiver por perto.
+5. **O chamado (100%):** o covil abre. As pistas da seção 3 levam até ele.
+6. **A luta:** seção 4.
+7. **A porta:** derrubado o chefão, abre a passagem que o jogador não sabia que existia. Ele entra andando no trecho novo, sem tela de carregamento.
 
-Cada mapa tem os seus personagens, tirados da lista de estereótipos do autor (`ELENCO_v0.3_BRASIL.md`).
+## 3. Mundo sem placa: pistas em camadas
 
-| Trecho | Horda | Inimigos | Elite e chefe | Aliados e eventos |
+Nada de seta, distância ou nome antes de o jogador descobrir. Ninguém diz "morro" nem "chefão".
+
+| Momento | O que o jogador percebe |
+| --- | --- |
+| Desde o começo | O cenário sugere. No fim da Orla tem uma obra cercada de tapume com um barulho estranho atrás, e o morro aparece ao fundo. Quem explora acha o lugar cedo, mas ele está fechado |
+| Caos chega a 100% | A TV dá uma pista do lugar, sem nome: "PLANTÃO: MOVIMENTAÇÃO ESTRANHA NA OBRA DO FIM DA PRAIA". O helicóptero da TV Caos passa a circular sobre o lugar com o holofote, visível de longe |
+| Se o jogador demorar | A pista cresce: a horda inteira começa a andar para lá, como se fosse chamada, e a sirene fica mais alta quanto mais perto ele está |
+| Chegando perto | O chão racha, o tapume cai e o chefão sai do covil |
+
+- **Por que as pistas são grandes:** no Elden Ring dá para parar e olhar; aqui tem uma horda atrás, e no celular, fugindo, ninguém repara em detalhe pequeno. Por isso as pistas são luz, fumaça, helicóptero, som e a horda andando. A escalada da tabela é a rede de segurança para quem se perde, e nunca vira seta.
+- **O mistério é da primeira vez:** o que já foi descoberto fica marcado no minimapa do trecho e no Mapa da Rota. Nas partidas seguintes a graça passa a ser a velocidade.
+- **Minimapa:** mostra só o que o Juninho já andou.
+
+## 4. O chefão
+
+- **Mora no covil:** um lugar que faz parte do mapa e que o jogador pode achar antes, fechado.
+- **Entrada:** a TV anuncia, a tela treme e ele sai do covil. É gigante e tem uma barra de vida grande no alto da tela.
+- **Três fases:** com 100%, 66% e 33% da vida. Em cada fase ele ganha um golpe novo e chama a assessoria dele: uma leva de horda junto com os inimigos do trecho. Vira caos total.
+- **Todo golpe tem aviso:** linha, sombra ou faixa no chão antes (D25).
+- **Sem jaula:** dá para fugir e dar a volta, mas a saída só abre com ele no chão.
+- **Quando ele cai:** o sinal da TV cai junto e a horda em volta desaba, o Caos zera, sai um cofre com evolução garantida (seção 6) e uma gorjeta grande, e abre a porta.
+
+## 5. Recomeço a cada trecho
+
+- **Ao passar pela porta**, o Juninho volta ao nível 1, só com o Capacete. A TV explica, em sátira: "ATUALIZAÇÃO OBRIGATÓRIA DO APLICATIVO: SEUS ITENS EXPIRARAM".
+- **Morreu:** volta ao começo do trecho em que estava, no nível 1, com as melhorias. Trecho já descoberto pode ser escolhido no Mapa da Rota.
+- **Gorjetas:** toda partida dá gorjeta, mesmo perdendo. Elas compram as melhorias permanentes.
+- **Melhorias permanentes bem pequenas**, para o jogo continuar difícil:
+
+| Melhoria | Máximo antes | Máximo agora |
+| --- | --- | --- |
+| Vida | +50 (sobre 120 de base) | +20 |
+| Velocidade | +15% | +6% |
+| Dano | +25% | +10% |
+| Recarga | −15% | −6% |
+| Raio de coleta | +50% | +25% |
+
+- **Melhorias de opção**, que dão progresso sem deixar o jogo fácil: escolher a arma inicial, 1 troca de cartas por partida, uma pista a mais.
+
+## 6. Achados pelo caminho
+
+| Achado | Quantos e onde | O que dá |
+| --- | --- | --- |
+| **Isopor perdido** (comum) | Uns 5 por trecho, sorteados entre uns 10 esconderijos | Gorjeta e um pouco de vida. Abre rápido, com um "plim" e as moedas saltando |
+| **Cofre** (raro) | 1 ou 2 por trecho, em lugar difícil; o chefão sempre solta um | 1, 3 ou 5 cartas de uma vez, e a evolução quando der |
+| **Relíquia** (única) | 1 por trecho, sempre no mesmo lugar, o mais escondido | Um poder que não existe em nenhum outro lugar do jogo |
+
+**A abertura do cofre.** O jogo pausa, como no Vampire Survivors, para a horda não matar ninguém durante o show:
+1. A tela escurece em volta e o cofre treme três vezes.
+2. Ele explode em luz para cima, sobe um chafariz de notas e moedas, e toca a música.
+3. Gira uma roleta com os bichos do jogo do bicho e para num deles: 1 carta normal, 3 cartas em azul, ou 5 cartas em dourado com "DEU BICHO!".
+4. As cartas saem voando uma por uma.
+
+Da segunda vez em diante, um toque acelera. **Quanto maior o Caos na hora de abrir, maior a chance de sair 5:** quem segura o cofre para abrir no meio do caos ganha mais.
+
+**A relíquia:**
+- Vem pronta e forte, já no máximo, sem níveis.
+- Tem uma vaga só dela, fora das 4 de habilidade.
+- Moldura dourada e uma frase da TV quando o jogador pega.
+- Vale só para o trecho (por causa do recomeço), mas dá para buscar de novo em toda partida. Quem conhece o mapa sabe o caminho.
+
+Candidatas: na Orla, **Bola da Altinha** (a bola quica de inimigo em inimigo como um fliperama, sem parar; a preferida), **Fogos do Réveillon** (de tempos em tempos a queima de fogos vem do mar e chove sobre a tela) e **Prancha do Surfista Lendário** (o Juninho pega uma onda que atravessa a tela e arrasta a horda). No Morro, **Pipa com cerol** e **Paredão de som**.
+
+**Esconderijos da Orla**, cada um com a sua pista e sem seta:
+
+| Esconderijo | Pista |
+| --- | --- |
+| No alto da torre do salva-vidas | Um brilho lá em cima; sobe pela escada |
+| Enterrado na areia | Uma gaivota pousa sempre no mesmo ponto; parar em cima 2 s para cavar |
+| Dentro de um quiosque fechado | Arrombar a porta jogando um botijão |
+| Na pedra do fim da praia | Só dá para chegar com a maré baixa |
+| Debaixo de um carro parado numa rua transversal | Algo brilhando embaixo |
+
+**As crises também revelam achados:** na Ressaca o mar recua e aparece um cofre na areia molhada; no Apagão uma coisa brilha num lugar que de dia ninguém nota.
+
+**Regras:** nada disso se compra nem se abre com anúncio (não é caixa de recompensa paga, e não há anúncio durante a partida). Achado aberto fica marcado no minimapa para as próximas vezes.
+
+## 7. Brasília: os palanques
+
+Por decisão do autor, O Barbudo e O Capitão representam Lula e Bolsonaro, sem dizer que são eles (D21).
+
+1. **Dois palanques:** a Esplanada fica dividida em dois lados. De um, o comício do Barbudo, de vermelho; do outro, o do Capitão, de verde e amarelo. Cada um com a sua torcida como horda.
+2. **A polarização vira arma:** quando as duas torcidas se encontram, brigam entre si. O jogador pode levar uma horda para cima da outra e deixar que se destruam. Só existe nessa fase.
+3. **A escolha é andando, não num menu:** o Juninho sobe no palanque de quem quer enfrentar. Enquanto luta contra um, a torcida do outro para de atacar o Juninho.
+4. **Os dois têm a mesma força** e são espelho um do outro, cada um com a sua roupa:
+
+| Golpe | O que faz |
+| --- | --- |
+| Comício | Chama uma leva da torcida |
+| Promessa | Santinhos e promessas caem do céu em área |
+| Discurso | Empurra tudo na frente |
+| Escândalo | Joga em cima do Juninho o escândalo do outro |
+
+5. **Os finais:** tanto faz quem você derruba.
+   - **Derrubou o Barbudo:** o Capitão sobe a rampa, faz o discurso da vitória e agradece ao Juninho. A TV: "NOVO GOVERNO PROMETE MUDANÇA". Última cena: o Juninho na moto, entregando, igual ao começo.
+   - **Derrubou o Capitão:** a mesma cena, espelhada, com o Barbudo.
+   - **O final verdadeiro, escondido:** quem não escolhe lado e enfrenta os dois ao mesmo tempo (bem mais difícil) vê os dois pararem de brigar, darem as mãos e virarem **O Acordão**. Derrubar O Acordão é o único final em que algo muda de verdade.
+6. **A Corrupção acumulada na viagem muda o epílogo de cada final.** Com Corrupção alta, o vencedor oferece um ministério ao Juninho: o final "virou o sistema".
+
+**Cuidados:** nomes genéricos; nenhum número ou símbolo de partido, nenhum bordão real, nenhuma frase que eles disseram de verdade (a caricatura está na aparência e no exagero); os prédios com nomes inventados, como o "Palácio do Acordo". O risco de loja é o da D21: a App Store proíbe inimigo que mire pessoa ou governo real, e um jogo assim saiu da Steam no Brasil em 2018. A simetria ajuda na defesa, mas não elimina o risco. Antes da loja, a análise do conceito já sugeria uma capital com nome inventado (Acordópolis) como versão segura.
+
+## 8. A abertura do jogo
+
+Só no começo da Orla, na primeira vez que se joga:
+- A Orla está normal: praia cheia, trânsito, o Juninho de moto fazendo entrega. As TVs dos bares passam o Plantão da TV Caos.
+- Uns 20 s depois, o sinal "pega". Quem está perto das telas trava, os olhos acendem, e as pessoas viram horda uma a uma. A barra de Caos aparece, em 0%.
+- Nos primeiros 30 s vêm só telespectadores lentos: o tutorial sem texto.
+- Da segunda vez em diante, dá para pular.
+
+## 9. O Mapa da Rota (visão de cima)
+
+Tela com a rota vista de cima, como os mapas de fase dos jogos de celular. Abre pela tela inicial, no botão "Rota", e pela pausa.
+- **Trecho descoberto:** mostra as estrelas, de 1 a 3, e o melhor tempo. Tocar começa a partida nele.
+- **O que ainda não foi descoberto:** aparece só como "???", sem nome e sem meta.
+- **Estrelas por trecho:** 1 por derrubar o chefão, 1 por achar a relíquia, 1 por concluir sem reviver.
+
+## 10. Elenco de cada trecho
+
+Tirado da lista de estereótipos do autor (`ELENCO_v0.3_BRASIL.md`).
+
+| Trecho | Horda | Inimigos | Elite e chefão | Aliados e eventos |
 | --- | --- | --- | --- | --- |
-| Orla do Desespero | Banhistas: Mulher de Biquíni Minúsculo, Tiozão de Sunga, Rato de Academia, telespectadores A, B e C | Golpista do Pix, Fiscal do Impossível | Político Corrupto, Bicheiro; chefe: Especulador | Vendedor de Picolé; desfile com a Rainha de Escola de Samba |
-| Subida do Morro | Moradores | Traficante do PCC do Morro (armado), Funkeiro Raivoso (investida de braços abertos, no protótipo), Cracudo, Trombadinha, Mototáxi | Chefe do Tráfico (armado) | Funkeiro e o baile na laje; o gatonet que cai |
-| Rodovias | Gente do engarrafamento | 2 Caras numa Moto, Playboy (carro importado) | Fiscal do pedágio | Vendedor de água e de milho |
-| Centro do Desespero | Gente do centro: telemarketing, peão de obra | Faria Limer, Coach Picareta, Influencer da Bet, Agiota, Burocrata-Monstro | O Rapa | Jogador de Futebol, na várzea |
-| Acordópolis | Servidores e turistas | Laranja, Assessor Aspone, Candidato a Político, Encostado do INSS | O Barbudo e O Capitão | Márcia, a Servidora |
-| Paraíso à Venda | Turistas | Influencer da Bet, Playboy | Barão do Guarda-Sol | Barraca de acarajé |
-| Rede do Pânico | Plateia do programa | Pastor Picareta, Tio do Zap, Coach Picareta | Apresentador do Plantão | Dona Cida |
-| Entrega Final | Entregadores hipnotizados pelo app | Faria Limer | O Dono do App | — |
+| Orla do Desespero | Banhistas: Mulher de Biquíni Minúsculo, Tiozão de Sunga, Rato de Academia, telespectadores A, B e C | Golpista do Pix, Fiscal do Impossível | Político Corrupto, Bicheiro; chefão: Especulador | Vendedor de Picolé; desfile com a Rainha de Escola de Samba |
+| Subida do Morro | Moradores | Traficante do PCC do Morro (armado), Funkeiro Raivoso, Cracudo, Trombadinha, Mototáxi | Chefe do Tráfico (armado) | Funkeiro e o baile na laje; o gatonet que cai |
+| São Paulo (com a rodovia) | Gente do engarrafamento e do centro: telemarketing, peão de obra | 2 Caras numa Moto, Playboy, Faria Limer, Coach Picareta, Influencer da Bet, Agiota, Burocrata-Monstro | Fiscal do pedágio; chefão: O Rapa | Vendedor de água e de milho; Jogador de Futebol, na várzea |
+| Brasília (com a rodovia) | Torcida do Barbudo e torcida do Capitão | Laranja, Assessor Aspone, Candidato a Político, Encostado do INSS | O Barbudo e O Capitão; O Acordão | Márcia, a Servidora |
 
-## 4. Dificuldade e progresso
+## 11. Dificuldade e progresso
 
-- **Difícil, mas lida na tela:** a dificuldade vem de ameaças que dá para ler, com aviso antes do golpe, da horda mais densa e dos gargalos do mapa. Não vem só de vida subindo.
-- **Perder rende:** cada partida dá **gorjetas**, mesmo perdendo. Elas compram melhorias permanentes, como moto, capacete, mochila e marmita. Quem perde volta um pouco mais forte.
-- **Estrelas por trecho:** 1 por liberar o próximo, 1 por vencer o chefe do trecho e 1 por concluir sem reviver.
-- **Corrupção na carreira:** a Corrupção acumulada na rota decide o final: inocente, deu um jeitinho, parceiro do esquema ou virou o sistema.
+- **Difícil, mas lida na tela:** a dificuldade vem de ameaças que dá para ler, com aviso antes do golpe, da horda mais densa e dos gargalos do mapa. Cada trecho começa mais duro que o anterior.
+- **Perder rende:** as gorjetas compram as melhorias pequenas e as de opção (seção 5).
+- **Corrupção na carreira:** a Corrupção acumulada na viagem decide o epílogo em Brasília.
 - **Depois de zerar:** abre o "Turno da Madrugada", a rota inteira mais difícil.
-- **Personagens:** os jogáveis se desbloqueiam pela rota. O Funkeiro sai do Morro, o Jogador de Futebol do Centro, a Márcia de Acordópolis e a Dona Cida da Rede do Pânico.
-- **Anúncios:** reviver e dobrar as gorjetas no fim do trecho, sempre opcionais e nunca durante a partida.
+- **Personagens:** os jogáveis se desbloqueiam pela rota (o Funkeiro sai do Morro, o Jogador de Futebol de São Paulo, a Márcia de Brasília).
+- **Anúncios:** reviver e dobrar as gorjetas no fim, sempre opcionais e nunca durante a partida.
 
-## 5. Trecho 2: Subida do Morro (Rio)
+## 12. Trecho 2: Subida do Morro (Rio)
 
 **Fantasia:** a última entrega do Rio é lá no alto, na laje do chefe. O Juninho sobe vielas e escadarias com o pedido nas costas, no meio do PCC.
 
@@ -86,7 +190,7 @@ Cada mapa tem os seus personagens, tirados da lista de estereótipos do autor (`
 | Laje ou pracinha | 10 a 14 m | Arena para respirar e lutar; aqui acontecem os eventos |
 | Beco fechado | — | O toque de recolher fecha com barricada; é preciso dar a volta |
 
-- **Altura:** a subida tem cerca de 250 m. A saída para a Rodovia fica na laje do topo e abre no nível 25, com a seta mostrando o caminho.
+- **Altura:** a subida tem cerca de 250 m. O covil do Chefe do Tráfico é a laje do topo.
 - **Horda:** os moradores, hipnotizados pelas TVs das janelas.
 
 **Ameaças:**
@@ -94,45 +198,43 @@ Cada mapa tem os seus personagens, tirados da lista de estereótipos do autor (`
 | Quem | O que faz |
 | --- | --- |
 | Traficante do PCC do Morro | Armado, na laje. Mira com uma linha vermelha por 0,6 s antes de atirar, para dar tempo de sair. Solta fogos quando vê o Juninho, chamando a próxima leva da horda |
+| Funkeiro Raivoso | Para de braços abertos com a direção travada e parte reto em investida |
 | Mototáxi | Desce a viela rasgando e atropela quem estiver no caminho, a horda também. Dá para usar a favor |
 | Cracudo | Cata os itens do chão antes do Juninho |
 | Trombadinha | Encosta, rouba XP e foge |
 
-**Eventos:**
+**Eventos:** o Baile na laje e o Gato de luz em curto são as crises do Caos (seção 2). Também: o toque de recolher (o Chefe fecha becos com barricadas e o caminho muda), o gatonet que cai (as TVs das janelas apagam e a horda acorda por um instante) e os fogos (aviso de que a próxima leva está chegando).
 
-| Evento | O que acontece |
-| --- | --- |
-| Baile funk na laje | O Funkeiro solta o batidão e a horda para para dançar. Ajuda o Juninho |
-| Toque de recolher | O Chefe fecha becos com barricadas e o caminho muda |
-| Gatonet caiu | As TVs das janelas apagam e a horda acorda por um instante |
-| Fogos | Aviso de que a próxima leva está chegando |
-
-**Chefe: o Chefe do Tráfico**, armado, na laje do topo:
+**Chefão: o Chefe do Tráfico**, armado, na laje do topo:
 - **Rajadas:** atira em rajadas, sempre com a linha de mira de aviso.
-- **Reforço:** chama traficantes.
+- **Reforço:** grita no rádio e chama traficantes com fogos.
 - **Toque de recolher:** decreta toque de recolher em volta da laje.
 
 No meio da luta, ele faz uma proposta de Corrupção: "trabalhar pra firma". Aceitar dá mais dano e +30 de Corrupção.
 
-**Entrega:** com o chefe derrubado, a TV Caos noticia: "ENTREGA FEITA NO ALTO DO MORRO: UMA PIZZA DE CALABRESA. GORJETA: NENHUMA". O caminho desce pelo outro lado do morro até a Rodovia.
+**Entrega:** com o chefe derrubado, a TV Caos noticia: "ENTREGA FEITA NO ALTO DO MORRO: UMA PIZZA DE CALABRESA. GORJETA: NENHUMA". O caminho desce pelo outro lado do morro até a estrada.
 
-**Como o jogador sabe o caminho (feito em 06/11/2026):**
+## 13. O que muda no protótipo
 
-| Ajuda | O que mostra |
+O protótipo foi feito com a regra antiga (D22: a saída abre por nível, com seta). Para a regra nova:
+
+| Hoje | Passa a ser |
 | --- | --- |
-| Mapa da favela | No canto direito, sempre que o Juninho está no morro: o caminho inteiro visto de cima (vielas, escadarias, lajes, casas com laje), o Juninho em vermelho, a entrega em amarelo, a linha tracejada até lá, traficantes em laranja e camburões em branco. Tocando, abre grande, com o nome de cada pedaço, e o jogo pausa; tocando de novo, fecha |
-| Objetivo na tela | Acima das armas: "SUBA E ENTREGUE NO ALTO · 182 M", com a barra de progresso da subida. Antes do nível da entrega, mostra o nível que falta |
-| Setas | Setas amarelas no chão até a próxima passagem e seta na borda da tela (abaixo do plantão da TV) quando ela está fora da tela |
-| Marcador da entrega | Anel pulsando, coluna de luz e placa "ENTREGA AQUI" com a caixa de pizza na laje do topo |
+| A escadaria do morro abre no nível 15 | Abre quando o Especulador cai |
+| O Especulador chega aos 8:00, vindo da borda da tela | Mora na obra do fim da praia e sai quando o Caos chega a 100% e o Juninho chega perto |
+| Seta amarela na borda, setas pintadas no chão, "SIGA A SETA ATÉ O MORRO · 392 M", "SUBA E ENTREGUE NO ALTO" | Saem. Entram as pistas da seção 3 |
+| Minimapa do Morro com a subida inteira | Mostra só o que o Juninho já andou |
+| Nível e cartas da Orla seguem para o Morro | Recomeço no nível 1 a cada trecho |
+| Melhorias permanentes de até +50 de vida, +25% de dano | Os máximos da seção 5, mais as melhorias de opção |
+| O Caos só muda o nome da faixa | Crises em 30% e 60%, sinal em 85%, chamado do chefão em 100% |
+| Mapa da Rota mostra os 10 trechos com nome e meta | Mostra só o descoberto; o resto é "???" |
 
-Correção do mesmo dia: o Juninho travava no pé da escadaria e em todas as emendas entre um pedaço e o próximo (a fresta entre os dois retângulos era menor que o corpo dele). Agora cada emenda tem uma passagem, e um teste sobe a rota inteira andando em passos curtos.
+## 14. Ordem de construção
 
-**No mapa:** os moradores são a horda, as vítimas que acordam. Os inimigos do morro são os traficantes do PCC e o Chefe do Tráfico, por decisão do autor (D21).
-
-## 6. Ordem de construção
-
-1. **Fim da Orla:** a Orla ganha fim. São 8 quarteirões até a escadaria do morro, com o tapume que abre no nível 15 e a seta até ele.
-2. **Mapa da Rota:** a tela com os trechos, os cadeados e as estrelas, com o progresso gravado no aparelho.
-3. **Subida do Morro:** entra quando chegar a arte do chão, das casas e dos traficantes. A lista está no guia de arte, na seção 2.4.
-4. **Gorjetas e melhorias permanentes.**
-5. **Rodovia e as cidades seguintes,** conforme a arte chegar.
+1. **A Orla na regra nova:** tirar as setas, a obra do Especulador com as pistas, o Caos chamando o chefão, o chefão em três fases, a porta para o morro e o recomeço.
+2. **Achados na Orla:** isopor, cofre com a abertura e a Bola da Altinha no alto da torre do salva-vidas.
+3. **Crises da Orla:** Ressaca e Apagão.
+4. **A abertura do jogo.**
+5. **O Morro na regra nova**, com as crises dele.
+6. **Melhorias pequenas e de opção;** Mapa da Rota só com o descoberto.
+7. **São Paulo e Brasília,** conforme a arte chegar.
