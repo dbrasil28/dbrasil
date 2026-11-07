@@ -95,6 +95,8 @@ A ordem e os nomes dos mapas 2 a 5 são propostas. O mapa 1 está decidido.
           ↓ pé do morro (vem da Orla)
 ```
 
+**Pedido atualizado (07/11/2026), com as medidas do mapa e o que já tem arte:** `PEDIDO_FAVELA.md`. A tabela abaixo é a versão antiga.
+
 **Arte mínima para o trecho entrar no jogo**, nesta ordem:
 
 | Arquivo | O que é | Formato |
