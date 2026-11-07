@@ -1,6 +1,7 @@
 // Comportamento das armas automáticas e dos projéteis. Tudo em metros/segundos.
 import { weaponStats } from './upgrades.js';
-import { INTERACT, WEAPON_FX } from './config.js';
+import { INTERACT, WEAPON_FX, RELIQUIAS, ACHADOS } from './config.js';
+import { achadoParaFarejar } from './achados.js';
 
 const tmp = [];
 
@@ -375,6 +376,41 @@ export function updateProjectiles(game, dt) {
         game.damageEnemy(e, pr.dmg, pr.src, (dx >= 0 ? 1 : -1) * 7, -3);
       }
       if (pr.life <= 0) remove = true;
+    } else if (pr.kind === 'altinha') {
+      // Bola da Altinha (relíquia): quica de inimigo em inimigo, sem parar; sem ninguém perto, volta ao pé
+      const R = RELIQUIAS.altinha;
+      pr.fase += dt * 9;
+      pr.alt = Math.abs(Math.sin(pr.fase)) * 0.9; // quicando (não é 'z': esse sobe o desenho inteiro)
+      if (pr.hitT > 0) pr.hitT -= dt;
+      if (!pr.tgt || pr.tgt.dead) {
+        pr.tgt = null;
+        const perto = Math.hypot(p.x - pr.x, p.y - pr.y) < R.voltaM;
+        const from = perto ? p : pr;
+        const t = nearestEnemies(game, from.x, from.y, perto ? R.alcanceM : R.pulaM, 2).find((e) => e !== pr.last);
+        if (t) {
+          pr.tgt = t;
+          if (perto) game.word(p.x, p.y, 'TOC!', '#f2efe8'); // o Juninho chuta
+        }
+      }
+      const g = pr.tgt || p;
+      const dx = g.x - pr.x;
+      const dy = g.y - pr.y;
+      const l = Math.hypot(dx, dy) || 1;
+      if (pr.tgt || l > R.voltaM * 0.6) {
+        const sp = R.speed * (pr.tgt ? 1 : 0.9) * dt;
+        pr.x += (dx / l) * Math.min(sp, l);
+        pr.y += (dy / l) * Math.min(sp, l);
+      }
+      if (pr.tgt && l < (pr.tgt.r || 0.3) + 0.3) {
+        game.damageEnemy(pr.tgt, pr.dmg * (game.stats.dmgMul || 1), 'altinha', (dx / l) * 2.5, (dy / l) * 2.5);
+        pr.last = pr.tgt;
+        pr.tgt = null;
+        pr.hitT = 0.12;
+        // quica no próximo, perto da bola; se não tem ninguém, volta para o Juninho
+        const nx = nearestEnemies(game, pr.x, pr.y, R.pulaM, 2).find((e) => e !== pr.last);
+        if (nx) pr.tgt = nx;
+      }
+      continue; // a bola não some
     } else if (pr.kind === 'thrown') {
       // objeto de cena arremessado (mesa, cadeira, botijão...): arco e impacto em área
       pr.t += dt;
@@ -493,6 +529,27 @@ export function updateDogs(game, dt) {
     d.wag += dt;
     const x0 = d.x;
     const y0 = d.y;
+    if (d.st === 'segue') {
+      // faro (D40): perto de um achado fechado, para, vira para ele e late; é a pista sem seta
+      d.faroCd = (d.faroCd ?? 2) - dt;
+      if (d.faroCd <= 0 && game.achados) {
+        const a = achadoParaFarejar(game, d.x, d.y);
+        d.faroCd = a ? ACHADOS.faroCadaS : 1;
+        if (a) {
+          d.st = 'fareja';
+          d.at = 0;
+          d.fx = a.x - d.x;
+          d.fy = a.y - d.y;
+          game.word(d.x, d.y - 0.2, 'AU!', '#f2efe8');
+          continue;
+        }
+      }
+    }
+    if (d.st === 'fareja') {
+      d.at += dt;
+      if (d.at >= F.latidoS) d.st = 'segue';
+      continue;
+    }
     if (d.st === 'segue') {
       const tx = p.x - p.faceX * F.caoSegueM + 0.35;
       const ty = p.y - p.faceY * F.caoSegueM + 0.25;

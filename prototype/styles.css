@@ -1677,3 +1677,169 @@ body.mapa-aberto #warn {
   border-color: var(--line);
   color: var(--muted);
 }
+
+/* ---------- relíquia e cofre (D40) ---------- */
+#slots.com-reliquia {
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+}
+
+.slot-reliquia {
+  border-color: #ffd21f;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 214, 60, 0.35), var(--panel-2) 70%);
+  box-shadow: 0 0 10px rgba(255, 210, 31, 0.6);
+}
+
+.sheet-cofre {
+  text-align: center;
+  overflow: hidden;
+}
+
+.cofre-palco {
+  position: relative;
+  height: 170px;
+  display: grid;
+  place-items: center;
+}
+
+.cofre-img {
+  position: relative;
+  z-index: 2;
+  animation: cofre-treme 0.3s ease-in-out 3;
+}
+
+.sheet-cofre.aberto .cofre-img {
+  animation: cofre-abre 0.5s ease-out forwards;
+}
+
+.cofre-luz {
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(circle at 50% 55%, rgba(255, 240, 180, 0.95), rgba(255, 210, 31, 0.25) 35%, transparent 65%);
+  opacity: 0;
+  transform: scale(0.4);
+}
+
+.sheet-cofre.aberto .cofre-luz {
+  animation: cofre-luz 0.9s ease-out forwards;
+}
+
+.cofre-notas {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  z-index: 3;
+}
+
+.cofre-notas i {
+  position: absolute;
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  background: #5fb85a;
+  box-shadow: inset 0 0 0 2px #2f7a32;
+  opacity: 0;
+}
+
+.cofre-notas i.moeda {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #ffd21f;
+  box-shadow: inset 0 0 0 2px #b88a10;
+}
+
+.sheet-cofre.aberto .cofre-notas i {
+  animation: cofre-nota 1.3s cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+}
+
+.sheet-cofre.fim .cofre-notas i,
+.sheet-cofre.fim .cofre-img,
+.sheet-cofre.fim .cofre-luz {
+  animation-duration: 0.01s;
+}
+
+.cofre-roleta {
+  font: 900 26px "Barlow Semi Condensed", "Arial Narrow", sans-serif;
+  letter-spacing: 0.04em;
+  color: #f2efe8;
+  min-height: 34px;
+}
+
+.cofre-roleta.parou {
+  animation: cofre-pulsa 0.4s ease-out;
+}
+
+.cofre-resultado {
+  font: 800 15px "Barlow Semi Condensed", "Arial Narrow", sans-serif;
+  color: rgba(255, 255, 255, 0.75);
+  min-height: 22px;
+  margin-bottom: 6px;
+}
+
+.tier-3 .cofre-resultado,
+.tier-3 .cofre-roleta {
+  color: #7fc8ff;
+}
+
+.tier-5 .cofre-resultado,
+.tier-5 .cofre-roleta {
+  color: #ffd21f;
+  text-shadow: 0 0 12px rgba(255, 210, 31, 0.7);
+}
+
+.tier-3 .cofre-carta {
+  border-color: #7fc8ff;
+}
+
+.tier-5 .cofre-carta {
+  border-color: #ffd21f;
+  box-shadow: 0 0 10px rgba(255, 210, 31, 0.45);
+}
+
+.cofre-cartas {
+  max-height: 46vh;
+  overflow-y: auto;
+}
+
+.cofre-carta {
+  animation: cofre-carta 0.35s ease-out both;
+}
+
+.cofre-ok {
+  margin-top: 10px;
+  width: 100%;
+}
+
+@keyframes cofre-treme {
+  0%, 100% { transform: rotate(0) scale(1); }
+  25% { transform: rotate(-7deg) scale(1.04); }
+  75% { transform: rotate(7deg) scale(1.04); }
+}
+
+@keyframes cofre-abre {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1.05) translateY(6px); }
+}
+
+@keyframes cofre-luz {
+  0% { opacity: 0; transform: scale(0.4); }
+  35% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0.55; transform: scale(1); }
+}
+
+@keyframes cofre-nota {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--r)); }
+}
+
+@keyframes cofre-pulsa {
+  0% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+@keyframes cofre-carta {
+  0% { opacity: 0; transform: translateY(-40px) scale(0.85); }
+  100% { opacity: 1; transform: none; }
+}

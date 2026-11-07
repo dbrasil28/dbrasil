@@ -360,6 +360,12 @@ ui.on('settingsReset', () => {
   ui.buildSettings(settings, applySetting);
   updateReadout();
 });
+ui.on('cofreOk', () => {
+  game.fecharCofre();
+  modalOpen = false;
+  ui.closeModal();
+  last = performance.now();
+});
 ui.on('choose', (i) => {
   game.chooseOption(i);
   modalOpen = false;

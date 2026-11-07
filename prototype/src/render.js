@@ -5,7 +5,7 @@ import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS,
 import { OrlaLayer, drawImageProp, drawTallDecor } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
 import { drawMinimap } from './minimapa.js';
-import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu } from './render_carreira.js';
+import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado, drawBola } from './render_carreira.js';
 import {
   entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace,
   drawAim, drawBullet, drawHeal,
@@ -203,6 +203,10 @@ export class Renderer {
       if (!w.gateOpen || game.t - (w.portaT ?? -9) < CARREIRA.portaCaiS) {
         list.push({ d: cam.depth(w.gate.x0, w.orlaTop + 0.3), k: 'gate', o: w, x: w.gate.x0, y: w.orlaTop });
       }
+      for (const a of game.achados || []) {
+        if (a.aberto || a.y > bounds.maxY + 2 || a.y < bounds.minY - 2) continue;
+        list.push({ d: a.plat ? cam.depth(a.x, a.plat.y1) + 0.002 : cam.depth(a.x, a.y), k: 'achado', o: a, z: a.plat ? a.plat.h : 0 });
+      }
       if (w.obra && w.obra.y0 < bounds.maxY + 4 && w.obra.y1 > bounds.minY - 4) {
         list.push({ d: cam.depth(w.obra.x0, w.obra.y0 + 0.2), k: 'obraFundo', o: w });
         list.push({ d: cam.depth(w.obra.x0, w.obra.y1), k: 'obraFrente', o: w });
@@ -274,6 +278,9 @@ export class Renderer {
         }
         case 'gate':
           drawPortaEscadaria(ctx, o, cam, ppu, t);
+          break;
+        case 'achado':
+          drawAchado(ctx, game, o, pt, ppu, t, playerPx);
           break;
         case 'obraFundo':
           drawObraFundo(ctx, o, cam, ppu, t);
@@ -1534,6 +1541,10 @@ function drawGib(ctx, g, pt, P) {
 
 function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
   if (o.delay > 0) return; // chinelo na fila da rajada ou moto ainda no aviso
+  if (o.kind === 'altinha') {
+    drawBola(ctx, pt.x, pt.y, Math.max(5, 0.24 * ppu), o.fase * 0.7, o.alt * ppu);
+    return;
+  }
   if (o.kind === 'moto') {
     // mototáxi provisório: moto vista de 3/4 com o piloto de colete, rastro de velocidade
     const s = playerPx;
@@ -1714,8 +1725,8 @@ function drawCaramelo(ctx, d, pt, playerPx, t, cam, cache) {
   if (d.st === 'morde') {
     A = M;
     f = Math.min(5, Math.floor((d.at / WEAPON_FX.mordidaS) * 6));
-  } else if (d.st === 'late') {
-    A = L;
+  } else if (d.st === 'late' || d.st === 'fareja') {
+    A = L; // latindo para a horda, ou para o achado que farejou
     f = Math.min(5, Math.floor((d.at / WEAPON_FX.latidoS) * 6));
   } else if (d.st === 'segue' && (d.vel || 0) < 0.3) {
     A = L; // em guarda
@@ -2048,6 +2059,22 @@ export function drawIcon(g, kind, S) {
       g.lineWidth = Math.max(1.5, S * 0.04);
       g.stroke();
       break;
+    case 'altinha': {
+      // Bola da Altinha (relíquia)
+      g.fillStyle = '#f4f2ea';
+      g.beginPath();
+      g.arc(c, c, S * 0.36, 0, Math.PI * 2);
+      g.fill();
+      g.stroke();
+      g.fillStyle = '#1d1b1f';
+      for (let k = 0; k < 3; k++) {
+        const a = -0.6 + (k * Math.PI * 2) / 3;
+        g.beginPath();
+        g.arc(c + Math.cos(a) * S * 0.18, c + Math.sin(a) * S * 0.18, S * 0.085, 0, Math.PI * 2);
+        g.fill();
+      }
+      break;
+    }
     case 'caramelo':
       g.fillStyle = '#c8873e';
       g.beginPath();

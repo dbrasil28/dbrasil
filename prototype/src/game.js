@@ -7,6 +7,7 @@ import {
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
   ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA,
 } from './config.js';
+import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside, routeRemaining } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones, updateDogs } from './weapons.js';
@@ -140,6 +141,7 @@ export class Game {
       }
     }
     this.covil = covilDe(this, 'orla'); // a obra do Especulador; no Morro, a laje do topo
+    this.achados = this.world ? sortearAchados(this) : []; // isopores, cofres e a relíquia (D40)
 
     this.metrics = {
       seed: this.seed,
@@ -700,6 +702,11 @@ export class Game {
     if (opt.kind === 'evolution') this.emit('tv', { text: 'EVOLUÇÃO! ENTREGA EXPRESSA GARANTIDA OU SEU DINHEIRO DE VOLTA (NÃO)' });
   }
 
+  /** O jogador viu a abertura do cofre. */
+  fecharCofre() {
+    fecharCofre(this);
+  }
+
   die() {
     this.tv('death');
     this.finish('defeat');
@@ -822,6 +829,7 @@ export class Game {
     if (!this.over) {
       this.updatePlayer(dt, input);
       this.updateInteract(dt);
+      updateAchados(this, dt);
       this.updateRoute(dt);
       updateCovil(this, dt);
       this.updateDirector(dt);
@@ -1851,6 +1859,7 @@ export class Game {
     if (this.metrics.portaoAberto != null) parts.push(['Subida do Morro liberada', G.liberarTrecho]);
     if (this.bossKilled) parts.push(['Chefe vencido', G.chefe]);
     if (this.delivered) parts.push(['Entrega feita', G.entrega]);
+    if (this.metrics.achadosGorjeta) parts.push(['Achados pelo caminho', this.metrics.achadosGorjeta]);
     return { total: parts.reduce((a, p) => a + p[1], 0), parts };
   }
 

@@ -1,5 +1,5 @@
 // Interface em DOM: HUD enxuto, TV Caos, cartas de melhoria, propostas e telas.
-import { WEAPONS, PASSIVES, SLOTS, ENEMIES, verdictFor, TRECHOS, MELHORIAS } from './config.js';
+import { WEAPONS, PASSIVES, SLOTS, ENEMIES, verdictFor, TRECHOS, MELHORIAS, RELIQUIAS, ACHADOS } from './config.js';
 import { upgradeLevel, upgradeCost } from './progresso.js';
 import { SETTINGS_SCHEMA } from './settings.js';
 import { formatTime, fmt } from './math.js';
@@ -88,6 +88,13 @@ export class UI {
       wrap.appendChild(el);
       this.slotEls.push(el);
     }
+    // relíquia do trecho (D40): uma vaga só dela, dourada, que aparece quando ela é achada
+    const rel = document.createElement('div');
+    rel.className = 'slot slot-reliquia';
+    rel.hidden = true;
+    rel.innerHTML = '<span class="slot-icon"></span>';
+    wrap.appendChild(rel);
+    this.relEl = rel;
   }
 
   setText(id, text) {
@@ -126,7 +133,7 @@ export class UI {
       $('avatar').classList.toggle('is-corrupt', corrupt);
     }
 
-    const sig = p.weapons.map((w) => `${w.id}${w.level}`).join() + '|' + p.passives.map((x) => `${x.id}${x.level}`).join();
+    const sig = p.weapons.map((w) => `${w.id}${w.level}`).join() + '|' + p.passives.map((x) => `${x.id}${x.level}`).join() + '|' + (p.reliquia || '');
     if (this.last.slots !== sig) {
       this.last.slots = sig;
       this.renderSlots(p);
@@ -155,6 +162,17 @@ export class UI {
   }
 
   renderSlots(p) {
+    if (this.relEl) {
+      const tem = !!p.reliquia;
+      this.relEl.hidden = !tem;
+      $('slots').classList.toggle('com-reliquia', tem);
+      const ic = this.relEl.querySelector('.slot-icon');
+      ic.textContent = '';
+      if (tem) {
+        ic.appendChild(this.icon(p.reliquia, 26));
+        this.relEl.title = RELIQUIAS[p.reliquia].nome;
+      }
+    }
     const items = [];
     for (let i = 0; i < SLOTS.weapons; i++) items.push(p.weapons[i] ? { kind: 'w', ...p.weapons[i] } : null);
     for (let i = 0; i < SLOTS.passives; i++) items.push(p.passives[i] ? { kind: 'p', ...p.passives[i] } : null);
@@ -260,7 +278,9 @@ export class UI {
     box.classList.add('is-arming');
     setTimeout(() => box.classList.remove('is-arming'), 380);
 
-    if (m.kind === 'event') {
+    if (m.kind === 'cofre') {
+      box.appendChild(this.cofreSheet(game, m));
+    } else if (m.kind === 'event') {
       box.appendChild(this.eventSheet(game, m));
     } else if (m.kind === 'revive') {
       box.appendChild(this.reviveSheet(game));
@@ -331,6 +351,104 @@ export class UI {
       sheet.appendChild(rr);
     }
     return sheet;
+  }
+
+  /**
+   * Abertura do cofre (D40), com o jogo em pausa: treme três vezes, explode em luz, chafariz de notas,
+   * a roleta do jogo do bicho para num bicho e as cartas saem uma por uma. Da 2ª vez, um toque acelera.
+   */
+  cofreSheet(game, m) {
+    const sheet = document.createElement('div');
+    sheet.className = `sheet sheet-cofre tier-${m.n}`;
+    const palco = document.createElement('div');
+    palco.className = 'cofre-palco';
+    palco.innerHTML = '<div class="cofre-luz"></div><div class="cofre-notas"></div>';
+    const img = document.createElement('div');
+    img.className = 'cofre-img';
+    img.appendChild(this.icon('maleta', 112));
+    palco.appendChild(img);
+    const notas = palco.querySelector('.cofre-notas');
+    for (let i = 0; i < 16; i++) {
+      const n = document.createElement('i');
+      n.style.setProperty('--dx', `${Math.round((Math.random() - 0.5) * 260)}px`);
+      n.style.setProperty('--dy', `${Math.round(-120 - Math.random() * 170)}px`);
+      n.style.setProperty('--r', `${Math.round((Math.random() - 0.5) * 720)}deg`);
+      n.style.animationDelay = `${0.95 + Math.random() * 0.25}s`;
+      n.className = i % 3 ? 'nota' : 'moeda';
+      notas.appendChild(n);
+    }
+    const roleta = document.createElement('div');
+    roleta.className = 'cofre-roleta';
+    roleta.textContent = '???';
+    const res = document.createElement('div');
+    res.className = 'cofre-resultado';
+    const cards = document.createElement('div');
+    cards.className = 'cards cofre-cartas';
+    const ok = document.createElement('button');
+    ok.type = 'button';
+    ok.className = 'btn btn-primary cofre-ok';
+    ok.textContent = 'Pegar tudo';
+    ok.disabled = true;
+    sheet.append(palco, roleta, res, cards, ok);
+
+    let visto = false;
+    try { visto = localStorage.getItem('bec_cofre_visto') === '1'; } catch { /* sem armazenamento */ }
+    const timers = [];
+    const later = (ms, fn) => timers.push(setTimeout(fn, ms));
+    const bichos = ACHADOS.bichos;
+    const final = () => {
+      for (const t of timers) clearTimeout(t);
+      timers.length = 0;
+      sheet.classList.add('aberto', 'fim');
+      roleta.textContent = m.bicho;
+      res.textContent = m.n === 5 ? 'DEU BICHO! 5 CARTAS' : m.n === 3 ? '3 CARTAS' : '1 CARTA';
+      cards.textContent = '';
+      m.cards.forEach((c) => cards.appendChild(this.cofreCard(c, 0)));
+      ok.disabled = false;
+      try { localStorage.setItem('bec_cofre_visto', '1'); } catch { /* sem armazenamento */ }
+    };
+    // roteiro da abertura
+    later(950, () => sheet.classList.add('aberto'));
+    let k = 0;
+    const gira = (ms) => {
+      roleta.textContent = bichos[k++ % bichos.length];
+      if (ms < 260) later(ms, () => gira(ms * 1.12));
+      else later(ms, () => {
+        roleta.textContent = m.bicho;
+        roleta.classList.add('parou');
+        res.textContent = m.n === 5 ? 'DEU BICHO! 5 CARTAS' : m.n === 3 ? '3 CARTAS' : '1 CARTA';
+        m.cards.forEach((c, i) => later(350 * (i + 1), () => cards.appendChild(this.cofreCard(c, i))));
+        later(350 * (m.cards.length + 1), () => { ok.disabled = false; });
+      });
+    };
+    later(1250, () => gira(45));
+    sheet.addEventListener('click', (ev) => {
+      if (ev.target === ok) return;
+      if (visto && ok.disabled) final(); // da segunda vez, um toque acelera
+    });
+    ok.addEventListener('click', () => {
+      if (!this.armed() || ok.disabled) return;
+      for (const t of timers) clearTimeout(t);
+      this.fire('cofreOk');
+    });
+    return sheet;
+  }
+
+  cofreCard(c, i) {
+    const b = document.createElement('div');
+    b.className = `card card-${c.kind} cofre-carta`;
+    b.style.animationDelay = `${i * 0.02}s`;
+    const ic = document.createElement('span');
+    ic.className = 'card-icon';
+    ic.appendChild(this.icon(c.id, 38));
+    const body = document.createElement('span');
+    body.className = 'card-body';
+    body.innerHTML = '<span class="card-tag"></span><span class="card-title"></span><span class="card-desc"></span>';
+    body.children[0].textContent = c.tag || '';
+    body.children[1].textContent = c.title;
+    body.children[2].textContent = c.desc || '';
+    b.append(ic, body);
+    return b;
   }
 
   reviveSheet(game) {

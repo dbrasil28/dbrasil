@@ -1,7 +1,7 @@
 // Desenho da regra da carreira (D39): a obra do Especulador, o tapume da escadaria (arte de tapume
 // inteira, só na escala) e o holofote do helicóptero da TV sobre o covil aberto, que é a pista no lugar
 // da seta. Quando o covil está fora da tela, só a claridade do holofote aparece na beira, sem seta nem texto.
-import { CARREIRA } from './config.js';
+import { CARREIRA, ACHADOS } from './config.js';
 import { images } from './sprites.js';
 
 const a = { x: 0, y: 0 };
@@ -194,4 +194,103 @@ export function drawHolofoteCeu(ctx, game, cam, ppu, t) {
     ctx.fillRect(ex - R, ey - R, R * 2, R * 2);
   }
   ctx.restore();
+}
+
+// ---------- achados (D40) ----------
+
+/** Brilho de achado escondido: uma estrelinha de quatro pontas piscando devagar. */
+function brilho(ctx, x, y, s, t, seed) {
+  const k = 0.5 + 0.5 * Math.sin(t * 3.1 + seed);
+  if (k < 0.25) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = k;
+  ctx.fillStyle = '#fff6c8';
+  ctx.beginPath();
+  const r = s * (0.6 + 0.4 * k);
+  ctx.moveTo(x, y - r);
+  ctx.quadraticCurveTo(x, y, x + r * 0.35, y);
+  ctx.quadraticCurveTo(x, y, x, y + r);
+  ctx.quadraticCurveTo(x, y, x - r * 0.35, y);
+  ctx.quadraticCurveTo(x, y, x, y - r);
+  ctx.fill();
+  ctx.restore();
+}
+
+/**
+ * Achado no mapa: isopor (a arte do isopor), cofre (a mala do político com brilho dourado, até chegar a
+ * arte do cofre) e a relíquia (a bola, no alto da torre). Enterrado: só o montinho de areia e o brilho.
+ */
+export function drawAchado(ctx, game, a, pt, ppu, t, playerPx) {
+  if (a.aberto) return;
+  const p = game.player;
+  const longe = Math.hypot(p.x - a.x, p.y - a.y) > ACHADOS.brilhoM;
+  const seed = a.x * 3.7 + a.y;
+  if (a.cavar) {
+    // montinho de areia mexida
+    ctx.fillStyle = 'rgba(120,96,60,0.45)';
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y, 0.55 * ppu, 0.55 * ppu * 0.45, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(230,206,160,0.7)';
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y - 0.05 * ppu, 0.35 * ppu, 0.18 * ppu, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (!longe) brilho(ctx, pt.x, pt.y - 0.25 * ppu, 0.35 * ppu, t, seed);
+    if (a.prog > 0) {
+      // cavando: anel enchendo
+      ctx.strokeStyle = '#ffd21f';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y - playerPx * 1.2, 0.4 * ppu, -Math.PI / 2, -Math.PI / 2 + (a.prog / ACHADOS.cavarS) * Math.PI * 2);
+      ctx.stroke();
+    }
+    return;
+  }
+  if (a.kind === 'reliquia') {
+    drawBola(ctx, pt.x, pt.y, 0.3 * ppu, t * 0.6, 0.15 * ppu);
+    if (!longe) brilho(ctx, pt.x + 0.2 * ppu, pt.y - 0.75 * ppu, 0.45 * ppu, t, seed);
+    return;
+  }
+  const im = a.kind === 'isopor' ? images.cen_isopor_a : images.w_maleta;
+  const h = (a.kind === 'isopor' ? 0.8 : 0.7) * ppu;
+  // brilho dourado no chão: diferencia o achado dos isopores de enfeite da praia
+  const pulse = 0.75 + 0.25 * Math.sin(t * 2.4 + seed);
+  const g = ctx.createRadialGradient(pt.x, pt.y - h * 0.3, 0, pt.x, pt.y - h * 0.3, h * 1.3);
+  g.addColorStop(0, `rgba(255,214,60,${(a.kind === 'cofre' ? 0.55 : 0.35) * pulse})`);
+  g.addColorStop(1, 'rgba(255,214,60,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(pt.x - h * 1.3, pt.y - h * 1.6, h * 2.6, h * 2.6);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(pt.x, pt.y, h * 0.55, h * 0.18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  if (im) {
+    const w = (im.width / im.height) * h;
+    ctx.drawImage(im, pt.x - w / 2, pt.y - h, w, h);
+  }
+  if (!longe) brilho(ctx, pt.x + h * 0.3, pt.y - h * 1.1, 0.35 * ppu, t, seed);
+}
+
+/** A bola (relíquia e em jogo): branca com gomos escuros, sombra no chão. */
+export function drawBola(ctx, x, y, r, spin, z = 0) {
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(x, y, r * 0.9, r * 0.32, 0, 0, Math.PI * 2);
+  ctx.fill();
+  const cy = y - r - z;
+  ctx.fillStyle = '#f4f2ea';
+  ctx.strokeStyle = 'rgba(20,16,14,0.85)';
+  ctx.lineWidth = Math.max(1, r * 0.12);
+  ctx.beginPath();
+  ctx.arc(x, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#1d1b1f';
+  for (let k = 0; k < 3; k++) {
+    const a = spin + (k * Math.PI * 2) / 3;
+    ctx.beginPath();
+    ctx.arc(x + Math.cos(a) * r * 0.5, cy + Math.sin(a) * r * 0.5, r * 0.24, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }

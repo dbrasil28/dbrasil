@@ -371,6 +371,33 @@ export const CARREIRA = {
   trechoHpMul: { orla: 1, morro: 1.25 }, // cada trecho começa mais duro que o anterior
 };
 
+// Achados pelo caminho (D40): esconderijos com pista e sem seta; nada se compra nem se abre com anúncio.
+export const ACHADOS = {
+  isopores: 5, // por trecho, sorteados entre os esconderijos
+  pegaM: 0.9, // encostar abre
+  cavarS: 2, // enterrado na areia: parar em cima esse tempo para cavar
+  isoporGorjeta: 8,
+  isoporCura: 20,
+  cofreGorjeta: 20,
+  // cartas do cofre: chance de 5 e de 3 (o resto é 1); sobem com o Caos na hora de abrir
+  cofre: { chance5: 0.08, chance5Caos: 0.27, chance3: 0.3, chance3Caos: 0.15 },
+  bichos: ['AVESTRUZ', 'ÁGUIA', 'BURRO', 'BORBOLETA', 'CACHORRO', 'CABRA', 'CARNEIRO', 'CAMELO', 'COBRA', 'COELHO',
+    'CAVALO', 'ELEFANTE', 'GALO', 'GATO', 'JACARÉ', 'LEÃO', 'MACACO', 'PORCO', 'PAVÃO', 'PERU', 'TOURO', 'TIGRE',
+    'URSO', 'VEADO', 'VACA'],
+  brilhoM: 14, // até onde se vê o brilho de um achado escondido
+  faroM: 8, // o Caramelo fareja isopor e cofre a essa distância
+  faroReliquiaM: 4, // a relíquia, só bem de perto
+  faroCadaS: 6, // e late de novo a cada tanto, enquanto estiver perto
+};
+// Relíquias (D40): uma por trecho, sempre no mesmo lugar, já no máximo, numa vaga só dela.
+export const RELIQUIAS = {
+  altinha: {
+    nome: 'Bola da Altinha', onde: 'orla',
+    desc: 'A bola quica de inimigo em inimigo, sem parar',
+    dmg: 28, speed: 13, alcanceM: 7, pulaM: 6, voltaM: 1.2,
+  },
+};
+
 // Trechos da rota, de baixo para cima no Mapa da Rota. `jogavel`: já existe no protótipo.
 export const TRECHOS = [
   { id: 'orla', nome: 'Orla do Desespero', onde: 'Rio · calçadão', jogavel: true,
@@ -686,6 +713,9 @@ export const TV = {
   fase_orla: ['ESPECULADOR ANUNCIA FASE 2 DO EMPREENDIMENTO: AGORA COM DOIS LOTES', 'ESPECULADOR CERCA A ÁREA: "CONDOMÍNIO FECHADO, PRIVATIVO E EXCLUSIVO"'],
   fase_morro: ['CHEFE DO TRÁFICO CHAMA A FIRMA INTEIRA', 'CHEFE DECRETA TOQUE DE RECOLHER NA LAJE'],
   chefaoCaiu: ['ESPECULADOR SOFRE DESPEJO. O SINAL DA TV CAI JUNTO COM ELE'],
+  cofre: ['ENTREGADOR ACHA COFRE NA ORLA. RECEITA DIZ QUE NÃO VIU NADA', 'COFRE ABERTO AO VIVO. DONO AINDA NÃO SE APRESENTOU'],
+  cofre5: ['DEU BICHO! ENTREGADOR TIRA A SORTE GRANDE. BANCA PEDE RECONTAGEM'],
+  reliquia_altinha: ['ENTREGADOR ACHA A BOLA DA ALTINHA. A PRAIA INTEIRA PARA PARA OLHAR'],
   chefe: ['CHEFE DO TRÁFICO DECRETA: PIZZA SÓ PASSA COM AUTORIZAÇÃO DA FIRMA'],
   chefeRadio: ['CHEFE CHAMA REFORÇO NO RÁDIO. MORADORES FECHAM AS JANELAS'],
   chefeVencido: ['CHEFE DO TRÁFICO CAI NA LAJE. ENTREGADOR SEGUE COM A PIZZA'],

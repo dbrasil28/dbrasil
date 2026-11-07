@@ -5,6 +5,7 @@ import { CARREIRA, ENEMIES, SESSION, xpToNext } from './config.js';
 import { clamp } from './math.js';
 import { removeSolid, addSolid, deliveryPoint, inside } from './mundo.js';
 import { playerStats } from './upgrades.js';
+import { cofreDoChefao } from './achados.js';
 
 /** Covil do trecho: onde o chefão mora, de onde sai, e o estado das pistas. */
 export function covilDe(game, trecho) {
@@ -156,6 +157,7 @@ export function chefaoCaiu(game, e) {
   }
   game.shake(0.8);
   game.emit('flash', {});
+  cofreDoChefao(game, e); // o chefão sempre solta um cofre
   if (e.type === 'especulador') {
     game.metrics.chefaoOrlaS = Math.round(game.t);
     game.tv('chefaoCaiu');
@@ -187,6 +189,7 @@ export function recomecar(game, trecho) {
   p.bonusDmg = 0;
   p.auraR = 0;
   p.helmetsOut = 0;
+  p.reliquia = null; // a relíquia vale só no trecho dela
   game.dogs.length = 0;
   game.projectiles = game.projectiles.filter((o) => o.kind === 'thrown');
   game.zones.length = 0;

@@ -92,8 +92,26 @@ export function botInput(game) {
     routeTarget(game.world, p, goal.x, goal.y, goal.ri, rtBot);
     const gd = Math.hypot(rtBot.x - p.x, rtBot.y - p.y);
     if (gd > 1.5) {
-      wx += ((rtBot.x - p.x) / gd) * BOT.goalPull;
-      wy += ((rtBot.y - p.y) / gd) * BOT.goalPull;
+      let ux = (rtBot.x - p.x) / gd;
+      let uy = (rtBot.y - p.y) / gd;
+      // preso numa quina (não andou em 2 s): contorna pelo lado do meio do calçadão por um tempo
+      const st = game._bot || (game._bot = { x: p.x, y: p.y, t: game.t, desvioT: 0, lado: 1 });
+      if (game.segment === 'orla' && game.t - st.t > 2) {
+        if (Math.hypot(p.x - st.x, p.y - st.y) < 1.2) {
+          st.desvioT = 1.6;
+          st.lado = p.x < -6 ? 1 : -1;
+        }
+        st.x = p.x;
+        st.y = p.y;
+        st.t = game.t;
+      }
+      if (st.desvioT > 0) {
+        st.desvioT -= 1 / 30;
+        ux = st.lado;
+        uy = 0;
+      }
+      wx += ux * BOT.goalPull;
+      wy += uy * BOT.goalPull;
     }
   }
   if (n > 0) {
@@ -137,6 +155,10 @@ export function resolveModal(game, eventPolicy = (i) => i % 2 === 0) {
   }
   if (m.kind === 'revive') {
     game.chooseRevive(BOT.revive);
+    return;
+  }
+  if (m.kind === 'cofre') {
+    game.fecharCofre();
     return;
   }
   const order = ['evolution', 'weapon', 'passive', 'heal', 'bonus'];
