@@ -73,6 +73,11 @@ export const IMAGES = {
   obj_engradado_s: 'assets/objetos/engradado_s.webp',
   obj_engradado_ne: 'assets/objetos/engradado_ne.webp',
   obj_engradado_n: 'assets/objetos/engradado_n.webp',
+  // prédios da Orla (Figma): fachada desenhada de lado, inclinada (PREDIOS em config.js)
+  predio_a: 'assets/cenario/predios/predio_a.webp',
+  predio_b: 'assets/cenario/predios/predio_b.webp',
+  predio_c: 'assets/cenario/predios/predio_c.webp',
+  predio_d: 'assets/cenario/predios/predio_d.webp',
   // cenário com arte gerada (Figma, IA de imagem) e recortada; medidas em arte_cenario.js
   cen_carro_fusca: 'assets/cenario/orla/carro_fusca.webp',
   cen_carro_brasilia: 'assets/cenario/orla/carro_brasilia.webp',

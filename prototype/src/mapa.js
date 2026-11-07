@@ -3,6 +3,7 @@
 import { hash2 } from './math.js';
 import { images } from './sprites.js';
 import { Camera } from './camera.js';
+import { PREDIOS } from './config.js';
 import { drawLitter, drawFachada, pixo, cartaz, bandeira } from './render_cenario.js';
 
 const pt = { x: 0, y: 0 };
@@ -294,7 +295,7 @@ function drawOrlaOnly(r, ctx, game, b) {
     const ys = j * m.blockLen + (m.blockLen - m.streetLen);
     const ye = ys + m.streetLen;
     const rx1 = m.avenidaX0 ?? m.sandX; // a rua transversal termina na avenida
-    cam.toScreen(m.minX - 2.5, ys, pt);
+    cam.toScreen(b.minX - 6, ys, pt); // a rua vem da cidade, entre os prédios
     cam.toScreen(rx1, ye, pt2);
     ctx.fillStyle = '#3a3a3e';
     ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
@@ -304,7 +305,7 @@ function drawOrlaOnly(r, ctx, game, b) {
     ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, Math.max(2, ppu * 0.18 * k));
     ctx.fillRect(pt.x, pt2.y - Math.max(2, ppu * 0.18 * k), pt2.x - pt.x, Math.max(2, ppu * 0.18 * k));
     // faixa central amarela
-    cam.toScreen(m.minX - 2.5, ys + m.streetLen / 2, pt);
+    cam.toScreen(b.minX - 6, ys + m.streetLen / 2, pt);
     cam.toScreen(rx1, ys + m.streetLen / 2, pt2);
     ctx.strokeStyle = 'rgba(230,190,40,0.7)';
     ctx.lineWidth = Math.max(1.5, ppu * 0.1);
@@ -350,12 +351,12 @@ export class OrlaLayer {
   draw(ctx, game, vb, dpr) {
     const cam = game.camera;
     const m = game.map;
-    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}|${images.cen_coqueiro_a ? 1 : 0}|${game.world && game.world.gateOpen ? 1 : 0}`;
+    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}|${images.cen_coqueiro_a ? 1 : 0}|${images.predio_a && images.predio_d ? 1 : 0}|${game.world && game.world.gateOpen ? 1 : 0}`;
     if (key !== this.key) {
       this.tiles.clear();
       this.key = key;
     }
-    const x0 = m.minX - 10;
+    const x0 = m.minX - 16; // espaço para os prédios da borda
     const x1 = m.seaX + 6;
     const j0 = Math.floor(vb.minY / TILE_M);
     const j1 = Math.floor(vb.maxY / TILE_M);
@@ -415,21 +416,23 @@ export function orlaDecor(game, b, out) {
   const w = game.world;
   // fachadas viradas para a câmera no alto de cada pedaço da rota (pichação, cartazes, bandeira)
   if (w && w.fachadas) for (const f of w.fachadas) if (f.y >= b.minY && f.y <= b.maxY) out.push({ kind: 'fachada', x: f.x0, y: f.y, f });
+  // prédios da borda esquerda (altos: entram no bloco mesmo com a base bem abaixo dele)
+  if (w && w.predios) for (const pr of w.predios) if (pr.y1 >= b.minY && pr.y1 <= b.maxY + 60) out.push({ kind: 'predio', x: pr.x0, y: pr.y1, pr });
   const j0 = Math.floor(b.minY / SEG) - 1;
   const j1 = Math.ceil(b.maxY / SEG) + 1;
   for (let j = j0; j <= j1; j++) {
     const y = j * SEG;
     if (w && (y < w.orlaTop || y > w.orla.y1)) continue; // decoração da orla só no trecho da orla
     const street = game.isStreet(y + SEG / 2) || game.isStreet(y);
-    // lado do morro: casas da favela em 2 fileiras
-    for (let row = 0; row < 3; row++) {
+    // lado do morro: casas da favela em 2 fileiras (com o mundo da rota, os prédios ficam no lugar)
+    for (let row = 0; row < (w && w.predios ? 0 : 3); row++) {
       const x = m.minX - 3.6 - row * 3.2 - hash2(j, row, 2) * 0.6;
       if (x < b.minX - 4) continue;
       if (street && row === 0) continue;
       out.push({ kind: 'casa', x, y: y + SEG * 0.85 + row * 0.9, seed: hash2(j, row, 3), row });
     }
     // calçada do morro: barraca de pastel, ponto de ônibus ou poste com cartaz
-    if (!street && m.minX - 1.2 > b.minX - 3) {
+    if (!street && !(w && w.predios) && m.minX - 1.2 > b.minX - 3) {
       const h = hash2(j, 0, 5);
       if (h < 0.22) out.push({ kind: 'banca_pastel', x: m.minX - 1.3, y: y + SEG * 0.6, seed: h });
       else if (h < 0.34) out.push({ kind: 'ponto_onibus', x: m.minX - 1.2, y: y + SEG * 0.6, seed: h });
@@ -450,6 +453,7 @@ export function drawDecor(ctx, d, p, ppu, k) {
   switch (d.kind) {
     case 'casa': return drawCasa(ctx, d, p, ppu, k);
     case 'fachada': return drawFachada(ctx, d.f, p, ppu);
+    case 'predio': return drawPredio(ctx, d.pr, p, ppu);
     case 'banca_pastel': return drawBancaPastel(ctx, p, ppu, k);
     case 'ponto_onibus': return drawPonto(ctx, p, ppu, k);
     case 'poste': return drawImageProp(ctx, d.seed > 0.4 && images.poste_b ? images.poste_b : images.poste, p, ppu * 6.4);
@@ -479,6 +483,30 @@ export function drawImageProp(ctx, im, p, hPx) {
   ctx.ellipse(p.x, p.y, w * 0.35, w * 0.12, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.drawImage(im, p.x - w / 2, p.y - hPx, w, hPx);
+}
+
+/**
+ * Prédio gerado com volume (telhado, ponta da rua e a lateral das lojas). A base da fachada das lojas vai
+ * junto da beira do calçadão: a imagem é estreitada e endireitada em parte (PREDIOS em config.js).
+ * p = tela do canto (x0, y1) do prédio. Câmera sem giro: x para a direita, y para baixo.
+ */
+function drawPredio(ctx, pr, p, ppu) {
+  const P = PREDIOS;
+  const M = P.modelos[pr.img];
+  const im = images[`predio_${pr.img}`];
+  if (!M || !im) return;
+  const sc = pr.mpp * ppu * (im.height / M.h); // px de tela por px da imagem
+  const c = P.compressaoX;
+  const r = ((M.longe[0] - M.perto[0]) / (M.perto[1] - M.longe[1])) * c; // inclinação da base da fachada
+  const sh = P.endireitar * r;
+  const resto = (r - sh) * (M.perto[1] - M.longe[1]) * sc; // o que sobra de inclinação, em px de tela
+  const tx = p.x + (P.x1 - pr.x0) * ppu - resto / 2; // canto perto da fachada, meio a meio com a beira
+  const ox = tx - c * sc * M.perto[0];
+  const oy = p.y - M.perto[1] * sc;
+  ctx.save();
+  ctx.transform(c * sc, 0, sh * sc, sc, ox - sh * M.perto[1] * sc, oy);
+  ctx.drawImage(im, 0, 0, M.w, M.h);
+  ctx.restore();
 }
 
 function shade(hex, f) {

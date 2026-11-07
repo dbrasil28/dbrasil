@@ -132,6 +132,26 @@ export const MAPS = {
   aberto: { name: 'Arena aberta (teste)', bounded: false, groundTileM: 10 },
 };
 
+// Prédios da Orla (borda esquerda, depois do calçadão), gerados no Figma já com volume: telhado visto
+// de cima, a ponta curta virada para a câmera e a lateral comprida com as lojas virada para o calçadão.
+// perto/longe: base da fachada das lojas na imagem (px), na ponta da rua e no fundo; esq: borda esquerda.
+// frenteM: largura da ponta curta (m). A imagem é estreitada (compressaoX) e endireitada em parte
+// (endireitar) para a fachada correr junto da beira do calçadão sem o prédio ficar torto.
+export const PREDIOS = {
+  x1: -14.6, // beira do calçadão
+  frenteM: 6,
+  compressaoX: 0.65,
+  endireitar: 0.5,
+  k: Math.sin((55 * Math.PI) / 180), // achatamento do chão na câmera padrão
+  modelos: {
+    a: { w: 437, h: 1100, perto: [201, 1099], longe: [436, 712], esq: 0 },
+    b: { w: 429, h: 1100, perto: [190, 1099], longe: [428, 681], esq: 0 },
+    c: { w: 520, h: 1100, perto: [251, 1099], longe: [519, 420], esq: 0 },
+    d: { w: 388, h: 1100, perto: [235, 1099], longe: [387, 630], esq: 0 },
+  },
+};
+
+
 // Avenida da praia (Orla): carros andando nas quatro faixas, dois sentidos. Atropelam o Juninho e a
 // horda. Quem vem por trás do Juninho na faixa dele dá aviso na borda de baixo da tela antes de chegar.
 export const AVENIDA = {

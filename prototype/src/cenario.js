@@ -2,7 +2,7 @@
 // meio do calçadão, carrinhos, bancos, lixeiras, orelhões, postes, placas e a sujeira do chão; no morro,
 // motos, entulho, gatos de luz, caixas d'água, sinuca e varal nas lajes. Tudo determinístico por posição.
 // Os sólidos nunca fecham a rota: ficam longe das passagens, das escadas e do começo da partida.
-import { CENARIO, PLACES, ROUTE, CADEIRA_DIST } from './config.js';
+import { CENARIO, PLACES, ROUTE, CADEIRA_DIST, PREDIOS } from './config.js';
 import { hash2 } from './math.js';
 
 const H = hash2;
@@ -238,6 +238,23 @@ function calcadao(w, map, b) {
   litter(w, 'bueiro', map.avenidaX1 - 0.6, y0 + 8 + H(b, 2, 653) * 20, 0);
 }
 
+/** Prédios do quarteirão na borda esquerda, da rua de baixo para a de cima, encostados um no outro. */
+function predios(w, map, b) {
+  const y0 = -map.blockLen * b;
+  const P = PREDIOS;
+  const nomes = Object.keys(P.modelos);
+  let y = y0 + 40;
+  for (let i = 0; i < 6 && y > y0 + 4; i++) {
+    const nome = nomes[Math.floor(H(b, i, 1201) * nomes.length)];
+    const M = P.modelos[nome];
+    const mpp = P.frenteM / (M.perto[0] - M.esq); // metros por pixel da imagem
+    const len = ((M.perto[1] - M.longe[1]) * mpp) / P.k; // comprimento da fachada ao longo do calçadão
+    if (y - len < y0 - 1) break;
+    w.predios.push({ x0: P.x1 - P.frenteM, x1: P.x1, y0: y - len, y1: y, img: nome, mpp });
+    y -= len;
+  }
+}
+
 /** Areia: coqueiros, guarda-sóis com toalha e isopor, carrinho de mate e, às vezes, a rede de futevôlei. */
 function praia(w, map, b) {
   const y0 = -map.blockLen * b;
@@ -409,7 +426,9 @@ export function placeCenario(w, map) {
   w.props = [];
   w.litter = [];
   // lojas primeiro (ocupam espaço com mesas), depois ruas, calçadão e morro
+  w.predios = [];
   for (let b = 0; b <= ROUTE.orla.blocks; b++) {
+    predios(w, map, b);
     calcadao(w, map, b);
     praia(w, map, b);
   }

@@ -130,7 +130,7 @@ Da esquerda para o mar, como em Copacabana (decisão do autor): **prédios, cal�
 
 | Faixa | Largura | O que tem |
 | --- | --- | --- |
-| Prédios | fora do caminho | Hoje casas desenhadas; os prédios entram aqui, com as lojas no térreo |
+| Prédios | fora do caminho | Quatro modelos gerados no Figma já com volume (Art Déco creme, pastilhas azuis, sobrado caindo aos pedaços, modernista com piscina no telhado): telhado visto de cima, a ponta curta virada para a rua e a lateral comprida com as lojas no térreo virada para o calçadão. Encostados um no outro ao longo do quarteirão; as ruas transversais passam entre eles (`PREDIOS` em config.js). A primeira tentativa, com a fachada de frente entortada, parecia papelão e foi descartada |
 | Calçadão, lado das lojas | 7 m | Botecos, açaí, pastelaria, prédio com terraço, muro |
 | Calçadão, meio | 8 m | Barraca do meio, carrinho, tapume, orelhão; bancos e postes na beira da avenida; garotas na esquina |
 | Avenida | 11 m | Quatro faixas, dois sentidos. Carros andando atropelam o Juninho (28 de dano e um empurrão) e matam a horda. Carro vindo por trás na faixa do Juninho dá aviso na borda de baixo da tela. Faixa de pedestre em cada rua |

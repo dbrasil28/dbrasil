@@ -44,6 +44,7 @@ const data = {
   gate: box(w.gate),
   joints: w.joints.map((j) => [r2(j.x), r2(j.y)]),
   plats: w.platforms.map((P) => ({ kind: P.kind, b: box(P), s: box(P.stair) })),
+  predios: (w.predios || []).map((p) => ({ b: box(p), h: p.h })),
   places: w.places.filter((p) => p.x0 !== undefined).map((p) => ({ kind: p.kind, side: p.side || '', sign: p.sign || '', b: box(p), c: p.counter ? box(p.counter) : null })),
   props: w.props.map((p) => ({ kind: p.kind, cat: CAT[p.kind] || 'rua', solid: !!p.solid, b: box(p), t: p.text || '' })),
   slots: w.slots.filter((s) => !s.plat).map((s) => ({ kind: s.kind, x: r2(s.x), y: r2(s.y) })),
@@ -116,7 +117,7 @@ canvas { display: block; max-width: none; touch-action: pan-x pan-y; }
       <ul id="resumo"></ul>
       <h3>Faixas da Orla (da esquerda para o mar)</h3>
       <ul>
-        <li><b>Prédios</b>, fora do caminho (hoje casas desenhadas; os prédios entram aqui).</li>
+        <li><b>Prédios</b>, fora do caminho, de lado para a câmera: a fachada com as lojas no térreo dá para o calçadão (linha amarela) e o prédio sobe em direção à cidade. As ruas transversais passam entre eles.</li>
         <li><b>Calçadão, lado das lojas</b> (7 m): botecos, açaí, pastelaria, prédio com terraço, muro.</li>
         <li><b>Calçadão, meio</b> (8 m): barraca do meio, carrinho, tapume, orelhão, bancos e postes na beira da avenida, garotas na esquina.</li>
         <li><b>Avenida</b> (11 m, quatro faixas, dois sentidos): carros andando que atropelam o Juninho e a horda; faixa de pedestre em cada rua.</li>
@@ -254,6 +255,15 @@ function draw(v, opts = {}) {
     g.strokeRect(x + 0.5, y + 0.5, mw - 1, mh - 1); g.setLineDash([]);
     v.hits.push({ x, y, w: mw, h: mh, t: label || D.nome[kind] || kind });
   };
+  // prédios da borda esquerda (de lado, a fachada dá para o calçadão)
+  for (const pr of D.predios) {
+    if (pr.b[3] < v.y0 || pr.b[1] > v.y1) continue;
+    const [x, y, ww, hh] = R(pr.b);
+    g.fillStyle = '#6d6258'; g.fillRect(x, y, ww, hh);
+    g.strokeStyle = 'rgba(20,16,14,0.9)'; g.lineWidth = 1.5; g.strokeRect(x + 0.5, y + 0.5, ww - 1, hh - 1);
+    g.fillStyle = '#ffd21f'; g.fillRect(X(pr.b[2]) - Math.max(2, ppm * 0.35), y, Math.max(2, ppm * 0.35), hh); // fachada com as lojas
+    v.hits.push({ x, y, w: ww, h: hh, t: 'Prédio de ' + pr.h + ' m (lojas no térreo, de frente para o calçadão)' });
+  }
   // lajes, lugares, objetos de cenário, objetos soltos, curas
   if (on.laje) for (const P of D.plats) { shape(P.b, 'laje', true, P.kind); shape(P.s, 'laje', false, 'escada', 'Escada de ' + (D.nome[P.kind] || P.kind).toLowerCase()); }
   if (on.lugar) for (const p of D.places) {

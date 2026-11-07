@@ -189,6 +189,7 @@ export class Renderer {
       }
       for (const pl of w.places) {
         if (!pl.counter || pl.y0 > bounds.maxY + 4 || pl.y1 < bounds.minY - 4) continue;
+        if (pl.side === 'esq' && w.predios && w.predios.length) continue; // a loja já está no térreo do prédio
         list.push({ d: cam.depth(pl.x0, pl.counter.y1), k: 'place', o: pl, x: pl.x0, y: pl.counter.y1 });
       }
       for (const s of w.slots) {
