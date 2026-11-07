@@ -254,7 +254,7 @@ function applySetting(id, value) {
   saveSettings(settings);
   ads.configure(settings);
   updateBanner();
-  if (id === 'resolution' || id === 'playerPct' || id === 'elevation' || id === 'yaw' || id === 'joystick') layout();
+  if (id === 'resolution' || id === 'playerPct' || id === 'elevation' || id === 'yaw' || id === 'giro' || id === 'joystick') layout();
   if (id === 'enemyPct') renderer.sprites.clear();
   if (id === 'showFps') $('fps').hidden = !value;
   updateReadout();

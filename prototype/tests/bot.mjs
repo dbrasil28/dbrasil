@@ -89,9 +89,10 @@ export function botInput(game) {
     wx -= (cx / n / l) * danger;
     wy -= (cy / n / l) * danger;
   }
-  // mundo -> tela (a câmera do teste usa yaw 0, então só achata o eixo y)
+  // mundo -> tela (com o giro do mapa, a profundidade também anda para o lado)
   const l = Math.hypot(wx, wy) || 1;
-  return { x: wx / l, y: (wy / l) * game.camera.k };
+  const d = game.camera.worldDirToScreen(wx / l, wy / l, {});
+  return { x: d.x, y: d.y };
 }
 
 export function resolveModal(game, eventPolicy = (i) => i % 2 === 0) {

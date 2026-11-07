@@ -5,6 +5,8 @@
 //   elevação 55° = 3/4 clássico de beat 'em up (padrão do protótipo)
 //   yaw 0°  = ruas alinhadas com a tela (como nos mockups)
 //   yaw 45° = isometria "diamante" clássica
+//   sh: inclinação do eixo da profundidade (giro pequeno do mapa): o norte vai subindo para a direita
+//       na tela, e o que está em pé continua em pé (projeção oblíqua). sh = tan(ângulo).
 import { DEG } from './math.js';
 
 export class Camera {
@@ -16,12 +18,14 @@ export class Camera {
     this.anchorY = 0;
     this.viewW = 390;
     this.viewH = 844;
+    this.sh = 0;
     this.setAngles(55, 0);
   }
 
-  setAngles(elevationDeg, yawDeg) {
+  setAngles(elevationDeg, yawDeg, giroDeg = 0) {
     this.elevation = elevationDeg;
     this.yaw = yawDeg;
+    this.sh = Math.tan(giroDeg * DEG);
     this.k = Math.sin(elevationDeg * DEG); // achatamento do chão no eixo vertical da tela
     this.c = Math.cos(yawDeg * DEG);
     this.s = Math.sin(yawDeg * DEG);
@@ -48,14 +52,14 @@ export class Camera {
     const dy = wy - this.y;
     const rx = dx * this.c - dy * this.s;
     const ry = dx * this.s + dy * this.c;
-    out.x = this.anchorX + rx * this.ppu;
+    out.x = this.anchorX + (rx - this.sh * ry * this.k) * this.ppu;
     out.y = this.anchorY + ry * this.ppu * this.k;
     return out;
   }
 
   toWorld(sx, sy, out) {
-    const rx = (sx - this.anchorX) / this.ppu;
     const ry = (sy - this.anchorY) / (this.ppu * this.k);
+    const rx = (sx - this.anchorX) / this.ppu + this.sh * ry * this.k;
     out.x = this.x + rx * this.c + ry * this.s;
     out.y = this.y - rx * this.s + ry * this.c;
     return out;
@@ -67,8 +71,9 @@ export class Camera {
    */
   screenDirToWorld(dx, dy, out) {
     const ry = dy / this.k;
-    let wx = dx * this.c + ry * this.s;
-    let wy = -dx * this.s + ry * this.c;
+    const rx = dx + this.sh * dy;
+    let wx = rx * this.c + ry * this.s;
+    let wy = -rx * this.s + ry * this.c;
     const l = Math.hypot(wx, wy);
     if (l > 1e-6) {
       wx /= l;
@@ -76,6 +81,15 @@ export class Camera {
     }
     out.x = wx;
     out.y = wy;
+    return out;
+  }
+
+  /** Direção no mundo para direção na tela (o inverso de screenDirToWorld, sem normalizar). */
+  worldDirToScreen(wx, wy, out) {
+    const rx = wx * this.c - wy * this.s;
+    const ry = wx * this.s + wy * this.c;
+    out.x = rx - this.sh * ry * this.k;
+    out.y = ry * this.k;
     return out;
   }
 

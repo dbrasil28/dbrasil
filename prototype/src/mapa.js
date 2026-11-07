@@ -364,7 +364,7 @@ export class OrlaLayer {
   draw(ctx, game, vb, dpr) {
     const cam = game.camera;
     const m = game.map;
-    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}|${images.cen_coqueiro_a ? 1 : 0}|${images.predio_a && images.predio_d ? 1 : 0}|${game.world && game.world.gateOpen ? 1 : 0}`;
+    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${cam.sh.toFixed(3)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}|${images.cen_coqueiro_a ? 1 : 0}|${images.predio_a && images.predio_d ? 1 : 0}|${game.world && game.world.gateOpen ? 1 : 0}`;
     if (key !== this.key) {
       this.tiles.clear();
       this.key = key;
@@ -380,7 +380,13 @@ export class OrlaLayer {
         this.tiles.set(j, t);
       }
       cam.toScreen(x0, j * TILE_M, pt);
-      ctx.drawImage(t, pt.x, pt.y, t.cssW, t.cssH + 0.75);
+      if (cam.sh) {
+        // giro do mapa: o bloco do chão é inclinado inteiro (o que está em pé vem à parte, em drawTallDecor)
+        ctx.save();
+        ctx.transform(1, 0, -cam.sh, 1, pt.x, pt.y);
+        ctx.drawImage(t, 0, 0, t.cssW, t.cssH + 0.75);
+        ctx.restore();
+      } else ctx.drawImage(t, pt.x, pt.y, t.cssW, t.cssH + 0.75);
     }
     // descarta blocos longe da tela
     if (this.tiles.size > (j1 - j0 + 1) + 6) {
@@ -417,6 +423,7 @@ export class OrlaLayer {
     const list = orlaDecor(fake, { minX: x0, maxX: x1, minY: j * TILE_M - 1, maxY: (j + 1) * TILE_M + 12 }, []);
     list.sort((a, b2) => a.y - b2.y);
     for (const d of list) {
+      if (TALL.has(d.kind)) continue; // em pé: desenhado à parte, sem inclinar com o chão
       tc.toScreen(d.x, d.y, pt2);
       drawDecor(g, d, { x: pt2.x, y: pt2.y }, tc.ppu, tc.k);
     }
@@ -495,6 +502,25 @@ function drawSombras(g, w, cam, b, scale) {
   }
 }
 
+// decoração alta (prédios, fachadas, coqueiros e quiosques além da areia, casas): fica em pé na tela,
+// então é desenhada a cada quadro na posição da câmera, e não dentro do bloco do chão
+const TALL = new Set(['predio', 'fachada', 'casa', 'coqueiro', 'quiosque', 'salva_vidas', 'banca_pastel', 'ponto_onibus', 'poste']);
+const tallTmp = [];
+const tallPt = { x: 0, y: 0 };
+
+/** Prédios, fachadas e o que mais fica em pé na borda, do fundo para a frente. */
+export function drawTallDecor(ctx, game, vb) {
+  tallTmp.length = 0;
+  orlaDecor(game, { minX: vb.minX, maxX: vb.maxX, minY: vb.minY - 2, maxY: vb.maxY + 8 }, tallTmp);
+  const list = tallTmp.filter((d) => TALL.has(d.kind));
+  list.sort((a, b) => a.y - b.y);
+  const cam = game.camera;
+  for (const d of list) {
+    cam.toScreen(d.x, d.y, tallPt);
+    drawDecor(ctx, d, tallPt, cam.ppu, cam.k, cam.sh);
+  }
+}
+
 /** Decoração das bordas (desenhada na camada estática). */
 export function orlaDecor(game, b, out) {
   const m = game.map;
@@ -534,11 +560,11 @@ export function orlaDecor(game, b, out) {
   return out;
 }
 
-export function drawDecor(ctx, d, p, ppu, k) {
+export function drawDecor(ctx, d, p, ppu, k, sh = 0) {
   switch (d.kind) {
     case 'casa': return drawCasa(ctx, d, p, ppu, k);
     case 'fachada': return drawFachada(ctx, d.f, p, ppu);
-    case 'predio': return drawPredio(ctx, d.pr, p, ppu);
+    case 'predio': return drawPredio(ctx, d.pr, p, ppu, sh);
     case 'banca_pastel': return drawBancaPastel(ctx, p, ppu, k);
     case 'ponto_onibus': return drawPonto(ctx, p, ppu, k);
     case 'poste': return drawImageProp(ctx, d.seed > 0.4 && images.poste_b ? images.poste_b : images.poste, p, ppu * 6.4);
@@ -575,7 +601,7 @@ export function drawImageProp(ctx, im, p, hPx) {
  * junto da beira do calçadão: a imagem é estreitada e endireitada em parte (PREDIOS em config.js).
  * p = tela do canto (x0, y1) do prédio. Câmera sem giro: x para a direita, y para baixo.
  */
-function drawPredio(ctx, pr, p, ppu) {
+function drawPredio(ctx, pr, p, ppu, sh = 0) {
   const P = PREDIOS;
   const M = P.modelos[pr.img];
   const im = images[`predio_${pr.img}`];
@@ -583,13 +609,15 @@ function drawPredio(ctx, pr, p, ppu) {
   const sc = pr.mpp * ppu * (im.height / M.h); // px de tela por px da imagem
   const c = P.compressaoX;
   const r = ((M.longe[0] - M.perto[0]) / (M.perto[1] - M.longe[1])) * c; // inclinação da base da fachada
-  const sh = P.endireitar * r;
-  const resto = (r - sh) * (M.perto[1] - M.longe[1]) * sc; // o que sobra de inclinação, em px de tela
-  const tx = p.x + (P.x1 - pr.x0) * ppu - resto / 2; // canto perto da fachada, meio a meio com a beira
+  // com o giro do mapa, a beira do calçadão já sobe para a direita (sh): a fachada só é endireitada no
+  // que passar disso; sem giro, endireita em parte e divide o resto meio a meio com a beira
+  const corte = sh ? r - sh : P.endireitar * r;
+  const resto = sh ? 0 : (r - corte) * (M.perto[1] - M.longe[1]) * sc;
+  const tx = p.x + (P.x1 - pr.x0) * ppu - resto / 2;
   const ox = tx - c * sc * M.perto[0];
   const oy = p.y - M.perto[1] * sc;
   ctx.save();
-  ctx.transform(c * sc, 0, sh * sc, sc, ox - sh * M.perto[1] * sc, oy);
+  ctx.transform(c * sc, 0, corte * sc, sc, ox - corte * M.perto[1] * sc, oy);
   ctx.drawImage(im, 0, 0, M.w, M.h);
   ctx.restore();
 }

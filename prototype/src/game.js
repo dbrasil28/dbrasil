@@ -173,7 +173,8 @@ export class Game {
     if (v) Object.assign(this.view, v);
     const s = this.settings;
     const { viewW, viewH, playTop, playBottom } = this.view;
-    this.camera.setAngles(s.elevation, this.map.bounded ? 0 : Number(s.yaw)); // o calçadão só funciona com ruas retas
+    // mapa da rota: ruas retas, com um giro pequeno do eixo da profundidade (ajuste 'giro')
+    this.camera.setAngles(s.elevation, this.map.bounded ? 0 : Number(s.yaw), this.map.bounded ? Number(s.giro ?? 10) : 0);
     this.camera.setView(viewW, viewH, playTop, playBottom, s.playerPct, PLAYER.heightM);
     this.camera.x = this.player.x;
     this.camera.y = this.player.y;

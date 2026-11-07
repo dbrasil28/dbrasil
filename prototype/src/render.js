@@ -2,7 +2,7 @@
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA } from './config.js';
 import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow } from './sprites.js';
-import { OrlaLayer, drawImageProp } from './mapa.js';
+import { OrlaLayer, drawImageProp, drawTallDecor } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
 import { drawMinimap } from './minimapa.js';
 import {
@@ -125,6 +125,7 @@ export class Renderer {
     if (game.map.bounded) {
       cam.visibleWorldBounds(1, bounds);
       this.orla.draw(ctx, game, bounds, this.dpr);
+      if (game.world) drawTallDecor(ctx, game, bounds); // prédios e o que fica em pé, sem inclinar
     } else this.drawGround(ctx, game);
 
     // manchas no chão
