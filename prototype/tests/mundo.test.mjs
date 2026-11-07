@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
-import { ROUTE, INTERACT } from '../src/config.js';
+import { INTERACT, CARREIRA } from '../src/config.js';
 import { constrain, applyLevels, inside } from '../src/mundo.js';
 
 const newGame = (extra = {}) => {
@@ -12,18 +12,63 @@ const newGame = (extra = {}) => {
   return g;
 };
 
-test('a escadaria do morro fica fechada até o nível da meta e abre sozinha', () => {
+const parado = { x: 0, y: 0 };
+
+test('a escadaria do morro fica fechada até o Especulador cair; ele mora na obra e sai quando o Caos chama', () => {
   const g = newGame();
   const w = g.world;
   const probe = { x: (w.gate.x0 + w.gate.x1) / 2, y: w.orlaTop - 3, r: 0.3 };
   constrain(w, probe);
   assert.ok(probe.y >= w.orlaTop - 0.01, 'passou pelo portão fechado');
-  g.player.level = ROUTE.orla.unlockLevel;
-  g.updateRoute();
-  assert.equal(w.gateOpen, true);
+  g.player.level = 30; // nível não abre mais nada (D39)
+  g.update(1 / 30, parado);
+  assert.equal(w.gateOpen, false);
+  assert.ok(w.solids.includes(w.obraSolid), 'a obra começa fechada');
+  // o Caos chega a 100%: o covil abre, mas o chefão só sai com o Juninho perto
+  g.trechoT0 = g.t - CARREIRA.caosTempoS;
+  g.update(1 / 30, parado);
+  assert.equal(g.caos, 100);
+  assert.ok(g.covil.aberto, 'o covil não abriu em 100%');
+  assert.equal(g.boss, null, 'o chefão saiu sem o Juninho por perto');
+  g.player.x = g.covil.x;
+  g.player.y = w.obra.y1 + 4;
+  g.update(1 / 30, parado);
+  assert.ok(g.boss && g.boss.type === 'especulador', 'o Especulador não saiu da obra');
+  assert.ok(!w.solids.includes(w.obraSolid), 'o tapume da obra não caiu');
+  // fases: com 60% da vida, muda de fase e chama a assessoria
+  const antes = g.enemies.filter((e) => !e.dead).length;
+  g.damageEnemy(g.boss, g.boss.maxHp * 0.4, 'teste');
+  assert.equal(g.boss.fase, 1);
+  assert.ok(g.enemies.filter((e) => !e.dead).length >= antes + 18, 'a assessoria não chegou');
+  g.damageEnemy(g.boss, 1e9, 'teste');
+  assert.equal(g.boss, null);
+  assert.equal(g.over, null, 'derrubar o chefão não acaba a partida: falta atravessar');
+  assert.equal(w.gateOpen, true, 'a escadaria não abriu');
+  g.update(1 / 30, parado);
+  assert.equal(g.caos, 0, 'o Caos não zerou');
   const p2 = { x: probe.x, y: w.orlaTop - 3, r: 0.3 };
   constrain(w, p2);
   assert.ok(p2.y < w.orlaTop - 2, 'não deixou passar com o portão aberto');
+});
+
+test('ao passar pela escadaria, o Juninho recomeça do nível 1 só com o Capacete', () => {
+  const g = newGame();
+  const w = g.world;
+  w.gateOpen = true;
+  g.player.level = 12;
+  g.player.weapons.push({ id: 'chinelo', level: 3, cd: 0 });
+  g.player.passives.push({ id: 'tenis', level: 2 });
+  g.caosAbates = 500;
+  g.player.x = (w.gate.x0 + w.gate.x1) / 2;
+  g.player.y = w.orlaTop - 2;
+  g.updateRoute();
+  assert.equal(g.segment, 'morro');
+  assert.equal(g.player.level, 1);
+  assert.deepEqual(g.player.weapons.map((x) => x.id), ['capacete']);
+  assert.equal(g.player.passives.length, 0);
+  g.update(1 / 30, parado);
+  assert.ok(g.caos < 1, `o Caos do Morro não recomeçou: ${g.caos}`);
+  assert.equal(g.covil.trecho, 'morro');
 });
 
 test('quem está no chão não atravessa a laje; pela escada, sobe', () => {
@@ -59,24 +104,22 @@ test('o Juninho pega a cadeira do boteco sozinho e arremessa no inimigo mais per
   assert.ok(g.projectiles.some((p) => p.kind === 'thrown' && p.obj === 'cadeira'));
 });
 
-test('no topo do morro, a entrega só vale no nível da meta', () => {
+test('no topo do morro: o Chefe do Tráfico sai quando o Caos chama, e a entrega só vale com ele no chão', () => {
   const g = newGame({ trecho: 'morro' });
   const top = g.world.top;
-  g.updateRoute();
+  g.update(1 / 30, parado); // passa pela escadaria: começa o trecho do Morro
+  assert.equal(g.segment, 'morro');
   g.player.x = (top.x0 + top.x1) / 2;
   g.player.y = top.y0 + 1;
-  g.player.y = g.world.orlaTop - 5; // passa pelo portão primeiro
-  g.updateRoute();
-  assert.equal(g.segment, 'morro');
-  g.player.y = top.y0 + 1;
-  g.updateRoute();
+  g.update(1 / 30, parado);
+  assert.equal(g.chefe, null, 'o chefe saiu antes do Caos chamar');
   assert.equal(g.delivered, false);
-  // o Chefe do Tráfico aparece na laje do topo e segura a entrega até cair
+  g.trechoT0 = g.t - CARREIRA.caosTempoS;
+  g.update(1 / 30, parado);
   assert.ok(g.chefe && g.chefe.type === 'chefe_trafico', 'o chefe não apareceu no topo');
-  g.player.level = ROUTE.morro.unlockLevel;
-  g.updateRoute();
+  g.update(1 / 30, parado);
   assert.equal(g.delivered, false, 'entregou com o chefe de pé');
-  g.damageEnemy(g.chefe, 1e6, 'teste');
+  g.damageEnemy(g.chefe, 1e9, 'teste');
   assert.equal(g.chefe, null);
   assert.equal(g.over, null, 'derrubar o chefe não acaba a partida: falta entregar');
   g.updateRoute();

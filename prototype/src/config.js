@@ -102,11 +102,16 @@ export const ENEMIES = {
     rajada: { tiros: 3, intervaloS: 0.12, abertura: 0.08 }, // abertura: desvio (rad) entre os tiros
     bullet: { speed: 16, life: 1.0, radius: 0.2, dmg: 9 },
     reforco: { cadaS: 12, gritoS: 1.0, traficantes: 2 },
+    fases: { tirosMais: 1, cadenciaMul: 0.8, reforco: [[], ['traficante', 'funkeiro'], ['traficante', 'traficante', 'funkeiro']] },
   },
   especulador: {
     name: 'Especulador Imobiliário',
-    hp: 3000, speed: 1.45, dmg: 26, radius: 0.85, size: 1.9 / 0.75, xp: 0,
+    hp: 4500, speed: 1.45, dmg: 26, radius: 1.2, size: 3.6, xp: 0, // gigante (D39), com três fases
     behavior: 'boss', elite: true, boss: true,
+    // fase 1: loteia o chão; fase 2: dois lotes de cada vez; fase 3: cerca uma fileira de lotes até o Juninho
+    lotes: { cadaS: [5.5, 4.5, 4.0], porVez: [1, 2, 1], fileira: [0, 0, 4] },
+    despejoS: [12, 10, 8], // despejo: a horda cercando o Juninho
+    reforco: [[], ['politico'], ['fiscal', 'burocrata']], // assessoria a cada fase nova
   },
 };
 
@@ -336,6 +341,36 @@ export const MELHORIAS = {
   recarga: { name: 'Café de garrafa', desc: '−3% de recarga das armas', step: 0.03, custo: [50, 85, 130, 190, 270] },
   ima: { name: 'Mochila maior', desc: '+10% de raio de coleta', step: 0.1, custo: [30, 55, 85, 125, 180] },
 };
+// Carreira (D39, docs/design/CARREIRA_E_ROTA.md): cada trecho tem o seu Caos (0 a 100%), um chefão
+// que mora num covil do mapa e guarda a saída, e pistas que crescem em vez de setas.
+export const CARREIRA = {
+  caosTempoS: 600, // sozinho, só com o tempo, o Caos do trecho chega a 100% nesse tempo
+  caosExp: 1.15,
+  // os abates somam até caosAbateMax pontos, cada vez menos (sem isso, mais abates traziam mais horda,
+  // que dava mais abates, e o Caos chegava a 100% em 3 minutos): quem joga bem chega antes, em ~6–7 min
+  caosAbateMax: 30,
+  caosAbateK: 4000, // abates para chegar a 63% do máximo
+  pressaoMul: 0.82, // a horda (quantidade, ritmo, elenco) segue o tempo e as propostas nessa escala, a mesma de antes da D39
+  sinal: 85, // Calamidade: o covil começa a dar sinal (barulho e tremor perto dele)
+  sinalPertoM: 18, // até onde se ouve o barulho do covil
+  barulhoS: 1.6, // de quanto em quanto tempo o covil faz barulho
+  covilPertoM: 10, // com o covil aberto, o chefão sai quando o Juninho chega a essa distância
+  pistaHordaS: 45, // aberto o covil, se o Juninho não chega, a horda começa a andar para lá
+  hordaChamadaFrac: 0.35, // parte dos inimigos novos que anda para o covil
+  hordaChamadaPertoM: 6, // o chamado só vale enquanto o Juninho estiver longe deles
+  heli: { raioM: 3.5, voltaS: 5, alturaTela: 0.42 }, // holofote do helicóptero da TV circulando o covil
+  fases: [0.66, 0.33], // vida do chefão em que ele muda de fase
+  reforcoHorda: 18, // assessoria: horda chamada em volta do chefão a cada fase nova
+  quedaRaioM: 16, // ao cair, o sinal da TV cai junto: a horda em volta desaba
+  chefaoAlcanceM: 14, // longe disso, o chefão corre atrás do Juninho (não dá para fugir dele para sempre)
+  chefaoCorreMul: 2.4,
+  portaCaiS: 0.9, // o tapume cai
+  // obra do Especulador: no último quarteirão, encostada nos prédios, de frente para a escadaria
+  obra: { x0: -13.6, x1: -6.2, dy0: 1.2, fundoM: 10.5 },
+  recomeco: 'ATUALIZAÇÃO OBRIGATÓRIA DO APLICATIVO: SEUS ITENS EXPIRARAM',
+  trechoHpMul: { orla: 1, morro: 1.25 }, // cada trecho começa mais duro que o anterior
+};
+
 // Trechos da rota, de baixo para cima no Mapa da Rota. `jogavel`: já existe no protótipo.
 export const TRECHOS = [
   { id: 'orla', nome: 'Orla do Desespero', onde: 'Rio · calçadão', jogavel: true,
@@ -639,8 +674,18 @@ export const TV = {
   burocrata: ['NOVA EXIGÊNCIA: FORMULÁRIO EM TRÊS VIAS'],
   fiscal: ['ENTREGADOR MULTADO POR EXCESSO DE ESFORÇO', 'FISCAL APLICA MULTA. MOTIVO: "SIM"'],
   elite: ['POLÍTICO APARECE PARA FOTO. TRAZ MALETA'],
-  unlock: ['MAPA LIBERADO: SUBIDA DO MORRO. PEDIDO NO ALTO DA LAJE', 'ENTREGADOR LIBERADO PARA SUBIR O MORRO. GPS DESISTE'],
+  unlock: ['O TAPUME CAIU. ATRÁS DA OBRA, UMA ESCADARIA QUE NINGUÉM TINHA VISTO', 'A OBRA ABRIU UMA PASSAGEM. GPS NÃO RECONHECE O CAMINHO'],
   morro: ['ENTREGADOR COMEÇA A SUBIDA. APP CALCULA 3 MINUTOS (MENTIRA)'],
+  recomeco: ['ATUALIZAÇÃO OBRIGATÓRIA DO APLICATIVO: SEUS ITENS EXPIRARAM', 'APP ATUALIZOU: NOVO TURNO, NOVA ENTREGA, ZERO BENEFÍCIOS'],
+  // o Caos do trecho chama o chefão (D39): sinal na Calamidade e o chamado em 100%, sem dizer o nome
+  covilSinal_orla: ['MORADORES RECLAMAM DE BARULHO DE OBRA NO FIM DA PRAIA. PREFEITURA DIZ QUE NÃO TEM OBRA'],
+  covilSinal_morro: ['RÁDIO COMUNITÁRIA: MOVIMENTAÇÃO NO ALTO DO MORRO. MORADORES FECHAM AS JANELAS'],
+  covilAberto_orla: ['PLANTÃO: MOVIMENTAÇÃO ESTRANHA NA OBRA DO FIM DA PRAIA. HELICÓPTERO DA TV JÁ ESTÁ NO LOCAL'],
+  covilAberto_morro: ['PLANTÃO: TIROS E FOGOS NO ALTO DO MORRO. HELICÓPTERO DA TV SOBREVOA A LAJE'],
+  covilDemora: ['A PLATEIA INTEIRA ESTÁ INDO PARA LÁ. A EMISSORA AGRADECE A AUDIÊNCIA'],
+  fase_orla: ['ESPECULADOR ANUNCIA FASE 2 DO EMPREENDIMENTO: AGORA COM DOIS LOTES', 'ESPECULADOR CERCA A ÁREA: "CONDOMÍNIO FECHADO, PRIVATIVO E EXCLUSIVO"'],
+  fase_morro: ['CHEFE DO TRÁFICO CHAMA A FIRMA INTEIRA', 'CHEFE DECRETA TOQUE DE RECOLHER NA LAJE'],
+  chefaoCaiu: ['ESPECULADOR SOFRE DESPEJO. O SINAL DA TV CAI JUNTO COM ELE'],
   chefe: ['CHEFE DO TRÁFICO DECRETA: PIZZA SÓ PASSA COM AUTORIZAÇÃO DA FIRMA'],
   chefeRadio: ['CHEFE CHAMA REFORÇO NO RÁDIO. MORADORES FECHAM AS JANELAS'],
   chefeVencido: ['CHEFE DO TRÁFICO CAI NA LAJE. ENTREGADOR SEGUE COM A PIZZA'],

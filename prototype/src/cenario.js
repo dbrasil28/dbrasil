@@ -42,6 +42,7 @@ function livre(w, r, piece, juntaM = CENARIO.livreJuntaM) {
   if (piece && (r.x0 < piece.x0 || r.x1 > piece.x1 || r.y0 < piece.y0 || r.y1 > piece.y1)) return false;
   if (rectDist2(r, ROUTE.orla.startX, 0) < CENARIO.livreInicioM ** 2) return false;
   for (const j of w.joints) if (rectDist2(r, j.x, j.y) < juntaM ** 2) return false;
+  if (w.bocaEscadaria && overlap(r, w.bocaEscadaria, 0.2)) return false; // a passagem do fim da Orla fica livre
   for (const P of w.platforms) if (overlap(r, { x0: P.bx0, y0: P.by0, x1: P.bx1, y1: P.by1 }, 0.4)) return false;
   for (const k of w.solids) if (overlap(r, k, 0.75)) return false;
   for (const pl of w.places) if (pl.x0 !== undefined && overlap(r, pl, 0.3)) return false;

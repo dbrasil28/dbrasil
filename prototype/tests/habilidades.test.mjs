@@ -14,6 +14,7 @@ function arena(id, level = 1, trecho = 'orla') {
   const g = new Game({ ...defaultSettings(), elenco: false, aberta: false, trecho }, { seed: 7 });
   g.enemies.length = 0;
   g.spawnAcc = -1e9;
+  g.updateRoute(); // no Morro, a passagem já recomeça o trecho (só o Capacete): arma a habilidade depois
   const p = g.player;
   p.hp = 1e6;
   p.xpNext = 1e9;

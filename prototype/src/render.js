@@ -1,12 +1,13 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX } from './config.js';
+import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA } from './config.js';
 import { images, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor } from './mapa.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
 import { drawMinimap } from './minimapa.js';
+import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu } from './render_carreira.js';
 import {
-  entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace, drawGate, drawGroundArrows, drawEdgeArrow, drawGoalBeacon,
+  entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace,
   drawAim, drawBullet, drawHeal,
 } from './render_mundo.js';
 
@@ -160,8 +161,9 @@ export class Renderer {
 
     this.drawZones(ctx, game, ppu, playerPx);
     if (game.world) {
-      drawGoalBeacon(ctx, game, cam, ppu, game.t, 'chao'); // anel e luz no destino do trecho
-      drawGroundArrows(ctx, game, cam, ppu, game.t); // seta pintada no chão até a saída liberada
+      // carreira (D39): sem seta nem placa; a obra do Especulador e o holofote da TV sobre o covil aberto
+      drawObraChao(ctx, game.world, cam, ppu);
+      drawHolofoteChao(ctx, game, cam, ppu, game.t);
     }
 
     // lista de desenho com ordenação por profundidade
@@ -198,7 +200,13 @@ export class Renderer {
         if (!ob || ob.y > bounds.maxY + 2 || ob.y < bounds.minY - 2) continue;
         list.push({ d: ob.plat ? cam.depth(ob.x, ob.plat.y1) + 0.002 : cam.depth(ob.x, ob.y), k: 'obj', o: ob, z: ob.plat ? ob.plat.h : 0 });
       }
-      if (!w.gateOpen) list.push({ d: cam.depth(w.gate.x0, w.orlaTop + 0.3), k: 'gate', o: w, x: w.gate.x0, y: w.orlaTop });
+      if (!w.gateOpen || game.t - (w.portaT ?? -9) < CARREIRA.portaCaiS) {
+        list.push({ d: cam.depth(w.gate.x0, w.orlaTop + 0.3), k: 'gate', o: w, x: w.gate.x0, y: w.orlaTop });
+      }
+      if (w.obra && w.obra.y0 < bounds.maxY + 4 && w.obra.y1 > bounds.minY - 4) {
+        list.push({ d: cam.depth(w.obra.x0, w.obra.y0 + 0.2), k: 'obraFundo', o: w });
+        list.push({ d: cam.depth(w.obra.x0, w.obra.y1), k: 'obraFrente', o: w });
+      }
     }
     for (const c of game.traffic || []) list.push({ d: cam.depth(c.x, c.y + c.len / 2), k: 'trafego', o: c, x: c.x, y: c.y + c.len / 2 });
     for (const p of game.projectiles) list.push({ d: cam.depth(p.x, p.y) + 0.3, k: 'proj', o: p });
@@ -265,7 +273,13 @@ export class Renderer {
           break;
         }
         case 'gate':
-          drawGate(ctx, o, cam, ppu, game.player.level);
+          drawPortaEscadaria(ctx, o, cam, ppu, t);
+          break;
+        case 'obraFundo':
+          drawObraFundo(ctx, o, cam, ppu, t);
+          break;
+        case 'obraFrente':
+          drawObraFrente(ctx, o, cam, ppu, t);
           break;
         case 'obj': {
           // objeto solto: sombra e o objeto; pulsa de leve para mostrar que dá para pegar
@@ -483,8 +497,7 @@ export class Renderer {
     this.drawFx(ctx, game, ppu, playerPx);
     if (game.map.bounded) this.drawAtmosfera(ctx, cam);
     if (game.world) {
-      drawGoalBeacon(ctx, game, cam, ppu, game.t, 'placa');
-      drawEdgeArrow(ctx, game, cam, this.dpr, game.t); // seta na borda quando a saída está fora da tela
+      drawHolofoteCeu(ctx, game, cam, ppu, game.t); // facho do helicóptero, ou a claridade na beira da tela
       // mapa da favela no canto (no morro); aberto grande quando tocado
       if (game.segment === 'morro' && !game.over) {
         const open = !!(perf && perf.mapa);
@@ -945,8 +958,9 @@ export class Renderer {
       ctx.fillStyle = q.kind === 'glitch' ? COLORS.neon : q.kind === 'static' ? (q.x * 7 % 1 > 0.5 ? '#ffffff' : COLORS.hypno)
         : q.kind === 'debris' ? (q.x * 13 % 1 > 0.5 ? '#ecebe6' : '#8a6a4a')
         : q.kind === 'gelo' ? (q.x * 11 % 1 > 0.5 ? '#ffffff' : '#9fe6ff')
-        : q.kind === 'fogo' ? FOGO_COLORS[Math.floor(q.vx * 97 + q.vy * 31) & 3] : COLORS.blood;
-      const s = Math.max(2, playerPx * 0.05);
+        : q.kind === 'fogo' ? FOGO_COLORS[Math.floor(q.vx * 97 + q.vy * 31) & 3]
+        : q.kind === 'poeira' ? (q.x * 13 % 1 > 0.5 ? 'rgba(214,204,186,0.7)' : 'rgba(150,138,120,0.6)') : COLORS.blood;
+      const s = Math.max(2, playerPx * (q.kind === 'poeira' ? 0.12 : 0.05));
       ctx.fillRect(pt.x - s / 2, pt.y - q.z * ppu - s / 2, s, s);
     }
     ctx.globalAlpha = 1;

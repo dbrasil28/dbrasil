@@ -5,8 +5,9 @@ import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO,
+  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA,
 } from './config.js';
+import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside, routeRemaining } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones, updateDogs } from './weapons.js';
 import { rollOptions, applyOption, playerStats } from './upgrades.js';
@@ -93,6 +94,10 @@ export class Game {
 
     this.caos = 0;
     this.caosBonus = 0;
+    // carreira (D39): o Caos é de cada trecho (tempo desde a entrada + abates + propostas)
+    this.trechoT0 = 0;
+    this.caosAbates = 0;
+    this.caosParado = false;
     this.corruption = 0;
     this.audience = 0.8;
     this.kills = 0;
@@ -127,14 +132,14 @@ export class Game {
       }
       if (this.settings.aberta) this.world.gateOpen = true; // versão aberta: a escadaria já começa aberta
       if (this.startTrecho === 'morro') {
-        // começa no pé do morro, com a escadaria já aberta e o nível de quando entrou nele (ponto de controle)
+        // começa no pé do morro, com a escadaria já aberta (ponto de controle); o trecho recomeça do nível 1
         const g = this.world.gate;
         this.world.gateOpen = true;
         this.player.x = (g.x0 + g.x1) / 2;
         this.player.y = g.y0 - 1;
-        this.autoLevels((this.meta.entryLevel || 1) - 1);
       }
     }
+    this.covil = covilDe(this, 'orla'); // a obra do Especulador; no Morro, a laje do topo
 
     this.metrics = {
       seed: this.seed,
@@ -370,7 +375,10 @@ export class Game {
 
   spawnEnemy(type, x, y, extra = {}) {
     const def = ENEMIES[type];
-    const hpScale = def.boss ? DIRECTOR.hpScale(this.t) * this.mods.bossHpMul : DIRECTOR.hpScale(this.t) * this.mods.enemyHpMul;
+    // a horda fica mais resistente com o tempo dentro do trecho; cada trecho começa mais duro (D39)
+    const tt = this.world ? tempoNoTrecho(this) : this.t;
+    const base = this.world ? CARREIRA.trechoHpMul[this.segment] || 1 : 1;
+    const hpScale = DIRECTOR.hpScale(tt) * base * (def.boss ? this.mods.bossHpMul : this.mods.enemyHpMul);
     const hp = def.hp * (type === 'isca' ? 1 : hpScale);
     const e = {
       id: this.nextId++, type, x, y, r: def.radius, hp, maxHp: hp, speed: def.speed * (0.9 + this.rng() * 0.2),
@@ -390,12 +398,15 @@ export class Game {
 
   spawnCommon() {
     const comp = this.segment === 'morro' ? DIRECTOR.morroComposition
-      : this.settings.elenco ? DIRECTOR.castTestComposition : DIRECTOR.composition(this.caos);
+      : this.settings.elenco ? DIRECTOR.castTestComposition : DIRECTOR.composition(this.pressao);
     let pick = weightedPick(this.rng, comp).type;
     if (pick === 'burocrata' && this.countType('burocrata') >= DIRECTOR.maxBurocratas) pick = 'telespectador';
     const ang = this.rng() * Math.PI * 2;
     const p = this.fitSpawn(this.edgePoint(ang, 30 + this.rng() * 60));
-    this.spawnEnemy(pick, p.x, p.y);
+    const e = this.spawnEnemy(pick, p.x, p.y);
+    // pista que cresce (D39): o Juninho demora a ir ao covil aberto e parte da horda anda para lá
+    const C = this.covil;
+    if (C && C.demora && !C.saiu && this.rng() < CARREIRA.hordaChamadaFrac) e.chamado = true;
   }
 
   countType(type) {
@@ -422,7 +433,7 @@ export class Game {
   releaseWave() {
     const { dir } = this.pendingWave;
     this.pendingWave = null;
-    const n = Math.round((18 + this.caos * 0.32) * this.settings.spawnMul);
+    const n = Math.round((18 + this.pressao * 0.32) * this.settings.spawnMul);
     const base = this.fitSpawn(this.edgePoint(dir.a, 60 + 3.5 * this.camera.ppu), 4.8);
     for (let i = 0; i < n; i++) {
       if (this.enemies.length >= this.settings.maxEnemies + 60) break;
@@ -459,6 +470,7 @@ export class Game {
     dw[source] = (dw[source] || 0) + Math.min(dmg, Math.max(0, e.hp));
     e.hp -= dmg;
     e.flash = 0.09;
+    if (e.boss && e.hp > 0 && this.world) checkFase(this, e);
     const mass = e.boss ? 0.08 : e.elite ? 0.35 : 1;
     e.kx += kx * mass;
     e.ky += ky * mass;
@@ -497,6 +509,7 @@ export class Game {
       return;
     }
     this.kills++;
+    if (!this.caosParado) this.caosAbates++;
     this.metrics.killsByType[e.type] = (this.metrics.killsByType[e.type] || 0) + 1;
     this.recentKills.push(this.t);
     const def = ENEMIES[e.type];
@@ -562,7 +575,7 @@ export class Game {
   }
 
   bossDefeated(e) {
-    if (e && e.type === 'chefe_trafico') {
+    if (e && e.type === 'chefe_trafico' && !this.world) {
       // chefe do morro: cai, os traficantes debandam e a entrega fica livre (a partida segue até a entrega)
       this.chefe = null;
       this.chefeKilled = true;
@@ -572,6 +585,10 @@ export class Game {
       this.tv('chefeVencido');
       this.shake(0.8);
       this.emit('flash', {});
+      return;
+    }
+    if (this.world) {
+      chefaoCaiu(this, e); // carreira: a porta abre e a partida segue
       return;
     }
     this.boss = null;
@@ -796,7 +813,7 @@ export class Game {
     const dt = rawDt * this.timeScale;
     this.t += dt;
 
-    this.caos = clamp(DIRECTOR.caosFromTime(this.t) + this.caosBonus, 0, 100);
+    this.caos = this.world ? caosDoTrecho(this) : clamp(DIRECTOR.caosFromTime(this.t) + this.caosBonus, 0, 100);
 
     // Montar a grade espacial com as posições do início do quadro.
     this.hash.clear();
@@ -806,6 +823,7 @@ export class Game {
       this.updatePlayer(dt, input);
       this.updateInteract(dt);
       this.updateRoute(dt);
+      updateCovil(this, dt);
       this.updateDirector(dt);
       this.updateWeapons(dt);
     }
@@ -950,8 +968,9 @@ export class Game {
   updateDirector(dt) {
     const s = this.settings;
     const cap = s.maxEnemies;
-    const target = Math.min(cap, DIRECTOR.targetAlive(this.caos) * s.spawnMul);
-    this.spawnAcc += DIRECTOR.spawnPerSec(this.caos) * s.spawnMul * dt;
+    const pz = this.pressao;
+    const target = Math.min(cap, DIRECTOR.targetAlive(pz) * s.spawnMul);
+    this.spawnAcc += DIRECTOR.spawnPerSec(pz) * s.spawnMul * dt;
     let alive = 0;
     for (const e of this.enemies) if (!e.dead && !e.elite) alive++;
     while (this.spawnAcc >= 1) {
@@ -969,14 +988,16 @@ export class Game {
     }
     if (this.pendingWave && this.t >= this.pendingWave.at) this.releaseWave();
 
-    if (this.t >= this.nextEliteAt && this.t < SESSION.bossAt && this.segment === 'orla') { // elites da Orla
-      this.nextEliteAt += this.settings.elenco ? DIRECTOR.castTestEliteEvery : DIRECTOR.eliteEvery(this.caos);
+    const covilAberto = this.world ? this.covil && this.covil.aberto : this.t >= SESSION.bossAt;
+    if (this.t >= this.nextEliteAt && !covilAberto && this.segment === 'orla') { // elites da Orla
+      this.nextEliteAt += this.settings.elenco ? DIRECTOR.castTestEliteEvery : DIRECTOR.eliteEvery(this.pressao);
       this.spawnElite('politico');
     }
     if (this.rivalAt > 0 && this.t >= this.rivalAt && this.segment === 'orla') {
       this.rivalAt = -1;
       this.spawnElite('rival');
     }
+    if (this.world) return; // carreira: o chefão mora no covil e sai quando o Caos chama (carreira.js)
     if (!this.bossWarned && this.t >= SESSION.bossWarnAt) {
       this.bossWarned = true;
       this.tv('bossWarn');
@@ -1014,7 +1035,13 @@ export class Game {
       // alvo: o Juninho; no mundo da rota, pela escada (lajes) e pelas juntas das vielas
       let tx = p.x;
       let ty = p.y;
-      if (this.world) {
+      const C = this.covil;
+      if (e.chamado && C && !C.saiu && (p.x - e.x) ** 2 + (p.y - e.y) ** 2 > CARREIRA.hordaChamadaPertoM ** 2) {
+        // chamado pelo covil: anda para lá, junta por junta
+        routeTarget(this.world, e, C.x, C.y + 1, C.trecho === 'orla' ? 0 : this.world.path.length - 1, rt);
+        tx = rt.x;
+        ty = rt.y;
+      } else if (this.world) {
         if (e.plat !== p.plat) {
           if (e.plat) stairFoot(e.plat, rt); // descer da laje pela escada
           else stairFoot(p.plat, rt); // ir até o pé da escada da laje do Juninho
@@ -1040,7 +1067,8 @@ export class Game {
       const uy = dty / dl;
       if (e.atkT > 0) e.atkT -= dt;
       if (e.frozenT > 0) e.frozenT -= dt;
-      const spd = e.speed * (e.slowT > 0 ? e.slowF : 1) * (this.over ? 0.2 : 1);
+      const corre = e.boss && this.world && d > CARREIRA.chefaoAlcanceM ? CARREIRA.chefaoCorreMul : 1;
+      const spd = e.speed * corre * (e.slowT > 0 ? e.slowF : 1) * (this.over ? 0.2 : 1);
       let mx = ux;
       let my = uy;
 
@@ -1147,8 +1175,9 @@ export class Game {
           my = 0;
           if (e.burstT <= 0) {
             const b = def.bullet;
-            const k = def.rajada.tiros - e.burst;
-            const a = Math.atan2(e.ay - e.y, e.ax - e.x) + (k - (def.rajada.tiros - 1) / 2) * def.rajada.abertura;
+            const tiros = def.rajada.tiros + (e.fase || 0) * def.fases.tirosMais;
+            const k = tiros - e.burst;
+            const a = Math.atan2(e.ay - e.y, e.ax - e.x) + (k - (tiros - 1) / 2) * def.rajada.abertura;
             this.enemyShots.push({ kind: 'bala', x: e.x, y: e.y, vx: Math.cos(a) * b.speed, vy: Math.sin(a) * b.speed, life: b.life, r: b.radius, dmg: b.dmg, spin: 0 });
             e.burst--;
             e.burstT = def.rajada.intervaloS;
@@ -1159,18 +1188,19 @@ export class Game {
           mx *= 0.1;
           my *= 0.1;
           if (e.aimT <= 0) {
-            e.burst = def.rajada.tiros;
+            e.burst = def.rajada.tiros + (e.fase || 0) * def.fases.tirosMais;
             e.burstT = 0;
           }
         } else if (!this.over) {
           e.callCd = (e.callCd ?? R.cadaS * 0.6) - dt;
           e.fireT -= dt;
+          const ritmo = def.fases.cadenciaMul ** (e.fase || 0); // cada fase, mais rápido
           if (e.callCd <= 0) {
-            e.callCd = R.cadaS;
+            e.callCd = R.cadaS * ritmo;
             e.callT = R.gritoS;
             this.tv('chefeRadio', 30);
           } else if (d < def.range && e.fireT <= 0) {
-            e.fireT = def.fireEvery;
+            e.fireT = def.fireEvery * ritmo;
             e.aimT = def.aimS;
             e.ax = p.x;
             e.ay = p.y;
@@ -1300,25 +1330,45 @@ export class Game {
   }
 
   updateBoss(e, dt) {
+    // Especulador: fase 1 loteia o chão; fase 2, dois lotes de cada vez; fase 3, cerca uma fileira de lotes
+    // entre ele e o Juninho. O despejo (a horda cercando) fica mais frequente a cada fase.
     if (this.over) return;
+    const def = ENEMIES.especulador;
+    const f = Math.min(2, e.fase || 0);
+    const p = this.player;
     e.lotT -= dt;
     if (e.lotT <= 0) {
-      e.lotT = 5.5;
-      const p = this.player;
-      const half = 1.7 + this.rng() * 1.0;
+      e.lotT = def.lotes.cadaS[f];
       const lead = 0.9;
-      this.lots.push({
-        x: p.x + p.vx * lead + (this.rng() - 0.5) * 2.5,
-        y: p.y + p.vy * lead + (this.rng() - 0.5) * 2.5,
-        half, state: 'warn', t: 0, warnT: 1.6,
-      });
-      const sold = this.lots.filter((l) => l.state === 'sold');
-      if (sold.length > 6) this.lots.splice(this.lots.indexOf(sold[0]), 1);
+      for (let k = 0; k < def.lotes.porVez[f]; k++) {
+        this.lots.push({
+          x: p.x + p.vx * lead + (this.rng() - 0.5) * (k ? 6 : 2.5),
+          y: p.y + p.vy * lead + (this.rng() - 0.5) * (k ? 6 : 2.5),
+          half: 1.7 + this.rng() * 1.0, state: 'warn', t: 0, warnT: 1.6,
+        });
+      }
+      const nf = def.lotes.fileira[f];
+      if (nf) {
+        // condomínio fechado: uma fileira de lotes cortando o caminho entre o Especulador e o Juninho
+        const dx = p.x - e.x;
+        const dy = p.y - e.y;
+        const l = Math.hypot(dx, dy) || 1;
+        const mx = (e.x + p.x) / 2;
+        const my = (e.y + p.y) / 2;
+        for (let k = 0; k < nf; k++) {
+          const o = (k - (nf - 1) / 2) * 3.2;
+          this.lots.push({ x: mx - (dy / l) * o, y: my + (dx / l) * o, half: 1.5, state: 'warn', t: 0, warnT: 1.9 });
+        }
+      }
+      let sold = this.lots.filter((l) => l.state === 'sold');
+      while (sold.length > 8) {
+        this.lots.splice(this.lots.indexOf(sold[0]), 1);
+        sold = sold.slice(1);
+      }
     }
     e.despejoT -= dt;
     if (e.despejoT <= 0) {
-      e.despejoT = 12;
-      const p = this.player;
+      e.despejoT = def.despejoS[f];
       const n = 10;
       const off = this.rng() * Math.PI * 2;
       for (let i = 0; i < n; i++) {
@@ -1587,68 +1637,28 @@ export class Game {
     }
   }
 
-  /** Rota: abre a escadaria no nível da meta, detecta a chegada ao morro e a entrega no topo. */
+  /** Rota: a escadaria abre quando o Especulador cai (carreira.js); a passagem recomeça o trecho no Morro. */
   updateRoute() {
     const w = this.world;
     if (!w) return;
     const p = this.player;
-    if (!w.gateOpen && p.level >= ROUTE.orla.unlockLevel) {
-      w.gateOpen = true;
-      this.metrics.portaoAberto = Math.round(this.t);
-      this.emit('unlock', { name: 'SUBIDA DO MORRO' });
-      this.tv('unlock');
-      this.shake(0.3);
-    }
     if (this.segment === 'orla' && p.y < w.orlaTop - 1) {
       this.segment = 'morro';
       this.metrics.morroAt = Math.round(this.t);
-      this.metrics.nivelNoMorro = p.level;
+      this.metrics.nivelNoMorro = 1;
       this.emit('segment', { name: 'SUBIDA DO MORRO' });
       this.tv('morro');
+      recomecar(this, 'morro'); // "atualização obrigatória do aplicativo"
     }
     if (this.segment !== 'morro') return;
-    w.exitOpen = !!this.settings.aberta || p.level >= ROUTE.morro.unlockLevel;
+    w.exitOpen = !!this.settings.aberta || this.chefeKilled;
     const top = w.top;
-    if (!this.chefe && !this.chefeKilled && inside(top, p.x, p.y)) {
-      // chega na laje do topo: o Chefe do Tráfico aparece no fundo da laje
-      const c = this.spawnEnemy('chefe_trafico', (top.x0 + top.x1) / 2, top.y0 + (top.y1 - top.y0) * 0.4);
-      c.ri = w.path.length - 1;
-      c.fireT = 1.5;
-      this.chefe = c;
-      this.boss = c;
-      this.bossName = ENEMIES.chefe_trafico.name;
-      this.tv('chefe');
-      this.emit('boss', {});
-      this.shake(0.5);
-    }
-    if (inside(top, p.x, p.y) && p.y < (top.y0 + top.y1) / 2 && !this.chefe) {
-      if (w.exitOpen) this.deliver();
-      else if (this.exitWarnT <= this.t) {
-        this.exitWarnT = this.t + 6;
-        this.emit('exitLocked', { level: ROUTE.morro.unlockLevel });
-      }
-    }
+    if (w.exitOpen && inside(top, p.x, p.y) && p.y < (top.y0 + top.y1) / 2 && !this.chefe) this.deliver();
   }
 
-  /** Objetivo do trecho para o HUD: o que fazer agora, quantos metros faltam e o progresso (0 a 1). */
+  /** Objetivo para o HUD: na carreira não há placa nem seta (D39); o chefão já tem a barra de vida no alto. */
   objective() {
-    const w = this.world;
-    if (!w || this.delivered || this.over) return null;
-    const p = this.player;
-    if (this.segment === 'orla') {
-      if (!w.gateOpen) return { text: `NÍVEL ${ROUTE.orla.unlockLevel} ABRE A SUBIDA DO MORRO`, frac: p.level / ROUTE.orla.unlockLevel };
-      const j = w.joints[0];
-      const d = Math.round(Math.hypot(j.x - p.x, j.y - p.y));
-      return { text: `SIGA A SETA ATÉ O MORRO · ${d} M`, frac: clamp((w.orla.y1 - p.y) / (w.orla.y1 - w.orlaTop), 0, 1) };
-    }
-    if (!w.routeTotal) w.routeTotal = routeRemaining(w, (w.gate.x0 + w.gate.x1) / 2, w.gate.y1 - 1, 1);
-    const d = routeRemaining(w, p.x, p.y, p.ri);
-    const m = Math.round(d);
-    if (this.chefe) return { text: 'DERRUBE O CHEFE DO TRÁFICO', frac: 1 - this.chefe.hp / this.chefe.maxHp };
-    const text = w.exitOpen
-      ? `SUBA E ENTREGUE NO ALTO · ${m} M`
-      : `SUBA ATÉ O ALTO · ${m} M · NÍVEL ${ROUTE.morro.unlockLevel}`;
-    return { text, frac: clamp(1 - d / w.routeTotal, 0, 1) };
+    return null;
   }
 
   deliver() {
@@ -1861,6 +1871,11 @@ export class Game {
     this.stats = playerStats(this.player, this.mods);
     this.player.hp = this.stats.maxHp;
     this.metrics.fastForwardFrom = target;
+  }
+
+  /** O quanto a horda aperta (na carreira, carreira.js: pressaoDoTrecho). */
+  get pressao() {
+    return this.world ? pressaoDoTrecho(this) : this.caos;
   }
 
   // ---------- leitura para HUD / métricas ----------

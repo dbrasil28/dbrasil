@@ -2,9 +2,12 @@
 // e circula; escolhe melhorias com uma política fixa.
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
+import { routeTarget, deliveryPoint } from '../src/mundo.js';
+
+const rtBot = { x: 0, y: 0 };
 
 // Opções do bot (o relatório de balanceamento desliga o desvio para comparar).
-export const BOT = { dodge: true, revive: false };
+export const BOT = { dodge: true, revive: false, goalPull: 2.4 };
 
 export function botInput(game) {
   const p = game.player;
@@ -78,10 +81,20 @@ export function botInput(game) {
       best = g;
     }
   }
-  if (best) {
+  if (best && !botGoal(game)) {
     const d = Math.sqrt(bd) || 1;
     wx += ((best.x - p.x) / d) * 0.8;
     wy += ((best.y - p.y) / d) * 0.8;
+  }
+  // carreira (D39): o bot não é uma pessoa e sabe onde ficam o covil e a passagem; vai até eles
+  const goal = botGoal(game);
+  if (goal) {
+    routeTarget(game.world, p, goal.x, goal.y, goal.ri, rtBot);
+    const gd = Math.hypot(rtBot.x - p.x, rtBot.y - p.y);
+    if (gd > 1.5) {
+      wx += ((rtBot.x - p.x) / gd) * BOT.goalPull;
+      wy += ((rtBot.y - p.y) / gd) * BOT.goalPull;
+    }
   }
   if (n > 0) {
     const l = Math.hypot(cx, cy) / n || 1;
@@ -93,6 +106,26 @@ export function botInput(game) {
   const l = Math.hypot(wx, wy) || 1;
   const d = game.camera.worldDirToScreen(wx / l, wy / l, {});
   return { x: d.x, y: d.y };
+}
+
+/** Para onde o bot vai: o covil aberto, a passagem depois do chefão, e a subida do morro. */
+export function botGoal(game) {
+  const w = game.world;
+  const C = game.covil;
+  if (!w || !C) return null;
+  const b = game.boss;
+  if (b) {
+    // luta: fica a uma distância em que as armas alcançam, sem encostar
+    const d = Math.hypot(b.x - game.player.x, b.y - game.player.y);
+    return d > 9 ? { x: b.x, y: b.y, ri: b.ri ?? 0 } : null;
+  }
+  if (game.segment === 'orla') {
+    if (w.gateOpen) return { x: (w.gate.x0 + w.gate.x1) / 2, y: w.orlaTop - 3, ri: 1 };
+    if (C.aberto) return { x: C.x, y: w.obra.y1 + 2, ri: 0 };
+    return null;
+  }
+  const d = deliveryPoint(w, {});
+  return { x: d.x, y: d.y, ri: w.path.length - 1 };
 }
 
 export function resolveModal(game, eventPolicy = (i) => i % 2 === 0) {

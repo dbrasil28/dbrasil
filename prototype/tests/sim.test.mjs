@@ -22,7 +22,7 @@ test('partida completa roda sem erro e respeita o limite de inimigos', () => {
 
 test('as 3 propostas acontecem e o chefe aparece quando o jogador sobrevive', () => {
   // jogador "invencível" para testar o roteiro da sessão inteira
-  const game = simulate({ seed: 3, seconds: SESSION.bossAt + 5, settings: {}, eventPolicy: () => true });
+  const game = simulate({ seed: 3, seconds: 900, settings: {}, eventPolicy: () => true });
   if (game.over === 'defeat') {
     assert.ok(game.metrics.causeOfDeath, 'derrota sem causa registrada');
     return;
@@ -32,28 +32,35 @@ test('as 3 propostas acontecem e o chefe aparece quando o jogador sobrevive', ()
   assert.ok(game.bossSpawned, 'chefe não apareceu');
 });
 
-test('o roteiro completo funciona com vida infinita', async () => {
+test('o roteiro da carreira funciona com vida infinita: covil, chefão, passagem, Morro e entrega', async () => {
   const { Game } = await import('../src/game.js');
   const { defaultSettings } = await import('../src/settings.js');
   const { botInput, resolveModal } = await import('./bot.mjs');
-  const game = new Game({ ...defaultSettings() }, { seed: 5 });
+  const game = new Game({ ...defaultSettings(), elenco: false, aberta: false }, { seed: 5 });
   let lotsSeen = 0;
-  while (!game.finished && game.t < 900) {
+  let fases = 0;
+  let armasNaOrla = 0;
+  while (!game.finished && game.t < 2400) {
     if (game.modal) {
       resolveModal(game);
       continue;
     }
     game.player.hp = 9999;
+    if (game.segment === 'orla') armasNaOrla = game.player.weapons.length;
     game.update(1 / 30, botInput(game));
     game.outbox.length = 0;
     lotsSeen = Math.max(lotsSeen, game.lots.length);
+    if (game.boss) fases = Math.max(fases, game.boss.fase || 0);
   }
   assert.equal(game.metrics.decisions.length, 3, 'nem todas as propostas apareceram');
-  assert.ok(game.bossSpawned, 'chefe não apareceu');
-  assert.ok(lotsSeen > 0, 'chefe nunca comprou lote');
-  assert.equal(game.over, 'victory', `esperava vitória, veio ${game.over} em ${game.t.toFixed(0)} s`);
-  assert.ok(game.player.weapons.length >= 3, 'build não cresceu');
-  console.log('[roteiro]', JSON.stringify({ t: Math.round(game.t), nivel: game.player.level, armas: game.player.weapons.map((w) => `${w.id}:${w.level}`) }));
+  assert.ok(game.metrics.chefaoOrlaS, 'o Especulador não caiu');
+  assert.ok(lotsSeen > 0, 'o chefe nunca comprou lote');
+  assert.equal(fases, 2, 'o chefão não passou pelas três fases');
+  assert.ok(armasNaOrla >= 3, 'a build da Orla não cresceu');
+  assert.ok(game.metrics.morroAt > game.metrics.chefaoOrlaS, 'não atravessou para o Morro');
+  assert.ok(game.metrics.chefaoMorroS, 'o Chefe do Tráfico não caiu');
+  assert.equal(game.over, 'victory', `esperava a entrega, veio ${game.over} em ${game.t.toFixed(0)} s`);
+  console.log('[roteiro]', JSON.stringify({ t: Math.round(game.t), especulador: game.metrics.chefaoOrlaS, morro: game.metrics.morroAt, chefe: game.metrics.chefaoMorroS }));
 });
 
 test('atalho de teste (começar em 07:45) monta uma build e pula propostas antigas', async () => {

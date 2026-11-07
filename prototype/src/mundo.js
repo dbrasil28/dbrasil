@@ -2,7 +2,7 @@
 // Subida do Morro), as áreas onde dá para andar, as lajes com escada, os lugares (boteco, quiosque,
 // prédio, posto de salva-vidas) e as vagas dos objetos que o Juninho pega e arremessa.
 // Plano: docs/design/CARREIRA_E_ROTA.md e docs/design/MAPAS_CARACTERIZACAO.md.
-import { ROUTE, PLACES, CADEIRA_DIST } from './config.js';
+import { ROUTE, PLACES, CADEIRA_DIST, CARREIRA } from './config.js';
 import { clamp } from './math.js';
 import { placeCenario, SOLID_CELL } from './cenario.js';
 
@@ -54,6 +54,7 @@ export function buildWorld(map) {
     w.corridors.push(rect(Math.max(a.x0, b.x0), a.y0 - JOINT_M, Math.min(a.x1, b.x1), b.y1 + JOINT_M, { gate: i <= 1 }));
   }
   placeOrla(w, map);
+  placeObra(w, map); // covil do Especulador: fechado por tapume até o Caos chamar o chefão (D39)
   placeMorro(w);
   placeCenario(w, map); // carros, barracas, bancos, postes, placas e lixo
   return w;
@@ -107,6 +108,48 @@ function placeOrla(w, map) {
       const st = rect(x + 1.0, yp + 3, x + 2.2, yp + 4.8, { dir: 'n' });
       const P = addPlatform(w, x, yp + 1.2, x + 3.2, yp + 3, PLACES.salvaVidasH, st, 'salva_vidas');
       w.places.push({ kind: 'salva_vidas', plat: P });
+    }
+  }
+}
+
+/**
+ * Obra do Especulador no último quarteirão, encostada nos prédios, do outro lado da rua da escadaria.
+ * Fechada (sólida) até o covil abrir; o cenário não ocupa o terreno (entra em `places`).
+ */
+function placeObra(w, map) {
+  const O = CARREIRA.obra;
+  const y0 = -ROUTE.orla.blocks * map.blockLen + O.dy0; // começo do calçadão do último quarteirão
+  const obra = rect(O.x0, y0, O.x1, y0 + O.fundoM, { kind: 'obra' });
+  w.places.push(obra);
+  w.obra = obra;
+  w.obraSolid = rect(obra.x0, obra.y0, obra.x1, obra.y1, { kind: 'obra', h: 2.2 });
+  w.solids.push(w.obraSolid);
+  // aberta a obra, sobra o tapume do fundo, que cai com o chefão e revela a escadaria do outro lado da rua
+  w.obraFundoSolid = rect(obra.x0, obra.y0, obra.x1, obra.y0 + 0.35, { kind: 'obra', h: 2.2 });
+  // boca da escadaria: nenhum carro ou barraca parado na frente dela
+  const g = w.gate;
+  w.bocaEscadaria = rect(g.x0 - 1.4, w.orlaTop, g.x1 + 1.4, obra.y0);
+}
+
+/** Põe um sólido no mundo depois de montado (na grade também). */
+export function addSolid(w, k) {
+  w.solids.push(k);
+  if (!w.solidGrid) return;
+  for (let c = Math.floor((k.y0 - 1.6) / SOLID_CELL); c <= Math.floor((k.y1 + 1.6) / SOLID_CELL); c++) {
+    let arr = w.solidGrid.get(c);
+    if (!arr) w.solidGrid.set(c, (arr = []));
+    arr.push(k);
+  }
+}
+
+/** Tira um sólido do mundo (o tapume da obra que cai). */
+export function removeSolid(w, k) {
+  const i = w.solids.indexOf(k);
+  if (i >= 0) w.solids.splice(i, 1);
+  if (w.solidGrid) {
+    for (const arr of w.solidGrid.values()) {
+      const j = arr.indexOf(k);
+      if (j >= 0) arr.splice(j, 1);
     }
   }
 }

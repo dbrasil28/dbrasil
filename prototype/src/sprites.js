@@ -127,6 +127,7 @@ export const IMAGES = {
   cen_barricada_a: 'assets/cenario/orla/barricada_a.webp',
   cen_tambor_a: 'assets/cenario/orla/tambor_a.webp',
   cen_entulho_a: 'assets/cenario/orla/entulho_a.webp',
+  cen_tapume_a: 'assets/cenario/orla/tapume_a.webp', // obra do Especulador e o tapume da escadaria
   cen_pneus_a: 'assets/cenario/orla/pneus_a.webp',
   cen_barraca_acai_a: 'assets/cenario/orla/barraca_acai_a.webp',
   cen_barraca_pastelaria_a: 'assets/cenario/orla/barraca_pastelaria_a.webp',
