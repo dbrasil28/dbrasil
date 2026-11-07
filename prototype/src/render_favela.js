@@ -33,9 +33,34 @@ export function drawPecaFavela(ctx, peca, ax, ay, cam, ppu, d = null, arte = pec
     ctx.closePath();
     ctx.clip();
   }
-  ctx.drawImage(im, pt.x - A.origem[0] * s, pt.y - A.origem[1] * s, im.width * s, im.height * s);
+  ctx.drawImage(reduzida(ctx, im, s), pt.x - A.origem[0] * s, pt.y - A.origem[1] * s, im.width * s, im.height * s);
   if (corte) ctx.restore();
   return true;
+}
+
+// a arte das casas (1300 a 2500 px) reduzida uma vez ao tamanho da tela: com a favela cheia são dezenas de
+// casas na tela, e desenhar a imagem grande encolhida a cada quadro pesa no celular
+const reduzidas = new Map();
+let reduzChave = '';
+function reduzida(ctx, im, s) {
+  if (typeof document === 'undefined') return im;
+  const t = ctx.getTransform();
+  const esc = Math.hypot(t.a, t.b) || 1;
+  const chave = `${(s * esc).toFixed(4)}`;
+  if (chave !== reduzChave) {
+    reduzidas.clear();
+    reduzChave = chave;
+  }
+  let c = reduzidas.get(im);
+  if (c) return c;
+  c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(im.width * s * esc));
+  c.height = Math.max(1, Math.round(im.height * s * esc));
+  const g = c.getContext('2d');
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(im, 0, 0, c.width, c.height);
+  reduzidas.set(im, c);
+  return c;
 }
 
 /** Casa da lista w.casas (favela.js). */

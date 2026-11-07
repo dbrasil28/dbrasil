@@ -204,6 +204,12 @@ export const FAVELA = {
   barracoDesde: 8, // índice do pedaço da rota a partir do qual entram barracos (vielas mais altas)
   barracoChance: 0.5,
   vaoMinM: 0.8, // vão menor que isso no alto do pedaço fica sem casa
+  // fileiras de trás, para os lados ficarem cheios até a borda da tela: quantas e de quanto em quanto (m).
+  // À esquerda, casas de qualquer altura (ficam atrás de tudo); à direita, só baixas (não escondem a viela).
+  fileirasTras: 3,
+  passoFileiraM: 4,
+  trasEsq: { parede_viela_esq: 3, fachada_a: 1, fachada_b: 1.6, fachada_c: 1.1, barraco_a: 0.6, barraco_b: 0.6 },
+  trasDir: { telhado_viela_dir: 3, fachada_a: 1.4, barraco_a: 0.8, barraco_b: 0.8 },
 };
 
 export const PREDIOS = {

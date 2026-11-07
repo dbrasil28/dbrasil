@@ -91,7 +91,42 @@ export function montarFavela(w) {
       }
     }
   }
+  fileirasDeTras(path, casas, add);
   casas.sort((a, b) => a.y1 - b.y1 || a.x0 - b.x0);
   w.casas = casas;
   return casas;
+}
+
+/**
+ * Fileiras de trás dos dois lados de cada pedaço (FAVELA.fileirasTras), para a favela encher a tela: a
+ * mesma subida do pé para o alto, de FAVELA.passoFileiraM em FAVELA.passoFileiraM metros para fora. Casa que
+ * entraria no chão de algum pedaço ou em outra casa fica de fora (vira um beco entre as casas).
+ */
+function fileirasDeTras(path, casas, add) {
+  const P = FAVELA.pecas;
+  const ocupa = (x0, y0, x1, y1) =>
+    path.some((r, i) => i > 0 && x0 < r.x1 - 0.05 && x1 > r.x0 + 0.05 && y0 < r.y1 - 0.05 && y1 > r.y0 + 0.05) ||
+    casas.some((c) => x0 < c.x1 - 0.05 && x1 > c.x0 + 0.05 && y0 < c.y1 - 0.05 && y1 > c.y0 + 0.05);
+  for (let i = 1; i < path.length; i++) {
+    const k = path[i];
+    const prev = path[i - 1];
+    for (const lado of ['esq', 'dir']) {
+      const pesos = lado === 'esq' ? FAVELA.trasEsq : FAVELA.trasDir;
+      for (let f = 1; f <= FAVELA.fileirasTras; f++) {
+        // a borda de dentro da fileira f: f passos para fora da beira do pedaço
+        const borda = lado === 'esq' ? k.x0 - f * FAVELA.passoFileiraM : k.x1 + f * FAVELA.passoFileiraM;
+        let y = Math.min(k.y1, prev.y0);
+        let antes = null;
+        for (let j = 0; y - k.y0 >= FAVELA.vaoMinM; j++) {
+          const peca = sortear(pesos, i * 7 + f, j, lado, antes);
+          const A = P[peca];
+          const x0 = lado === 'esq' ? borda - A.w : borda;
+          const d = Math.min(A.d, y - k.y0);
+          if (!ocupa(x0, y - d, x0 + A.w, y)) add(peca, x0, y, lado === 'esq' ? 'fundo' : 'frente', d);
+          y -= d;
+          antes = peca;
+        }
+      }
+    }
+  }
 }
