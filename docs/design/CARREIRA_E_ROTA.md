@@ -222,20 +222,33 @@ No meio da luta, ele faz uma proposta de Corrupção: "trabalhar pra firma". Ace
 
 **Entrega:** com o chefe derrubado, a TV Caos noticia: "ENTREGA FEITA NO ALTO DO MORRO: UMA PIZZA DE CALABRESA. GORJETA: NENHUMA". O caminho desce pelo outro lado do morro até a estrada.
 
-## 13. O que muda no protótipo
+## 13. Como está no protótipo (07/11/2026)
 
-O protótipo foi feito com a regra antiga (D22: a saída abre por nível, com seta). Para a regra nova:
+Feito, com testes (`prototype/tests/mundo.test.mjs`, `achados.test.mjs`, `crises.test.mjs`, `horda.test.mjs`, `sim.test.mjs`):
 
-| Hoje | Passa a ser |
+| Parte | Onde |
 | --- | --- |
-| A escadaria do morro abre no nível 15 | Abre quando o Especulador cai |
-| O Especulador chega aos 8:00, vindo da borda da tela | Mora na obra do fim da praia e sai quando o Caos chega a 100% e o Juninho chega perto |
-| Seta amarela na borda, setas pintadas no chão, "SIGA A SETA ATÉ O MORRO · 392 M", "SUBA E ENTREGUE NO ALTO" | Saem. Entram as pistas da seção 3 |
-| Minimapa do Morro com a subida inteira | Mostra só o que o Juninho já andou |
-| Nível e cartas da Orla seguem para o Morro | Recomeço no nível 1 a cada trecho |
-| Melhorias permanentes de até +50 de vida, +25% de dano | Os máximos da seção 5, mais as melhorias de opção |
-| O Caos só muda o nome da faixa | Crises em 30% e 60%, sinal em 85%, chamado do chefão em 100% |
-| Mapa da Rota mostra os 10 trechos com nome e meta | Mostra só o descoberto; o resto é "???" |
+| Caos por trecho (tempo, abates com teto de 30 pontos, propostas); a horda segue só o tempo e as propostas, na escala de antes | `carreira.js`, `CARREIRA` |
+| Obra do Especulador com tapume (arte de tapume inteira), barulho e tremor no sinal, holofote do helicóptero no chamado (fora da tela, o facho entra pela beira), horda chamada se o Juninho demora | `carreira.js`, `render_carreira.js` |
+| Especulador gigante em três fases, com assessoria; longe, corre atrás; derrubado, cai o sinal, zera o Caos, cai o tapume do fundo da obra e o da escadaria; solta um cofre | `carreira.js`, `ENEMIES.especulador` |
+| Recomeço a cada trecho ("atualização obrigatória do aplicativo") | `carreira.js` |
+| Chefe do Tráfico na laje do topo, chamado pelo Caos do Morro; entrega só com ele no chão | `carreira.js` |
+| Sem setas, sem marcador de destino, sem objetivo escrito; mapa da favela só com o que foi andado | `render.js`, `minimapa.js` |
+| Achados (isopor, cofre com a abertura, relíquia Bola da Altinha, faro do Caramelo) | `achados.js`, `render_carreira.js`, `ui.js` |
+| Crises: Ressaca e Apagão na Orla, Baile e Curto no Morro | `crises.js`, `render_crises.js`, `CRISES` |
+| Abertura: gente passeando, o sinal pega, a horda nasce; dá para pular da 2ª vez | `abertura.js`, `ABERTURA` |
+| Melhorias pequenas e de opção; Mapa da Rota com ??? e as estrelas novas | `MELHORIAS`, `TRECHOS`, `progresso.js` |
+| Modo Horda, Desafio da Semana e ranking local | `horda.js`, `ranking.js` (ver `MODOS_E_RANKING.md`) |
+
+Medido com o bot (30 partidas, sementes 1000 e 3000, sem melhorias): o covil abre por volta dos 7 minutos; 14 de 60 partidas chegam lá, perto do que era antes; das que chegam, o Especulador cai em 6 (43%), em lutas de 30 a 80 s. No Morro, recomeçando do nível 1, o bot ainda não derrubou o Chefe do Tráfico. Confirmar em playtest com pessoas.
+
+**Arte que falta** (o jogo usa provisório até chegar):
+- o cofre (hoje é a mala do Político com brilho dourado);
+- o helicóptero da TV (hoje só o facho de luz);
+- o Rabecão (hoje o camburão escurecido);
+- a Bola da Altinha (hoje desenhada em código);
+- gente normal passeando na abertura (hoje a arte da horda, sem o brilho da TV);
+- o interior da obra do Especulador (hoje terra, entulho e tapume).
 
 ## 14. Ordem de construção
 
