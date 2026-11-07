@@ -37,6 +37,7 @@ export class UI {
   bind() {
     $('btn-pause').addEventListener('click', () => this.fire('pause'));
     $('btn-start').addEventListener('click', () => this.fire('start'));
+    $('btn-favela').addEventListener('click', () => this.fire('favela')); // teste: direto no pé do Morro
     $('btn-title-settings').addEventListener('click', () => this.fire('settings', 'title'));
     $('btn-resume').addEventListener('click', () => this.fire('resume'));
     $('btn-restart').addEventListener('click', () => this.fire('start'));

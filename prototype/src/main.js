@@ -274,9 +274,21 @@ function applySetting(id, value) {
 }
 
 // ---------- eventos da interface ----------
+let trechoTeste = null; // "Testar a Favela": recomeçar continua no Morro até voltar para o início
 ui.on('start', () => {
-  if (state === 'title') runModo = 'carreira'; // "Começar turno" é a Carreira; "Recomeçar" repete o modo
-  if (state !== 'paused' && runModo === 'carreira') runTrecho = settings.trecho === 'morro' ? 'morro' : 'orla';
+  if (state === 'title') {
+    runModo = 'carreira'; // "Começar turno" é a Carreira; "Recomeçar" repete o modo
+    trechoTeste = null;
+  }
+  if (state !== 'paused' && runModo === 'carreira') runTrecho = trechoTeste || (settings.trecho === 'morro' ? 'morro' : 'orla');
+  start();
+  updateBanner();
+});
+// atalho de teste da tela de início: a Carreira começa no pé do Morro, com a escadaria já aberta
+ui.on('favela', () => {
+  runModo = 'carreira';
+  trechoTeste = 'morro';
+  runTrecho = 'morro';
   start();
   updateBanner();
 });
