@@ -35,7 +35,7 @@ test('carro: explosão perto faz o carro explodir depois de um instante, machuca
   explosaoPerto(g, c.x1 + 1.5, cy, 1.2);
   assert.ok(c.explodeEm > g.t, 'o carro não ficou para explodir');
   assert.equal(e.hp, 1000, 'explodiu na hora');
-  for (let i = 0; i < 30; i++) g.update(DT, parado);
+  for (let i = 0; i < 30 * (REACOES.carro.fogoCadeiaS[1] + 0.2); i++) g.update(DT, parado);
   assert.ok(c.queimado, 'o carro não explodiu');
   assert.ok(e.hp <= 1000 - REACOES.carro.dano + 1, 'a explosão do carro não machucou a horda');
   assert.ok(g.fx.anims.some((a) => a.nome === 'explosao_fumaca'), 'sem fumaça');
@@ -61,8 +61,53 @@ test('carro: reação em cadeia de um carro para o vizinho', () => {
   g.player.x = (par[0].x0 + par[0].x1) / 2 + 7;
   g.player.y = (par[0].y0 + par[0].y1) / 2 + 7;
   explosaoPerto(g, (par[0].x0 + par[0].x1) / 2, (par[0].y0 + par[0].y1) / 2, 0.5);
-  for (let i = 0; i < 60; i++) g.update(DT, parado);
+  for (let i = 0; i < 30 * (2 * REACOES.carro.fogoCadeiaS[1] + 0.3); i++) g.update(DT, parado);
   assert.ok(par[0].queimado && par[1].queimado, 'a explosão não passou para o vizinho');
+});
+
+test('carro na porrada: perde vida, solta fumaça, pega fogo com o aviso no chão e só explode depois', async () => {
+  const { golpeNoCarro, vidaDoCarro } = await import('../src/reacoes.js');
+  const g = jogo();
+  const c = g.world.props.find((q) => q.kind === 'carro');
+  const cx = (c.x0 + c.x1) / 2;
+  const cy = (c.y0 + c.y1) / 2;
+  g.player.x = cx + 8;
+  g.player.y = cy + 8;
+  const C = REACOES.carro;
+  const vida = vidaDoCarro(c);
+  // um golpe só por vez do mesmo capacete
+  const ja = new Set();
+  assert.equal(golpeNoCarro(g, cx, cy, 0.3, 10, ja), 1, 'o golpe não pegou o carro');
+  assert.equal(golpeNoCarro(g, cx, cy, 0.3, 10, ja), 0, 'o mesmo golpe acertou duas vezes');
+  assert.equal(c.vida, vida - 10);
+  // abaixo da metade: fumaça do capô
+  golpeNoCarro(g, cx, cy, 0.3, vida * (1 - C.fumacaVida));
+  g.fx.anims.length = 0;
+  for (let i = 0; i < 30 * 2; i++) g.update(DT, parado);
+  assert.ok(g.fx.anims.some((a) => a.nome === 'explosao_fumaca'), 'amassado sem fumaça');
+  assert.equal(c.explodeEm, undefined, 'pegou fogo antes de acabar a vida');
+  // acabou a vida: pega fogo, o círculo da explosão aparece no chão e enche
+  golpeNoCarro(g, cx, cy, 0.3, vida);
+  assert.ok(Math.abs(c.explodeEm - (g.t + C.fogoS)) < 1e-6, 'não pegou fogo com o tempo para fugir');
+  g.update(DT, parado);
+  const aviso = (g.avisosChao || []).find((a) => a.tipo === 'circulo' && Math.hypot(a.x - cx, a.y - cy) < 0.01);
+  assert.ok(aviso && aviso.r >= C.raioM - 1e-6, 'sem o círculo da explosão no chão');
+  for (let i = 0; i < 30 * (C.fogoS - 0.3); i++) g.update(DT, parado);
+  assert.ok(!c.queimado, 'explodiu antes do tempo de fugir');
+  for (let i = 0; i < 30 * 0.6; i++) g.update(DT, parado);
+  assert.ok(c.queimado, 'não explodiu depois do fogo');
+});
+
+test('objeto que não explode dá porrada no carro; o botijão põe fogo na hora', () => {
+  const g = jogo();
+  const carros = g.world.props.filter((q) => q.kind === 'carro');
+  const [a, b] = [carros[0], carros[carros.length - 1]];
+  g.player.x = (a.x0 + a.x1) / 2 + 8;
+  g.player.y = (a.y0 + a.y1) / 2 + 8;
+  g.objectLands({ obj: 'cadeira', x: (a.x0 + a.x1) / 2, y: (a.y0 + a.y1) / 2, radius: 1.3, dmg: 28 });
+  assert.ok(a.vida < REACOES.carro.vida && a.explodeEm == null, 'a cadeira não amassou ou pôs fogo');
+  g.objectLands({ obj: 'botijao', x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2, radius: 2.8, dmg: 90 });
+  assert.ok(b.explodeEm != null, 'o botijão não pôs fogo no carro');
 });
 
 test('poste: o raio perto de um poste faz ele descarregar na horda, e depois ele recarrega', () => {

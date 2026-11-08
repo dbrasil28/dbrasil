@@ -1,5 +1,5 @@
 // Comportamento das armas automáticas e dos projéteis. Tudo em metros/segundos.
-import { explosaoPerto, raioPerto } from './reacoes.js';
+import { explosaoPerto, raioPerto, golpeNoCarro } from './reacoes.js';
 import { weaponStats } from './upgrades.js';
 import { INTERACT, WEAPON_FX, RELIQUIAS, ACHADOS } from './config.js';
 import { achadoParaFarejar } from './achados.js';
@@ -304,6 +304,7 @@ export function updateProjectiles(game, dt) {
         if (pr.t >= pr.outT) {
           pr.ret = true;
           pr.hit.clear();
+          if (pr.carros) pr.carros.clear(); // na volta, acerta de novo
         }
       }
       if (pr.ret) {
@@ -322,6 +323,7 @@ export function updateProjectiles(game, dt) {
       }
       pr.x += pr.vx * dt;
       pr.y += pr.vy * dt;
+      golpeNoCarro(game, pr.x, pr.y, pr.r, pr.dmg, (pr.carros ||= new Set())); // porrada no carro do caminho
       game.hash.query(pr.x, pr.y, pr.r + 0.6, tmp);
       for (const e of tmp) {
         if (e.dead || pr.hit.has(e.id)) continue;
@@ -361,6 +363,7 @@ export function updateProjectiles(game, dt) {
       pr.life -= dt;
       pr.x += pr.vx * dt;
       pr.y += pr.vy * dt;
+      golpeNoCarro(game, pr.x, pr.y, pr.r, pr.dmg, (pr.carros ||= new Set()));
       game.hash.query(pr.x, pr.y, pr.r + 0.6, tmp);
       for (const e of tmp) {
         if (e.dead || pr.hit.has(e.id)) continue;
@@ -621,6 +624,7 @@ export function updateZones(game, dt) {
         game.efeito('carimbo_baque', z.x, z.y, { tam: h * 2 * 1.6 }); // poeira e papelada
         game.som('carimbo', z.x, z.y);
         game.efeito('carimbo_marca', z.x, z.y, { tam: h * 2 * 1.35, rot: -0.18, dur: z.slowT + 0.6 }); // a tinta apaga com a lentidão
+        golpeNoCarro(game, z.x, z.y, h, z.dmg);
         game.hash.query(z.x, z.y, h * 1.5 + 0.6, tmp);
         for (const e of tmp) {
           if (e.dead) continue;

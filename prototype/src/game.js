@@ -10,7 +10,7 @@ import {
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
 import { FX, IMPACTO } from './efeitos_arte.js';
-import { explosaoPerto, updateReacoes } from './reacoes.js';
+import { explosaoPerto, updateReacoes, golpeNoCarro } from './reacoes.js';
 import { updateCrises, criseLentidao } from './crises.js';
 import { emHorda, iniciarHorda, updateHorda, durezaHorda } from './horda.js';
 import { updateMonstrao, limparMonstrao } from './monstrao.js';
@@ -587,7 +587,7 @@ export class Game {
     if (e.hp <= 0) this.killEnemy(e, source);
   }
 
-  explode(x, y, radius, dmg, source) {
+  explode(x, y, radius, dmg, source, inflama = true) {
     this.hash.query(x, y, radius + 0.6, tmp);
     for (const e of tmp) {
       if (e.dead) continue;
@@ -600,7 +600,8 @@ export class Game {
     }
     this.fx.rings.push({ x, y, r0: 0.2, r1: radius, t: 0, dur: 0.3, color: 'blast' });
     this.shake(0.18);
-    explosaoPerto(this, x, y, radius); // carro perto explode também
+    if (inflama) explosaoPerto(this, x, y, radius); // carro perto pega fogo e explode também
+    else golpeNoCarro(this, x, y, radius * 0.5, dmg); // objeto que não explode: porrada no carro onde caiu
   }
 
   killEnemy(e, source) {
@@ -1784,7 +1785,7 @@ export class Game {
   objectLands(pr) {
     const T = THROWABLES[pr.obj];
     this.som(T.som || 'baque', pr.x, pr.y);
-    this.explode(pr.x, pr.y, pr.radius, pr.dmg, 'objeto');
+    this.explode(pr.x, pr.y, pr.radius, pr.dmg, 'objeto', !!T.explosive);
     this.burst(pr.x, pr.y, 10, 'debris');
     if (T.explosive) {
       this.burst(pr.x, pr.y, 22, 'fogo');

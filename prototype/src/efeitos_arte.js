@@ -65,6 +65,7 @@ export const FX = {
   // o clarão sai da boca do cano para a direita da célula e gira para o lado do tiro (a.dx, a.dy)
   clarao_tiro: { cols: 2, rows: 2, dur: 0.14, tamP: 0.78, zP: 0.62, luz: true, boca: 0.3 },
   faisca_gato: { cols: 3, rows: 2, dur: 0.35, fps: 14, cobreM: 1.8, zM: 2.1, luz: true }, // o fio do poste em curto
+  chamas: { cols: 3, rows: 2, laco: true, fps: 12, cobreM: 2.4, luz: true, base: 0.86 }, // carro pegando fogo; base: onde as chamas nascem na célula (0 a 1)
 };
 
 // impacto de cada habilidade em quem leva o golpe (o jogo põe no lugar do inimigo); espera: tempo mínimo

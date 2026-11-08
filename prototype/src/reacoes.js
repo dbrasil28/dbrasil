@@ -1,7 +1,10 @@
-// Reações do cenário (REACOES em config.js): carro perto de uma explosão explode também, e pode disparar
-// outro; poste (ou fio do gatonet) perto de onde o Gato de Luz acerta descarrega um raio enorme na horda.
+// Reações do cenário (REACOES em config.js): carro perto de uma explosão pega fogo e explode, e pode
+// disparar outro; carro que leva porrada (capacete, chinelo, carimbo, objeto) perde vida, solta fumaça e,
+// sem vida, pega fogo e explode depois de um tempo, com o círculo da explosão no chão (dá tempo de fugir);
+// poste (ou fio do gatonet) perto de onde o Gato de Luz acerta descarrega um raio enorme na horda.
 // Sem DOM e sem o sorteio da partida: o atraso de cada carro sai do lugar dele.
 import { REACOES } from './config.js';
+import { FX } from './efeitos_arte.js';
 import { lowerBound } from './cenario.js';
 
 const R = REACOES;
@@ -13,29 +16,80 @@ function estado(game) {
   return game.reacoes;
 }
 
-/** Uma explosão em (x, y) de raio `raio`: marca os veículos perto para explodir logo depois. */
-export function explosaoPerto(game, x, y, raio) {
+const centro = (c) => (c.transito ? [c.x, c.y] : [(c.x0 + c.x1) / 2, (c.y0 + c.y1) / 2]);
+const caixa = (c) => (c.transito ? [c.x - c.wid / 2, c.y - c.len / 2, c.x + c.wid / 2, c.y + c.len / 2] : [c.x0, c.y0, c.x1, c.y1]);
+export const vidaDoCarro = (c) => R.carro.vida * (R.carro.tipos[c.kind] || 1);
+
+/** Os veículos (parados e na avenida) cuja caixa chega a `alc` de (x, y). */
+function veiculosPerto(game, x, y, alc, out) {
+  out.length = 0;
   const w = game.world;
-  if (!w) return;
-  const st = estado(game);
-  const alc = raio + R.carro.gatilhoM;
+  if (!w) return out;
   // parados no cenário (lista ordenada pela frente, y1)
   const list = w.props;
   for (let i = lowerBound(list, y - alc - 1); i < list.length && list[i].y <= y + alc + 12; i++) {
     const c = list[i];
-    if (!R.carro.tipos[c.kind] || c.queimado || c.explodeEm != null) continue;
-    if (distRet(x, y, c.x0, c.y0, c.x1, c.y1) > alc) continue;
-    c.explodeEm = game.t + R.carro.atrasoS[0] + fra(c.x0, c.y0) * (R.carro.atrasoS[1] - R.carro.atrasoS[0]);
-    st.pendentes.push(c);
+    if (!R.carro.tipos[c.kind] || c.queimado) continue;
+    if (distRet(x, y, c.x0, c.y0, c.x1, c.y1) <= alc) out.push(c);
   }
   // passando na avenida
   for (const c of game.traffic || []) {
-    if (c.explodeEm != null) continue;
-    if (distRet(x, y, c.x - c.wid / 2, c.y - c.len / 2, c.x + c.wid / 2, c.y + c.len / 2) > alc) continue;
-    c.explodeEm = game.t + R.carro.atrasoS[0] + fra(c.x, c.y) * (R.carro.atrasoS[1] - R.carro.atrasoS[0]);
+    if (!R.carro.tipos[c.kind] && !c.wid) continue;
     c.transito = true;
-    st.pendentes.push(c);
+    if (distRet(x, y, c.x - c.wid / 2, c.y - c.len / 2, c.x + c.wid / 2, c.y + c.len / 2) <= alc) out.push(c);
   }
+  return out;
+}
+const perto = [];
+
+/** O veículo pega fogo: explode daqui a `s` segundos (o desenho e o círculo no chão avisam). */
+function incendiar(game, c, s) {
+  if (c.queimado || c.explodeEm != null) return;
+  c.fogoDe = game.t;
+  c.explodeEm = game.t + s;
+  c.fogoT = 0;
+  estado(game).pendentes.push(c);
+  const [cx, cy] = centro(c);
+  game.som('pega_fogo', cx, cy);
+  game.word(cx, cy - 1.8, 'VAI EXPLODIR!', '#ff7a3d');
+  // as chamas em cima do carro até ele explodir (o da avenida leva o fogo junto)
+  const C = R.carro;
+  const tam = C.chamasM * (C.tipos[c.kind] || 1);
+  const F = FX.chamas;
+  // (com alvo, a altura z conta uma vez só; o parado ganha um ponto fixo no meio dele)
+  game.efeito('chamas', cx, cy, { dur: s + 0.15, tam, z: (c.h || 1.4) * 0.55 + tam * (F.base - 0.5), alvo: c.transito ? c : { x: cx, y: cy } });
+}
+
+/** Uma explosão em (x, y) de raio `raio`: os veículos perto pegam fogo e explodem logo depois. */
+export function explosaoPerto(game, x, y, raio) {
+  const C = R.carro;
+  for (const c of veiculosPerto(game, x, y, raio + C.gatilhoM, perto)) {
+    const [cx, cy] = centro(c);
+    incendiar(game, c, C.fogoCadeiaS[0] + fra(cx, cy) * (C.fogoCadeiaS[1] - C.fogoCadeiaS[0]));
+  }
+}
+
+/**
+ * Porrada nos veículos que um golpe pega em (x, y), de raio `raio`: tira `dano` da vida de cada um (um só
+ * golpe por veículo quando vem `ja`, o conjunto dos que esse golpe já acertou). Devolve quantos acertou.
+ */
+export function golpeNoCarro(game, x, y, raio, dano, ja = null) {
+  const C = R.carro;
+  let n = 0;
+  estado(game); // a fumaça dos amassados roda em updateReacoes
+  for (const c of veiculosPerto(game, x, y, raio, perto)) {
+    if (c.explodeEm != null || (ja && ja.has(c))) continue;
+    if (ja) ja.add(c);
+    n++;
+    if (c.vida == null) c.vida = vidaDoCarro(c);
+    c.vida -= dano;
+    c.batidaT = game.t; // pisca no desenho
+    const [cx, cy] = centro(c);
+    game.som('lataria', cx, cy);
+    game.burst(x, y, 4, 'debris');
+    if (c.vida <= 0) incendiar(game, c, C.fogoS);
+  }
+  return n;
 }
 
 function explodirCarro(game, c) {
@@ -78,16 +132,40 @@ function explodirCarro(game, c) {
   explosaoPerto(game, cx, cy, raio); // reação em cadeia
 }
 
-/** A cada quadro: carros que estão para explodir e a fumaça dos queimados. */
+/** A cada quadro: carros pegando fogo (o círculo no chão enche até explodir), a fumaça dos amassados e dos queimados. */
 export function updateReacoes(game) {
   const st = game.reacoes;
   if (!st) return;
+  const C = R.carro;
   if (st.pendentes.length) {
     const agora = st.pendentes.filter((c) => game.t >= c.explodeEm);
     if (agora.length) {
       st.pendentes = st.pendentes.filter((c) => game.t < c.explodeEm);
       for (const c of agora) explodirCarro(game, c);
     }
+    for (const c of st.pendentes) {
+      const [cx, cy] = centro(c);
+      const dur = c.explodeEm - c.fogoDe || 1;
+      const raio = C.raioM * (C.tipos[c.kind] || 1);
+      (game.avisosChao || (game.avisosChao = [])).push({ tipo: 'circulo', x: cx, y: cy, r: raio, k: (game.t - c.fogoDe) / dur });
+      if (game.t >= (c.fogoT || 0)) {
+        c.fogoT = game.t + C.fogoCadaS;
+        const h = c.h || 1.4;
+        const [x0, , x1] = caixa(c);
+        // chamas saindo do capô e de baixo do carro, e a fumaça preta subindo
+        game.burst(x0 + fra(cx + game.t, cy) * (x1 - x0), cy, 2, 'fogo'); // faíscas voando
+        game.efeito('luz', cx, cy, { dur: 0.25, tam: raio * (1.4 + 0.6 * fra(game.t, cx)), cor: '255,120,40' });
+        if (fra(game.t * 3, cy) < 0.45) game.efeito('explosao_fumaca', cx, cy, { tam: 2.2, z: h * 1.3, de: 3, entra: 0.25, sobe: 0.8, dur: 1.4, alvo: c.transito ? c : { x: cx, y: cy } });
+      }
+    }
+  }
+  // amassado (menos da metade da vida): fumaça fina saindo do capô
+  for (const c of veiculosPerto(game, game.player.x, game.player.y, 30, perto)) {
+    if (c.vida == null || c.explodeEm != null || c.vida > vidaDoCarro(c) * C.fumacaVida) continue;
+    if (game.t < (c.fumacaT || 0)) continue;
+    c.fumacaT = game.t + C.fumacaCadaS * 1.4;
+    const [cx, cy] = centro(c);
+    game.efeito('explosao_fumaca', cx, cy, { tam: 1.4, z: (c.h || 1.4) * 0.9, de: 3, entra: 0.3, sobe: 0.7, dur: 1.4, alvo: c.transito ? c : { x: cx, y: cy } });
   }
   for (const c of st.queimados) {
     if (game.t > c.fumacaAte) continue;

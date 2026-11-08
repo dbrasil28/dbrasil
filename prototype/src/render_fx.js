@@ -45,6 +45,7 @@ const FX_SRC = {
   fogos: 'assets/efeitos/morro/fogos.webp',
   clarao_tiro: 'assets/efeitos/morro/clarao_tiro.webp',
   faisca_gato: 'assets/efeitos/morro/faisca_gato.webp',
+  chamas: 'assets/efeitos/carro/chamas.webp', // carro pegando fogo antes de explodir (Figma, laço de 6 quadros)
 };
 
 // as folhas do Morro (carregam quando a passagem para o morro abre)

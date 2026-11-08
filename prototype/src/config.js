@@ -346,13 +346,18 @@ export const PLACES = {
 // vaoM: a casa fica afastada das paredes da pracinha (fundo e lado), para a horda dar a volta e cercar;
 // chegouM: a essa distância do lugar dela no cerco, o inimigo para (sem empurrar a parede e tremer).
 // Reações do cenário (pedido do autor, 07/11/2026). Carro: um veículo a menos de gatilhoM da borda de uma
-// explosão explode também, depois de um atraso, e pode disparar outro (reação em cadeia); fica queimado e
-// soltando fumaça. tipos: tamanho da explosão de cada veículo. Poste: o Gato de Luz acertando a menos de
+// explosão pega fogo e explode depois de fogoCadeiaS, e pode disparar outro (reação em cadeia); fica
+// queimado e soltando fumaça. tipos: tamanho da explosão de cada veículo (e quanto de vida ele tem).
+// Porrada no carro (pedido do autor, 08/11/2026): capacete, chinelo, carimbo e objeto arremessado tiram
+// vida (vida × tipos); com menos de fumacaVida solta fumaça do capô; sem vida pega fogo, com o círculo da
+// explosão no chão enchendo, e explode depois de fogoS: dá tempo de o Juninho sair de perto. Poste: o Gato de Luz acertando a menos de
 // gatilhoM de um poste (ou dos fios do gatonet) faz ele descarregar do alto (altura em tipos) um raio enorme
 // em até `alvos` inimigos a até raioM; depois recarrega.
 export const REACOES = {
   carro: {
-    gatilhoM: 2.4, raioM: 3.4, dano: 90, voo: 7, atrasoS: [0.15, 0.45], danoJuninho: 18, fumacaS: 10, fumacaCadaS: 0.9,
+    gatilhoM: 2.4, raioM: 3.4, dano: 90, voo: 7, danoJuninho: 18, fumacaS: 10, fumacaCadaS: 0.9,
+    fogoCadeiaS: [0.8, 1.4], // explosão perto: pega fogo e explode depois disso (sorteado pelo lugar do carro)
+    vida: 110, fumacaVida: 0.5, fogoS: 3, fogoCadaS: 0.12, chamasM: 3.4, // porrada: vida do carro; abaixo da metade, fumaça; sem vida, fogo por fogoS
     tipos: { carro: 1, onibus: 1.35, camburao: 1.15, moto: 0.6 },
   },
   poste: { gatilhoM: 3.2, raioM: 7, alvos: 6, dano: 60, travaS: 0.6, recargaS: 6, tipos: { poste: 6.0, fios: 5.2 } },
@@ -378,7 +383,7 @@ export const THROWABLES = {
 // Voltam depois de um tempo, fora da tela. O açaí também deixa o Juninho mais rápido por uns segundos.
 // Altura de cada objeto arremessável quando está no chão (m, na escala dos personagens, que são
 // desenhados com 1,75 m): a imagem gerada é desenhada com essa altura.
-export const OBJ_ALTURA = { cadeira: 0.85, mesa: 0.8, engradado: 0.45, botijao: 0.65, cadeira_praia: 0.85, banquinho: 0.5, pneu: 0.4 };
+export const OBJ_ALTURA = { cadeira: 0.85, mesa: 0.8, engradado: 0.45, botijao: 0.65, cadeira_praia: 0.85, banquinho: 0.5, pneu: 0.4, lixeira: 0.4 }; // lixeira: deitada
 // Os personagens são desenhados maiores que a escala real (para ler bem no celular); os objetos crescem
 // junto para não parecerem de brinquedo ao lado deles. Cadeiras ficam a esta distância do centro da mesa.
 export const OBJ_ESCALA = 1.4;
@@ -960,6 +965,7 @@ export const SONS = {
   acorda: S(0.3, 2, 0.1, 1), gemido: S(0.5, 2, 0.5, 1, { varia: 0.15 }),
   quebra_plastico: S(1.2, 2, 0.05, 2), quebra_madeira: S(0.95, 2, 0.05, 2), baque: S(0.95, 2, 0.05, 2),
   explosao: S(1.4, 2, 0.08, 3), atropelo: S(0.7, 2, 0.08, 2), buzina: S(0.5, 1, 0.5, 2),
+  lataria: S(0.5, 3, 0.05, 1, { varia: 0.12 }), pega_fogo: S(0.7, 2, 0.3, 3), // porrada no carro; o carro pegou fogo (aviso)
   // habilidades
   chinelo: S(0.4, 2, 0.05, 1), boleto: S(0.3, 1, 0.2, 1), carimbo: S(0.7, 2, 0.05, 2), picole: S(0.45, 2, 0.1, 1),
   moto: S(0.6, 1, 0.3, 2), megafone: S(0.35, 1, 0.3, 1), gato: S(0.45, 2, 0.08, 1), latido: S(0.55, 1, 0.25, 2),

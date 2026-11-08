@@ -36,6 +36,8 @@ export const RECEITAS = {
   quebra_madeira: [ruido(0.2, { lp: 2500, hp: 200, q: 0.06, v: 0.8 }), tom('tri', 180, 90, 0.1, { q: 0.04, v: 0.5 })],
   baque: [tom('sine', 110, 55, 0.16, { q: 0.06, v: 0.9 }), ruido(0.08, { lp: 600, q: 0.03, v: 0.5 })],
   explosao: [ruido(1.1, { lp: 1400, lp1: 180, q: 0.35, v: 1 }), tom('sine', 75, 30, 0.7, { q: 0.25, v: 0.9 })],
+  lataria: [tom('square', 520, 380, 0.14, { lp: 3500, q: 0.05, v: 0.5 }), tom('sine', 1650, 1500, 0.25, { q: 0.09, v: 0.25 }), ruido(0.06, { lp: 6000, hp: 1200, q: 0.02, v: 0.6 })],
+  pega_fogo: [ruido(0.7, { lp: 300, lp1: 2400, hp: 100, a: 0.12, q: 0.35, v: 0.8 }), ruido(0.6, { ini: 0.1, hp: 2500, lp: 7000, am: 23, amP: 0.8, q: 0.3, v: 0.35 })],
   atropelo: [tom('sine', 130, 50, 0.26, { q: 0.08, v: 0.8 }), ruido(0.2, { lp: 1600, q: 0.07, v: 0.6 }), ruido(0.06, { lp: 7000, hp: 900, q: 0.02, v: 0.5 })],
   buzina: [tom('square', 415, 415, 0.38, { lp: 1800, v: 0.35 }), tom('square', 520, 520, 0.38, { lp: 1800, v: 0.3 })],
   chinelo: [sopro(0.12, { v: 0.5 }), ruido(0.06, { ini: 0.1, lp: 7000, hp: 900, q: 0.015, v: 0.8 })],

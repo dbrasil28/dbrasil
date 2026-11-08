@@ -1,6 +1,6 @@
 # Pedido de sons do jogo (08/11/2026)
 
-O jogo já toca todos os sons abaixo, mas com versões provisórias feitas em código (`prototype/src/sons.js`). Elas servem para acertar quando cada som toca e o volume da mistura. Os sons gravados entram no lugar, um a um, sem mexer no resto. Gravados até agora (créditos em `CREDITOS_SONS.md`):
+O jogo já toca todos os sons abaixo (60), mas com versões provisórias feitas em código (`prototype/src/sons.js`). Elas servem para acertar quando cada som toca e o volume da mistura. Os sons gravados entram no lugar, um a um, sem mexer no resto. Gravados até agora (créditos em `CREDITOS_SONS.md`):
 
 - `golpe`: 5 variações, Firefly, 08/11/2026; é também o som do capacete acertando.
 - CC0 do OpenGameArt, aprovados pelo autor em 08/11/2026: `tapa`, `morte_horda`, `gemido`, `dano`, `morte`, `grito_funkeiro`, `quebra_madeira`, `quebra_plastico`, `baque`, `explosao` e `amb_orla`.
@@ -57,6 +57,8 @@ O autor pediu outra opção para `xp`, `gorjeta`, `nivel`, `acorda`, `mira`, `ti
 | `explosao` | Maleta, botijão ou carro explodem | 3 | 1,2 s | Gas canister explosion, deep boom with debris, video game |
 | `atropelo` | Carro ou moto atropela | 3 | 0,4 s | Car hitting a person, heavy thud and body tumble, brakes squeak |
 | `buzina` | Carro vindo por trás, na faixa do Juninho | 2 | 0,4 s | Old small car horn honk, two short beeps, Brazilian street |
+| `lataria` | Porrada no carro (capacete, chinelo, objeto) | 3 | 0,2 s | Hitting a car body panel, hollow metal dent clank, short |
+| `pega_fogo` | Carro pega fogo e vai explodir (aviso) | 2 | 0,7 s | Car engine catching fire, gas whoosh ignition then crackling flames |
 
 ## 3. Habilidades
 

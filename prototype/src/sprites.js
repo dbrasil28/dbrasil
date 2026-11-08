@@ -97,6 +97,7 @@ export const IMAGES = {
   obj_botijao: 'assets/objetos/botijao.webp', // o botijão de gás que explode
   obj_cadeira_praia: 'assets/objetos/cadeira_praia.webp',
   obj_banquinho: 'assets/objetos/banquinho.webp',
+  obj_lixeira: 'assets/objetos/lixeira.webp', // arrancada do poste: deitada, de lado, com o lixo caindo (Figma)
   // giro (360°): vistas diagonal da frente, frente, diagonal de trás e trás; o outro lado é espelhado
   obj_cadeira_se: 'assets/objetos/cadeira_se.webp',
   obj_cadeira_s: 'assets/objetos/cadeira_s.webp',

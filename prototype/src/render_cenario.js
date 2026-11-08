@@ -88,6 +88,14 @@ export function drawCenario(ctx, p, cam, ppu, dpr, t, alpha = 1, playerPx = 0) {
       // não existe; a fumaça sai como efeito (reacoes.js)
       const imq = p.queimado ? images[`${artKey(p.kind, f)}_queimado`] || queimado(im) : im;
       ctx.drawImage(imq, pt.x - A.padX * ART_S * k, pt.y - A.top * ART_S * k, im.width * k, im.height * k);
+      // porrada no carro: pisca claro; pegando fogo: brilho quente tremendo até explodir (reacoes.js)
+      const bateu = p.batidaT != null && t - p.batidaT < 0.1;
+      const fogo = p.explodeEm != null && !p.queimado;
+      if (bateu || fogo) {
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = alpha * (bateu ? 0.45 : 0.14 + 0.12 * Math.sin(t * 23 + p.x0 * 3));
+        ctx.drawImage(imq, pt.x - A.padX * ART_S * k, pt.y - A.top * ART_S * k, im.width * k, im.height * k);
+      }
       ctx.restore();
       return;
     }
