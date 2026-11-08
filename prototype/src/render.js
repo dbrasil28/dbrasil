@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA } from './config.js';
-import { images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS } from './sprites.js';
+import { images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto } from './mapa.js';
 import { drawMar } from './render_mar.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
@@ -21,6 +21,7 @@ import {
 
 const pt = { x: 0, y: 0 };
 const pt2 = { x: 0, y: 0 };
+const motoDir = { x: 0, y: 0 };
 const bounds = {};
 const propsTmp = [];
 const cenTmp = [];
@@ -450,9 +451,10 @@ export class Renderer {
               animated = !!spr;
             }
           }
-          if (!spr && art && art.poses && walk && o.atkT > 0) {
+          const posesDele = (anim && anim.poses) || (art && art.poses); // moradores da horda do Morro também têm
+          if (!spr && posesDele && walk && o.atkT > 0) {
             // encostou no Juninho: pose de ataque virada para ele (todo inimigo com poses tem ataque)
-            const poses = walkReady(art.poses);
+            const poses = walkReady(posesDele);
             if (poses && poses.col.ataque !== undefined) {
               cam.toScreen(game.player.x, game.player.y, pt2);
               const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
@@ -477,7 +479,7 @@ export class Renderer {
             const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
             const frame = Math.floor((o.walk / (Math.PI * 2)) * 6) % 6;
             // a figura nova pode ficar para o próximo quadro (limite de montagem): enquanto isso, a anterior
-            const wo = anim ? CROWD_WALK_OPTS : o.furia && art.furia ? furiaOpts(art, enemyWalkOpts(art)) : enemyWalkOpts(art);
+            const wo = anim ? (anim.morro ? MORRO_WALK_OPTS : CROWD_WALK_OPTS) : o.furia && art.furia ? furiaOpts(art, enemyWalkOpts(art)) : enemyWalkOpts(art);
             spr = this.cache.get(`${walk.prefix}_${row}_${frame}`, h * (ATLAS.ch / walk.figureH), wo, true) || o.ultimaFig || null;
             if (spr) o.ultimaFig = spr;
             animated = !!spr;
@@ -551,6 +553,7 @@ export class Renderer {
           break;
         }
         case 'proj':
+          if (o.kind === 'moto' && this.drawMoto(ctx, o, pt, playerPx, game)) break;
           drawProjectile(ctx, o, pt, ppu, cam, playerPx);
           break;
         case 'fx':
@@ -1022,13 +1025,44 @@ export class Renderer {
     ctx.textBaseline = 'alphabetic';
   }
 
+  /** Mototáxi Amigo com a arte do Mototaxista (16 direções, rodas girando); sem a arte, o desenho provisório. */
+  drawMoto(ctx, o, pt, playerPx, game) {
+    if (o.delay > 0) return true; // ainda no aviso
+    const A = walkReady(POSE_ATLAS.mtx);
+    if (!A) return false;
+    const dir = game.camera.worldDirToScreen(o.vx, o.vy, motoDir); // direção na tela (com o giro do mapa)
+    const row = atlasRow(dir.x, dir.y);
+    const spr = this.cache.get(`${A.prefix}_${row}_${Math.floor(game.t * 14) % 6}`, playerPx * 0.95 * (A.ch / A.figureH), POSE_OPTS, true) || o.ultimaFig;
+    if (!spr) return false;
+    o.ultimaFig = spr;
+    // rastro de velocidade atrás da moto
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 2;
+    const l = Math.hypot(o.vx, o.vy) || 1;
+    for (let i = -1; i <= 1; i++) {
+      ctx.beginPath();
+      ctx.moveTo(pt.x + i * playerPx * 0.12, pt.y - (o.vy / l) * playerPx * 0.05);
+      ctx.lineTo(pt.x + i * playerPx * 0.12 - (o.vx / l) * playerPx * 0.5, pt.y - (o.vy / l) * playerPx * 0.55);
+      ctx.stroke();
+    }
+    blit(ctx, spr, pt.x, pt.y, false);
+    return true;
+  }
+
   drawFx(ctx, game, ppu, playerPx) {
     const cam = game.camera;
     const enemyH = playerPx * ENEMIES.telespectador.size * (this.enemyMul || 0.75);
     for (const w of game.fx.woken) {
       cam.toScreen(w.x, w.y, pt);
       const anim = crowdAnim(w.tint || 0);
-      const spr = (anim && this.cache.get(anim.acordado, enemyH, { flip: w.vx < 0 }))
+      let fig = null;
+      if (anim && anim.morro) {
+        // morador acordado: a própria caminhada, indo embora
+        cam.toScreen(w.x + w.vx, w.y + w.vy, pt2);
+        const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+        fig = this.cache.get(`${anim.walk.prefix}_${row}_${Math.floor((w.walk / (Math.PI * 2)) * 6) % 6}`, enemyH * (ATLAS.ch / anim.walk.figureH), CIVIL_OPTS);
+      }
+      const spr = fig || (anim && anim.acordado && this.cache.get(anim.acordado, enemyH, { flip: w.vx < 0 }))
         || this.cache.get(crowdImage(w.tint || 0, w.id || 0, w.vy > 0), enemyH, { mode: 'woken', flip: !!w.flipFix })
         || this.sprite('acordado', w.tint || 0, enemyH, false);
       const left = WAKE.fadeS - w.t;

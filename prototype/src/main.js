@@ -8,7 +8,7 @@ import { loadSettings, saveSettings, defaultSettings } from './settings.js';
 import { ENEMIES } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
-import { loadImages, images, prewarm } from './sprites.js';
+import { loadImages, images, prewarm, carregarMorro, prewarmMorro } from './sprites.js';
 import { loadProgress, applyRun, buyUpgrade } from './progresso.js';
 import { loadRanking, registrarPartida } from './ranking.js';
 import { desafioDaSemana } from './horda.js';
@@ -544,8 +544,22 @@ function warmSprites() {
   warmJobs = prewarm(renderer.cache, playerPx, playerPx * (settings.enemyPct / 100), (type) => ENEMIES[type].size);
 }
 
+/** Atlas do Morro: carregados quando a passagem abre (ou ao começar já no Morro) e preparados aos poucos. */
+let morroPedido = false;
+function prepararMorro() {
+  const w = game && game.world;
+  if (morroPedido || !w || !(w.gateOpen || game.segment === 'morro')) return;
+  morroPedido = true;
+  carregarMorro()?.then(() => {
+    const cam = game.camera;
+    const playerPx = (settings.playerPct / 100) * (cam.playBottom - cam.playTop);
+    warmJobs.push(...prewarmMorro(renderer.cache, playerPx * (settings.enemyPct / 100), (type) => ENEMIES[type].size));
+  });
+}
+
 /** Faz um pouco da preparação dos sprites por quadro: mais nos menus, pouco durante a partida. */
 function runWarmJobs() {
+  prepararMorro();
   if (!warmJobs.length) return;
   const budgetMs = state === 'playing' ? 2 : 10;
   const t0 = performance.now();

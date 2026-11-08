@@ -105,6 +105,19 @@ export const ENEMIES = {
     fases: { tirosMais: 1, cadenciaMul: 0.8, reforco: [[], ['traficante', 'funkeiro'], ['traficante', 'traficante', 'funkeiro']] },
     janela: { danoMul: 2 }, // hora de bater: parado mirando, atirando ou gritando no rádio, leva o dobro de dano
   },
+  // Morro (D37): o Cracudo vem em bando, cambaleando, e cata o XP do chão antes do Juninho; quando cai, solta o que
+  // catou. catarM: até onde ele enxerga XP; catarS: agachado catando
+  cracudo: {
+    name: 'Cracudo',
+    hp: 22, speed: 1.5, dmg: 5, radius: 0.3, size: 1.0, xp: 2,
+    behavior: 'cata', catarM: 9, pegaM: 0.8, catarS: 0.9, bando: [2, 4], cambaleia: 0.6,
+  },
+  // Trombadinha: corre até o Juninho, encosta, rouba XP e foge correndo com o celular; derrubado na fuga, devolve
+  trombadinha: {
+    name: 'Trombadinha',
+    hp: 26, speed: 3.4, dmg: 3, radius: 0.3, size: 1.0, xp: 3,
+    behavior: 'trombada', roubaXp: 4, roubaPorNivel: 1, fugaS: 6, fugaMul: 1.35,
+  },
   // Modo Horda: aos 30 minutos chega o Rabecão; não morre e não para (D44)
   rabecao: {
     name: 'Rabecão',
@@ -585,10 +598,16 @@ export const DIRECTOR = {
     { type: 'telespectador', w: 1 },
     { type: 'traficante', w: 0.22 },
     { type: 'funkeiro', w: 0.18 },
+    { type: 'cracudo', w: 0.05 }, // vem em bando (ENEMIES.cracudo.bando)
+    { type: 'trombadinha', w: 0.06 },
   ],
   maxBurocratas: 22,
   eliteEvery: (caos) => (caos >= 60 ? 40 : 60),
 };
+
+// Horda do Morro (D37): moradores hipnotizados com roupa de favela (listrado, moça, moleque, senhor, senhora,
+// tiozinho), cada um com caminhada, ataque e raiva (sprites.js, CROWD_ANIM_MORRO)
+export const HORDA_MORRO = { roupas: 6 };
 
 // Armas: `levels[0]` é a base; os demais são incrementos. Nível máximo = levels.length.
 export const WEAPONS = {
@@ -865,6 +884,8 @@ export const TV = {
   chefe: ['CHEFE DO TRÁFICO DECRETA: PIZZA SÓ PASSA COM AUTORIZAÇÃO DA FIRMA'],
   chefeRadio: ['CHEFE CHAMA REFORÇO NO RÁDIO. MORADORES FECHAM AS JANELAS'],
   chefeVencido: ['CHEFE DO TRÁFICO CAI NA LAJE. ENTREGADOR SEGUE COM A PIZZA'],
+  trombadinha: ['TROMBADINHA LEVA O XP DO ENTREGADOR. POLÍCIA DIZ QUE "FAZ PARTE"', 'ROUBARAM O CELULAR DO ENTREGADOR. O APLICATIVO DESCONTA DO SALDO'],
+  cracudo: ['CRACUDOS CATAM TUDO O QUE CAI NO CHÃO DO MORRO. PREFEITURA ANUNCIA "OPERAÇÃO"'],
   fogos: ['FOGOS NO MORRO: CHEGOU ENCOMENDA', 'SOLTARAM FOGOS. O MORRO INTEIRO SABE QUE ELE CHEGOU'],
   botijao: ['BOTIJÃO VOA NA ORLA. PREÇO DO GÁS SOBE DE NOVO', 'EXPLOSÃO DE BOTIJÃO. GOVERNO PROMETE "VALE-GÁS" PARA 2040'],
   objeto: ['ENTREGADOR ARREMESSA CADEIRA DE BOTECO. DONO COBRA A MESA'],

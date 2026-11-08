@@ -156,3 +156,14 @@ Conferido contra os gabaritos antes de entrar: as nove construções cobrem de 9
 - **Objetos:** churrasqueira, varal, bandeira no mastro, paredão de som, sofá velho e cadeiras empilhadas nas pracinhas; lata com planta nas vielas; fios do gatonet e bandeirinhas atravessando as vielas; a placa de parede com o nome escrito pelo jogo.
 
 **Ainda pendente:** o chão (cimento, degraus, laje e telhados vistos de cima), o lixo do chão, os moradores, o Cracudo, o Trombadinha, o Mototaxista, os efeitos e a relíquia. Cada lado da viela tem uma arte só e ela se repete a cada 6 m: duas ou três variações de `parede_viela_esq` e `telhado_viela_dir` deixariam a viela menos repetida.
+
+
+## Correções para os próximos pacotes de personagem (08/11/2026)
+
+Conferência dos pacotes v2 (moradores, Cracudo, Trombadinha, Mototaxista):
+
+1. **Folha 3 da caminhada:** as linhas 2, 3 e 4 (202,5°, 225° e 247,5°) andam de costas para a **esquerda** da imagem. Nos 8 pacotes a pé elas vieram andando para a direita, iguais às linhas 2 a 4 da folha 2. São o espelho delas: a linha 2 da folha 3 espelha a linha 4 da folha 2, a 3 espelha a 3 e a 4 espelha a 2. (No jogo, foram trocadas pelo espelho com `tools/espelhar-direcoes.py`.)
+2. **Escala das poses:** a pose fica na mesma escala da caminhada. Agachado ou curvado fica mais baixo na célula; o gerador estica toda pose até a altura do boneco em pé.
+3. **Moleque:** é um menino ou adolescente. O do pacote saiu com cabelo branco e cara de senhor.
+4. **Mototaxista:** o mesmo acabamento quase fotográfico dos outros personagens (o piloto saiu com cara de boneco 3D, cabeça grande) e a mesma câmera, um pouco acima do personagem, não tão de cima.
+5. **Margem:** deixe folga em volta da figura; um quadro da senhora encostou na borda da célula.

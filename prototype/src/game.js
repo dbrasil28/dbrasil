@@ -5,7 +5,7 @@ import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE,
+  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
 import { FX, IMPACTO } from './efeitos_arte.js';
@@ -13,6 +13,7 @@ import { explosaoPerto, updateReacoes } from './reacoes.js';
 import { updateCrises, criseLentidao } from './crises.js';
 import { emHorda, iniciarHorda, updateHorda, durezaHorda } from './horda.js';
 import { updateMonstrao, limparMonstrao } from './monstrao.js';
+import { updateCracudo, updateTrombadinha, trombada, devolveXp } from './morro_inimigos.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside, routeRemaining } from './mundo.js';
@@ -438,7 +439,7 @@ export class Game {
       id: this.nextId++, type, x, y, r: def.radius, hp, maxHp: hp, speed: def.speed * (0.9 + this.rng() * 0.2),
       dmg: def.dmg, behavior: def.behavior, elite: !!def.elite, boss: !!def.boss,
       kx: 0, ky: 0, flash: 0, slowT: 0, slowF: 1, phase: this.rng() * 6.28, fireT: 1 + this.rng() * 2, windup: 0,
-      split: false, ttl: def.ttl || 0, dead: false, tint: Math.floor(this.rng() * 8), walk: this.rng() * 10,
+      split: false, ttl: def.ttl || 0, dead: false, tint: this.roupa(type, this.rng()), walk: this.rng() * 10,
       plat: null, lvl: 0, z: 0, ri: -1,
       ...extra,
     };
@@ -459,9 +460,21 @@ export class Game {
     const p = this.fitSpawn(this.edgePoint(ang, 30 + this.rng() * 60));
     const e = this.spawnEnemy(pick, p.x, p.y);
     if (comecoLento(this)) e.speed *= ABERTURA.lentoMul;
+    if (pick === 'cracudo') {
+      // o Cracudo vem em bando
+      const [a, b] = ENEMIES.cracudo.bando;
+      const n = a + Math.floor(this.rng() * (b - a + 1)) - 1;
+      for (let i = 0; i < n; i++) this.spawnEnemy('cracudo', p.x + (this.rng() - 0.5) * 3, p.y + (this.rng() - 0.5) * 3);
+    }
     // pista que cresce (D39): o Juninho demora a ir ao covil aberto e parte da horda anda para lá
     const C = this.covil;
     if (C && C.demora && !C.saiu && this.rng() < CARREIRA.hordaChamadaFrac) e.chamado = true;
+  }
+
+  /** Roupa da pessoa da horda (tint): no Morro, os moradores (100 em diante); na Orla, os telespectadores. */
+  roupa(type, r) {
+    if (type === 'telespectador' && this.segment === 'morro') return 100 + Math.floor(r * HORDA_MORRO.roupas);
+    return Math.floor(r * 8);
   }
 
   countType(type) {
@@ -597,6 +610,7 @@ export class Game {
     if (this.kills === 1) this.tv('firstKill');
 
     if (def.xp) this.dropGem(e.x, e.y, def.xp);
+    devolveXp(this, e); // Cracudo e Trombadinha soltam o XP que cataram ou roubaram
     if (e.type === 'telespectador' && this.rng() < 0.012 && this.pickups.filter((p) => p.kind === 'pastel').length < 3) {
       this.pickups.push({ kind: 'pastel', x: e.x, y: e.y, t: 0 });
     }
@@ -1050,6 +1064,7 @@ export class Game {
         worst = e.type;
       }
       this.hurtPlayer(d, e.type);
+      if (e.type === 'trombadinha') trombada(this, e); // rouba XP e foge
       if (e.type === 'fiscal' && !(e.fineCd > 0)) {
         e.fineCd = 2.5;
         const fine = Math.min(p.xp, ENEMIES.fiscal.fine + p.level);
@@ -1421,6 +1436,14 @@ export class Game {
         if (e.fineCd > 0) e.fineCd -= dt;
       } else if (e.behavior === 'monstrao') {
         const r = updateMonstrao(this, e, dt, ux, uy);
+        mx = r.x;
+        my = r.y;
+      } else if (e.behavior === 'cata') {
+        const r = updateCracudo(this, e, dt, ux, uy);
+        mx = r.x;
+        my = r.y;
+      } else if (e.behavior === 'trombada') {
+        const r = updateTrombadinha(this, e, dt, ux, uy);
         mx = r.x;
         my = r.y;
       }

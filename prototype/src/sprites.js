@@ -214,6 +214,15 @@ export const WALK_ATLAS = {
   tf: { atlas: 'traficante_walk_atlas', prefix: 'tf', figureH: 157 },
   ct: { atlas: 'chefe_trafico_walk_atlas', prefix: 'ct', figureH: 157 },
   mo: { atlas: 'monstrao_walk_atlas', prefix: 'mo', figureH: 157 },
+  // Morro (pacotes v2): moradores da horda, Cracudo e Trombadinha; carregados ao chegar no morro (IMAGES_MORRO)
+  mli: { atlas: 'morador_listrado_walk_atlas', prefix: 'mli', figureH: 158, escala: 0.7 },
+  mmc: { atlas: 'morador_moca_walk_atlas', prefix: 'mmc', figureH: 157, escala: 0.7 },
+  mmq: { atlas: 'morador_moleque_walk_atlas', prefix: 'mmq', figureH: 158, escala: 0.7 },
+  msr: { atlas: 'morador_senhor_walk_atlas', prefix: 'msr', figureH: 158, escala: 0.7 },
+  msa: { atlas: 'morador_senhora_walk_atlas', prefix: 'msa', figureH: 158, escala: 0.7 },
+  mtz: { atlas: 'morador_tiozinho_walk_atlas', prefix: 'mtz', figureH: 158, escala: 0.7 },
+  cq: { atlas: 'cracudo_walk_atlas', prefix: 'cq', figureH: 158, escala: 0.7 },
+  tr: { atlas: 'trombadinha_walk_atlas', prefix: 'tr', figureH: 158, escala: 0.7 },
   pa: { atlas: 'politico_attack_atlas', prefix: 'pa', figureH: 158 }, // mesma escala da caminhada
   // Caramelo: as quatro na mesma escala. feetRows: onde ficam as patas em cada direção (px da célula de 160);
   // de lado o cachorro pisa mais alto na folha, então o desenho desce até as patas tocarem o chão
@@ -233,6 +242,16 @@ export const POSE_ATLAS = {
   tfp: { atlas: 'traficante_poses_atlas', prefix: 'tfp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
   ctp: { atlas: 'chefe_trafico_poses_atlas', prefix: 'ctp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
   mop: { atlas: 'monstrao_poses_atlas', prefix: 'mop', cols: 7, rows: 16, cw: 320, ch: 200, figureH: 158, col: { preparo: 0, investida: 1, agachamento: 2, arremesso: 3, levanta: 4, pose: 5, tonto: 6 } },
+  mlip: { atlas: 'morador_listrado_poses_atlas', prefix: 'mlip', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  mmcp: { atlas: 'morador_moca_poses_atlas', prefix: 'mmcp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  mmqp: { atlas: 'morador_moleque_poses_atlas', prefix: 'mmqp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  msrp: { atlas: 'morador_senhor_poses_atlas', prefix: 'msrp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  msap: { atlas: 'morador_senhora_poses_atlas', prefix: 'msap', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  mtzp: { atlas: 'morador_tiozinho_poses_atlas', prefix: 'mtzp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  cqp: { atlas: 'cracudo_poses_atlas', prefix: 'cqp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { agachado: 0 }, escala: 0.7 },
+  trp: { atlas: 'trombadinha_poses_atlas', prefix: 'trp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { correndo: 0 }, escala: 0.7 },
+  // Mototaxista (pacote 360 v3, tools/montar-veiculo.py): pilotando em 16 direções × 6 quadros; figureH: a maior figura
+  mtx: { atlas: 'mototaxista_atlas', prefix: 'mtx', cols: 6, rows: 16, cw: 220, ch: 170, figureH: 120, escala: 0.8 },
 };
 export const POSE_OPTS = { shadowScale: 0.4 };
 
@@ -246,9 +265,12 @@ export const CROWD_ANIM = {
   c: { walk: WALK_ATLAS.tc, acordado: 'tele_c_acordado', civil: WALK_ATLAS.cc, transf: WALK_ATLAS.cct },
 };
 
+/** Horda do Morro (D37): uma roupa por morador (tint 100 em diante), com caminhada e as poses de ataque e raiva. */
+export const CROWD_ANIM_MORRO = ['mli', 'mmc', 'mmq', 'msr', 'msa', 'mtz'].map((k) => ({ walk: WALK_ATLAS[k], poses: POSE_ATLAS[`${k}p`], morro: true }));
+
 /** Atlas animado da roupa (tint), quando ela tem um e ele já carregou; senão null (usa o recorte). */
 export function crowdAnim(tint) {
-  const a = CROWD_ANIM[CROWD_SETS[tint % CROWD_SETS.length].anim];
+  const a = tint >= 100 ? CROWD_ANIM_MORRO[(tint - 100) % CROWD_ANIM_MORRO.length] : CROWD_ANIM[CROWD_SETS[tint % CROWD_SETS.length].anim];
   return a && walkReady(a.walk) ? a : null;
 }
 
@@ -280,9 +302,33 @@ export const ENEMY_ART = {
   rival: { img: 'politico', tint: [240, 122, 26, 0.32], walk: WALK_ATLAS.pc, lazy: true },
   // Rabecão (Modo Horda): o camburão escurecido até chegar a arte do rabecão
   rabecao: { img: 'cen_camburao_a', tint: [18, 18, 22, 0.6], lazy: true },
+  // Morro: o Cracudo agacha para catar o XP; o Trombadinha foge correndo com o celular (e.pose, como o Monstrão)
+  cracudo: { img: 'cq_0_0', walk: WALK_ATLAS.cq, poses: POSE_ATLAS.cqp, estados: true, lazy: true },
+  trombadinha: { img: 'tr_0_0', walk: WALK_ATLAS.tr, poses: POSE_ATLAS.trp, estados: true, lazy: true },
   // Monstrão: estados (e.pose) escolhem a coluna das poses, virada para e.poseX/poseY; gigante, então não é
   // preparado antes (lazy) e a fúria da fase 3 pinta de vermelho
   monstrao: { img: 'mo_0_0', walk: WALK_ATLAS.mo, poses: POSE_ATLAS.mop, estados: true, lazy: true, furia: [215, 40, 28, 0.3] },
+};
+
+/** Atlas do Morro: carregados quando a passagem para o morro abre (carregarMorro), não no começo do jogo. */
+export const IMAGES_MORRO = {
+  morador_listrado_walk_atlas: 'assets/personagens/morador_listrado/caminhada_atlas.webp',
+  morador_listrado_poses_atlas: 'assets/personagens/morador_listrado/poses_atlas.webp',
+  morador_moca_walk_atlas: 'assets/personagens/morador_moca/caminhada_atlas.webp',
+  morador_moca_poses_atlas: 'assets/personagens/morador_moca/poses_atlas.webp',
+  morador_moleque_walk_atlas: 'assets/personagens/morador_moleque/caminhada_atlas.webp',
+  morador_moleque_poses_atlas: 'assets/personagens/morador_moleque/poses_atlas.webp',
+  morador_senhor_walk_atlas: 'assets/personagens/morador_senhor/caminhada_atlas.webp',
+  morador_senhor_poses_atlas: 'assets/personagens/morador_senhor/poses_atlas.webp',
+  morador_senhora_walk_atlas: 'assets/personagens/morador_senhora/caminhada_atlas.webp',
+  morador_senhora_poses_atlas: 'assets/personagens/morador_senhora/poses_atlas.webp',
+  morador_tiozinho_walk_atlas: 'assets/personagens/morador_tiozinho/caminhada_atlas.webp',
+  morador_tiozinho_poses_atlas: 'assets/personagens/morador_tiozinho/poses_atlas.webp',
+  cracudo_walk_atlas: 'assets/personagens/cracudo/caminhada_atlas.webp',
+  cracudo_poses_atlas: 'assets/personagens/cracudo/poses_atlas.webp',
+  trombadinha_walk_atlas: 'assets/personagens/trombadinha/caminhada_atlas.webp',
+  trombadinha_poses_atlas: 'assets/personagens/trombadinha/poses_atlas.webp',
+  mototaxista_atlas: 'assets/personagens/mototaxista/pilotando_atlas.webp', // a moto do Mototáxi Amigo (só no Morro)
 };
 
 /** Ícone de arma/HUD -> imagem. */
@@ -303,16 +349,40 @@ export function loadImages(onEach) {
   if (typeof Image === 'undefined') return Promise.resolve(images);
   const entries = Object.entries(IMAGES);
   pending = entries.length;
-  return Promise.all(entries.map(([id, src]) => new Promise((resolve) => {
+  return Promise.all(entries.map(([id, src]) => carregar(id, src, onEach))).then(() => images);
+}
+
+let morroPedido = null;
+/** Carrega os atlas do Morro uma vez só (a horda de moradores, o Cracudo e o Trombadinha). */
+export function carregarMorro() {
+  if (morroPedido || typeof Image === 'undefined') return morroPedido;
+  const entries = Object.entries(IMAGES_MORRO);
+  pending += entries.length;
+  morroPedido = Promise.all(entries.map(([id, src]) => carregar(id, src)));
+  return morroPedido;
+}
+
+function carregar(id, src, onEach) {
+  return new Promise((resolve) => {
     const im = new Image();
     im.decoding = 'async';
     im.onload = () => {
       images[id] = im;
       if (id === 'juninho_atlas') sliceAtlas(im, 'ja');
       if (id === 'juninho_walk_atlas') sliceAtlas(im, 'jw');
-      for (const w of Object.values(WALK_ATLAS)) if (id === w.atlas) sliceAtlas(im, w.prefix);
+      let cortado = false;
+      for (const w of Object.values(WALK_ATLAS)) {
+        if (id !== w.atlas) continue;
+        sliceAtlas(im, w.prefix, w.escala ? { ...ATLAS, escala: w.escala } : ATLAS);
+        cortado = true;
+      }
       if (id === WALK_ATLAS.cl.atlas) images.caramelo_icone = cropAlpha(images[`${WALK_ATLAS.cl.prefix}_2_3`]); // latindo, de 3/4
-      for (const p of Object.values(POSE_ATLAS)) if (id === p.atlas) sliceAtlas(im, p.prefix, p);
+      for (const p of Object.values(POSE_ATLAS)) {
+        if (id !== p.atlas) continue;
+        sliceAtlas(im, p.prefix, p);
+        cortado = true;
+      }
+      if (cortado) delete images[id]; // as células bastam: o atlas inteiro sai da memória
       pending--;
       onEach?.(id);
       resolve();
@@ -322,7 +392,7 @@ export function loadImages(onEach) {
       resolve();
     };
     im.src = src;
-  }))).then(() => images);
+  });
 }
 
 export const imagesReady = () => pending === 0;
@@ -331,10 +401,12 @@ export const ATLAS = { cols: 6, rows: 16, cw: 200, ch: 160, figureH: 155, hipFra
 
 /** Corta um atlas em 96 células (canvas) registradas como imagens `<prefixo>_<direção>_<quadro>`. */
 function sliceAtlas(im, prefix, g = ATLAS) {
+  // escala < 1: células menores (as do Morro), para caber na memória do celular; o jogo escala pela altura
+  const e = g.escala || 1;
   for (let r = 0; r < g.rows; r++) {
     for (let f = 0; f < g.cols; f++) {
-      const c = canvas(g.cw, g.ch);
-      c.getContext('2d').drawImage(im, f * g.cw, r * g.ch, g.cw, g.ch, 0, 0, g.cw, g.ch);
+      const c = canvas(g.cw * e, g.ch * e);
+      c.getContext('2d').drawImage(im, f * g.cw, r * g.ch, g.cw, g.ch, 0, 0, c.width, c.height);
       images[`${prefix}_${r}_${f}`] = c;
     }
   }
@@ -364,6 +436,26 @@ export function atlasRow(dx, dy) {
   let deg = (Math.atan2(dx, dy) * 180) / Math.PI; // 0 = para baixo (de frente), 90 = direita
   if (deg < 0) deg += 360;
   return Math.round(deg / 22.5) % ATLAS.rows;
+}
+
+/** As figuras do Morro (moradores, Cracudo, Trombadinha), preparadas aos poucos quando os atlas chegam. */
+export function prewarmMorro(cache, enemyPx, sizeOf) {
+  const jobs = [];
+  for (const a of CROWD_ANIM_MORRO) {
+    for (let r = 0; r < ATLAS.rows; r++) {
+      for (let f = 0; f < ATLAS.cols; f++) jobs.push(() => cache.get(`${a.walk.prefix}_${r}_${f}`, enemyPx * (ATLAS.ch / a.walk.figureH), MORRO_WALK_OPTS));
+      for (let c = 0; c < a.poses.cols; c++) jobs.push(() => cache.get(`${a.poses.prefix}_${r}_${c}`, enemyPx * (a.poses.ch / a.poses.figureH), POSE_OPTS));
+    }
+  }
+  for (const type of ['cracudo', 'trombadinha']) {
+    const art = ENEMY_ART[type];
+    const h = enemyPx * sizeOf(type);
+    for (let r = 0; r < ATLAS.rows; r++) {
+      for (let f = 0; f < ATLAS.cols; f++) jobs.push(() => cache.get(`${art.walk.prefix}_${r}_${f}`, h * (ATLAS.ch / art.walk.figureH), enemyWalkOpts(art)));
+      jobs.push(() => cache.get(`${art.poses.prefix}_${r}_0`, h * (art.poses.ch / art.poses.figureH), POSE_OPTS));
+    }
+  }
+  return jobs;
 }
 
 /** Monta de antemão todas as variações usadas na partida, para não travar no meio dela. */
@@ -418,6 +510,8 @@ export function prewarm(cache, playerPx, enemyPx, sizeOf) {
 
 /** Opções de cache dos quadros animados (as mesmas no prewarm e no render, senão a chave muda). */
 export const CROWD_WALK_OPTS = { hypno: true, shadowScale: 0.6 };
+// moradores do Morro: a arte já vem com os olhos brilhando; a luz de TV por cima apagaria o rosto
+export const MORRO_WALK_OPTS = { shadowScale: 0.6 };
 const walkOpts = new Map();
 export function enemyWalkOpts(art) {
   let o = walkOpts.get(art);
