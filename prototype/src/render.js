@@ -116,6 +116,14 @@ export class Renderer {
     return c;
   }
 
+  /** Depois de um desenho que parou no meio (erro): volta o contexto ao normal. */
+  limparEstado() {
+    const ctx = this.ctx;
+    for (let i = 0; i < 64; i++) ctx.restore(); // os save() sem restore() do desenho interrompido
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
   draw(game, settings, perf) {
     const { ctx, dpr } = this;
     if (this.geracaoArte !== ARTE.geracao) {

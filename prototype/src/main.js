@@ -241,7 +241,38 @@ function updateMapaButton() {
   btnMapa.setAttribute('aria-label', mapaAberto ? 'Fechar o mapa da favela' : 'Abrir o mapa da favela');
 }
 
+// Um erro num quadro não pode congelar o jogo (o próximo quadro só era pedido no fim): o quadro com erro é
+// pulado, o jogo segue e o erro aparece na tela, para o print chegar com o que quebrou.
+let errosVistos = 0;
+function avisarErro(e, onde) {
+  errosVistos++;
+  console.error(onde, e);
+  const el = $('erro');
+  if (!el) return;
+  if (errosVistos === 1 || el.hidden) {
+    const pilha = String((e && e.stack) || '').split('\n').slice(0, 3).map((l) => l.trim()).join(' | ');
+    el.dataset.msg = `${onde}: ${(e && e.message) || e} | ${pilha}`.slice(0, 420);
+  }
+  el.textContent = `DEU ERRO (manda um print; toque para fechar) [${errosVistos}]: ${el.dataset.msg}`;
+  el.hidden = false;
+}
+$('erro').addEventListener('click', () => {
+  $('erro').hidden = true;
+});
+window.addEventListener('error', (ev) => avisarErro(ev.error || ev.message, 'janela'));
+window.addEventListener('unhandledrejection', (ev) => avisarErro(ev.reason, 'promessa'));
+
 function frame(now) {
+  try {
+    quadro(now);
+  } catch (e) {
+    avisarErro(e, 'quadro');
+    renderer.limparEstado(); // um desenho que parou no meio deixa a transparência ou a soma de luz ligadas
+  }
+  requestAnimationFrame(frame);
+}
+
+function quadro(now) {
   const dtReal = Math.min(0.1, (now - last) / 1000);
   last = now;
   runWarmJobs();
@@ -290,13 +321,17 @@ function frame(now) {
   sons.drenar(game, state === 'playing' && !game.modal ? dtReal : 0);
   sons.ambiente(state === 'title' ? null : SOM.amb[game.segment === 'morro' ? 'morro' : 'orla']);
   sons.abafar(state !== 'playing' || !!game.modal);
-  renderer.draw(game, settings, { dt: dtReal, mapa: mapaAberto });
+  try {
+    renderer.draw(game, settings, { dt: dtReal, mapa: mapaAberto });
+  } catch (e) {
+    avisarErro(e, 'desenho'); // o jogo e o HUD seguem mesmo se o desenho quebrar
+    renderer.limparEstado();
+  }
   updateMapaButton();
   ui.updateHud(game, now);
   ui.tickWarn(now);
   ui.tickToast(now);
   updateFps(now, dtReal);
-  requestAnimationFrame(frame);
 }
 
 let fpsAcc = 0;
@@ -467,8 +502,12 @@ ui.on('pause', () => {
   if (state !== 'playing') return;
   state = 'paused';
   input.reset();
-  ui.showNumeros(game);
-  ui.show('screen-pause');
+  ui.show('screen-pause'); // primeiro a tela: se os números quebrarem, o jogador ainda vê o menu e volta
+  try {
+    ui.showNumeros(game);
+  } catch (e) {
+    avisarErro(e, 'pausa');
+  }
 });
 ui.on('resume', () => {
   state = 'playing';
