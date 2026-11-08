@@ -5,7 +5,7 @@ import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, FIGURANTES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO,
+  ROUTE, INTERACT, THROWABLES, FIGURANTES, DERRUBADO, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO,
   SOM_GOLPE, SOM_ARMA,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
@@ -1033,11 +1033,82 @@ export class Game {
     this.openModalIfNeeded();
   }
 
+  /**
+   * Derruba o Juninho (D64): voa no sentido (dx, dy), cai de costas, rola e levanta, sem controle e sem levar
+   * dano até levantar. Devolve se derrubou (quem já está no chão não é derrubado de novo).
+   */
+  derrubar(dx, dy, distM = DERRUBADO.vooM) {
+    const p = this.player;
+    if (p.derrubado || this.over) return false;
+    const l = Math.hypot(dx, dy) || 1;
+    const ux = dx / l;
+    const uy = dy / l;
+    // 0 = para baixo na tela, 90 = direita, 180 = para cima, 270 = esquerda (a ordem das folhas)
+    const ang = ((Math.atan2(ux, uy) * 180) / Math.PI + 360) % 360;
+    const total = DERRUBADO.quadrosS.reduce((a, b) => a + b, 0);
+    p.derrubado = { t: 0, ux, uy, dist: distM, k: Math.round(ang / 45) % 8, quadro: 0, z: 0, andou: 0, total };
+    p.invulnT = Math.max(p.invulnT || 0, total + 0.2);
+    p.carry = null; // o objeto cai da mão
+    p.faceX = ux;
+    p.faceY = uy;
+    return true;
+  }
+
+  /** Derrubado: o voo em arco, o tombo, o rolamento e a hora de levantar (os quadros seguem o tempo do pacote). */
+  updateDerrubado(dt) {
+    const p = this.player;
+    const d = p.derrubado;
+    const D = DERRUBADO;
+    d.t += dt;
+    let acc = 0;
+    d.quadro = D.quadrosS.length - 1;
+    for (let i = 0; i < D.quadrosS.length; i++) {
+      acc += D.quadrosS[i];
+      if (d.t < acc) {
+        d.quadro = i;
+        break;
+      }
+    }
+    const tVoo = D.quadrosS.slice(0, D.vooQuadros).reduce((a, b) => a + b, 0);
+    const tRola = tVoo + D.quadrosS.slice(D.vooQuadros, D.vooQuadros + D.rolaQuadros).reduce((a, b) => a + b, 0);
+    let s;
+    if (d.t < tVoo) {
+      const u = d.t / tVoo;
+      s = d.dist * (1 - (1 - u) * (1 - u)); // sai rápido e freia
+      d.z = D.alturaM * 4 * u * (1 - u);
+    } else {
+      d.z = 0;
+      s = d.dist + D.rolaM * Math.min(1, (d.t - tVoo) / Math.max(0.01, tRola - tVoo));
+    }
+    const ds = s - d.andou;
+    d.andou = s;
+    p.x += d.ux * ds;
+    p.y += d.uy * ds;
+    this.collideProps(p);
+    this.clampToMap(p);
+    if (this.world) applyLevels(this.world, p);
+    p.moving = false;
+    p.vx = 0;
+    p.vy = 0;
+    if (d.t >= d.total) p.derrubado = null;
+  }
+
   updatePlayer(dt, input) {
     const p = this.player;
     const st = this.stats;
     let mx = 0;
     let my = 0;
+    if (p.derrubado) {
+      // no chão: sem controle até levantar (os relógios seguem)
+      this.updateDerrubado(dt);
+      if (p.hurtT > 0) p.hurtT -= dt;
+      if (p.invulnT > 0) p.invulnT -= dt;
+      if (p.slowT > 0) p.slowT -= dt;
+      if (p.paperT > 0) p.paperT -= dt;
+      p.throwT += dt;
+      p.catchT += dt;
+      return;
+    }
     const mag = Math.min(1, Math.hypot(input.x, input.y));
     if (mag > 0.05) {
       this.camera.screenDirToWorld(input.x, input.y, pt);
@@ -1729,7 +1800,7 @@ export class Game {
     updateArrancados(this, dt); // lixeiras, guarda-sóis e isopores arrancados voltam fora da tela
     const myPlat = p.plat && p.lvl === 1 ? p.plat : null;
     if (!p.carry) {
-      if (emAbertura(this)) return; // na abertura ninguém ataca ainda: pegar cadeira ou mesa só deixaria o Juninho andando com ela na cabeça
+      if (emAbertura(this) || p.derrubado) return; // na abertura ninguém ataca ainda: pegar cadeira ou mesa só deixaria o Juninho andando com ela na cabeça
       if (p.plat && p.lvl === 0 && p.z > 0.5) return; // no meio da escada
       let best = null;
       let bd = I.pickR * I.pickR;
@@ -1877,8 +1948,9 @@ export class Game {
       if (!this.over && !p.plat && Math.abs(p.x - c.x) < hx + p.r && Math.abs(p.y - c.y) < hy + p.r && !(p.invulnT > 0)) {
         this.hurtPlayer(A.dano, 'carro');
         this.som('atropelo');
-        p.x += (p.x < c.x ? -1 : 1) * A.empurraoM;
-        p.invulnT = A.invulnS;
+        // voa no sentido do carro e para fora da faixa, cai de costas, rola e levanta (D64)
+        if (!this.derrubar((p.x < c.x ? -1 : 1) * DERRUBADO.ladoAtropelo, c.sentido)) p.x += (p.x < c.x ? -1 : 1) * A.empurraoM;
+        p.invulnT = Math.max(p.invulnT, A.invulnS);
         this.shake(0.4);
         this.tv('atropelado', 30);
         this.clampToMap(p);

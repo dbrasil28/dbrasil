@@ -3,7 +3,7 @@
 // sem vida, pega fogo e explode depois de um tempo, com o círculo da explosão no chão (dá tempo de fugir);
 // poste (ou fio do gatonet) perto de onde o Gato de Luz acerta descarrega um raio enorme na horda.
 // Sem DOM e sem o sorteio da partida: o atraso de cada carro sai do lugar dele.
-import { REACOES } from './config.js';
+import { REACOES, DERRUBADO } from './config.js';
 import { FX } from './efeitos_arte.js';
 import { ferirFigurantes } from './figurantes.js';
 import { lowerBound } from './cenario.js';
@@ -111,7 +111,10 @@ function explodirCarro(game, c) {
     if (!e.dead && !e.boss) e.vz = C.voo * (e.elite ? 0.5 : 1) * (0.8 + 0.4 * (1 - d / (raio + e.r)));
   }
   const p = game.player;
-  if (!game.over && (p.x - cx) ** 2 + (p.y - cy) ** 2 < (raio * 0.8) ** 2 && !(p.z > 1)) game.hurtPlayer(C.danoJuninho, 'carro_explode');
+  if (!game.over && (p.x - cx) ** 2 + (p.y - cy) ** 2 < (raio * 0.8) ** 2 && !(p.z > 1) && !(p.invulnT > 0)) {
+    game.hurtPlayer(C.danoJuninho, 'carro_explode');
+    game.derrubar(p.x - cx || 0.01, p.y - cy, DERRUBADO.carroExplodeM); // voa para longe do carro (D64)
+  }
   ferirFigurantes(game, cx, cy, raio * 0.8, C.danoJuninho * 2); // quem estiver perto do carro também
   // fogo de verdade, como a maleta
   game.efeito('explosao', cx, cy, { tam: raio * 2.6, z: raio * 0.38 });

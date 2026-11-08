@@ -363,6 +363,20 @@ export const REACOES = {
   poste: { gatilhoM: 3.2, raioM: 7, alvos: 6, dano: 60, travaS: 0.6, recargaS: 6, tipos: { poste: 6.0, fios: 5.2 } },
 };
 
+// Juninho derrubado (D64): atropelado, ou perto de um carro explodindo, ele voa no sentido do golpe, cai de
+// costas, rola e levanta (arte: juninho_atropelado, 8 direções × 12 quadros). Sem controle e sem levar dano
+// até levantar; o objeto que carregava cai.
+export const DERRUBADO = {
+  quadrosS: [0.1, 0.12, 0.12, 0.12, 0.14, 0.14, 0.12, 0.14, 0.14, 0.16, 0.16, 0.14], // tempo de cada quadro (do pacote): 1,6 s
+  vooQuadros: 4, // quadros no ar; no seguinte ele cai de costas
+  rolaQuadros: 2, // depois de cair, rolando
+  vooM: 3.2, // atropelado: distância do voo
+  rolaM: 0.8,
+  alturaM: 0.6, // altura do arco (a arte do voo já sobe um pouco)
+  carroExplodeM: 2.6, // carro explodindo perto: voa para longe dele essa distância
+  ladoAtropelo: 0.6, // atropelado: além de ir no sentido do carro, sai para o lado da faixa
+};
+
 export const LAJE = { subirChance: 0.12, maxSubindo: 3, sorteioS: [3, 6], vaoM: 1.6, chegouM: 0.35 };
 export const INTERACT = { pickR: 1.0, arrancaM: 0.55, holdS: 0.25, throwRange: 8, flightS: 0.5, arcM: 2.4, respawnS: 35, respawnMinDistM: 14 }; // arrancaM: distância da borda de uma lixeira, guarda-sol ou isopor para arrancar
 export const THROWABLES = {

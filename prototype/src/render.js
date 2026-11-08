@@ -709,7 +709,14 @@ export class Renderer {
       let id;
       let fig = ATLAS.figureH;
       const jc = p.carry ? walkReady(WALK_ATLAS.jc) : null;
-      if (jc) {
+      const D = p.derrubado;
+      const jat = D ? walkReady(WALK_ATLAS.jat) : null;
+      if (jat) {
+        // derrubado (D64): 8 direções de voo, 12 quadros em duas linhas de 6 no atlas
+        const f = D.quadro;
+        id = `jat_${(D.k >> 1) * 4 + (D.k & 1) * 2 + (f >= 6 ? 1 : 0)}_${f % 6}`;
+        fig = jat.figureH;
+      } else if (jc) {
         // carregando o objeto acima da cabeça: braços erguidos, andando ou parado
         id = `jc_${row}_${p.moving ? Math.floor((p.walkPhase / (Math.PI * 2)) * 6) % 6 : 0}`;
         fig = jc.figureH;
@@ -724,9 +731,9 @@ export class Renderer {
         mode: hurtBlink ? 'hurt' : '', tint: game.corruption >= 50 ? [232, 182, 44, 0.22] : null, noShadow: true,
       });
       if (img) {
-        const invulnBlink = p.invulnT > 0 && Math.floor(game.t * 12) % 2 === 0 ? 0.45 : 1;
+        const invulnBlink = p.invulnT > 0 && !D && Math.floor(game.t * 12) % 2 === 0 ? 0.45 : 1;
         ctx.globalAlpha = alpha * invulnBlink;
-        this.drawPlayerAtlas(ctx, img, pt, playerPx * (ATLAS.ch / ATLAS.figureH), p, row, game);
+        this.drawPlayerAtlas(ctx, img, pt, playerPx * (ATLAS.ch / ATLAS.figureH), p, row, game, jat ? D.z * game.camera.ppu : 0);
         ctx.globalAlpha = 1;
         return;
       }
@@ -752,13 +759,13 @@ export class Renderer {
   }
 
   /** Desenha o Juninho do atlas: sombra no chão + quadro inteiro (a animação vem dos 6 quadros da folha). */
-  drawPlayerAtlas(ctx, spr, pt, h, p, row, game) {
+  drawPlayerAtlas(ctx, spr, pt, h, p, row, game, zPx = 0) {
     const shW = h * 0.26;
     ctx.fillStyle = 'rgba(0,0,0,0.38)';
     ctx.beginPath();
     ctx.ellipse(pt.x, pt.y - 1, shW, shW * 0.32, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy, spr.cssW, spr.cssH);
+    ctx.drawImage(spr, pt.x - spr.ox, pt.y - spr.oy - zPx, spr.cssW, spr.cssH); // zPx: no ar (derrubado), a sombra fica no chão
   }
 
   drawGround(ctx, game) {
