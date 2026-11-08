@@ -204,6 +204,7 @@ export const MAPS = {
 // inteira, só na escala: 150 px por metro. origem: px da imagem onde fica o canto da frente da caixa, no
 // chão (à esquerda; na parede da viela, o pé da parede virada para a viela). w, d, h: a caixa (m).
 export const FAVELA = {
+  minimapa: false, // mapa da favela no canto da tela (D52: o autor tirou; true traz de volta)
   pxPorM: 150,
   pecas: {
     casa_laje_dir: { origem: [342.37, 1246.81], w: 5, d: 5, h: 3.2 },
@@ -281,6 +282,9 @@ export const AVENIDA = {
   danoHorda: 400, // atropelou zumbi: morre
   hordaInvulnS: 1.2, // o mesmo inimigo só leva outro atropelamento depois disso (antes o chefe morria embaixo do carro)
   avisoM: 16, // carro vindo por trás, nessa distância, na faixa do Juninho: aviso
+  meioFioM: 0.35, // o muro do fim da Orla abre a avenida mais esta folga dos dois lados (o meio-fio)
+  foraM: 30, // a avenida segue esses metros depois do muro do fim e da obra do começo; os carros saem por ela
+  // (o Juninho e a horda não passam: a área de andar acaba no muro)
   modelos: ['fusca', 'brasilia', 'uno'],
   // rodas girando (tools/rodas-carros.py): por vista, a caixa de cada roda na imagem do carro [x, y, w, h] e a
   // linha dela no atlas (<carro>_<sentido>_rodas.webp, um quadro por coluna); quadrosPorM: quadros por metro andado

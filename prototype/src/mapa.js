@@ -3,7 +3,7 @@
 import { hash2 } from './math.js';
 import { images } from './sprites.js';
 import { Camera } from './camera.js';
-import { PREDIOS, SOMBRA, PLACES } from './config.js';
+import { PREDIOS, SOMBRA, PLACES, AVENIDA } from './config.js';
 import { drawLitter, drawFachada, pixo, cartaz, bandeira } from './render_cenario.js';
 import { recorteMar, ALCANCE_MAR } from './render_mar.js';
 
@@ -95,6 +95,77 @@ export function drawOrlaGround(r, ctx, game, b) {
     ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
     dirt(ctx, pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y, 0.5);
   });
+  // a avenida não acaba no muro nem na obra: segue para fora da cena, e os carros vão e vêm por ela
+  const m = game.map;
+  avenidaFora(ctx, cam, m, b, Math.max(b.minY, yTop - AVENIDA.foraM), Math.min(b.maxY, yTop), yTop, yTop - AVENIDA.foraM);
+  avenidaFora(ctx, cam, m, b, Math.max(b.minY, yBot), Math.min(b.maxY, yBot + AVENIDA.foraM), yBot, yBot + AVENIDA.foraM);
+}
+
+/** Asfalto da avenida da praia entre b.minY e b.maxY: meio-fio dos dois lados, faixa dupla e faixas tracejadas. */
+function drawAvenida(ctx, cam, m, b) {
+  const ppu = cam.ppu;
+  const band = (x0, x1, fill, grainA = 0) => {
+    cam.toScreen(x0, b.minY, pt);
+    cam.toScreen(x1, b.maxY, pt2);
+    ctx.fillStyle = fill;
+    ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
+    if (grainA) dirt(ctx, pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y, grainA);
+  };
+  const linha = (x, cor, w, dash) => {
+    cam.toScreen(x, b.minY, pt);
+    cam.toScreen(x, b.maxY, pt2);
+    ctx.strokeStyle = cor;
+    ctx.lineWidth = Math.max(1, ppu * w);
+    ctx.setLineDash(dash || []);
+    ctx.beginPath();
+    ctx.moveTo(pt.x, pt.y);
+    ctx.lineTo(pt2.x, pt2.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+  band(m.avenidaX0, m.avenidaX1, '#36363b', 0.5);
+  band(m.avenidaX0 - 0.15, m.avenidaX0 + 0.15, '#b9b3a8');
+  band(m.avenidaX1 - 0.15, m.avenidaX1 + 0.15, '#b9b3a8');
+  // o calçadão é mais alto que o asfalto: a sombra do meio-fio cai na avenida (sol à esquerda)
+  band(m.avenidaX0 + 0.15, m.avenidaX0 + 0.55, 'rgba(0,0,0,0.3)');
+  band(m.avenidaX1 - 0.3, m.avenidaX1 - 0.15, 'rgba(255,236,210,0.18)');
+  const cx = (m.avenidaX0 + m.avenidaX1) / 2;
+  linha(cx - 0.12, 'rgba(235,190,40,0.85)', 0.08);
+  linha(cx + 0.12, 'rgba(235,190,40,0.85)', 0.08);
+  linha((m.avenidaX0 + cx) / 2, 'rgba(240,236,228,0.6)', 0.08, [ppu * 2, ppu * 2]);
+  linha((cx + m.avenidaX1) / 2, 'rgba(240,236,228,0.6)', 0.08, [ppu * 2, ppu * 2]);
+}
+
+/**
+ * A avenida seguindo depois do muro do fim da Orla (ou da obra do começo), entre y0 e y1, sumindo no escuro
+ * para o lado de fora (pertoY: o muro ou a obra; longeY: a ponta longe). Os carros saem por ela; ninguém
+ * mais anda ali.
+ */
+function avenidaFora(ctx, cam, m, b, y0, y1, pertoY, longeY) {
+  if (m.avenidaX0 === undefined || y1 <= y0) return;
+  const f = AVENIDA.meioFioM;
+  cam.toScreen(m.avenidaX0 - f, y0, pt);
+  cam.toScreen(m.avenidaX1 + f, y1, pt2);
+  const x = pt.x;
+  const y = pt.y;
+  const wd = pt2.x - pt.x;
+  const ht = pt2.y - pt.y;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, wd, ht);
+  ctx.clip();
+  drawAvenida(ctx, cam, m, { minX: b.minX, maxX: b.maxX, minY: y0, maxY: y1 });
+  // some no escuro do morro para o lado de fora
+  cam.toScreen(m.avenidaX0, longeY, pt);
+  const yLonge = pt.y;
+  cam.toScreen(m.avenidaX0, pertoY, pt); // pelas pontas fixas no mundo: os ladrilhos emendam
+  const g = ctx.createLinearGradient(0, pt.y, 0, yLonge);
+  g.addColorStop(0, 'rgba(30,24,20,0)');
+  g.addColorStop(0.35, 'rgba(30,24,20,0.25)');
+  g.addColorStop(1, 'rgba(30,24,20,0.95)');
+  ctx.fillStyle = g;
+  ctx.fillRect(x, y, wd, ht);
+  ctx.restore();
 }
 
 // Chão do Morro com a arte vista de cima (docs/arte/morro_figma/): quanto cada ladrilho cobre, em metros
@@ -293,31 +364,7 @@ function drawOrlaOnly(r, ctx, game, b) {
   }
 
   // avenida da praia: quatro faixas, dois sentidos, meio-fio dos dois lados e faixa dupla no meio
-  if (m.avenidaX0 !== undefined) {
-    band(m.avenidaX0, m.avenidaX1, '#36363b', 0.5);
-    const linha = (x, cor, w, dash) => {
-      cam.toScreen(x, b.minY, pt);
-      cam.toScreen(x, b.maxY, pt2);
-      ctx.strokeStyle = cor;
-      ctx.lineWidth = Math.max(1, ppu * w);
-      ctx.setLineDash(dash || []);
-      ctx.beginPath();
-      ctx.moveTo(pt.x, pt.y);
-      ctx.lineTo(pt2.x, pt2.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    };
-    band(m.avenidaX0 - 0.15, m.avenidaX0 + 0.15, '#b9b3a8');
-    band(m.avenidaX1 - 0.15, m.avenidaX1 + 0.15, '#b9b3a8');
-    // o calçadão é mais alto que o asfalto: a sombra do meio-fio cai na avenida (sol à esquerda)
-    band(m.avenidaX0 + 0.15, m.avenidaX0 + 0.55, 'rgba(0,0,0,0.3)');
-    band(m.avenidaX1 - 0.3, m.avenidaX1 - 0.15, 'rgba(255,236,210,0.18)');
-    const cx = (m.avenidaX0 + m.avenidaX1) / 2;
-    linha(cx - 0.12, 'rgba(235,190,40,0.85)', 0.08);
-    linha(cx + 0.12, 'rgba(235,190,40,0.85)', 0.08);
-    linha((m.avenidaX0 + cx) / 2, 'rgba(240,236,228,0.6)', 0.08, [ppu * 2, ppu * 2]);
-    linha((cx + m.avenidaX1) / 2, 'rgba(240,236,228,0.6)', 0.08, [ppu * 2, ppu * 2]);
-  }
+  if (m.avenidaX0 !== undefined) drawAvenida(ctx, cam, m, b);
 
   // ciclovia vermelha na beira da areia
   band(m.sandX - 1.6, m.sandX, '#7a3f38', 0.45);

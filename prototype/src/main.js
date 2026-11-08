@@ -5,7 +5,7 @@ import { minimapRect } from './minimapa.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, defaultSettings } from './settings.js';
-import { ENEMIES } from './config.js';
+import { ENEMIES, FAVELA } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
 import { loadImages, images, prewarm, carregarMorro, prewarmMorro } from './sprites.js';
@@ -169,7 +169,7 @@ btnMapa.addEventListener('click', () => {
   }
 });
 function updateMapaButton() {
-  const show = state === 'playing' && !!game.world && game.segment === 'morro' && !game.modal && !game.over;
+  const show = FAVELA.minimapa && state === 'playing' && !!game.world && game.segment === 'morro' && !game.modal && !game.over;
   if (!show) mapaAberto = false;
   if (mapaLast.open !== mapaAberto) {
     mapaLast.open = mapaAberto;

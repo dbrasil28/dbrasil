@@ -19,11 +19,22 @@ export class Input {
     layer.addEventListener('pointermove', (e) => this.move(e));
     layer.addEventListener('pointerup', (e) => this.up(e));
     layer.addEventListener('pointercancel', (e) => this.up(e));
+    // o celular às vezes engole o "soltou" (print, barra de notificação, gesto do sistema): sem isso o
+    // controle ficava preso num dedo que não existe mais e o Juninho parava de andar
+    layer.addEventListener('lostpointercapture', (e) => this.up(e));
+    if (typeof window === 'undefined') return;
+    window.addEventListener('pointerup', (e) => this.up(e));
+    window.addEventListener('pointercancel', (e) => this.up(e));
     window.addEventListener('keydown', (e) => {
       this.keys.add(e.key.toLowerCase());
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.key.toLowerCase()));
     window.addEventListener('blur', () => this.reset());
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) this.reset();
+      });
+    }
   }
 
   setMode(mode, viewH, bottomInset) {
@@ -46,7 +57,7 @@ export class Input {
   }
 
   down(e) {
-    if (this.pointerId !== null) return;
+    // um toque novo sempre assume o controle (o dedo antigo pode ter soltado sem avisar)
     const q = this.local(e);
     if (this.mode === 'fixed') {
       const d = Math.hypot(q.x - this.fixedPos.x, q.y - this.fixedPos.y);

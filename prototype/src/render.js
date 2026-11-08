@@ -1,6 +1,6 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA } from './config.js';
+import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA } from './config.js';
 import { images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto } from './mapa.js';
 import { drawMar } from './render_mar.js';
@@ -599,7 +599,7 @@ export class Renderer {
       if (game.crise) drawCriseCeu(ctx, game, cam, ppu, game.t, playerPx, cenarioInRange(game.world, bounds.minY - 3, bounds.maxY + 7, criseTmp));
       drawHolofoteCeu(ctx, game, cam, ppu, game.t); // facho do helicóptero, ou a claridade na beira da tela
       // mapa da favela no canto (no morro); aberto grande quando tocado
-      if (game.segment === 'morro' && !game.over) {
+      if (FAVELA.minimapa && game.segment === 'morro' && !game.over) {
         const open = !!(perf && perf.mapa);
         drawMinimap(ctx, game, cam, open ? performance.now() / 1000 : game.t, open);
       }

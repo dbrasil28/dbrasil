@@ -2,7 +2,7 @@
 // meio do calçadão, carrinhos, bancos, lixeiras, orelhões, postes, placas e a sujeira do chão; no morro,
 // motos, entulho, gatos de luz, caixas d'água, sinuca e varal nas lajes. Tudo determinístico por posição.
 // Os sólidos nunca fecham a rota: ficam longe das passagens, das escadas e do começo da partida.
-import { CENARIO, PLACES, ROUTE, CADEIRA_DIST, PREDIOS } from './config.js';
+import { CENARIO, PLACES, ROUTE, CADEIRA_DIST, PREDIOS, AVENIDA } from './config.js';
 import { hash2 } from './math.js';
 import { montarFavela } from './favela.js';
 
@@ -434,12 +434,18 @@ function morro(w) {
  * das lajes e vielas do morro), menos a passagem para o pedaço de cima. Desenho estático, com pichação,
  * cartazes de candidato e bandeira pendurada.
  */
-function fachadas(w) {
+function fachadas(w, map) {
   w.fachadas = [];
   for (let i = 0; i < w.path.length; i++) {
     const k = w.path[i];
     const up = w.path[i + 1];
-    const cuts = up ? [[k.x0, Math.max(k.x0, up.x0)], [Math.min(k.x1, up.x1), k.x1]] : [[k.x0, k.x1]];
+    let cuts = up ? [[k.x0, Math.max(k.x0, up.x0)], [Math.min(k.x1, up.x1), k.x1]] : [[k.x0, k.x1]];
+    if (i === 0 && map.avenidaX0 !== undefined) {
+      // a avenida da praia passa pelo muro do fim da Orla e segue (os carros saem por ela)
+      const a0 = map.avenidaX0 - AVENIDA.meioFioM;
+      const a1 = map.avenidaX1 + AVENIDA.meioFioM;
+      cuts = cuts.flatMap(([a, b]) => (b <= a0 || a >= a1 ? [[a, b]] : [[a, Math.max(a, a0)], [Math.min(b, a1), b]]));
+    }
     for (const [a, b] of cuts) {
       if (b - a < 0.8) continue;
       w.fachadas.push({ x0: a, x1: b, y: k.y0, h: i === 0 ? 3.2 : 2.8, seed: H(i, Math.round(a * 10), 801), orla: i === 0 });
@@ -463,7 +469,7 @@ export function placeCenario(w, map) {
   policia(w, map); // antes dos carros: o camburão tem vaga garantida no pé do morro
   for (let s = 0; s <= ROUTE.orla.blocks + 1; s++) rua(w, map, s);
   morro(w);
-  fachadas(w);
+  fachadas(w, map);
   montarFavela(w); // casas da favela em volta do caminho do Morro (arte no ângulo do jogo)
   w.props.sort((p, q) => p.y - q.y);
   w.litter.sort((p, q) => p.y - q.y);

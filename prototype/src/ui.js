@@ -84,6 +84,10 @@ export class UI {
   show(screen) {
     for (const id of ['screen-title', 'screen-pause', 'screen-result', 'screen-settings', 'screen-rota', 'screen-melhorias', 'screen-horda', 'screen-desafio', 'screen-ranking']) $(id).hidden = id !== screen;
     document.body.classList.toggle('in-menu', !!screen);
+    // o botão de pular a abertura é do HUD: some com o menu e é refeito quando a partida volta
+    const pular = document.getElementById('btn-pular');
+    if (pular) pular.hidden = true;
+    this.last.abertura = undefined;
   }
 
   // ---------- HUD ----------

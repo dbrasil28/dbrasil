@@ -1855,6 +1855,10 @@ body.mapa-aberto #warn {
   pointer-events: auto;
 }
 
+body.in-menu .btn-pular {
+  display: none;
+}
+
 .ranking-linha {
   margin-top: 6px;
   font-weight: 800;
