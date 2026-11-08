@@ -3,8 +3,9 @@
 // a PM e a tropa atiram, a garota dá bolsada em quem chega colado e o picolezeiro joga picolé, que congela.
 // Quando o Juninho passa perto, entram no grupo dele (até grupoMax) e vão atrás, lutando junto. A horda que
 // encosta tira vida deles; sem vida, viram telespectador e entram na horda. Um tempo depois, outro aparece no
-// lugar, fora da tela. Sem DOM.
+// lugar, fora da tela. Na abertura, antes de a horda atacar, ninguém entra no grupo. Sem DOM.
 import { FIGURANTES } from './config.js';
+import { emAbertura } from './abertura.js';
 
 const tmp = [];
 const sorteio = (game, [a, b]) => a + game.fxRng() * (b - a);
@@ -116,8 +117,8 @@ export function updateFigurantes(game, dt) {
       cai(game, f);
       continue;
     }
-    // o Juninho passou perto: entra no grupo
-    if (!f.grupo && !game.over && grupo < F.grupoMax && Math.hypot(p.x - f.x, p.y - f.y) < F.entraM && !(p.plat && p.lvl)) {
+    // o Juninho passou perto: entra no grupo (só depois de a horda começar a atacar: na abertura ninguém vai atrás dele)
+    if (!f.grupo && !game.over && !emAbertura(game) && grupo < F.grupoMax && Math.hypot(p.x - f.x, p.y - f.y) < F.entraM && !(p.plat && p.lvl)) {
       f.grupo = true;
       grupo++;
       f.pose = 'raiva'; // o punho para cima: tamo junto

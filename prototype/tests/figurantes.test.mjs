@@ -122,3 +122,29 @@ test('a horda mata um do grupo: ele vira telespectador, e depois outro aparece n
   assert.ok(volta, 'ninguém voltou para o lugar dela');
   assert.equal(w.figurantes.length, n0);
 });
+
+test('abertura: ninguém entra no grupo antes de a horda atacar; depois, entra', async () => {
+  const { emAbertura } = await import('../src/abertura.js');
+  const g = new Game({ ...defaultSettings(), elenco: false, aberta: false }, { seed: 12, meta: { abertura: true } });
+  g.player.hp = 1e9;
+  assert.ok(emAbertura(g), 'a partida não começou na abertura');
+  const w = g.world;
+  const ga = w.figurantes.find((f) => f.tipo === 'garota');
+  const cola = () => {
+    g.player.x = ga.x + 0.6;
+    g.player.y = ga.y;
+    g.player.plat = null;
+    g.player.lvl = 0;
+  };
+  for (let i = 0; i < 30 * 3; i++) {
+    cola();
+    g.update(DT, { x: 0, y: 0 });
+  }
+  assert.ok(emAbertura(g), 'a abertura acabou cedo demais para o teste');
+  assert.equal(w.figurantes.filter((f) => f.grupo).length, 0, 'entrou no grupo na abertura');
+  g.pularAbertura();
+  assert.ok(!emAbertura(g));
+  cola();
+  g.update(DT, { x: 0, y: 0 });
+  assert.ok(ga.grupo, 'depois da abertura, não entrou no grupo');
+});
