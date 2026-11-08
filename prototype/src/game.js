@@ -16,6 +16,7 @@ import { emHorda, iniciarHorda, updateHorda, durezaHorda } from './horda.js';
 import { updateMonstrao, limparMonstrao } from './monstrao.js';
 import { updateCracudo, updateTrombadinha, trombada, devolveXp } from './morro_inimigos.js';
 import { updateFigurantes } from './figurantes.js';
+import { arrancavelPerto, arrancar, updateArrancados } from './arrancar.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, stairOut, inside, routeRemaining } from './mundo.js';
@@ -1704,6 +1705,7 @@ export class Game {
         } else h.emptyT = 2;
       }
     }
+    updateArrancados(this, dt); // lixeiras, guarda-sóis e isopores arrancados voltam fora da tela
     const myPlat = p.plat && p.lvl === 1 ? p.plat : null;
     if (!p.carry) {
       if (emAbertura(this)) return; // na abertura ninguém ataca ainda: pegar cadeira ou mesa só deixaria o Juninho andando com ela na cabeça
@@ -1725,6 +1727,16 @@ export class Game {
         best.emptyT = 0;
         this.emit('pick', { kind: p.carry.kind });
         this.som('pega');
+        return;
+      }
+      // encostou numa lixeira, num guarda-sol ou num isopor da praia: arranca
+      const k = p.plat ? null : arrancavelPerto(this);
+      if (k) {
+        arrancar(this, k);
+        p.carry = { kind: k.kind, t: 0, v: k.v };
+        this.emit('pick', { kind: k.kind });
+        this.som('pega');
+        this.word(k.x, k.y - 1.6, 'ARRANCOU!', '#ffd21f');
       }
       return;
     }
@@ -1755,7 +1767,7 @@ export class Game {
     if (!target) return;
     const T = THROWABLES[p.carry.kind];
     this.projectiles.push({
-      kind: 'thrown', obj: p.carry.kind, sx: p.x, sy: p.y, x: p.x, y: p.y, tx: target.x, ty: target.y,
+      kind: 'thrown', obj: p.carry.kind, v: p.carry.v, sx: p.x, sy: p.y, x: p.x, y: p.y, tx: target.x, ty: target.y,
       t: 0, dur: I.flightS, h: 0, dmg: T.dmg * this.stats.dmgMul, radius: T.radius, src: 'objeto',
     });
     const l = Math.sqrt(td) || 1;

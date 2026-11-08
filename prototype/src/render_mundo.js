@@ -4,7 +4,7 @@ import { OBJ_ALTURA, OBJ_ESCALA, PLACES } from './config.js';
 import { drawPecaFavela } from './render_favela.js';
 import { inside } from './mundo.js';
 import { images } from './sprites.js';
-import { ART, ART_S, artKey } from './arte_cenario.js';
+import { ART, ART_S, artKey, artFile } from './arte_cenario.js';
 
 const a = { x: 0, y: 0 };
 const b = { x: 0, y: 0 };
@@ -140,10 +140,25 @@ export function drawStair(ctx, P, cam, ppu) {
 const VISTA = { s: ['s', false], se: ['se', false], e: ['se', false], ne: ['ne', false], n: ['n', false], nw: ['ne', true], w: ['se', true], sw: ['se', true] };
 export const GIRO = ['s', 'se', 'ne', 'n', 'nw', 'sw'];
 
-export function drawObject(ctx, kind, x, y, s, rot = 0, dir = 's') {
+export function drawObject(ctx, kind, x, y, s, rot = 0, dir = 's', v = 0) {
   // arte gerada: base do objeto no chão em (x, y); s = 0,42 da altura do Juninho na tela
   const [vd, flip] = VISTA[dir] || VISTA.s;
   const im = images[`obj_${kind}_${vd}`] || images[`obj_${kind}`];
+  const A = !im && ART[kind];
+  const ima = A && images[artKey(kind, artFile(kind, v) || 'a')];
+  if (ima) {
+    // arrancado do cenário (lixeira, guarda-sol, isopor): a arte do cenário, do tamanho que tinha no chão
+    // (o Juninho tem uns 1,6 m de cenário na tela), sem a sombra que fica abaixo da linha do chão
+    const k = s / 0.42 / 1.6 / ART_S;
+    const sh = Math.min(ima.height, A.top * ART_S);
+    const cx = (A.padX + A.w / 2) * ART_S;
+    ctx.save();
+    ctx.translate(x, y - (sh * k) / 2);
+    if (rot) ctx.rotate(rot);
+    ctx.drawImage(ima, 0, 0, ima.width, sh, -cx * k, (-sh * k) / 2, ima.width * k, sh * k);
+    ctx.restore();
+    return;
+  }
   if (im && OBJ_ALTURA[kind]) {
     // vistas do giro: mesma escala da diagonal da frente (220 px de altura)
     const ref = images[`obj_${kind}_se`] ? 220 : im.height;

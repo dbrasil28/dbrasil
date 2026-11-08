@@ -592,6 +592,12 @@ export class OrlaLayer {
       this.tiles.clear();
       this.key = key;
     }
+    // objeto arrancado ou de volta (arrancar.js): refaz os blocos da sombra dele
+    const w = game.world;
+    if (w && w.chaoMudou && w.chaoMudou.length) {
+      for (const [y0, y1] of w.chaoMudou) for (let j = Math.floor((y0 - TILE_M) / TILE_M); j <= Math.floor((y1 + TILE_M) / TILE_M); j++) this.tiles.delete(j);
+      w.chaoMudou.length = 0;
+    }
     const x0 = m.minX - 16; // espaço para os prédios da borda
     const x1 = m.seaX + 6;
     const j0 = Math.floor(vb.minY / TILE_M);

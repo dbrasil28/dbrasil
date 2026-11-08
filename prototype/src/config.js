@@ -359,7 +359,7 @@ export const REACOES = {
 };
 
 export const LAJE = { subirChance: 0.12, maxSubindo: 3, sorteioS: [3, 6], vaoM: 1.6, chegouM: 0.35 };
-export const INTERACT = { pickR: 1.0, holdS: 0.25, throwRange: 8, flightS: 0.5, arcM: 2.4, respawnS: 35, respawnMinDistM: 14 };
+export const INTERACT = { pickR: 1.0, arrancaM: 0.55, holdS: 0.25, throwRange: 8, flightS: 0.5, arcM: 2.4, respawnS: 35, respawnMinDistM: 14 }; // arrancaM: distância da borda de uma lixeira, guarda-sol ou isopor para arrancar
 export const THROWABLES = {
   cadeira: { name: 'Cadeira de plástico', dmg: 28, radius: 1.3, som: 'quebra_plastico' },
   mesa: { name: 'Mesa de plástico', dmg: 45, radius: 1.8, som: 'quebra_plastico' },
@@ -368,6 +368,11 @@ export const THROWABLES = {
   botijao: { name: 'Botijão de gás', dmg: 90, radius: 2.8, selfDmg: 16, explosive: true, som: 'explosao' }, // machuca o Juninho se estiver perto
   banquinho: { name: 'Banquinho de plástico', dmg: 22, radius: 1.2, som: 'quebra_plastico' },
   pneu: { name: 'Pneu velho', dmg: 30, radius: 1.5, som: 'baque' },
+  // arrancados do cenário (pedido do autor, 08/11/2026): o Juninho encosta e arranca; o lugar fica vazio e
+  // outro volta depois de INTERACT.respawnS, fora da tela. A arte é a do cenário (arte_cenario.js)
+  lixeira: { name: 'Lixeira', dmg: 30, radius: 1.5, som: 'baque', arranca: true },
+  guarda_sol: { name: 'Guarda-sol', dmg: 26, radius: 2.0, som: 'quebra_madeira', arranca: true }, // a copa larga pega mais gente
+  isopor: { name: 'Isopor', dmg: 22, radius: 1.4, som: 'quebra_plastico', arranca: true },
 };
 // Curas dos lugares: coco do quiosque, açaí, pastel e milho das barracas.
 // Voltam depois de um tempo, fora da tela. O açaí também deixa o Juninho mais rápido por uns segundos.

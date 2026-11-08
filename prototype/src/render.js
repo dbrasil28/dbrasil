@@ -617,7 +617,7 @@ export class Renderer {
           if (o.carry) {
             // carregando acima da cabeça: nas mãos erguidas (caminhada de carregar); sem ela, sobre a cabeça
             const naMao = walkReady(WALK_ATLAS.jc) ? 1.04 : 0.95;
-            drawObject(ctx, o.carry.kind, pt.x, pt.y - playerPx * naMao, playerPx * 0.4, Math.sin(t * 9) * 0.04);
+            drawObject(ctx, o.carry.kind, pt.x, pt.y - playerPx * naMao, playerPx * 0.4, Math.sin(t * 9) * 0.04, 's', o.carry.v);
           }
           break;
         }
@@ -1799,7 +1799,7 @@ function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
     ctx.beginPath();
     ctx.ellipse(pt.x, pt.y, s * 0.28, s * 0.09, 0, 0, Math.PI * 2);
     ctx.fill();
-    drawObject(ctx, o.obj, pt.x, pt.y - o.h * ppu - playerPx * 0.3, s, Math.sin(o.t * 9) * 0.5, GIRO[Math.floor(o.t * 16) % GIRO.length]); // gira no ar
+    drawObject(ctx, o.obj, pt.x, pt.y - o.h * ppu - playerPx * 0.3, s, Math.sin(o.t * 9) * 0.5, GIRO[Math.floor(o.t * 16) % GIRO.length], o.v); // gira no ar
     return;
   }
   if (o.kind === 'boomerang' || o.kind === 'slipper') {
