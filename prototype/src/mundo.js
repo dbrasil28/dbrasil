@@ -307,6 +307,18 @@ export function stairProgress(S, x, y) {
   }
 }
 
+/** Fora da escada, logo depois do pé: aonde vai quem desce (o pé fica dentro da escada, e quem parasse nele não sairia). */
+export function stairOut(P, out) {
+  const S = P.stair;
+  const cx = (S.x0 + S.x1) / 2;
+  const cy = (S.y0 + S.y1) / 2;
+  if (S.dir === 'n') { out.x = cx; out.y = S.y1 + 0.9; }
+  else if (S.dir === 's') { out.x = cx; out.y = S.y0 - 0.9; }
+  else if (S.dir === 'e') { out.x = S.x0 - 0.9; out.y = cy; }
+  else { out.x = S.x1 + 0.9; out.y = cy; }
+  return out;
+}
+
 /** Pé da escada (onde se começa a subir), um pouco para fora. */
 export function stairFoot(P, out) {
   const S = P.stair;
@@ -347,7 +359,12 @@ function clampInto(k, e, r) {
  * Lajes com escada: quem está no chão não atravessa a laje nem o meio da escada (só sobe pelo pé);
  * quem está em cima não sai pela borda, só desce pela escada. Define e.plat, e.lvl (0 ou 1) e e.z (m).
  */
-export function applyLevels(w, e) {
+/**
+ * Níveis: chão, escada e laje. podeSubir: true (o Juninho) ou a única laje em que esta entidade pode entrar pela
+ * escada (null: nenhuma; para os outros a escada é parede). slide > 0 (inimigos): batendo na casa ou na escada,
+ * escorrega para a quina e contorna, em vez de ficar empurrando a parede.
+ */
+export function applyLevels(w, e, podeSubir = true, slide = 0) {
   const r = (e.r || 0.3) * 0.8;
   if (e.plat) {
     const P = e.plat;
@@ -393,6 +410,13 @@ export function applyLevels(w, e) {
   for (const P of w.platforms) {
     if (e.x < P.bx0 || e.x > P.bx1 || e.y < P.by0 || e.y > P.by1) continue;
     const S = P.stair;
+    if (podeSubir !== true && podeSubir !== P) {
+      // não vai subir: a casa e a escada são um bloco só, contornado de uma vez (duas caixas encostadas
+      // fariam o inimigo ir de uma para a outra na junção)
+      if (!P.bloco) P.bloco = { x0: Math.min(P.x0, S.x0), y0: Math.min(P.y0, S.y0), x1: Math.max(P.x1, S.x1), y1: Math.max(P.y1, S.y1) };
+      desliza(w, P.bloco, e, r, slide);
+      continue;
+    }
     if (inside(S, e.x, e.y)) {
       const pr = stairProgress(S, e.x, e.y);
       if (pr <= 0.3) {
@@ -401,10 +425,41 @@ export function applyLevels(w, e) {
         e.z = P.h * Math.max(0, pr);
         return;
       }
-      pushOut(S, e, r);
+      desliza(w, S, e, r, slide);
     }
-    pushOut(P, e, r);
+    desliza(w, P, e, r, slide);
   }
+}
+
+/**
+ * Empurra para fora da caixa; com slide, escorrega ao longo da parede para contornar. O lado é a quina que dá o
+ * caminho mais curto até o alvo dele (e.tgx, e.tgy) e fica escolhido enquanto ele estiver na mesma parede: sem
+ * isso, quem tem o alvo bem atrás da casa escorrega para o meio da parede e fica empurrando ali.
+ */
+function desliza(w, k, e, r, slide) {
+  const side = pushOut(k, e, r);
+  if (!side || !slide) return;
+  const tx = e.tgx ?? e.x + (e.mx || 0) * 5;
+  const ty = e.tgy ?? e.y + (e.my || 0) * 5;
+  if (e.ladoK !== k || e.ladoS !== side) {
+    let a;
+    let b;
+    if (side === 2) {
+      a = Math.abs(e.x - (k.x0 - r)) + Math.hypot(tx - (k.x0 - r), ty - e.y);
+      b = Math.abs(k.x1 + r - e.x) + Math.hypot(tx - (k.x1 + r), ty - e.y);
+    } else {
+      a = Math.abs(e.y - (k.y0 - r)) + Math.hypot(tx - e.x, ty - (k.y0 - r));
+      b = Math.abs(k.y1 + r - e.y) + Math.hypot(tx - e.x, ty - (k.y1 + r));
+    }
+    let dir = a <= b ? -1 : 1;
+    const fora = side === 2 ? (dir < 0 ? k.x0 - 2 * r : k.x1 + 2 * r) : dir < 0 ? k.y0 - 2 * r : k.y1 + 2 * r;
+    if (!(side === 2 ? cabe(w, fora, e.y, e.ri) : cabe(w, e.x, fora, e.ri))) dir = -dir;
+    e.ladoK = k;
+    e.ladoS = side;
+    e.lado = dir;
+  }
+  if (side === 2) e.x += e.lado * slide;
+  else e.y += e.lado * slide;
 }
 
 const CORNER_M = 0.45; // perto da ponta do sólido: o jogador escorrega pela quina

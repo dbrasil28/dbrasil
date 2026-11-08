@@ -16,7 +16,7 @@ import { updateMonstrao, limparMonstrao } from './monstrao.js';
 import { updateCracudo, updateTrombadinha, trombada, devolveXp } from './morro_inimigos.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
-import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside, routeRemaining } from './mundo.js';
+import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, stairOut, inside, routeRemaining } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones, updateDogs } from './weapons.js';
 import { rollOptions, rollNewWeapons, applyOption, playerStats } from './upgrades.js';
 
@@ -1194,6 +1194,7 @@ export class Game {
         ty = rt.y;
       } else if (this.world) {
         const PP = p.plat;
+        let saindo = false;
         if (PP && !e.plat && !this.vaiSubir(e, PP)) {
           // cerco: fica em volta da casa (e da escada), colado na parede, sem subir
           const S = PP.stair;
@@ -1231,23 +1232,26 @@ export class Game {
           tx = rt.x;
           ty = rt.y;
         } else if (e.plat !== p.plat) {
-          if (e.plat) stairFoot(e.plat, rt); // descer da laje pela escada
+          if (e.plat) stairOut(e.plat, rt); // descer da laje pela escada, até sair dela
           else stairFoot(p.plat, rt); // ir até o pé da escada da laje do Juninho
           if (e.plat && e.lvl === 1 && !inside(e.plat.stair, e.x, e.y)) stairTopOf(e.plat, rt);
           tx = rt.x;
           ty = rt.y;
+          saindo = !!e.plat; // primeiro sai da laje e da escada; a rota até o Juninho vem depois
         } else if (e.plat && e.lvl === 0 && p.lvl === 1) {
           stairTopOf(e.plat, rt); // está na escada: termina de subir
           tx = rt.x;
           ty = rt.y;
         }
-        if (!(PP && !e.plat && !e.sobe && !e.boss)) {
+        if (!saindo && !(PP && !e.plat && !e.sobe && !e.boss)) {
           e.cerco = false;
           routeTarget(this.world, e, tx, ty, p.ri, rt);
           tx = rt.x;
           ty = rt.y;
         }
       }
+      e.tgx = tx; // alvo do quadro: quem bate na casa contorna pela quina mais curta até ele (mundo.js)
+      e.tgy = ty;
       const dpx = p.x - e.x;
       const dpy = p.y - e.y;
       const d = Math.hypot(dpx, dpy) || 1;
@@ -1517,7 +1521,8 @@ export class Game {
       e.x += (mx * spd * sandMul + e.kx) * dt;
       e.y += (my * spd * sandMul + e.ky) * dt;
       this.clampToMap(e);
-      if (this.world) applyLevels(this.world, e);
+      // só entra na escada quem vai subir na laje do Juninho; para os outros ela é parede, e quem bate contorna
+      if (this.world) applyLevels(this.world, e, p.plat && (e.boss || (e.sobe && e.sobeP === p.plat)) ? p.plat : e.plat, 0.05);
       const decay = Math.exp(-9 * dt);
       e.kx *= decay;
       e.ky *= decay;

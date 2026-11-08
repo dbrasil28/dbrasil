@@ -325,3 +325,53 @@ test('laje: com o Juninho lá em cima, a horda cerca a casa e só uns poucos sob
   assert.ok(maxEmCima <= LAJE.maxSubindo + 1, `${maxEmCima} subiram ao mesmo tempo`);
   assert.ok(vivos.every((e) => !(e.x > P.x0 + 0.1 && e.x < P.x1 - 0.1 && e.y > P.y0 + 0.1 && e.y < P.y1 - 0.1)), 'inimigo do chão dentro da casa');
 });
+
+test('laje: com o Juninho no chão, quem está na escada desce e sai dela, sem ficar tremendo', () => {
+  // ao lado e atrás da casa: antes, o alvo era o pé da escada (dentro dela) e quem ia para trás da casa
+  // entrava na escada, era mandado descer e entrava de novo
+  // (dx, dy) a partir do pé da escada (S.y1): abaixo e à esquerda, à esquerda da casa, e atrás dela
+  for (const [dx, dy] of [[-5, 4], [-7, -1], [0, -11.2]]) {
+    const g = new Game({ ...defaultSettings(), elenco: false, aberta: false }, { seed: 5, meta: { trecho: 'morro' } });
+    const P = g.world.platforms.find((q) => q.kind === 'laje_casa');
+    const S = P.stair;
+    const p = g.player;
+    g.update(1 / 30, { x: 0, y: 0 });
+    g.enemies.length = 0;
+    g.spawnAcc = -1e9;
+    g.eventIndex = 99;
+    p.xpNext = 1e9;
+    p.weapons.length = 0; // ninguém morre: o teste é de andar
+    p.x = (S.x0 + S.x1) / 2 + dx;
+    p.y = S.y1 + dy;
+    p.plat = null;
+    p.lvl = 0;
+    p.z = 0;
+    g.clampToMap(p);
+    assert.ok(!inside(P, p.x, p.y) && !inside(S, p.x, p.y), 'o Juninho ficou dentro da casa');
+    const naEscada = [];
+    for (let i = 0; i < 3; i++) {
+      const e = g.spawnEnemy('telespectador', (S.x0 + S.x1) / 2, S.y0 + (S.y1 - S.y0) * (0.35 + i * 0.15));
+      e.plat = P;
+      e.lvl = 0;
+      e.z = P.h * 0.5;
+      naEscada.push(e);
+    }
+    const ult = naEscada.map((e) => ({ x: e.x, y: e.y, vx: 0, vy: 0, volta: 0 }));
+    for (let i = 0; i < 30 * 6; i++) {
+      g.update(1 / 30, { x: 0, y: 0 });
+      p.hp = Math.max(p.hp, 50);
+      naEscada.forEach((e, k) => {
+        const u = ult[k];
+        const vx = e.x - u.x;
+        const vy = e.y - u.y;
+        // colado no Juninho, empurrando para atacar, é normal ir e voltar: conta só longe dele
+        const longe = Math.hypot(e.x - p.x, e.y - p.y) > 1.5;
+        if (longe && Math.hypot(vx, vy) > 0.002 && vx * u.vx + vy * u.vy < 0) u.volta++;
+        Object.assign(u, { x: e.x, y: e.y, vx, vy });
+      });
+    }
+    const presos = naEscada.filter((e) => e.plat || inside(S, e.x, e.y));
+    assert.equal(presos.length, 0, `Juninho em (${dx}, ${dy}): ${presos.length} continuaram na escada`);
+    assert.ok(ult.every((u) => u.volta < 20), `Juninho em (${dx}, ${dy}): vai e volta ${ult.map((u) => u.volta)}`);
+  }
+});
