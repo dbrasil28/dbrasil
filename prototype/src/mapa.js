@@ -509,17 +509,19 @@ function drawOrlaOnly(r, ctx, game, b) {
     ctx.lineTo(pt2.x, pt2.y);
     ctx.stroke();
     ctx.setLineDash([]);
-    // faixa de pedestre na esquina da avenida, e outra atravessando a avenida
+    // faixa de pedestre na esquina da avenida, e outra atravessando a avenida. As listras ficam no sentido
+    // dos carros (na transversal, de lado; na avenida, de cima para baixo), uma do lado da outra de uma
+    // calçada à outra
     ctx.fillStyle = 'rgba(235,232,225,0.75)';
-    for (let x = rx1 - 3.4; x < rx1 - 0.3; x += 0.9) {
-      cam.toScreen(x, ys + 1, pt);
-      cam.toScreen(x + 0.5, ye - 1, pt2);
+    for (let y = ys + 0.8; y + 0.5 < ye - 0.6; y += 0.9) {
+      cam.toScreen(rx1 - 3.4, y, pt);
+      cam.toScreen(rx1 - 0.6, y + 0.5, pt2);
       ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
     }
     if (m.avenidaX0 !== undefined) {
-      for (let y = ys + 1.2; y < ys + 4.6; y += 0.9) {
-        cam.toScreen(m.avenidaX0 + 0.3, y, pt);
-        cam.toScreen(m.avenidaX1 - 0.3, y + 0.5, pt2);
+      for (let x = m.avenidaX0 + 0.6; x + 0.5 < m.avenidaX1 - 0.4; x += 0.9) {
+        cam.toScreen(x, ys + 1.2, pt);
+        cam.toScreen(x + 0.5, ys + 4.4, pt2);
         ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
       }
     }

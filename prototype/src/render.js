@@ -290,6 +290,14 @@ export class Renderer {
         case 'trafego': {
           // carro andando na avenida: de frente quando desce, de traseira quando sobe; sombra longa como a do cenário
           const im = images[`trafego_${o.modelo}_${o.sentido > 0 ? 'sul' : 'norte'}`];
+          // depois do muro do fim e da obra do começo, o carro some aos poucos no escuro da avenida
+          const wl = game.world;
+          const some = wl
+            ? Math.max(0, Math.min(1, (o.y - (wl.orlaTop - AVENIDA.foraM)) / AVENIDA.someM, (wl.orla.y1 + AVENIDA.foraM - o.y) / AVENIDA.someM))
+            : 1;
+          if (some <= 0) break;
+          ctx.save();
+          ctx.globalAlpha = some;
           const sx = SOMBRA.dx * 1.5 * ppu;
           const sy = SOMBRA.dy * 1.5 * ppu * cam.k;
           ctx.fillStyle = `rgba(20,10,30,${SOMBRA.alpha})`;
@@ -313,6 +321,7 @@ export class Renderer {
             ctx.fillStyle = '#7f8896';
             ctx.fillRect(pt.x - (o.wid * ppu) / 2, pt.y - o.len * ppu * cam.k - 1.4 * ppu, o.wid * ppu, o.len * ppu * cam.k + 1.4 * ppu);
           }
+          ctx.restore();
           break;
         }
         case 'cen': {

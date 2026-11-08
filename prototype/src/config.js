@@ -284,6 +284,8 @@ export const AVENIDA = {
   avisoM: 16, // carro vindo por trás, nessa distância, na faixa do Juninho: aviso
   meioFioM: 0.35, // o muro do fim da Orla abre a avenida mais esta folga dos dois lados (o meio-fio)
   foraM: 30, // a avenida segue esses metros depois do muro do fim e da obra do começo; os carros saem por ela
+  livreM: 14, // e nenhuma casa da favela fica em cima dela até essa folga além do fim
+  someM: 12, // os carros somem aos poucos nos últimos metros da avenida, no escuro
   // (o Juninho e a horda não passam: a área de andar acaba no muro)
   modelos: ['fusca', 'brasilia', 'uno'],
   // rodas girando (tools/rodas-carros.py): por vista, a caixa de cada roda na imagem do carro [x, y, w, h] e a
@@ -358,13 +360,13 @@ export const REACOES = {
 export const LAJE = { subirChance: 0.12, maxSubindo: 3, sorteioS: [3, 6], vaoM: 1.6, chegouM: 0.35 };
 export const INTERACT = { pickR: 1.0, holdS: 0.25, throwRange: 8, flightS: 0.5, arcM: 2.4, respawnS: 35, respawnMinDistM: 14 };
 export const THROWABLES = {
-  cadeira: { name: 'Cadeira de plástico', dmg: 28, radius: 1.3 },
-  mesa: { name: 'Mesa de plástico', dmg: 45, radius: 1.8 },
-  cadeira_praia: { name: 'Cadeira de praia', dmg: 32, radius: 1.5 },
-  engradado: { name: 'Engradado', dmg: 36, radius: 1.5 },
-  botijao: { name: 'Botijão de gás', dmg: 90, radius: 2.8, selfDmg: 16, explosive: true }, // machuca o Juninho se estiver perto
-  banquinho: { name: 'Banquinho de plástico', dmg: 22, radius: 1.2 },
-  pneu: { name: 'Pneu velho', dmg: 30, radius: 1.5 },
+  cadeira: { name: 'Cadeira de plástico', dmg: 28, radius: 1.3, som: 'quebra_plastico' },
+  mesa: { name: 'Mesa de plástico', dmg: 45, radius: 1.8, som: 'quebra_plastico' },
+  cadeira_praia: { name: 'Cadeira de praia', dmg: 32, radius: 1.5, som: 'quebra_madeira' },
+  engradado: { name: 'Engradado', dmg: 36, radius: 1.5, som: 'quebra_madeira' },
+  botijao: { name: 'Botijão de gás', dmg: 90, radius: 2.8, selfDmg: 16, explosive: true, som: 'explosao' }, // machuca o Juninho se estiver perto
+  banquinho: { name: 'Banquinho de plástico', dmg: 22, radius: 1.2, som: 'quebra_plastico' },
+  pneu: { name: 'Pneu velho', dmg: 30, radius: 1.5, som: 'baque' },
 };
 // Curas dos lugares: coco do quiosque, açaí, pastel e milho das barracas.
 // Voltam depois de um tempo, fora da tela. O açaí também deixa o Juninho mais rápido por uns segundos.
@@ -917,4 +919,61 @@ export const TV = {
   rival: ['RIVAL PATROCINADO ENTRA NA DISPUTA. LOGO BEM VISÍVEL'],
   death: ['ENTREGADOR NÃO RESISTE. APP DESCONTA A ENTREGA'],
   victory: ['MONSTRÃO VAI AO CHÃO. ACADEMIA DA PRAIA FICA SEM DONO'],
+};
+
+// Sons (docs/som/PEDIDO_SONS.md). Cada som: vol (0 a 1), max (quantos iguais ao mesmo tempo), espera (s
+// mínimos entre dois iguais), prio (1 a 3: quem fica quando estoura o limite de vozes), perto (false: não
+// diminui com a distância, para avisos e interface), varia (variação de tom, ±), arquivos (quantas variações
+// gravadas em assets/sons/<id>_<n>.mp3; 0 = som provisório feito em código, sons.js).
+const S = (vol, max = 3, espera = 0.05, prio = 1, o = {}) => ({ vol, max, espera, prio, perto: true, varia: 0.06, arquivos: 0, ...o });
+const FIXO = { perto: false };
+export const SOM = {
+  vozes: 22, // máximo de sons tocando juntos
+  ouvidoM: 24, // além disso, um som de longe toca no mínimo (longeMin)
+  longeMin: 0.15,
+  panM: 14, // quanto de lado (m) vira som todo num ouvido (até panMax)
+  panMax: 0.75,
+  gemidoCadaS: [1.4, 3.2], // a horda geme de tempos em tempos quando há gente perto (gemidoM)
+  gemidoM: 9,
+  amb: { orla: 'amb_orla', morro: 'amb_morro' }, // ambiente de cada trecho, em laço
+  ambVol: 0.5,
+};
+export const SONS = {
+  // Juninho
+  dano: S(0.75, 1, 0.3, 3, FIXO), morte: S(0.9, 1, 1, 3, FIXO), nivel: S(0.55, 1, 0.3, 2, FIXO),
+  xp: S(0.22, 3, 0.04, 1, { varia: 0.12 }), cura: S(0.5, 1, 0.15, 2), gorjeta: S(0.45, 2, 0.08, 2),
+  pega: S(0.5, 1, 0.1, 2), arremesso: S(0.45, 3, 0.06, 1),
+  // golpes e horda
+  golpe: S(0.4, 4, 0.03, 1, { varia: 0.12 }), bonk: S(0.45, 3, 0.04, 1, { varia: 0.1 }), tapa: S(0.5, 3, 0.04, 1, { varia: 0.1 }),
+  morte_horda: S(0.45, 4, 0.04, 1, { varia: 0.15 }), morte_elite: S(0.8, 2, 0.1, 3),
+  acorda: S(0.3, 2, 0.1, 1), gemido: S(0.3, 2, 0.5, 1, { varia: 0.15 }),
+  quebra_plastico: S(0.6, 2, 0.05, 2), quebra_madeira: S(0.6, 2, 0.05, 2), baque: S(0.6, 2, 0.05, 2),
+  explosao: S(0.9, 2, 0.08, 3), atropelo: S(0.7, 2, 0.08, 2), buzina: S(0.5, 1, 0.5, 2),
+  // habilidades
+  chinelo: S(0.4, 2, 0.05, 1), boleto: S(0.3, 1, 0.2, 1), carimbo: S(0.7, 2, 0.05, 2), picole: S(0.45, 2, 0.1, 1),
+  moto: S(0.6, 1, 0.3, 2), megafone: S(0.35, 1, 0.3, 1), gato: S(0.45, 2, 0.08, 1), latido: S(0.55, 1, 0.25, 2),
+  mordida: S(0.5, 2, 0.08, 1), bola: S(0.45, 2, 0.06, 1), paredao: S(0.85, 1, 0.5, 2),
+  // inimigos
+  grito_funkeiro: S(0.55, 2, 0.3, 2), mira: S(0.4, 2, 0.15, 3), tiro: S(0.65, 4, 0.04, 2), radio: S(0.5, 1, 0.5, 2),
+  urro: S(0.8, 1, 0.6, 3), investida: S(0.75, 1, 0.3, 3), soco_chao: S(0.9, 1, 0.2, 3), anilha: S(0.55, 2, 0.2, 2),
+  carro_cai: S(0.9, 1, 0.3, 3), cata: S(0.35, 2, 0.2, 1), roubo: S(0.6, 1, 0.3, 3), multa: S(0.5, 1, 0.5, 2),
+  // avisos, crises e chefão
+  aviso_chao: S(0.4, 2, 0.15, 3), crise: S(0.55, 1, 1, 3, FIXO), onda: S(0.7, 1, 1, 2, FIXO), apagao: S(0.7, 1, 1, 3, FIXO),
+  faisca: S(0.5, 3, 0.08, 2), chefe: S(0.75, 1, 2, 3, FIXO), fase: S(0.7, 1, 1, 3, FIXO),
+  // interface e TV
+  toque: S(0.3, 2, 0.05, 2, FIXO), carta: S(0.4, 1, 0.1, 2, FIXO), cofre: S(0.6, 1, 0.5, 3, FIXO),
+  reliquia: S(0.6, 1, 1, 3, FIXO), passagem: S(0.55, 1, 1, 3, FIXO),
+  // ambiente (em laço, um por trecho)
+  amb_orla: S(1, 1, 0, 1, FIXO), amb_morro: S(1, 1, 0, 1, FIXO),
+};
+// som do golpe em quem leva, por habilidade (null: a habilidade já tem o som dela, ou é contínua)
+export const SOM_GOLPE = {
+  capacete: 'bonk', entrega: 'bonk', chinelo: 'tapa', altinha: 'bola', mototaxi: 'atropelo', carro: 'atropelo',
+  caramelo: null, microfone: null, gato: null, curto: null, ressaca: null, paredao: null, objeto: null, carimbo: null,
+  maleta: null, explosao: null, ressacaOnda: null,
+};
+// som de quando a habilidade dispara (null: o som vem no impacto)
+export const SOM_ARMA = {
+  capacete: 'arremesso', entrega: 'arremesso', chinelo: 'chinelo', boleto: 'boleto', maleta: 'arremesso', picole: 'picole',
+  mototaxi: 'moto', microfone: 'megafone', gato: 'gato', carimbo: null, caramelo: null,
 };

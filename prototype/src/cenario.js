@@ -471,6 +471,13 @@ export function placeCenario(w, map) {
   morro(w);
   fachadas(w, map);
   montarFavela(w); // casas da favela em volta do caminho do Morro (arte no ângulo do jogo)
+  if (map.avenidaX0 !== undefined) {
+    // a avenida que segue depois do muro do fim da Orla não passa por dentro de casa
+    const a0 = map.avenidaX0 - AVENIDA.meioFioM;
+    const a1 = map.avenidaX1 + AVENIDA.meioFioM;
+    const longe = w.orlaTop - AVENIDA.foraM - AVENIDA.livreM;
+    w.casas = w.casas.filter((c) => !(c.x1 > a0 && c.x0 < a1 && c.y0 < w.orlaTop && c.y1 > longe));
+  }
   w.props.sort((p, q) => p.y - q.y);
   w.litter.sort((p, q) => p.y - q.y);
   w.solidGrid = new Map();
