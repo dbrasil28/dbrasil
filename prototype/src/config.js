@@ -956,7 +956,7 @@ export const SOM = {
 };
 export const SONS = {
   // Juninho
-  dano: S(0.85, 1, 0.3, 3, FIXO), morte: S(1, 1, 1, 3, FIXO), nivel: S(0.55, 1, 0.3, 2, FIXO),
+  dano: S(0.85, 1, 0.3, 3, FIXO), morte: S(1, 1, 1, 3, FIXO), nivel: S(0.75, 1, 0.3, 2, FIXO),
   xp: S(0.6, 3, 0.04, 1, { varia: 0.12 }), cura: S(0.5, 1, 0.15, 2), gorjeta: S(1.1, 2, 0.08, 2),
   pega: S(0.5, 1, 0.1, 2), arremesso: S(0.45, 3, 0.06, 1),
   // golpes e horda
@@ -965,14 +965,14 @@ export const SONS = {
   acorda: S(0.5, 2, 0.1, 1), gemido: S(0.5, 2, 0.5, 1, { varia: 0.15 }),
   quebra_plastico: S(1.2, 2, 0.05, 2), quebra_madeira: S(0.95, 2, 0.05, 2), baque: S(0.95, 2, 0.05, 2),
   explosao: S(1.4, 2, 0.08, 3), atropelo: S(0.7, 2, 0.08, 2), buzina: S(0.5, 1, 0.5, 2),
-  lataria: S(0.5, 3, 0.05, 1, { varia: 0.12 }), pega_fogo: S(0.7, 2, 0.3, 3), // porrada no carro; o carro pegou fogo (aviso)
+  lataria: S(0.45, 3, 0.05, 1, { varia: 0.12 }), pega_fogo: S(0.7, 2, 0.3, 3), // porrada no carro; o carro pegou fogo (aviso)
   // habilidades
   chinelo: S(0.4, 2, 0.05, 1), boleto: S(0.3, 1, 0.2, 1), carimbo: S(0.7, 2, 0.05, 2), picole: S(0.45, 2, 0.1, 1),
-  moto: S(0.6, 1, 0.3, 2), megafone: S(0.35, 1, 0.3, 1), gato: S(0.45, 2, 0.08, 1), latido: S(0.55, 1, 0.25, 2),
+  moto: S(0.6, 1, 0.3, 2), megafone: S(0.35, 1, 0.3, 1), gato: S(0.45, 2, 0.08, 1), latido: S(0.5, 1, 0.25, 2),
   mordida: S(0.5, 2, 0.08, 1), bola: S(0.45, 2, 0.06, 1), paredao: S(0.85, 1, 0.5, 2),
   // inimigos
   grito_funkeiro: S(0.8, 2, 0.3, 2), mira: S(0.4, 2, 0.15, 3), tiro: S(1.4, 4, 0.04, 2), radio: S(0.5, 1, 0.5, 2),
-  urro: S(0.8, 1, 0.6, 3), investida: S(0.75, 1, 0.3, 3), soco_chao: S(1.1, 1, 0.2, 3), anilha: S(0.55, 2, 0.2, 2),
+  urro: S(0.9, 1, 0.6, 3), investida: S(0.75, 1, 0.3, 3), soco_chao: S(1.1, 1, 0.2, 3), anilha: S(0.55, 2, 0.2, 2),
   carro_cai: S(0.9, 1, 0.3, 3), cata: S(0.35, 2, 0.2, 1), roubo: S(0.6, 1, 0.3, 3), multa: S(0.5, 1, 0.5, 2),
   // avisos, crises e chefão
   aviso_chao: S(0.4, 2, 0.15, 3), crise: S(0.55, 1, 1, 3, FIXO), onda: S(0.7, 1, 1, 2, FIXO), apagao: S(0.7, 1, 1, 3, FIXO),

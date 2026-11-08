@@ -7,7 +7,7 @@ O jogo já toca todos os sons abaixo (60), mas com versões provisórias feitas 
 
 - CC0 do OpenGameArt, segunda rodada (08/11/2026): `xp`, `gorjeta`, `acorda`, `tiro` e `soco_chao`.
 
-Nas duas rodadas o autor recusou todas as opções de `nivel`, `mira`, `urro`, `latido` e `lataria`; seguem com o provisório.
+- CC0 do OpenGameArt, terceira rodada (08/11/2026): `nivel`, `mira` (a arma engatilhando), `urro`, `latido` e `lataria`.
 
 ## Como gerar
 

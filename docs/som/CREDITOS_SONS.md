@@ -70,3 +70,22 @@ Aprovados pelo autor na sala de som em 08/11/2026.
 | `acorda_1`, `acorda_2` | dois trechos de 0,3 s de radio_noise_loop.wav, com o fim cortado seco | [Radio noise 1](https://opengameart.org/content/radio-noise-1) | Kresiek The Furry |
 | `tiro_1`, `tiro_2` | o último tiro de cada rajada de ak47.ogg | [The Free Firearm Sound Library](https://opengameart.org/content/the-free-firearm-sound-library) | Ben Jaszczak e equipe |
 | `soco_chao_1`, `soco_chao_2` | montagem: um soco grave (hit26 e hit02) com o estrondo da explosão abafada, em passa-baixa | [37 hits/punches](https://opengameart.org/content/37-hitspunches) e [Muffled Distant Explosion](https://opengameart.org/content/muffled-distant-explosion) | Independent.nu e NenadSimic |
+
+## OpenGameArt, terceira rodada (CC0)
+
+Aprovados pelo autor na sala de som em 08/11/2026. Quando ele aprovou mais de uma opção para o mesmo som, todas viraram variação (o jogo sorteia).
+
+| Arquivo | Arquivo original | Pacote | Autor |
+| --- | --- | --- | --- |
+| `nivel_1` | bell.wav | [Correct bell](https://opengameart.org/content/correct-bell) | Fupi |
+| `mira_1` | assaultriflereload1_0.wav (só o engatilhar, no fim) | [Gun reload sounds](https://opengameart.org/content/gun-reload-sounds) | SpringySpringo |
+| `mira_2` | shotguncock_0.wav | [Gun reload sounds](https://opengameart.org/content/gun-reload-sounds) | SpringySpringo |
+| `mira_3` | reload.wav (só o engatilhar, no fim) | [Handgun reload sound effect](https://opengameart.org/content/handgun-reload-sound-effect) | zer0_sol |
+| `urro_1`, `urro_2` | yell2.wav e yell3.wav, 6 semitons mais graves | [Male Grunt/Yelling sounds](https://opengameart.org/content/male-gruntyelling-sounds) | HaelDB (licença dupla; usamos a CC0) |
+| `urro_3`, `urro_4` | Beast Growl.wav e Beast Growl 1.wav | [Monster or beast sounds](https://opengameart.org/content/monster-or-beast-sounds) | pauliuw |
+| `urro_5` a `urro_7` | os três urros de mino1.wav | [Osare minotaur sounds](https://opengameart.org/content/osare-minotaur-sounds) | Brandon Morris (licença dupla; usamos a CC0) |
+| `latido_1` | dog-growl.ogg | [Dog growl](https://opengameart.org/content/dog-growl) | bonebrah |
+| `latido_2` | dog-snarl.flac | [Dog snarl, grunt, grumble](https://opengameart.org/content/dog-snarl-grunt-grumble) | qubodup |
+| `latido_3` | Bark.ogg duas vezes | [Baby animals sounds pack](https://opengameart.org/content/baby-animals-sounds-pack) | Technopeasant |
+| `lataria_1` | door_closing.wav | [Car door SFX](https://opengameart.org/content/cardoorsfx) | looneybits |
+| `lataria_2` | qubodup-crash.ogg | [Crash collision](https://opengameart.org/content/crash-collision) | qubodup |

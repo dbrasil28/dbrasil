@@ -106,6 +106,12 @@ export const ARQUIVOS = {
   acorda: ['assets/sons/acorda_1.mp3', 'assets/sons/acorda_2.mp3'],
   tiro: ['assets/sons/tiro_1.mp3', 'assets/sons/tiro_2.mp3'],
   soco_chao: ['assets/sons/soco_chao_1.mp3', 'assets/sons/soco_chao_2.mp3'],
+  // CC0, terceira rodada (08/11/2026): quando o autor aprovou mais de uma opção, todas viram variação
+  nivel: ['assets/sons/nivel_1.mp3'],
+  mira: ['assets/sons/mira_1.mp3', 'assets/sons/mira_2.mp3', 'assets/sons/mira_3.mp3'], // fuzil, escopeta e pistola engatilhando
+  urro: ['assets/sons/urro_1.mp3', 'assets/sons/urro_2.mp3', 'assets/sons/urro_3.mp3', 'assets/sons/urro_4.mp3', 'assets/sons/urro_5.mp3', 'assets/sons/urro_6.mp3', 'assets/sons/urro_7.mp3'],
+  latido: ['assets/sons/latido_1.mp3', 'assets/sons/latido_2.mp3', 'assets/sons/latido_3.mp3'],
+  lataria: ['assets/sons/lataria_1.mp3', 'assets/sons/lataria_2.mp3'],
 };
 
 /** Amostras do som (Float32Array, pico em 0,9). Sem navegador: dá para conferir nos testes. */
