@@ -82,7 +82,10 @@ const TAXA = 22050; // os provisórios não precisam de mais que isso
 
 // Sons gravados (docs/som/PEDIDO_SONS.md): id → as variações. Caminhos literais (o build acha pelo texto).
 // Um som com arquivo toca o gravado (sorteando a variação); sem arquivo, o provisório feito em código.
-const ARQUIVOS = {};
+const ARQUIVOS = {
+  // Firefly (Adobe), 08/11/2026: 5 das 8 pancadas de uma geração (as mais pesadas; original em docs/som/originais/)
+  golpe: ['assets/sons/golpe_1.mp3', 'assets/sons/golpe_2.mp3', 'assets/sons/golpe_3.mp3', 'assets/sons/golpe_4.mp3', 'assets/sons/golpe_5.mp3'],
+};
 
 /** Amostras do som (Float32Array, pico em 0,9). Sem navegador: dá para conferir nos testes. */
 export function sintetizar(id, taxa = TAXA) {

@@ -970,7 +970,7 @@ export const SONS = {
 };
 // som do golpe em quem leva, por habilidade (null: a habilidade já tem o som dela, ou é contínua)
 export const SOM_GOLPE = {
-  capacete: 'bonk', entrega: 'bonk', chinelo: 'tapa', altinha: 'bola', mototaxi: 'atropelo', carro: 'atropelo',
+  capacete: 'golpe', entrega: 'golpe', chinelo: 'tapa', // o capacete usa o golpe gravado (Firefly), mais pesado que o bonk altinha: 'bola', mototaxi: 'atropelo', carro: 'atropelo',
   caramelo: null, microfone: null, gato: null, curto: null, ressaca: null, paredao: null, objeto: null, carimbo: null,
   maleta: null, explosao: null, ressacaOnda: null,
 };
