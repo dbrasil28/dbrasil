@@ -5,6 +5,7 @@ import { SETTINGS_SCHEMA } from './settings.js';
 import { formatTime, fmt } from './math.js';
 import { fmtT } from './ranking.js';
 import { weaponMaxLevel } from './upgrades.js';
+import { ARTE } from './sprites.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -126,6 +127,12 @@ export class UI {
   }
 
   updateHud(game, now) {
+    if (this.geracaoArte !== ARTE.geracao) {
+      // a arte foi refeita (canvas apagados): os ícones das vagas são desenhados de novo
+      this.geracaoArte = ARTE.geracao;
+      this.iconCache.clear();
+      this.last = {};
+    }
     const p = game.player;
     const st = game.stats;
     this.setText('timer', formatTime(game.t));

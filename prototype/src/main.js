@@ -8,7 +8,7 @@ import { loadSettings, saveSettings, defaultSettings } from './settings.js';
 import { ENEMIES, FAVELA, SOM } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
-import { loadImages, images, prewarm, carregarMorro, prewarmMorro } from './sprites.js';
+import { loadImages, images, prewarm, carregarMorro, prewarmMorro, arteSumiu, refazerArte } from './sprites.js';
 import { loadProgress, applyRun, buyUpgrade } from './progresso.js';
 import { loadRanking, registrarPartida } from './ranking.js';
 import { desafioDaSemana } from './horda.js';
@@ -30,6 +30,31 @@ let game = new Game(settings);
 let state = 'title'; // title | playing | paused | result
 const musica = new Musica(); // a música de cada trecho (musica.js)
 const sons = new Sons(); // efeitos sonoros (sons.js)
+
+// No Android, voltar do segundo plano pode apagar os canvas (personagens, chão pronto, ícones): o jogo
+// confere ao voltar e, se foram apagados, recorta tudo de novo (sprites.js, refazerArte)
+let refazendo = false;
+function conferirArte() {
+  if (refazendo || !arteSumiu()) return;
+  refazendo = true;
+  refazerArte().then(() => {
+    refazendo = false;
+  });
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) setTimeout(conferirArte, 250);
+});
+window.addEventListener('pageshow', () => setTimeout(conferirArte, 250));
+window.addEventListener('focus', () => setTimeout(conferirArte, 250));
+setInterval(conferirArte, 4000); // e de tempos em tempos (nem todo aplicativo avisa quando volta)
+// o canvas da tela avisa quando a memória de imagem foi perdida e devolvida (os outros canvas foram juntos)
+$('view').addEventListener('contextrestored', () => {
+  if (refazendo) return;
+  refazendo = true;
+  refazerArte().then(() => {
+    refazendo = false;
+  });
+});
 // o navegador só deixa tocar depois de um toque: o primeiro toque em qualquer lugar libera; botão faz clique
 document.addEventListener('pointerdown', () => sons.liberar(), { capture: true });
 document.addEventListener('click', (e) => {

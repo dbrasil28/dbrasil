@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA } from './config.js';
-import { images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS } from './sprites.js';
+import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto, drawEscuroPontas } from './mapa.js';
 import { drawMar } from './render_mar.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
@@ -115,6 +115,14 @@ export class Renderer {
 
   draw(game, settings, perf) {
     const { ctx, dpr } = this;
+    if (this.geracaoArte !== ARTE.geracao) {
+      // a arte foi refeita (os canvas tinham sido apagados): tudo o que estava pronto é montado de novo
+      this.geracaoArte = ARTE.geracao;
+      this.sprites.clear();
+      this.cache.clear();
+      this.orla.clear();
+      this.vignette = null;
+    }
     this.cache.novoQuadro();
     const cam = game.camera;
     const ppu = cam.ppu;

@@ -3,7 +3,7 @@
 // motos, caixas d'água, sinuca, varal, gatos de luz e bandeirinhas; e a sujeira do chão (camada estática).
 // Cada objeto vira um bitmap guardado (o desenho não muda com a posição); sai quando a arte chegar.
 import { CANDIDATOS, PIXOS, FIGURAS, lowerBound } from './cenario.js';
-import { images } from './sprites.js';
+import { images, ARTE } from './sprites.js';
 import { ART, ART_S, artKey, artFile } from './arte_cenario.js';
 import { hash2 } from './math.js';
 import { drawFiosFavela } from './render_favela.js';
@@ -22,7 +22,7 @@ const VARIANTS = { carro: 16, onibus: 4, garota: 12, muro: 9, tapume: 9, poste: 
 const PAD = { policial: [0.8, 0.3], camburao: [0.6, 0.6], poste: [2.2, 0.3], placa_parede: [1.4, 0.6], placa: [0.9, 0.4], garota: [0.6, 0.3], varal: [0.4, 0.5], bandeira: [1.4, 0.4], orelhao: [0.5, 0.3] };
 
 function sprite(p, ppu, k, dpr) {
-  const key = `${ppu.toFixed(3)}|${k.toFixed(4)}|${dpr}|${images.poste ? 1 : 0}|${images.poste_b ? 1 : 0}|${images.cone ? 1 : 0}`;
+  const key = `${ppu.toFixed(3)}|${k.toFixed(4)}|${dpr}|${images.poste ? 1 : 0}|${images.poste_b ? 1 : 0}|${images.cone ? 1 : 0}|${ARTE.geracao}`;
   if (key !== cacheKey) {
     cache.clear();
     cacheKey = key;

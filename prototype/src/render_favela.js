@@ -2,7 +2,7 @@
 // só na escala, com a origem no canto da frente da caixa. Um módulo mais curto que a arte (fim de viela) é
 // cortado no fundo pela silhueta da caixa: o corte segue o ângulo do jogo, a imagem não muda.
 import { FAVELA } from './config.js';
-import { images } from './sprites.js';
+import { images, ARTE } from './sprites.js';
 
 const pt = { x: 0, y: 0 };
 const q = { x: 0, y: 0 };
@@ -46,7 +46,7 @@ function reduzida(ctx, im, s) {
   if (typeof document === 'undefined') return im;
   const t = ctx.getTransform();
   const esc = Math.hypot(t.a, t.b) || 1;
-  const chave = `${(s * esc).toFixed(4)}`;
+  const chave = `${(s * esc).toFixed(4)}|${ARTE.geracao}`;
   if (chave !== reduzChave) {
     reduzidas.clear();
     reduzChave = chave;

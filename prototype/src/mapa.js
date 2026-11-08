@@ -1,7 +1,7 @@
 // Mapa 1 — Orla do Desespero (Rio de Janeiro). Desenho do chão e da decoração das bordas.
 // Provisório em código até a arte do guia chegar; usa os PNGs que já existem (chão, poste, cone).
 import { hash2 } from './math.js';
-import { images } from './sprites.js';
+import { images, ARTE } from './sprites.js';
 import { Camera } from './camera.js';
 import { PREDIOS, SOMBRA, PLACES, AVENIDA } from './config.js';
 import { drawLitter, drawFachada, pixo, cartaz, bandeira } from './render_cenario.js';
@@ -16,8 +16,15 @@ const HOUSE_COLORS = ['#a8634c', '#b8955a', '#6f8a96', '#c4b597', '#86677f', '#7
 
 // textura de grão/sujeira usada em tudo que é desenhado em código
 let grainCanvas = null;
-const grainByCtx = new WeakMap();
+let grainByCtx = new WeakMap();
+let grainGeracao = 0;
 function grainPattern(ctx) {
+  if (grainGeracao !== ARTE.geracao) {
+    // canvas apagados: o grão é feito de novo (e os padrões feitos com ele)
+    grainGeracao = ARTE.geracao;
+    grainCanvas = null;
+    grainByCtx = new WeakMap();
+  }
   const cached = grainByCtx.get(ctx);
   if (cached) return cached;
   if (typeof document === 'undefined') return null;
@@ -580,7 +587,7 @@ export class OrlaLayer {
   draw(ctx, game, vb, dpr) {
     const cam = game.camera;
     const m = game.map;
-    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${cam.sh.toFixed(3)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}|${images.cen_coqueiro_a ? 1 : 0}|${images.predio_a && images.predio_d ? 1 : 0}|${images.chao_viela ? 1 : 0}${images.chao_escadaria ? 1 : 0}${images.chao_laje ? 1 : 0}|${game.world && game.world.gateOpen ? 1 : 0}`;
+    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${cam.sh.toFixed(3)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}|${images.cen_coqueiro_a ? 1 : 0}|${images.predio_a && images.predio_d ? 1 : 0}|${images.chao_viela ? 1 : 0}${images.chao_escadaria ? 1 : 0}${images.chao_laje ? 1 : 0}|${game.world && game.world.gateOpen ? 1 : 0}|${ARTE.geracao}`;
     if (key !== this.key) {
       this.tiles.clear();
       this.key = key;

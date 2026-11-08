@@ -356,6 +356,46 @@ export const ICON_ART = {
 export const images = {};
 let pending = 0;
 
+// No Android, voltar do segundo plano pode apagar todo canvas (o sistema solta a memória de imagem e devolve
+// em branco). Os personagens vivem em canvas (as células recortadas das folhas, que saem da memória depois
+// do recorte): sem isso, todos sumiam e não voltavam. ARTE.geracao sobe quando a arte é refeita: quem guarda
+// desenho pronto em canvas compara e refaz o seu.
+export const ARTE = { geracao: 0 };
+const cortados = new Map(); // folha recortada → caminho (para recortar de novo)
+let sentinela = null; // cópia de uma célula do Juninho, só para ver se os canvas foram apagados
+
+let sonda = null;
+/**
+ * Os canvas foram apagados? Copia uma coluna da sentinela (cópia de uma célula do Juninho) numa sonda e lê a
+ * sonda: sem nada, foi. Ler a própria sentinela faria o navegador tirá-la da memória de vídeo, e aí ela não
+ * seria mais apagada junto com as outras.
+ */
+export function arteSumiu() {
+  if (!sentinela || typeof document === 'undefined') return false;
+  try {
+    if (!sonda || sonda.height !== sentinela.height) {
+      sonda = canvas(1, sentinela.height);
+      sonda.ctx = sonda.getContext('2d', { willReadFrequently: true });
+    }
+    sonda.ctx.clearRect(0, 0, 1, sonda.height);
+    sonda.ctx.drawImage(sentinela, sentinela.width >> 1, 0, 1, sentinela.height, 0, 0, 1, sonda.height);
+    const d = sonda.ctx.getImageData(0, 0, 1, sonda.height).data;
+    for (let i = 3; i < d.length; i += 4) if (d[i] > 0) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Recorta de novo todas as folhas (vêm do cache do navegador) e avisa os outros caches (ARTE.geracao). */
+export function refazerArte() {
+  ARTE.geracao++;
+  sentinela = null;
+  const lista = [...cortados];
+  pending += lista.length;
+  return Promise.all(lista.map(([id, src]) => carregar(id, src)));
+}
+
 export function loadImages(onEach) {
   if (typeof Image === 'undefined') return Promise.resolve(images);
   const entries = Object.entries(IMAGES);
@@ -379,9 +419,15 @@ function carregar(id, src, onEach) {
     im.decoding = 'async';
     im.onload = () => {
       images[id] = im;
-      if (id === 'juninho_atlas') sliceAtlas(im, 'ja');
-      if (id === 'juninho_walk_atlas') sliceAtlas(im, 'jw');
       let cortado = false;
+      if (id === 'juninho_atlas') {
+        sliceAtlas(im, 'ja');
+        cortado = true;
+      }
+      if (id === 'juninho_walk_atlas') {
+        sliceAtlas(im, 'jw');
+        cortado = true;
+      }
       for (const w of Object.values(WALK_ATLAS)) {
         if (id !== w.atlas) continue;
         sliceAtlas(im, w.prefix, w.escala ? { ...ATLAS, escala: w.escala } : ATLAS);
@@ -393,7 +439,17 @@ function carregar(id, src, onEach) {
         sliceAtlas(im, p.prefix, p);
         cortado = true;
       }
-      if (cortado) delete images[id]; // as células bastam: o atlas inteiro sai da memória
+      if (cortado) {
+        cortados.set(id, src);
+        delete images[id]; // as células bastam: o atlas inteiro sai da memória
+      }
+      if (id === 'juninho_walk_atlas' && typeof document !== 'undefined') {
+        const cel = images.jw_0_0;
+        if (cel) {
+          sentinela = canvas(cel.width, cel.height);
+          sentinela.getContext('2d').drawImage(cel, 0, 0);
+        }
+      }
       pending--;
       onEach?.(id);
       resolve();

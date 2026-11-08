@@ -4,6 +4,7 @@
 // No chão, a peça é deitada com a mesma conta do chão do jogo (vista de cima e projetada no plano), e por
 // isso pode girar e pulsar. Em pé, a peça fica de frente para a câmera, como os personagens.
 import { FX, quadro, quadroNoTempo, quadroMisto } from './efeitos_arte.js';
+import { ARTE } from './sprites.js';
 
 // caminhos literais: o build acha as imagens pelo texto
 const FX_SRC = {
@@ -86,7 +87,17 @@ const suaves = {};
  * Versão esfumaçada da folha (feita uma vez): borrão leve e a borda sumindo aos poucos, célula por célula,
  * como fumaça. Sem suporte a filtro no navegador, fica só a borda sumindo.
  */
+let geracaoFx = 0;
+/** A arte foi refeita (canvas apagados): os desenhos prontos daqui também. */
+function confereGeracao() {
+  if (geracaoFx === ARTE.geracao) return;
+  geracaoFx = ARTE.geracao;
+  for (const k of Object.keys(suaves)) delete suaves[k];
+  for (const k of Object.keys(luzes)) delete luzes[k];
+}
+
 function fxSuave(nome) {
+  confereGeracao();
   const im = fxImg(nome);
   const F = FX[nome];
   if (!im || !F.suave || typeof document === 'undefined') return im;
@@ -157,7 +168,7 @@ let projChave = '';
 
 /** A peça já deitada no chão (projeção do jogo), num canvas; centro da peça em (−ox, −oy) do canvas, em px da tela. */
 function projetado(cam, ppu, esc, im, s, largM, altM, rot) {
-  const chaveCam = `${ppu.toFixed(3)}|${cam.k.toFixed(4)}|${cam.sh.toFixed(4)}|${cam.c.toFixed(3)}|${esc}`;
+  const chaveCam = `${ppu.toFixed(3)}|${cam.k.toFixed(4)}|${cam.sh.toFixed(4)}|${cam.c.toFixed(3)}|${esc}|${ARTE.geracao}`;
   if (chaveCam !== projChave) {
     projCache.clear();
     projChave = chaveCam;
@@ -299,6 +310,7 @@ function textoNoChao(ctx, cam, ppu, txt, x, y, altM, rot, alpha) {
 const luzes = {};
 /** A poça de luz pronta (degradê redondo da cor), para não criar um degradê a cada quadro. */
 function luzPronta(cor) {
+  confereGeracao();
   if (luzes[cor]) return luzes[cor];
   if (typeof document === 'undefined') return null;
   const c = document.createElement('canvas');
