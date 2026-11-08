@@ -937,7 +937,8 @@ export const SOM = {
   gemidoCadaS: [1.4, 3.2], // a horda geme de tempos em tempos quando há gente perto (gemidoM)
   gemidoM: 9,
   amb: { orla: 'amb_orla', morro: 'amb_morro' }, // ambiente de cada trecho, em laço
-  ambVol: 0.5,
+  ambVol: 0.12, // o ambiente fica bem baixo, por baixo de tudo (era 0,5: o mar cobria a música)
+  musica: 0.5, // a música toca a essa fração do volume escolhido nas configurações (fica por baixo dos efeitos)
 };
 export const SONS = {
   // Juninho

@@ -1,6 +1,8 @@
 // Música de cada trecho (do autor, 07/11/2026): "Pulso da Sobrevivência" na Orla e "Pulsação Urbana" no
 // Morro, em laço. Troca com fade quando o Juninho atravessa; abaixa na pausa e cala durante o anúncio.
 // Só começa depois de um toque (o navegador não deixa tocar antes). Fora do navegador, não faz nada.
+import { SOM } from './config.js';
+
 const FAIXAS = {
   orla: 'assets/musica/orla_pulso_da_sobrevivencia.mp3',
   morro: 'assets/musica/morro_pulsacao_urbana.mp3',
@@ -62,7 +64,7 @@ export class Musica {
   update(dt) {
     const k = Math.min(1, dt / FADE_S);
     for (const [id, a] of Object.entries(this.els)) {
-      const alvo = id === this.atual && !this.calada ? this.vol * (this.abafada ? PAUSA : 1) : 0;
+      const alvo = id === this.atual && !this.calada ? this.vol * SOM.musica * (this.abafada ? PAUSA : 1) : 0;
       a._v += (alvo - a._v) * Math.min(1, k * 3);
       if (Math.abs(alvo - a._v) < 0.004) a._v = alvo;
       a.volume = Math.max(0, Math.min(1, a._v));

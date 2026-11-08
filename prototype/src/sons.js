@@ -210,7 +210,7 @@ export class Sons {
     if (!this.ctx) return;
     const alvo = this.calado ? 0 : this.vol;
     this.mestre.gain.setTargetAtTime(alvo, this.ctx.currentTime, 0.05);
-    if (this.amb.g) this.amb.g.gain.setTargetAtTime(this.abafado || this.calado ? 0 : SOM.ambVol, this.ctx.currentTime, 0.3);
+    if (this.amb.g) this.amb.g.gain.setTargetAtTime(this.abafado || this.calado ? 0 : SOM.ambVol * SONS[this.amb.id].vol, this.ctx.currentTime, 0.3);
   }
 
   buffer(id) {
