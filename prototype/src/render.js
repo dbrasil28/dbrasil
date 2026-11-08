@@ -5,7 +5,7 @@ import { images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady,
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto } from './mapa.js';
 import { drawMar } from './render_mar.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
-import { drawCasasFundo, drawCasaFavela } from './render_favela.js';
+import { drawCasaFavela } from './render_favela.js';
 import {
   precarregarFx, drawFxChao, fxEmPeNaLista, drawFxEmPe, drawSobreInimigo, drawGiro, drawBoletoArte, drawBoletoVento, drawPoca,
   drawAura, drawCarimboQueda, drawFaixaMoto, drawRaio, drawNotasIsca, fxImg,
@@ -186,8 +186,6 @@ export class Renderer {
     // lista de desenho com ordenação por profundidade
     const list = [];
     cam.visibleWorldBounds(3, bounds);
-    // casas da favela a oeste do caminho: atrás de tudo que anda nele (favela.js)
-    if (game.world && game.world.casas) drawCasasFundo(ctx, game.world, cam, ppu, bounds);
     for (const pr of game.propsInBounds(bounds, propsTmp)) list.push({ d: cam.depth(pr.x, pr.y), k: 'prop', o: pr });
     for (const g of game.gems) list.push({ d: cam.depth(g.x, g.y) - 0.5, k: 'gem', o: g });
     for (const p of game.pickups) {
@@ -203,8 +201,12 @@ export class Renderer {
       // casas da favela a leste do caminho: entram na ordem pela frente delas
       if (w.casas) {
         for (const c of w.casas) {
-          if (c.lado !== 'frente' || c.y1 < bounds.minY - 2 || c.y1 > bounds.maxY + 14) continue;
-          list.push({ d: cam.depth(c.x0, c.y1), k: 'casa', o: c, x: c.x0, y: c.y1 });
+          if (c.y1 < bounds.minY - 2 || c.y1 > bounds.maxY + 14) continue;
+          // a leste do caminho, pela frente da casa. A oeste, pela beira de trás: quem anda ao lado dela (a
+          // leste, na viela) passa por cima da parede, e quem está atrás (na pracinha mais larga que a viela)
+          // fica escondido pela casa, em vez de aparecer em pé no telhado
+          const y = c.lado === 'frente' ? c.y1 : c.y0;
+          list.push({ d: cam.depth(c.x0, y), k: 'casa', o: c, x: c.x0, y: c.y1 });
         }
       }
       // lajes com escada, boteco, objetos de cena e o tapume da escadaria
