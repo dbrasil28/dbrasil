@@ -143,7 +143,9 @@ export const GIRO = ['s', 'se', 'ne', 'n', 'nw', 'sw'];
 export function drawObject(ctx, kind, x, y, s, rot = 0, dir = 's', v = 0) {
   // arte gerada: base do objeto no chão em (x, y); s = 0,42 da altura do Juninho na tela
   const [vd, flip] = VISTA[dir] || VISTA.s;
-  const im = images[`obj_${kind}_${vd}`] || images[`obj_${kind}`];
+  // arrancado do cenário com mais de uma arte (guarda-sol): a mesma variação que estava no chão
+  const varia = ART[kind] && ART[kind].files.length > 1 ? images[`obj_${kind}_${artFile(kind, v)}`] : null;
+  const im = images[`obj_${kind}_${vd}`] || varia || images[`obj_${kind}`];
   const A = !im && ART[kind];
   const ima = A && images[artKey(kind, artFile(kind, v) || 'a')];
   if (ima) {

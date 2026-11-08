@@ -98,6 +98,8 @@ export const IMAGES = {
   obj_cadeira_praia: 'assets/objetos/cadeira_praia.webp',
   obj_banquinho: 'assets/objetos/banquinho.webp',
   obj_lixeira: 'assets/objetos/lixeira.webp', // arrancada do poste: deitada, de lado, com o lixo caindo (Figma)
+  obj_guarda_sol_a: 'assets/objetos/guarda_sol_a.webp', // arrancado da areia: deitado, de lado (Figma), nas cores de cada variação
+  obj_guarda_sol_b: 'assets/objetos/guarda_sol_b.webp',
   // giro (360°): vistas diagonal da frente, frente, diagonal de trás e trás; o outro lado é espelhado
   obj_cadeira_se: 'assets/objetos/cadeira_se.webp',
   obj_cadeira_s: 'assets/objetos/cadeira_s.webp',

@@ -383,7 +383,7 @@ export const THROWABLES = {
 // Voltam depois de um tempo, fora da tela. O açaí também deixa o Juninho mais rápido por uns segundos.
 // Altura de cada objeto arremessável quando está no chão (m, na escala dos personagens, que são
 // desenhados com 1,75 m): a imagem gerada é desenhada com essa altura.
-export const OBJ_ALTURA = { cadeira: 0.85, mesa: 0.8, engradado: 0.45, botijao: 0.65, cadeira_praia: 0.85, banquinho: 0.5, pneu: 0.4, lixeira: 0.4 }; // lixeira: deitada
+export const OBJ_ALTURA = { cadeira: 0.85, mesa: 0.8, engradado: 0.45, botijao: 0.65, cadeira_praia: 0.85, banquinho: 0.5, pneu: 0.4, lixeira: 0.4, guarda_sol: 1.7 }; // lixeira e guarda-sol: deitados
 // Os personagens são desenhados maiores que a escala real (para ler bem no celular); os objetos crescem
 // junto para não parecerem de brinquedo ao lado deles. Cadeiras ficam a esta distância do centro da mesa.
 export const OBJ_ESCALA = 1.4;
