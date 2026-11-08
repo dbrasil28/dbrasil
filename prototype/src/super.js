@@ -162,12 +162,12 @@ function golaco(game, G) {
   const d = { x: p.faceX || 0, y: p.faceY || -1 };
   meioDaHorda(game, p.x, p.y, d);
   const l = Math.hypot(d.x, d.y) || 1;
+  // a bola gigante cai do alto em cima da horda e sai quicando (física: gravidade, quique, ricochete)
   game.projectiles.push({
-    kind: 'golaco', x: p.x, y: p.y, vx: (d.x / l) * G.velM, vy: (d.y / l) * G.velM, life: G.durS, t: 0,
-    fase: 0, alt: 0, quicou: 0, spin: 0, voltando: false, bateu: new Map(), carros: new Set(), src: 'golaco',
+    kind: 'golaco', x: p.x, y: p.y, alto: G.caiM, valto: 0, vx: (d.x / l) * G.velM, vy: (d.y / l) * G.velM, life: G.durS, t: 0,
+    quiques: 0, rolo: 0, bateu: new Map(), carros: new Set(), src: 'golaco',
   });
   game.word(p.x, p.y - 1, 'GOLAÇO!', '#ffd21f');
-  game.som('bola', p.x, p.y);
   game.shake(0.3);
 }
 
@@ -205,22 +205,52 @@ function meioDaHorda(game, x, y, out) {
   return out;
 }
 
-/** A bola gigante: corre reto, quica no chão, volta da beira da tela para o meio da horda, bate em todo mundo. */
+const pt2 = { x: 0, y: 0 };
+const pw = { x: 0, y: 0 };
+
+/**
+ * A bola gigante, com física (D70): gravidade e quique no chão (perde altura a cada quique até um quique mínimo que
+ * se mantém), corre no chão e ricocheteia em quem ela pega e na beira da tela; o primeiro quique, vindo do alto, é
+ * um pancadão em volta. Só pega quem está embaixo dela (até alturaBate). O giro da arte segue o quanto ela anda.
+ */
 function updateGolaco(game, pr, dt) {
   const G = RELIQUIAS.altinha.super;
   pr.t += dt;
   pr.life -= dt;
-  pr.fase += dt / G.quicaS;
-  pr.alt = Math.sin((pr.fase % 1) * Math.PI) * G.altM;
-  pr.spin += dt * 9;
-  if (Math.floor(pr.fase) !== pr.quicou) {
-    pr.quicou = Math.floor(pr.fase); // bateu no chão
+  const mul = danoMul(game);
+  // vertical: gravidade e quique
+  pr.valto -= G.gravidade * dt;
+  pr.alto += pr.valto * dt;
+  if (pr.alto <= 0) {
+    pr.alto = 0;
+    const vImpacto = -pr.valto;
+    pr.valto = Math.max(vImpacto * G.restitui, G.quiqueMin);
+    pr.quiques++;
     game.som('bola', pr.x, pr.y);
-    game.burst(pr.x, pr.y, 4, 'poeira');
-    game.shake(0.05);
+    game.burst(pr.x, pr.y, pr.quiques === 1 ? 14 : 5, 'poeira');
+    game.shake(Math.min(0.45, vImpacto / 45));
+    if (pr.quiques === 1) {
+      // o pancadão da queda: bate e empurra quem está em volta
+      game.som('baque', pr.x, pr.y);
+      game.hash.query(pr.x, pr.y, G.impactoRaioM + 1, tmp);
+      for (const e of tmp) {
+        if (e.dead) continue;
+        const dx = e.x - pr.x;
+        const dy = e.y - pr.y;
+        const d = Math.hypot(dx, dy) || 0.01;
+        if (d > G.impactoRaioM + (e.r || 0.3)) continue;
+        const emp = e.boss ? 0 : G.empurra * 1.4;
+        pr.bateu.set(e.id, pr.t);
+        game.damageEnemy(e, G.impactoDano * mul, 'golaco', (dx / d) * emp, (dy / d) * emp);
+      }
+      golpeNoCarro(game, pr.x, pr.y, G.impactoRaioM, G.carroDano, pr.carros);
+    }
   }
+  // horizontal: corre e rola (a arte gira pelo quanto anda)
+  const vel = Math.hypot(pr.vx, pr.vy) || 1;
   pr.x += pr.vx * dt;
   pr.y += pr.vy * dt;
+  pr.rolo += (vel * dt) / G.raioM;
   const m = game.map;
   if (m && m.bounded) {
     if (pr.x < m.minX + G.raioM) {
@@ -231,25 +261,37 @@ function updateGolaco(game, pr, dt) {
       pr.vx = -Math.abs(pr.vx);
     }
   }
-  // na beira da tela: vira para o meio da horda (ou para o Juninho), com um desvio, e atravessa de novo
+  // beira da tela: ricocheteia (reflete na tela, com um pequeno desvio) e volta para dentro
   const cam = game.camera;
   cam.toScreen(pr.x, pr.y, pt);
+  cam.toScreen(pr.x + pr.vx * 0.05, pr.y + pr.vy * 0.05, pt2);
+  let svx = pt2.x - pt.x;
+  let svy = pt2.y - pt.y;
   const mg = 34;
-  const fora = pt.x < mg || pt.x > cam.viewW - mg || pt.y < (cam.playTop || 0) + mg || pt.y > (cam.playBottom || cam.viewH) - mg;
-  if (fora && !pr.voltando) {
-    pr.voltando = true;
-    const p = game.player;
-    const d = { x: p.x - pr.x, y: p.y - pr.y };
-    const h = meioDaHorda(game, pr.x, pr.y, { x: d.x, y: d.y });
-    const tx = (h.x + d.x) / 2; // entre o meio da horda e o Juninho: a bola volta sempre para a tela
-    const ty = (h.y + d.y) / 2;
-    const a = Math.atan2(ty, tx) + (game.rng() - 0.5) * 0.7;
-    pr.vx = Math.cos(a) * G.velM;
-    pr.vy = Math.sin(a) * G.velM;
-  } else if (!fora) pr.voltando = false;
-  // pancada em quem a bola pega (cada um, de novo só depois de acertaCadaS)
-  const mul = danoMul(game);
-  const v = Math.hypot(pr.vx, pr.vy) || 1;
+  let bateuBeira = false;
+  if ((pt.x < mg && svx < 0) || (pt.x > cam.viewW - mg && svx > 0)) {
+    svx = -svx;
+    bateuBeira = true;
+  }
+  if ((pt.y < (cam.playTop || 0) + mg && svy < 0) || (pt.y > (cam.playBottom || cam.viewH) - mg && svy > 0)) {
+    svy = -svy;
+    bateuBeira = true;
+  }
+  if (bateuBeira) {
+    // o rebote, com efeito: puxa um pouco para o meio da horda (senão a bola passa tempo em área vazia)
+    cam.toWorld(pt.x + svx, pt.y + svy, pw);
+    let rx = pw.x - pr.x;
+    let ry = pw.y - pr.y;
+    const rl = Math.hypot(rx, ry) || 1;
+    const h = meioDaHorda(game, pr.x, pr.y, { x: rx, y: ry });
+    const hl = Math.hypot(h.x, h.y) || 1;
+    rx = (rx / rl) * (1 - G.efeito) + (h.x / hl) * G.efeito;
+    ry = (ry / rl) * (1 - G.efeito) + (h.y / hl) * G.efeito;
+    girarVel(pr, rx, ry, (game.rng() - 0.5) * G.desvio, G.velM);
+  }
+  // pancada em quem a bola pega embaixo dela (cada um, de novo só depois de acertaCadaS); ricocheteia no primeiro
+  if (pr.alto > G.alturaBate) return pr.life <= 0;
+  let ricocheteou = false;
   game.hash.query(pr.x, pr.y, G.raioM + 1.2, tmp);
   for (const e of tmp) {
     if (e.dead) continue;
@@ -261,13 +303,27 @@ function updateGolaco(game, pr, dt) {
     pr.bateu.set(e.id, pr.t);
     const d = Math.hypot(dx, dy) || 0.01;
     const emp = e.boss ? 0 : G.empurra;
-    // para frente (no sentido da bola) e para o lado de fora
-    const kx = ((pr.vx / v) * 0.6 + (dx / d) * 0.8) * emp;
-    const ky = ((pr.vy / v) * 0.6 + (dy / d) * 0.8) * emp;
+    const kx = ((pr.vx / vel) * 0.6 + (dx / d) * 0.8) * emp;
+    const ky = ((pr.vy / vel) * 0.6 + (dy / d) * 0.8) * emp;
     game.damageEnemy(e, G.dano * mul, 'golaco', kx, ky);
+    if (!ricocheteou && (pr.vx * dx + pr.vy * dy) > 0) {
+      // ricochete: reflete a velocidade na direção do contato (como no fliperama), com um desvio
+      ricocheteou = true;
+      const nx = -dx / d;
+      const ny = -dy / d;
+      const vn = pr.vx * nx + pr.vy * ny;
+      girarVel(pr, pr.vx - 2 * vn * nx, pr.vy - 2 * vn * ny, (game.rng() - 0.5) * G.desvio, G.velM);
+    }
   }
   golpeNoCarro(game, pr.x, pr.y, G.raioM, G.carroDano, pr.carros);
   return pr.life <= 0;
+}
+
+/** Nova velocidade da bola na direção (vx, vy), girada de `ang`, com a velocidade de sempre. */
+function girarVel(pr, vx, vy, ang, vel) {
+  const a = Math.atan2(vy, vx) + ang;
+  pr.vx = Math.cos(a) * vel;
+  pr.vy = Math.sin(a) * vel;
 }
 
 // ---------- Solta o Batidão ----------

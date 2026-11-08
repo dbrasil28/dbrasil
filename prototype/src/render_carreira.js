@@ -260,7 +260,14 @@ export function drawAchado(ctx, game, a, pt, ppu, t, playerPx) {
     return;
   }
   if (a.kind === 'reliquia') {
-    drawBola(ctx, pt.x, pt.y, 0.3 * ppu, t * 0.6, 0.15 * ppu);
+    // a Bola da Altinha flutua acima do deque, girando devagar (D70)
+    const r = 0.4 * ppu;
+    const alto = (0.28 + 0.06 * Math.sin(t * 2.2)) * ppu;
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(pt.x, pt.y, r * 0.8, r * 0.28, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (!drawBolaArte(ctx, pt.x, pt.y - alto - r, r, Math.floor(t * 7) % 12, -1)) drawBola(ctx, pt.x, pt.y, 0.3 * ppu, t * 0.6, 0.15 * ppu);
     if (!longe) brilho(ctx, pt.x + 0.2 * ppu, pt.y - 0.75 * ppu, 0.45 * ppu, t, seed);
     return;
   }
@@ -284,7 +291,23 @@ export function drawAchado(ctx, game, a, pt, ppu, t, playerPx) {
   if (!longe) brilho(ctx, pt.x + h * 0.3, pt.y - h * 1.1, 0.35 * ppu, t, seed);
 }
 
-/** A bola (relíquia e em jogo): branca com gomos escuros, sombra no chão. */
+/**
+ * A Bola da Altinha com a arte (D70, folha 12 x 9 de tools/render-bola.py). dir -1: a relíquia girando (linha 0);
+ * dir 0 a 7: acordada (o Golaço) rolando para a direção da tela (0 direita, 2 baixo, 4 esquerda, 6 cima), linhas 1 a 8.
+ * quadro: 12 por volta. (x, cy) é o centro da bola na tela e r o raio em px. Sem a arte, devolve false.
+ */
+export function drawBolaArte(ctx, x, cy, r, quadro, dir) {
+  const im = images.bola_altinha;
+  if (!im || !im.width) return false;
+  const cel = im.width / 12;
+  const q = ((quadro % 12) + 12) % 12;
+  const linha = dir < 0 ? 0 : 1 + (dir % 8);
+  const s = (cel / 80) * r; // a bola tem 80 px de raio na célula de 192
+  ctx.drawImage(im, q * cel, linha * cel, cel, cel, x - s / 2, cy - s / 2, s, s);
+  return true;
+}
+
+/** A bola desenhada em código (sem a arte): branca com gomos escuros, sombra no chão. */
 export function drawBola(ctx, x, y, r, spin, z = 0) {
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.beginPath();

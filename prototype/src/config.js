@@ -579,9 +579,16 @@ export const RELIQUIAS = {
   altinha: {
     nome: 'Bola da Altinha', onde: 'orla', superNome: 'Golaço',
     desc: 'Super: a bola fica gigante e atravessa a tela quicando em todo mundo',
-    // a bola gigante corre pela tela por durS, quicando nas beiradas da tela; cada um leva dano a cada
-    // acertaCadaS enquanto ela passa; carros no caminho levam a pancada (pegam fogo e explodem)
-    super: { durS: 6, raioM: 0.85, velM: 15, dano: 45, empurra: 10, acertaCadaS: 0.45, quicaS: 0.42, altM: 1.1, carroDano: 60 },
+    // a bola gigante (física, D70) cai de caiM em cima da horda e quica por durS: gravidade (m/s²), quique que
+    // devolve `restitui` da velocidade até um mínimo (quiqueMin, m/s: ~1,35 m de altura) que se mantém; corre a
+    // velM e ricocheteia em quem pega (com um desvio, rad) e na beira da tela (com `efeito`: puxa essa fração para
+    // o meio da horda). Só pega quem está embaixo dela
+    // (até alturaBate, m); cada um leva dano de novo a cada acertaCadaS; o primeiro quique é um pancadão até
+    // impactoRaioM. Carros no caminho levam a pancada (pegam fogo e explodem).
+    super: {
+      durS: 6, raioM: 0.85, velM: 13, dano: 45, empurra: 10, acertaCadaS: 0.45, carroDano: 60,
+      caiM: 6, gravidade: 30, restitui: 0.8, quiqueMin: 9, alturaBate: 1.3, desvio: 0.35, efeito: 0.45, impactoRaioM: 3, impactoDano: 60,
+    },
   },
   paredao: {
     nome: 'Paredão de Som', onde: 'morro', superNome: 'Solta o Batidão',

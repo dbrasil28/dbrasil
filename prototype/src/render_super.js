@@ -4,7 +4,7 @@
 // que mostra onde a relíquia está. Luz e anéis em código; a arte é a da relíquia (a bola e o paredão), só na escala.
 import { RELIQUIAS, SUPER, FACHO_RELIQUIA } from './config.js';
 import { images } from './sprites.js';
-import { drawParedao } from './render_carreira.js';
+import { drawParedao, drawBolaArte } from './render_carreira.js';
 import { alturaNaCena } from './super.js';
 
 const a = { x: 0, y: 0 };
@@ -52,7 +52,7 @@ function luz(ctx, x, y, r, cor, alfa) {
 /** A relíquia desenhada solta (voando na cena), com tamanho s (px de altura). */
 function reliquiaSolta(ctx, id, x, y, s, t) {
   if (id === 'altinha') {
-    bolaNoAr(ctx, x, y, s * 0.5, t * 9);
+    if (!drawBolaArte(ctx, x, y, s * 0.5, Math.floor(t * 22), -1)) bolaNoAr(ctx, x, y, s * 0.5, t * 9); // girando rápido no voo
     return;
   }
   const im = images.paredao;
@@ -228,10 +228,10 @@ export function drawFaixaCena(ctx, game, cam) {
 export function drawGolaco(ctx, o, pt, ppu, cam) {
   const G = RELIQUIAS.altinha.super;
   const r = G.raioM * ppu;
-  const alt = o.alt * ppu;
+  const alt = (o.alto || 0) * ppu;
   const fade = clamp01(o.life / 0.4);
   ctx.globalAlpha = fade;
-  const sh = 1 - o.alt / (G.altM * 2.2);
+  const sh = Math.max(0.25, 1 - (o.alto || 0) / (G.caiM * 1.1)); // a sombra encolhe com a altura
   ctx.fillStyle = `rgba(0,0,0,${0.32 * sh})`;
   ctx.beginPath();
   ctx.ellipse(pt.x, pt.y, r * 0.95 * sh, r * 0.95 * sh * cam.k, 0, 0, Math.PI * 2);
@@ -246,7 +246,9 @@ export function drawGolaco(ctx, o, pt, ppu, cam) {
   for (let j = 3; j >= 1; j--) luz(ctx, pt.x + tx * j * 0.55, pt.y - alt - r + ty * j * 0.55, r * (1.1 - j * 0.15), '255,214,90', 0.22 * fade);
   luz(ctx, pt.x, pt.y - alt - r, r * 1.7, '255,226,120', 0.4 * fade);
   ctx.restore();
-  bolaNoAr(ctx, pt.x, pt.y - alt - r, r, o.spin);
+  // acordada, rolando para onde anda na tela (8 direções), um quadro a cada 30 graus de giro
+  const dir = (Math.round(Math.atan2(-ty, -tx) / (Math.PI / 4)) + 8) % 8;
+  if (!drawBolaArte(ctx, pt.x, pt.y - alt - r, r, Math.floor((o.rolo || 0) / (Math.PI / 6)), dir)) bolaNoAr(ctx, pt.x, pt.y - alt - r, r, o.rolo || 0);
   ctx.globalAlpha = 1;
 }
 
@@ -353,7 +355,8 @@ export function drawFachoReliquia(ctx, game, cam, ppu, t) {
     if (dist > F.fachoM) continue;
     const forca = clamp01((F.fachoM - dist) / 10) * (0.82 + 0.18 * Math.sin(t * 2.3 + r.x));
     cam.toScreen(r.x, r.y, a);
-    a.y -= (r.plat ? r.plat.h : 0) * ppu;
+    // o facho sai de cima da relíquia (a luz desenhada por cima não pode cobrir a bola nem o paredão)
+    a.y -= ((r.plat ? r.plat.h : 0) + (r.reliquia === 'paredao' ? 1.3 : 1.15)) * ppu;
     const H = F.alturaM * ppu;
     const W = F.larguraM * ppu;
     // o facho aparece com o pé dele na tela; debaixo do plantão da TV ou fora da tela, a claridade na beira
@@ -385,7 +388,7 @@ export function drawFachoReliquia(ctx, game, cam, ppu, t) {
         const k = (t * 0.35 + i / 7) % 1;
         luz(ctx, a.x + Math.sin(t * 2 + i * 1.7) * W * 0.3, a.y - k * H * 0.85, W * 0.22, '255,236,160', 0.7 * forca * (1 - k));
       }
-      luz(ctx, a.x, a.y, W * 2.2, '255,214,80', 0.45 * forca);
+      luz(ctx, a.x, a.y, W * 1.2, '255,214,80', 0.3 * forca);
     }
     if (!naTela || a.y < top) {
       // a claridade dourada entra pela beira, do lado da relíquia (abaixo do plantão da TV)

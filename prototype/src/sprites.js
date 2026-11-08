@@ -2,6 +2,10 @@
 // Os nomes seguem docs/arte/GUIA_DE_PRODUCAO_DE_ARTE.md e prototype/assets/asset_manifest.json.
 
 export const IMAGES = {
+  // Bola da Altinha (D70): 3D renderizada com os materiais do Figma (tools/render-bola.py); 6x4 células de 256:
+  // quadros 0-11 a relíquia girando, 12-23 acordada rolando para baixo (o Golaço)
+  bola_altinha: 'assets/objetos/bola_altinha.webp',
+  w_altinha: 'assets/hud/w_altinha.png',
   juninho: 'assets/personagens/juninho.png',
   // Juninho: atlas de arremesso e de caminhada, 16 direções (linhas; 0° = de frente, 90° = direita) × 6 quadros
   juninho_atlas: 'assets/personagens/juninho_ataque_atlas.webp',
@@ -391,6 +395,7 @@ export const ICON_ART = {
   microfone: 'w_megafone',
   caramelo: 'caramelo_icone', // recortado do atlas do latido quando ele carrega
   paredao: 'w_paredao',
+  altinha: 'w_altinha',
 };
 
 export const images = {};
