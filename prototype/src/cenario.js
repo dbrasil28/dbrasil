@@ -2,7 +2,7 @@
 // meio do calçadão, carrinhos, bancos, lixeiras, orelhões, postes, placas e a sujeira do chão; no morro,
 // motos, entulho, gatos de luz, caixas d'água, sinuca e varal nas lajes. Tudo determinístico por posição.
 // Os sólidos nunca fecham a rota: ficam longe das passagens, das escadas e do começo da partida.
-import { CENARIO, PLACES, ROUTE, CADEIRA_DIST, PREDIOS, AVENIDA } from './config.js';
+import { CENARIO, PLACES, ROUTE, CADEIRA_DIST, PREDIOS, AVENIDA, FIGURANTES } from './config.js';
 import { hash2 } from './math.js';
 import { montarFavela } from './favela.js';
 
@@ -479,6 +479,43 @@ function alemDasPontas(w, map) {
   w.predios = w.predios.filter((pr, i) => i < nPr || fora(pr.y0, pr.y1 + 0.31));
 }
 
+/**
+ * Figurantes (D55): as garotas e os policiais postos como objetos (no lugar certo, sem cair em cima de banco ou
+ * carro) saem dos objetos e viram gente que anda (figurantes.js); os policiais da Orla são a PM, os do Morro a
+ * tropa. E um picolezeiro a cada tanto de praia, num trecho livre da areia.
+ */
+function figurantes(w, map) {
+  w.figurantes = [];
+  const novo = (tipo, x, y, v, extra = {}) => ({ tipo, x, y, ax: x, ay: y, v, dirX: 0, dirY: 1, walk: 0, anda: false, pausa: v * 3, alvo: null, pose: null, poseT: 0, gritoT: 4 + v * 8, ...extra });
+  w.props = w.props.filter((p) => {
+    if (!FIGURAS.has(p.kind)) return true;
+    const tipo = p.kind === 'garota' ? 'garota' : p.y < w.orlaTop - 1 ? 'tropa' : 'pm';
+    w.figurantes.push(novo(tipo, p.x, p.y, p.v));
+    return false;
+  });
+  const F = FIGURANTES;
+  const x = map.sandX + F.picoleX;
+  const bate = (y) => [...w.solids, ...w.places, ...w.platforms].some((k) => k.x1 > x - 0.5 && k.x0 < x + 0.5 && k.y1 > y - 0.3 && k.y0 < y + 0.3);
+  for (let b = 0; b <= ROUTE.orla.blocks; b += F.picoleCadaQuarteiroes) {
+    // o maior trecho livre da faixa dele neste quarteirão
+    const y0 = -map.blockLen * b;
+    let melhor = null;
+    let ini = null;
+    for (let y = y0 + 2; y <= y0 + map.blockLen - 2; y += 0.5) {
+      const livre = y > w.orlaTop + 2 && y < w.orla.y1 - 2 && !bate(y);
+      if (livre && ini === null) ini = y;
+      if ((!livre || y + 0.5 > y0 + map.blockLen - 2) && ini !== null) {
+        const fim = livre ? y : y - 0.5;
+        if (!melhor || fim - ini > melhor[1] - melhor[0]) melhor = [ini, fim];
+        ini = null;
+      }
+    }
+    if (!melhor || melhor[1] - melhor[0] < F.picoleMinM) continue;
+    const v = H(b, 1, 1301);
+    w.figurantes.push(novo('picole', x, melhor[0] + (melhor[1] - melhor[0]) * v, v, { ya: melhor[0], yb: melhor[1] }));
+  }
+}
+
 export const SOLID_CELL = 6;
 
 /** Monta o cenário de todo o mundo e os índices por faixa de y (desenho e colisão). */
@@ -498,6 +535,7 @@ export function placeCenario(w, map) {
   morro(w);
   fachadas(w, map);
   montarFavela(w); // casas da favela em volta do caminho do Morro (arte no ângulo do jogo)
+  figurantes(w, map); // garotas e policiais viram figurantes animados (figurantes.js); picolezeiros na areia
   if (map.avenidaX0 !== undefined) {
     // a avenida que segue depois do muro do fim da Orla não passa por dentro de casa
     const a0 = map.avenidaX0 - AVENIDA.meioFioM;

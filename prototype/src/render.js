@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA } from './config.js';
-import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS } from './sprites.js';
+import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS, FIGURANTE_ART } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto, drawEscuroPontas } from './mapa.js';
 import { drawMar } from './render_mar.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
@@ -244,6 +244,10 @@ export class Renderer {
       if (!w.gateOpen || game.t - (w.portaT ?? -9) < CARREIRA.portaCaiS) {
         list.push({ d: cam.depth(w.gate.x0, w.orlaTop + 0.3), k: 'gate', o: w, x: w.gate.x0, y: w.orlaTop });
       }
+      for (const f of w.figurantes || []) {
+        if (f.y > bounds.maxY + 2 || f.y < bounds.minY - 2 || f.x < bounds.minX - 2 || f.x > bounds.maxX + 2) continue;
+        list.push({ d: cam.depth(f.x, f.y), k: 'fig', o: f });
+      }
       for (const a of game.achados || []) {
         if (a.aberto || a.y > bounds.maxY + 2 || a.y < bounds.minY - 2) continue;
         list.push({ d: a.plat ? cam.depth(a.x, a.plat.y1) + 0.002 : cam.depth(a.x, a.y), k: 'achado', o: a, z: a.plat ? a.plat.h : 0 });
@@ -343,6 +347,28 @@ export class Renderer {
         case 'gate':
           drawPortaEscadaria(ctx, o, cam, ppu, t);
           break;
+        case 'fig': {
+          // figurante (D55): andando, parado (quadro de apoio) ou na pose (raiva, mira, ataque)
+          const FA = FIGURANTE_ART[o.tipo];
+          const A = FA && walkReady(FA.walk);
+          if (!A) break;
+          const h = playerPx * ENEMIES.telespectador.size * enemyMul;
+          cam.toScreen(o.x + o.dirX, o.y + o.dirY, pt2);
+          const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+          let spr = null;
+          if (o.pose && images[`${FA.poses.prefix}_0_0`]) {
+            spr = this.cache.get(`${FA.poses.prefix}_${row}_${FA.poses.col[o.pose]}`, h * (FA.poses.ch / FA.poses.figureH), POSE_OPTS, true);
+          }
+          if (!spr) {
+            const frame = o.anda ? Math.floor((o.walk / (Math.PI * 2)) * 6) % 6 : 1;
+            spr = this.cache.get(`${A.prefix}_${row}_${frame}`, h * (ATLAS.ch / A.figureH), CIVIL_OPTS, true) || o.ultimaFig;
+          }
+          if (spr) {
+            o.ultimaFig = spr;
+            blit(ctx, spr, pt.x, pt.y, false);
+          }
+          break;
+        }
         case 'achado':
           if (!escondidoDeDia(game, o)) drawAchado(ctx, game, o, pt, ppu, t, playerPx);
           break;

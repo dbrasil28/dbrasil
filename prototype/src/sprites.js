@@ -33,6 +33,13 @@ export const IMAGES = {
   chefe_trafico_walk_atlas: 'assets/personagens/chefe_trafico/caminhada_atlas.webp', // Chefe do Tráfico (Figma)
   chefe_trafico_poses_atlas: 'assets/personagens/chefe_trafico/poses_atlas.webp', // ataque e raiva em 16 direções
   monstrao_walk_atlas: 'assets/personagens/monstrao/caminhada_atlas.webp', // Monstrão, chefão da Orla (Figma)
+  // figurantes da Orla (pacotes GPT, D55): a garota da esquina, o policial do pé do morro e o picolezeiro da areia
+  garota_programa_walk_atlas: 'assets/personagens/garota_programa/caminhada_atlas.webp',
+  garota_programa_poses_atlas: 'assets/personagens/garota_programa/poses_atlas.webp',
+  policial_militar_walk_atlas: 'assets/personagens/policial_militar/caminhada_atlas.webp',
+  policial_militar_poses_atlas: 'assets/personagens/policial_militar/poses_atlas.webp',
+  vendedor_picole_walk_atlas: 'assets/personagens/vendedor_picole/caminhada_atlas.webp',
+  vendedor_picole_poses_atlas: 'assets/personagens/vendedor_picole/poses_atlas.webp',
   monstrao_poses_atlas: 'assets/personagens/monstrao/poses_atlas.webp', // 7 golpes e poses em 16 direções
   monstrao_anilha: 'assets/personagens/monstrao/anilha.webp',
   traficante_poses_atlas: 'assets/personagens/traficante/poses_atlas.webp', // mira com o fuzil em 16 direções
@@ -227,6 +234,11 @@ export const WALK_ATLAS = {
   mtz: { atlas: 'morador_tiozinho_walk_atlas', prefix: 'mtz', figureH: 158, escala: 0.7 },
   cq: { atlas: 'cracudo_walk_atlas', prefix: 'cq', figureH: 158, escala: 0.7 },
   tr: { atlas: 'trombadinha_walk_atlas', prefix: 'tr', figureH: 158, escala: 0.7 },
+  // figurantes (D55): cortados em 60% (são de fundo e não lutam)
+  gp: { atlas: 'garota_programa_walk_atlas', prefix: 'gp', figureH: 157, escala: 0.6 },
+  pm: { atlas: 'policial_militar_walk_atlas', prefix: 'pm', figureH: 157, escala: 0.6 },
+  pt: { atlas: 'policial_tropa_walk_atlas', prefix: 'pt', figureH: 158, escala: 0.6 },
+  vp: { atlas: 'vendedor_picole_walk_atlas', prefix: 'vp', figureH: 157, escala: 0.6 },
   pa: { atlas: 'politico_attack_atlas', prefix: 'pa', figureH: 158 }, // mesma escala da caminhada
   // Caramelo: as quatro na mesma escala. feetRows: onde ficam as patas em cada direção (px da célula de 160);
   // de lado o cachorro pisa mais alto na folha, então o desenho desce até as patas tocarem o chão
@@ -254,6 +266,10 @@ export const POSE_ATLAS = {
   mtzp: { atlas: 'morador_tiozinho_poses_atlas', prefix: 'mtzp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   cqp: { atlas: 'cracudo_poses_atlas', prefix: 'cqp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { agachado: 0 }, escala: 0.7 },
   trp: { atlas: 'trombadinha_poses_atlas', prefix: 'trp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { correndo: 0 }, escala: 0.7 },
+  gpp: { atlas: 'garota_programa_poses_atlas', prefix: 'gpp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
+  pmp: { atlas: 'policial_militar_poses_atlas', prefix: 'pmp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
+  ptp: { atlas: 'policial_tropa_poses_atlas', prefix: 'ptp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
+  vpp: { atlas: 'vendedor_picole_poses_atlas', prefix: 'vpp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
   // Mototaxista (pacote 360 v3, tools/montar-veiculo.py): pilotando em 16 direções × 6 quadros; figureH: a maior figura
   mtx: { atlas: 'mototaxista_atlas', prefix: 'mtx', cols: 6, rows: 16, cw: 220, ch: 170, figureH: 120, escala: 0.8 },
 };
@@ -261,6 +277,14 @@ export const POSE_OPTS = { shadowScale: 0.4 };
 
 /** O atlas, se já carregou; senão null (o jogo usa o recorte de pose única). */
 export const walkReady = (w) => (w && images[`${w.prefix}_0_0`] ? w : null);
+
+/** Figurantes (D55): caminhada e as poses de ataque e raiva de cada um (figurantes.js diz quando). */
+export const FIGURANTE_ART = {
+  garota: { walk: WALK_ATLAS.gp, poses: POSE_ATLAS.gpp },
+  pm: { walk: WALK_ATLAS.pm, poses: POSE_ATLAS.pmp },
+  tropa: { walk: WALK_ATLAS.pt, poses: POSE_ATLAS.ptp },
+  picole: { walk: WALK_ATLAS.vp, poses: POSE_ATLAS.vpp },
+};
 
 /** Telespectadores animados: atlas de caminhada e pose de acordado de cada roupa. */
 export const CROWD_ANIM = {
@@ -333,6 +357,8 @@ export const IMAGES_MORRO = {
   trombadinha_walk_atlas: 'assets/personagens/trombadinha/caminhada_atlas.webp',
   trombadinha_poses_atlas: 'assets/personagens/trombadinha/poses_atlas.webp',
   mototaxista_atlas: 'assets/personagens/mototaxista/pilotando_atlas.webp', // a moto do Mototáxi Amigo (só no Morro)
+  policial_tropa_walk_atlas: 'assets/personagens/policial_tropa/caminhada_atlas.webp', // a tropa nas vielas (D55)
+  policial_tropa_poses_atlas: 'assets/personagens/policial_tropa/poses_atlas.webp',
   // chão do Morro visto de cima (sem emenda) e a relíquia do Morro (docs/arte/morro_figma/)
   chao_viela: 'assets/chao/cimento_viela.webp',
   chao_escadaria: 'assets/chao/escadaria_degraus.webp',

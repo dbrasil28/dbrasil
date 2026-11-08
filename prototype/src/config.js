@@ -979,3 +979,22 @@ export const SOM_ARMA = {
   capacete: 'arremesso', entrega: 'arremesso', chinelo: 'chinelo', boleto: 'boleto', maleta: 'arremesso', picole: 'picole',
   mototaxi: 'moto', microfone: 'megafone', gato: 'gato', carimbo: null, caramelo: null,
 };
+
+// Figurantes (D55): a garota da esquina e o policial do pé do morro (Orla), a tropa nas vielas (Morro) e o
+// picolezeiro andando na areia. São de ambiente: não lutam, não bloqueiam e ninguém bate neles. Passeiam um
+// pouco em volta do lugar deles e reagem à horda chegando (raiva; os policiais miram; colada, a garota e o
+// picolezeiro fazem a pose de ataque). O picolezeiro grita de tempos em tempos.
+export const FIGURANTES = {
+  passoMS: 0.55, // andando (m/s)
+  pausaS: [1.5, 4.5], // parado entre um passeio e outro
+  raioM: { garota: 0.9, pm: 0.9, tropa: 0.7 }, // quanto se afastam do lugar deles
+  picoleCadaQuarteiroes: 2, // um picolezeiro a cada tanto de quarteirão, onde a areia tem caminho livre
+  picoleX: 1.6, // a faixa dele na areia, a partir do começo dela (entre os coqueiros e os guarda-sóis)
+  picoleMinM: 8, // o trecho livre mínimo para ele ir e voltar
+  reageM: { garota: 3.5, pm: 8, tropa: 8, picole: 4 }, // a horda chegando
+  pertoM: 1.6, // colada: pose de ataque (garota e picolezeiro)
+  gritoCadaS: [8, 14], // o picolezeiro grita (pose de raiva)
+  gritoS: 1.3,
+  grito: 'OLHA O PICOLÉ!',
+  vistaM: 40, // longe do Juninho, ficam parados (ninguém vê)
+};

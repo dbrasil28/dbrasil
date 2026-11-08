@@ -15,6 +15,7 @@ import { updateCrises, criseLentidao } from './crises.js';
 import { emHorda, iniciarHorda, updateHorda, durezaHorda } from './horda.js';
 import { updateMonstrao, limparMonstrao } from './monstrao.js';
 import { updateCracudo, updateTrombadinha, trombada, devolveXp } from './morro_inimigos.js';
+import { updateFigurantes } from './figurantes.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, stairOut, inside, routeRemaining } from './mundo.js';
@@ -978,6 +979,7 @@ export class Game {
       updateAchados(this, dt);
       this.updateRoute(dt);
       updateAbertura(this, dt);
+      updateFigurantes(this, dt); // garotas, policiais e picolezeiros de ambiente (D55)
       if (!emAbertura(this)) {
         if (this.horda) updateHorda(this, dt);
         else updateCovil(this, dt);
