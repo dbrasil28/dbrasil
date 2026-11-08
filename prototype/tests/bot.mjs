@@ -38,6 +38,22 @@ export function botInput(game) {
     cy -= (s.vx / sp) * side * w * 2;
     n += w;
   }
+  // sair da linha vermelha de mira (traficantes e o Chefe travam o alvo antes de atirar), como uma pessoa faz
+  for (const e of BOT.dodge ? game.enemies : []) {
+    if (e.dead || !(e.aimT > 0 || e.burst > 0) || e.ax === undefined) continue;
+    const lx = e.ax - e.x;
+    const ly = e.ay - e.y;
+    const ll = Math.hypot(lx, ly) || 1;
+    const qx = p.x - e.x;
+    const qy = p.y - e.y;
+    if ((qx * lx + qy * ly) / ll < 0 || qx * qx + qy * qy > 16 * 16) continue; // atrás de quem atira, ou longe
+    const lado = (qx * -ly + qy * lx) / ll; // distância até a linha, com sinal
+    if (Math.abs(lado) > 1.6) continue;
+    const sgn = lado >= 0 ? 1 : -1;
+    cx -= (-ly / ll) * sgn * 6;
+    cy -= (lx / ll) * sgn * 6;
+    n += 2;
+  }
   // fugir dos lotes vendidos
   for (const lot of game.lots) {
     if (Math.abs(p.x - lot.x) < lot.half + 0.8 && Math.abs(p.y - lot.y) < lot.half + 0.8) {
@@ -141,9 +157,9 @@ export function botGoal(game) {
   if (!w || !C) return null;
   const b = game.boss;
   if (b) {
-    // luta: fica a uma distância em que as armas alcançam, sem encostar
+    // luta: chega perto o bastante para todas as armas alcançarem (o Chefe do Tráfico recua), sem encostar
     const d = Math.hypot(b.x - game.player.x, b.y - game.player.y);
-    return d > 9 ? { x: b.x, y: b.y, ri: b.ri ?? 0 } : null;
+    return d > 6 ? { x: b.x, y: b.y, ri: b.ri ?? 0 } : null;
   }
   if (game.segment === 'orla') {
     if (w.gateOpen) return { x: (w.gate.x0 + w.gate.x1) / 2, y: w.orlaTop - 3, ri: 1 };

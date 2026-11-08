@@ -210,3 +210,28 @@ test('todas as habilidades têm 5 níveis com descrição (menos a evolução)',
     for (const lv of w.levels.slice(1)) assert.ok(lv.desc, `${id} sem descrição de nível`);
   }
 });
+
+test('Chefão na mira: o Capacete vai nele mesmo com a horda mais perto (D46)', () => {
+  const g = arena('capacete', 1, 'morro');
+  inimigo(g, -2, 0, 1e6); // horda bem do lado do Juninho
+  inimigo(g, 0, -2.5, 1e6);
+  const chefe = g.spawnEnemy('chefe_trafico', g.player.x + 6, g.player.y);
+  chefe.speed = 0;
+  chefe.fireT = 1e9; // não atira nem chama reforço durante o teste
+  chefe.callCd = 1e9;
+  const hp0 = chefe.hp;
+  rodar(g, 1.2);
+  assert.ok(chefe.hp < hp0, 'o capacete acertou o chefe');
+});
+
+test('Hora de bater: o Chefe parado mirando leva o dobro de dano (D46)', () => {
+  const g = arena('capacete', 1, 'morro');
+  const chefe = g.spawnEnemy('chefe_trafico', g.player.x + 6, g.player.y);
+  chefe.hp = chefe.maxHp = 1e6;
+  g.damageEnemy(chefe, 10, 'teste');
+  const andando = 1e6 - chefe.hp;
+  chefe.aimT = 0.5;
+  const antes = chefe.hp;
+  g.damageEnemy(chefe, 10, 'teste');
+  assert.equal(antes - chefe.hp, andando * 2);
+});

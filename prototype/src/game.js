@@ -533,6 +533,10 @@ export class Game {
     if (e.dead || ENEMIES[e.type].invencivel) return; // o Rabecão não morre
     let dmg = amount;
     if (e.elite) dmg *= this.stats.eliteDmgMul;
+    // hora de bater: o chefe parado mirando, atirando ou gritando no rádio leva mais dano
+    const J = ENEMIES[e.type].janela;
+    const naJanela = J && (e.aimT > 0 || e.burst > 0 || e.callT > 0);
+    if (naJanela) dmg *= J.danoMul;
     const dw = this.metrics.damageByWeapon;
     dw[source] = (dw[source] || 0) + Math.min(dmg, Math.max(0, e.hp));
     e.hp -= dmg;
@@ -547,7 +551,7 @@ export class Game {
     e.kx += kx * mass;
     e.ky += ky * mass;
     if (this.settings.damageNumbers && !quiet && this.fx.numbers.length < (this.enemies.length > 220 ? 8 : 30)) {
-      this.fx.numbers.push({ x: e.x, y: e.y, v: Math.round(dmg), t: 0, big: dmg >= 40 });
+      this.fx.numbers.push({ x: e.x, y: e.y, v: Math.round(dmg), t: 0, big: dmg >= 40 || naJanela });
     }
     if (e.type === 'golpista' && !e.split && e.hp > 0) {
       e.split = true;
@@ -1721,6 +1725,8 @@ export class Game {
     this.hash.query(p.x, p.y, I.throwRange, tmp);
     let target = null;
     let td = I.throwRange * I.throwRange;
+    let chefe = null;
+    let cd = td;
     for (const e of tmp) {
       if (e.dead || e.type === 'isca') continue;
       const d2 = (e.x - p.x) ** 2 + (e.y - p.y) ** 2;
@@ -1728,6 +1734,15 @@ export class Game {
         td = d2;
         target = e;
       }
+      if (e.boss && d2 < cd) {
+        cd = d2;
+        chefe = e;
+      }
+    }
+    if (chefe) {
+      // o objeto vai no chefão quando ele está no alcance, como as armas de um alvo só
+      target = chefe;
+      td = cd;
     }
     if (!target) return;
     const T = THROWABLES[p.carry.kind];

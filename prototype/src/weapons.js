@@ -22,6 +22,31 @@ function nearestEnemies(game, x, y, maxR, n, exclude) {
   return list.slice(0, n).map((o) => o.e);
 }
 
+/**
+ * Os mais perto, com o chefão na frente da fila quando ele está no alcance: as armas de um alvo só miram
+ * nele primeiro (a horda continua apanhando das armas de área). Sem isso, a horda e a assessoria que ele
+ * chama ficam sempre mais perto e o chefão não leva dano.
+ */
+function alvosComChefe(game, x, y, maxR, n, exclude) {
+  const list = nearestEnemies(game, x, y, maxR, n, exclude);
+  let chefe = null;
+  let cd = maxR * maxR;
+  for (const e of tmp) {
+    if (!e.boss || e.dead || (exclude && exclude.has(e.id))) continue;
+    const d2 = (e.x - x) ** 2 + (e.y - y) ** 2;
+    if (d2 <= cd) {
+      cd = d2;
+      chefe = e;
+    }
+  }
+  if (!chefe || list[0] === chefe) return list;
+  const i = list.indexOf(chefe);
+  if (i > 0) list.splice(i, 1);
+  else if (list.length >= n) list.pop();
+  list.unshift(chefe);
+  return list;
+}
+
 function randomEnemyWithin(game, x, y, r) {
   const list = nearestEnemies(game, x, y, r, 12);
   if (!list.length) return null;
@@ -39,7 +64,7 @@ export function fireWeapon(game, w, ps) {
     case 'capacete': {
       // vai e volta mirando a horda (é a arma inicial: quem foge precisa acertar o que vem atrás);
       // sem ninguém perto, vai para onde ele anda. Vários capacetes abrem em leque
-      const t0 = nearestEnemies(game, p.x, p.y, 9, 1)[0];
+      const t0 = alvosComChefe(game, p.x, p.y, 9, 1)[0];
       const base = t0 ? Math.atan2(t0.y - p.y, t0.x - p.x) : Math.atan2(p.faceY, p.faceX);
       p.aimX = Math.cos(base);
       p.aimY = Math.sin(base);
@@ -59,7 +84,7 @@ export function fireWeapon(game, w, ps) {
     }
     case 'entrega': {
       // evolução: capacetes dourados que ricocheteiam entre os inimigos mais próximos
-      const targets = nearestEnemies(game, p.x, p.y, 9, st.count);
+      const targets = alvosComChefe(game, p.x, p.y, 9, st.count);
       if (!targets.length) break;
       const adx = targets[0].x - p.x;
       const ady = targets[0].y - p.y;
@@ -86,7 +111,7 @@ export function fireWeapon(game, w, ps) {
     case 'chinelo': {
       // rajada em linha reta na direção da horda (o mais perto), um chinelo atrás do outro;
       // sem ninguém perto, vai para onde ele anda. Nível 5: segunda rajada no outro lado da horda
-      const perto = nearestEnemies(game, p.x, p.y, st.range, 10);
+      const perto = alvosComChefe(game, p.x, p.y, st.range, 10);
       const linhas = [];
       if (perto.length) {
         const l = Math.hypot(perto[0].x - p.x, perto[0].y - p.y) || 1;
@@ -213,7 +238,7 @@ export function fireWeapon(game, w, ps) {
       const seen = new Set();
       const tocou = [];
       for (let c = 0; c < st.count; c++) {
-        let cur = nearestEnemies(game, p.x, p.y, st.range * area, 1, seen)[0];
+        let cur = alvosComChefe(game, p.x, p.y, st.range * area, 1, seen)[0];
         if (!cur) break;
         const pts = [{ x: p.x, y: p.y }];
         for (let k = 0; k < st.chain && cur; k++) {

@@ -96,13 +96,14 @@ export const ENEMIES = {
   // grita no rádio (pose de raiva) e chama traficantes. A entrega só sai com ele derrubado.
   chefe_trafico: {
     name: 'Chefe do Tráfico',
-    hp: 2600, speed: 1.3, dmg: 20, radius: 0.6, size: 1.5, xp: 0,
+    hp: 1400, speed: 1.3, dmg: 20, radius: 0.6, size: 1.5, xp: 0, // a vida cresce com o tempo no trecho (uns 6 mil aos 8 min)
     behavior: 'chefe', elite: true, boss: true,
     range: 11, keepM: 6, aimS: 0.7, fireEvery: 2.8,
     rajada: { tiros: 3, intervaloS: 0.12, abertura: 0.08 }, // abertura: desvio (rad) entre os tiros
     bullet: { speed: 16, life: 1.0, radius: 0.2, dmg: 9 },
     reforco: { cadaS: 12, gritoS: 1.0, traficantes: 2 },
     fases: { tirosMais: 1, cadenciaMul: 0.8, reforco: [[], ['traficante', 'funkeiro'], ['traficante', 'traficante', 'funkeiro']] },
+    janela: { danoMul: 2 }, // hora de bater: parado mirando, atirando ou gritando no rádio, leva o dobro de dano
   },
   // Modo Horda: aos 30 minutos chega o Rabecão; não morre e não para (D44)
   rabecao: {

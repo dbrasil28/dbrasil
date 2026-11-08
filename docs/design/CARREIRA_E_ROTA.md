@@ -61,6 +61,7 @@ Nada de seta, distância ou nome antes de o jogador descobrir. Ninguém diz "mor
 - **Entrada:** a TV anuncia, a tela treme e ele sai do covil. É gigante e tem uma barra de vida grande no alto da tela.
 - **Três fases:** com 100%, 66% e 33% da vida. Em cada fase ele ganha um golpe novo e chama a assessoria dele: uma leva de horda junto com os inimigos do trecho. Vira caos total.
 - **Todo golpe tem aviso:** linha, sombra ou faixa no chão antes (D25).
+- **Na mira:** as armas de um alvo só e o objeto arremessado miram no chefão quando ele está no alcance, para a horda e a assessoria não roubarem todos os golpes (D46).
 - **Sem jaula:** dá para fugir e dar a volta, mas a saída só abre com ele no chão.
 - **Quando ele cai:** o sinal da TV cai junto e a horda em volta desaba, o Caos zera, sai um cofre com evolução garantida (seção 6) e uma gorjeta grande, e abre a porta.
 
@@ -214,6 +215,7 @@ Tirado da lista de estereótipos do autor (`ELENCO_v0.3_BRASIL.md`).
 **Eventos:** o Baile na laje e o Gato de luz em curto são as crises do Caos (seção 2). Também: o toque de recolher (o Chefe fecha becos com barricadas e o caminho muda), o gatonet que cai (as TVs das janelas apagam e a horda acorda por um instante) e os fogos (aviso de que a próxima leva está chegando).
 
 **Chefão: o Chefe do Tráfico**, armado, na laje do topo:
+- **Como o Juninho mata:** as armas de um alvo só miram nele primeiro quando ele está no alcance (D46). Ele leva o dobro de dano enquanto está parado mirando, atirando ou gritando no rádio: a hora de chegar perto e bater.
 - **Rajadas:** atira em rajadas, sempre com a linha de mira de aviso.
 - **Reforço:** grita no rádio e chama traficantes com fogos.
 - **Toque de recolher:** decreta toque de recolher em volta da laje.
