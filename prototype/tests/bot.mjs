@@ -54,6 +54,41 @@ export function botInput(game) {
     cy -= (lx / ll) * sgn * 6;
     n += 2;
   }
+  // golpes do Monstrão: sai da faixa e do círculo do aviso; no anel de choque, procura a brecha
+  for (const a of BOT.dodge ? game.avisosChao || [] : []) {
+    if (a.tipo === 'faixa') {
+      const qx = p.x - a.x;
+      const qy = p.y - a.y;
+      const along = qx * a.dx + qy * a.dy;
+      const lado = qx * -a.dy + qy * a.dx;
+      if (along < -1 || along > a.len + 1 || Math.abs(lado) > a.larg / 2 + 1.2) continue;
+      const sgn = lado >= 0 ? 1 : -1;
+      cx -= -a.dy * sgn * 8;
+      cy -= a.dx * sgn * 8;
+      n += 3;
+    } else {
+      const qx = p.x - a.x;
+      const qy = p.y - a.y;
+      const d = Math.hypot(qx, qy) || 1;
+      if (d > a.r + 1.2) continue;
+      cx -= (qx / d) * 8;
+      cy -= (qy / d) * 8;
+      n += 3;
+    }
+  }
+  for (const o of BOT.dodge ? game.monstraoObjs || [] : []) {
+    if (o.tipo !== 'anel') continue;
+    const qx = p.x - o.x;
+    const qy = p.y - o.y;
+    const d = Math.hypot(qx, qy) || 1;
+    if (d < o.r || d - o.r > 4) continue;
+    const bx = o.x + Math.cos(o.brecha) * d - p.x;
+    const by = o.y + Math.sin(o.brecha) * d - p.y;
+    const bl = Math.hypot(bx, by) || 1;
+    cx -= (bx / bl) * 6;
+    cy -= (by / bl) * 6;
+    n += 2;
+  }
   // fugir dos lotes vendidos
   for (const lot of game.lots) {
     if (Math.abs(p.x - lot.x) < lot.half + 0.8 && Math.abs(p.y - lot.y) < lot.half + 0.8) {
@@ -157,9 +192,14 @@ export function botGoal(game) {
   if (!w || !C) return null;
   const b = game.boss;
   if (b) {
-    // luta: chega perto o bastante para todas as armas alcançarem (o Chefe do Tráfico recua), sem encostar
+    // luta: chega perto o bastante para todas as armas alcançarem (o Chefe do Tráfico recua), sem encostar;
+    // do Monstrão, que vem para cima, guarda distância (o soco no chão pega quem cola nele)
     const d = Math.hypot(b.x - game.player.x, b.y - game.player.y);
-    return d > 6 ? { x: b.x, y: b.y, ri: b.ri ?? 0 } : null;
+    if (b.type === 'monstrao' && d < 5) {
+      const p = game.player;
+      return { x: p.x + (p.x - b.x) * 2, y: p.y + (p.y - b.y) * 2, ri: p.ri ?? 0 };
+    }
+    return d > 6.5 ? { x: b.x, y: b.y, ri: b.ri ?? 0 } : null;
   }
   if (game.segment === 'orla') {
     if (w.gateOpen) return { x: (w.gate.x0 + w.gate.x1) / 2, y: w.orlaTop - 3, ri: 1 };

@@ -37,7 +37,7 @@ test('o roteiro da carreira funciona com vida infinita: covil, chefão, passagem
   const { defaultSettings } = await import('../src/settings.js');
   const { botInput, resolveModal } = await import('./bot.mjs');
   const game = new Game({ ...defaultSettings(), elenco: false, aberta: false }, { seed: 5 });
-  let lotsSeen = 0;
+  const golpes = new Set();
   let fases = 0;
   let armasNaOrla = 0;
   while (!game.finished && game.t < 2400) {
@@ -49,18 +49,18 @@ test('o roteiro da carreira funciona com vida infinita: covil, chefão, passagem
     if (game.segment === 'orla') armasNaOrla = game.player.weapons.length;
     game.update(1 / 30, botInput(game));
     game.outbox.length = 0;
-    lotsSeen = Math.max(lotsSeen, game.lots.length);
+    if (game.boss && game.boss.golpe) golpes.add(game.boss.golpe);
     if (game.boss) fases = Math.max(fases, game.boss.fase || 0);
   }
   assert.equal(game.metrics.decisions.length, 3, 'nem todas as propostas apareceram');
-  assert.ok(game.metrics.chefaoOrlaS, 'o Especulador não caiu');
-  assert.ok(lotsSeen > 0, 'o chefe nunca comprou lote');
+  assert.ok(game.metrics.chefaoOrlaS, 'o Monstrão não caiu');
+  assert.ok(golpes.has('investida') && golpes.has('pose'), `o Monstrão não deu investida nem fez pose: ${[...golpes]}`);
   assert.equal(fases, 2, 'o chefão não passou pelas três fases');
   assert.ok(armasNaOrla >= 3, 'a build da Orla não cresceu');
   assert.ok(game.metrics.morroAt > game.metrics.chefaoOrlaS, 'não atravessou para o Morro');
   assert.ok(game.metrics.chefaoMorroS, 'o Chefe do Tráfico não caiu');
   assert.equal(game.over, 'victory', `esperava a entrega, veio ${game.over} em ${game.t.toFixed(0)} s`);
-  console.log('[roteiro]', JSON.stringify({ t: Math.round(game.t), especulador: game.metrics.chefaoOrlaS, morro: game.metrics.morroAt, chefe: game.metrics.chefaoMorroS }));
+  console.log('[roteiro]', JSON.stringify({ t: Math.round(game.t), monstrao: game.metrics.chefaoOrlaS, morro: game.metrics.morroAt, chefe: game.metrics.chefaoMorroS }));
 });
 
 test('atalho de teste (começar em 07:45) monta uma build e pula propostas antigas', async () => {

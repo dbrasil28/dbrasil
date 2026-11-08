@@ -31,6 +31,9 @@ export const IMAGES = {
   traficante_walk_atlas: 'assets/personagens/traficante/caminhada_atlas.webp', // Traficante do Morro (Figma)
   chefe_trafico_walk_atlas: 'assets/personagens/chefe_trafico/caminhada_atlas.webp', // Chefe do Tráfico (Figma)
   chefe_trafico_poses_atlas: 'assets/personagens/chefe_trafico/poses_atlas.webp', // ataque e raiva em 16 direções
+  monstrao_walk_atlas: 'assets/personagens/monstrao/caminhada_atlas.webp', // Monstrão, chefão da Orla (Figma)
+  monstrao_poses_atlas: 'assets/personagens/monstrao/poses_atlas.webp', // 7 golpes e poses em 16 direções
+  monstrao_anilha: 'assets/personagens/monstrao/anilha.webp',
   traficante_poses_atlas: 'assets/personagens/traficante/poses_atlas.webp', // mira com o fuzil em 16 direções
   funkeiro_poses_atlas: 'assets/personagens/funkeiro/poses_atlas.webp', // fúria de braços abertos em 16 direções
   // Cachorro Caramelo (habilidade): caminhada, corrida, mordida e latido em 16 direções × 6 quadros
@@ -62,7 +65,6 @@ export const IMAGES = {
   traficante: 'assets/personagens/traficante.webp',
   chefe_trafico: 'assets/personagens/chefe_trafico.webp',
   politico: 'assets/personagens/politico.png',
-  especulador: 'assets/personagens/especulador.png',
   // poste de luz cheio de gato (Figma); o antigo com o cartaz "vote em mim de novo" saiu
   poste: 'assets/cenario/orla/poste_gato_a.webp',
   poste_b: 'assets/cenario/orla/poste_gato_b.webp',
@@ -211,6 +213,7 @@ export const WALK_ATLAS = {
   fk: { atlas: 'funkeiro_walk_atlas', prefix: 'fk', figureH: 158 },
   tf: { atlas: 'traficante_walk_atlas', prefix: 'tf', figureH: 157 },
   ct: { atlas: 'chefe_trafico_walk_atlas', prefix: 'ct', figureH: 157 },
+  mo: { atlas: 'monstrao_walk_atlas', prefix: 'mo', figureH: 157 },
   pa: { atlas: 'politico_attack_atlas', prefix: 'pa', figureH: 158 }, // mesma escala da caminhada
   // Caramelo: as quatro na mesma escala. feetRows: onde ficam as patas em cada direção (px da célula de 160);
   // de lado o cachorro pisa mais alto na folha, então o desenho desce até as patas tocarem o chão
@@ -229,6 +232,7 @@ export const POSE_ATLAS = {
   fkp: { atlas: 'funkeiro_poses_atlas', prefix: 'fkp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
   tfp: { atlas: 'traficante_poses_atlas', prefix: 'tfp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
   ctp: { atlas: 'chefe_trafico_poses_atlas', prefix: 'ctp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
+  mop: { atlas: 'monstrao_poses_atlas', prefix: 'mop', cols: 7, rows: 16, cw: 320, ch: 200, figureH: 158, col: { preparo: 0, investida: 1, agachamento: 2, arremesso: 3, levanta: 4, pose: 5, tonto: 6 } },
 };
 export const POSE_OPTS = { shadowScale: 0.4 };
 
@@ -276,7 +280,9 @@ export const ENEMY_ART = {
   rival: { img: 'politico', tint: [240, 122, 26, 0.32], walk: WALK_ATLAS.pc, lazy: true },
   // Rabecão (Modo Horda): o camburão escurecido até chegar a arte do rabecão
   rabecao: { img: 'cen_camburao_a', tint: [18, 18, 22, 0.6], lazy: true },
-  especulador: { img: 'especulador', hardhat: true },
+  // Monstrão: estados (e.pose) escolhem a coluna das poses, virada para e.poseX/poseY; gigante, então não é
+  // preparado antes (lazy) e a fúria da fase 3 pinta de vermelho
+  monstrao: { img: 'mo_0_0', walk: WALK_ATLAS.mo, poses: POSE_ATLAS.mop, estados: true, lazy: true, furia: [215, 40, 28, 0.3] },
 };
 
 /** Ícone de arma/HUD -> imagem. */
@@ -392,7 +398,7 @@ export function prewarm(cache, playerPx, enemyPx, sizeOf) {
       const h = enemyPx * sizeOf(type);
       for (const img of [art.img, art.front].filter(Boolean)) jobs.push(() => cache.get(img, h, { ...art, flip }));
       if (art.attack) jobs.push(() => cache.get(art.attack, h * art.attackH, attackOpts(flip)));
-      if (!flip && art.poses) {
+      if (!flip && art.poses && !art.lazy) {
         const P = art.poses;
         for (let r = 0; r < P.rows; r++) {
           for (let c = 0; c < P.cols; c++) jobs.push(() => cache.get(`${P.prefix}_${r}_${c}`, h * (P.ch / P.figureH), POSE_OPTS));

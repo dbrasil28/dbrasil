@@ -11,6 +11,7 @@ const $ = (id) => document.getElementById(id);
 const SOURCE_NAMES = {
   ...Object.fromEntries(Object.entries(ENEMIES).map(([k, v]) => [k, v.name])),
   lote: 'Lote vendido do Especulador',
+  monstrao: 'O Monstrão',
 };
 
 export class UI {
@@ -172,7 +173,7 @@ export class UI {
     $('boss-bar').hidden = !boss;
     if (boss) {
       this.setWidth('boss-fill', boss.hp / boss.maxHp);
-      this.setText('boss-name', (game.bossName || 'ESPECULADOR IMOBILIÁRIO').toUpperCase());
+      this.setText('boss-name', (game.bossName || 'MONSTRÃO').toUpperCase());
     }
 
     // objetivo do trecho: o que fazer e quantos metros faltam
@@ -579,7 +580,7 @@ export class UI {
     $('result-headline').textContent = game.delivered
       ? 'ENTREGA FEITA NO ALTO DO MORRO: UMA PIZZA DE CALABRESA. GORJETA: NENHUMA'
       : win
-      ? 'ESPECULADOR SOFRE DESPEJO. TERRENO VOLTA A SER... DE NINGUÉM'
+      ? 'MONSTRÃO VAI AO CHÃO. ACADEMIA DA PRAIA FICA SEM DONO'
       : 'ENTREGADOR NÃO RESISTE. APP DESCONTA A ENTREGA';
     const verdict = verdictFor(game.corruption);
     $('result-verdict').textContent = verdict.title;
@@ -744,7 +745,7 @@ export class UI {
         box.append(r);
       });
     };
-    bloco('Carreira · Orla: menor tempo para derrubar o Especulador', ranking.carreira.orla, 'Ainda ninguém derrubou o Especulador.');
+    bloco('Carreira · Orla: menor tempo para derrubar o Monstrão', ranking.carreira.orla, 'Ainda ninguém derrubou o Monstrão.');
     bloco('Carreira · Morro: menor tempo para derrubar o Chefe do Tráfico', ranking.carreira.morro, 'Ainda ninguém derrubou o Chefe do Tráfico.');
     bloco('Horda · Orla: mais tempo vivo', ranking.horda.orla, 'Sem partidas de Horda na Orla.');
     bloco('Horda · Morro: mais tempo vivo', ranking.horda.morro, 'Sem partidas de Horda no Morro.');

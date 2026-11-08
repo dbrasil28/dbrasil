@@ -23,7 +23,7 @@ Pedido do autor (06/11/2026): mapas bem dinâmicos. O Juninho pega a mesa e a ca
 | Prédio com escada de incêndio | Lado dos prédios | Escada de incêndio até o terraço, onde ficam um botijão e uma marmita esquecida, que cura |
 | Banca de jornal e barraca de pastel | Calçadão | Obstáculos; o pastel cura |
 | Rua transversal | A cada quarteirão | O ônibus atravessa e atropela quem estiver no caminho |
-| Obra do Especulador | Fim da Orla | Cercada de tapume, com barulho estranho atrás: é o covil do chefão. Quando ele cai, o tapume do fundo cai e revela a escadaria do morro |
+| Obra do fim da praia | Fim da Orla | Cercada de tapume, com barulho de ferro batendo atrás: é o covil do Monstrão (D47). Quando ele cai, o tapume do fundo cai e revela a escadaria do morro |
 
 ## 2. Subida do Morro (Rio)
 

@@ -12,6 +12,7 @@ import {
 } from './render_fx.js';
 import { drawMinimap } from './minimapa.js';
 import { drawCriseChao, drawCriseCeu, escondidoDeDia } from './render_crises.js';
+import { drawAvisosChao, monstraoNaLista, drawMonstraoObj, drawCarroErguido } from './render_monstrao.js';
 import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado, drawBola } from './render_carreira.js';
 import {
   entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace,
@@ -172,6 +173,7 @@ export class Renderer {
     precarregarFx(game);
     drawFxChao(ctx, game, cam, ppu); // efeitos com arte deitados no chão e a luz que eles jogam na rua
     this.drawZones(ctx, game, ppu, playerPx);
+    drawAvisosChao(ctx, game, cam, game.t); // golpes do Monstrão: aviso no chão e o anel de choque
     if (game.world) {
       // carreira (D39): sem seta nem placa; a obra do Especulador e o holofote da TV sobre o covil aberto
       drawObraChao(ctx, game.world, cam, ppu);
@@ -248,6 +250,7 @@ export class Renderer {
     for (const dg of game.dogs || []) list.push({ d: cam.depth(dg.x, dg.y), k: 'dog', o: dg });
     for (const s of game.enemyShots) list.push({ d: cam.depth(s.x, s.y) + 0.3, k: 'shot', o: s });
     for (const b of game.bribes) list.push({ d: cam.depth(b.x, b.y) + 0.3, k: 'bribe', o: b });
+    monstraoNaLista(game, cam, list); // anilha rolando, carro no ar
     if (settings.gore) for (const g of game.fx.gibs) list.push({ d: cam.depth(g.x, g.y) + (g.landed ? -0.45 : 0.25), k: 'gib', o: g });
     list.sort((a, b) => a.d - b.d);
 
@@ -374,6 +377,9 @@ export class Renderer {
           if (spr) blit(ctx, spr, pt.x, pt.y, false);
           break;
         }
+        case 'mobj':
+          drawMonstraoObj(ctx, o, pt, ppu, cam.k);
+          break;
         case 'enemy': {
           const def = ENEMIES[o.type];
           const h = playerPx * def.size * enemyMul;
@@ -390,7 +396,17 @@ export class Renderer {
           const art = ENEMY_ART[o.type];
           const anim = o.type === 'telespectador' ? crowdAnim(o.tint) : null;
           const walk = anim ? anim.walk : walkReady(art && art.walk);
-          if (art && art.attack && walk && (o.windup > 0 || o.throwT > 0)) {
+          if (art && art.estados && walk && o.pose) {
+            // Monstrão: a pose do golpe (preparo, investida, soco no chão, arremesso, pose, tonto) na direção dele
+            const poses = walkReady(art.poses);
+            if (poses && poses.col[o.pose] !== undefined) {
+              cam.toScreen(o.x + (o.poseX ?? 0), o.y + (o.poseY ?? 1), pt2);
+              const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+              spr = this.cache.get(`${poses.prefix}_${row}_${poses.col[o.pose]}`, h * (poses.ch / poses.figureH), o.furia ? furiaOpts(art, POSE_OPTS) : POSE_OPTS);
+              animated = !!spr;
+            }
+          }
+          if (!spr && art && art.attack && walk && (o.windup > 0 || o.throwT > 0)) {
             cam.toScreen(game.player.x, game.player.y, pt2);
             const poses = walkReady(art.poses);
             if (poses) {
@@ -461,7 +477,8 @@ export class Renderer {
             const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
             const frame = Math.floor((o.walk / (Math.PI * 2)) * 6) % 6;
             // a figura nova pode ficar para o próximo quadro (limite de montagem): enquanto isso, a anterior
-            spr = this.cache.get(`${walk.prefix}_${row}_${frame}`, h * (ATLAS.ch / walk.figureH), anim ? CROWD_WALK_OPTS : enemyWalkOpts(art), true) || o.ultimaFig || null;
+            const wo = anim ? CROWD_WALK_OPTS : o.furia && art.furia ? furiaOpts(art, enemyWalkOpts(art)) : enemyWalkOpts(art);
+            spr = this.cache.get(`${walk.prefix}_${row}_${frame}`, h * (ATLAS.ch / walk.figureH), wo, true) || o.ultimaFig || null;
             if (spr) o.ultimaFig = spr;
             animated = !!spr;
           }
@@ -515,6 +532,7 @@ export class Renderer {
             ctx.stroke();
           }
           if (o.elite && !o.boss) drawHpPip(ctx, pt, h, o.hp / o.maxHp);
+          if (o.segura === 'carro') drawCarroErguido(ctx, o, pt, h, ppu);
           if ((o.type === 'traficante' || o.type === 'chefe_trafico') && o.aimT > 0) drawAim(ctx, o, cam, pt, h, ppu, t); // aviso antes do tiro
           break;
         }
@@ -2314,4 +2332,12 @@ export function drawIcon(g, kind, S) {
       g.fillStyle = '#666';
       g.fillRect(S * 0.25, S * 0.25, S * 0.5, S * 0.5);
   }
+}
+
+/** Opções de figura com a fúria (vermelho por cima), uma por opção de base: a chave do cache muda com o tint. */
+const furiaCache = new WeakMap();
+function furiaOpts(art, base) {
+  let m = furiaCache.get(base);
+  if (!m) furiaCache.set(base, (m = { ...base, tint: art.furia }));
+  return m;
 }

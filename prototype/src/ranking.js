@@ -56,7 +56,7 @@ export function registrarPartida(r, game) {
   if (game.modo === 'carreira') {
     if (m.chefaoOrlaS != null && game.startTrecho !== 'morro') {
       const pos = entrar(r.carreira.orla, m.chefaoOrlaS - (m.inicioOrlaS || 0), true);
-      if (pos) out.linhas.push(`Especulador em ${fmtT(m.chefaoOrlaS - (m.inicioOrlaS || 0))}: ${pos}º lugar na Orla`);
+      if (pos) out.linhas.push(`Monstrão em ${fmtT(m.chefaoOrlaS - (m.inicioOrlaS || 0))}: ${pos}º lugar na Orla`);
     }
     if (m.chefaoMorroS != null && m.morroAt != null) {
       const pos = entrar(r.carreira.morro, m.chefaoMorroS - m.morroAt, true);

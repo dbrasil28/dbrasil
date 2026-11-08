@@ -12,6 +12,7 @@ import { FX, IMPACTO } from './efeitos_arte.js';
 import { explosaoPerto, updateReacoes } from './reacoes.js';
 import { updateCrises, criseLentidao } from './crises.js';
 import { emHorda, iniciarHorda, updateHorda, durezaHorda } from './horda.js';
+import { updateMonstrao, limparMonstrao } from './monstrao.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, inside, routeRemaining } from './mundo.js';
@@ -181,7 +182,7 @@ export class Game {
         this.player.y = g.y0 - 1;
       }
     }
-    this.covil = covilDe(this, 'orla'); // a obra do Especulador; no Morro, a laje do topo
+    this.covil = covilDe(this, 'orla'); // a obra do fim da praia (Monstrão); no Morro, a laje do topo
     this.achados = this.world ? sortearAchados(this) : []; // isopores, cofres e a relíquia (D40)
     this.abertura = null;
     // modo: 'carreira' (a viagem), 'horda' (um mapa, sobreviver) ou 'desafio' (a Horda da semana)
@@ -507,8 +508,8 @@ export class Game {
 
   spawnBoss() {
     const p = this.fitSpawn(this.edgePoint(-Math.PI / 2, 80));
-    this.boss = this.spawnEnemy('especulador', p.x, p.y, { lotT: 3.5, despejoT: 9 });
-    this.bossName = ENEMIES.especulador.name;
+    this.boss = this.spawnEnemy('monstrao', p.x, p.y, { fase: 0, pausaT: 1.5 });
+    this.bossName = ENEMIES.monstrao.name;
     this.caosBonus += 10;
     this.tv('boss');
     this.emit('boss', {});
@@ -533,9 +534,9 @@ export class Game {
     if (e.dead || ENEMIES[e.type].invencivel) return; // o Rabecão não morre
     let dmg = amount;
     if (e.elite) dmg *= this.stats.eliteDmgMul;
-    // hora de bater: o chefe parado mirando, atirando ou gritando no rádio leva mais dano
+    // hora de bater: o Chefe parado mirando, atirando ou gritando no rádio; o Monstrão fazendo pose ou tonto
     const J = ENEMIES[e.type].janela;
-    const naJanela = J && (e.aimT > 0 || e.burst > 0 || e.callT > 0);
+    const naJanela = J && (e.aimT > 0 || e.burst > 0 || e.callT > 0 || e.janelaT > 0);
     if (naJanela) dmg *= J.danoMul;
     const dw = this.metrics.damageByWeapon;
     dw[source] = (dw[source] || 0) + Math.min(dmg, Math.max(0, e.hp));
@@ -671,6 +672,7 @@ export class Game {
     this.boss = null;
     this.bossKilled = true;
     this.lots.length = 0;
+    limparMonstrao(this);
     // "despejo" final: a horda visível vai embora junto
     for (const o of this.enemies) {
       if (!o.dead) {
@@ -958,6 +960,7 @@ export class Game {
         this.updateWeapons(dt);
       }
     }
+    if (this.avisosChao) this.avisosChao.length = 0; // avisos de golpe no chão: refeitos a cada quadro
     this.updateEnemies(dt);
     this.updateTraffic(dt);
     updateReacoes(this);
@@ -1416,8 +1419,10 @@ export class Game {
         mx = tx / tl;
         my = ty / tl;
         if (e.fineCd > 0) e.fineCd -= dt;
-      } else if (e.behavior === 'boss') {
-        this.updateBoss(e, dt);
+      } else if (e.behavior === 'monstrao') {
+        const r = updateMonstrao(this, e, dt, ux, uy);
+        mx = r.x;
+        my = r.y;
       }
       const td = e.elite ? ENEMIES[e.type].throw : null;
       if (td && !this.over) {
@@ -1527,56 +1532,6 @@ export class Game {
       if (e.elite || (e.id & 1) === (this.frameParity ? 1 : 0)) this.collideProps(e);
     }
     this.frameParity = !this.frameParity;
-  }
-
-  updateBoss(e, dt) {
-    // Especulador: fase 1 loteia o chão; fase 2, dois lotes de cada vez; fase 3, cerca uma fileira de lotes
-    // entre ele e o Juninho. O despejo (a horda cercando) fica mais frequente a cada fase.
-    if (this.over) return;
-    const def = ENEMIES.especulador;
-    const f = Math.min(2, e.fase || 0);
-    const p = this.player;
-    e.lotT -= dt;
-    if (e.lotT <= 0) {
-      e.lotT = def.lotes.cadaS[f];
-      const lead = 0.9;
-      for (let k = 0; k < def.lotes.porVez[f]; k++) {
-        this.lots.push({
-          x: p.x + p.vx * lead + (this.rng() - 0.5) * (k ? 6 : 2.5),
-          y: p.y + p.vy * lead + (this.rng() - 0.5) * (k ? 6 : 2.5),
-          half: 1.7 + this.rng() * 1.0, state: 'warn', t: 0, warnT: 1.6,
-        });
-      }
-      const nf = def.lotes.fileira[f];
-      if (nf) {
-        // condomínio fechado: uma fileira de lotes cortando o caminho entre o Especulador e o Juninho
-        const dx = p.x - e.x;
-        const dy = p.y - e.y;
-        const l = Math.hypot(dx, dy) || 1;
-        const mx = (e.x + p.x) / 2;
-        const my = (e.y + p.y) / 2;
-        for (let k = 0; k < nf; k++) {
-          const o = (k - (nf - 1) / 2) * 3.2;
-          this.lots.push({ x: mx - (dy / l) * o, y: my + (dx / l) * o, half: 1.5, state: 'warn', t: 0, warnT: 1.9 });
-        }
-      }
-      let sold = this.lots.filter((l) => l.state === 'sold');
-      while (sold.length > 8) {
-        this.lots.splice(this.lots.indexOf(sold[0]), 1);
-        sold = sold.slice(1);
-      }
-    }
-    e.despejoT -= dt;
-    if (e.despejoT <= 0) {
-      e.despejoT = def.despejoS[f];
-      const n = 10;
-      const off = this.rng() * Math.PI * 2;
-      for (let i = 0; i < n; i++) {
-        const a = off + (i / n) * Math.PI * 2;
-        const sp = this.fitSpawn({ x: p.x + Math.cos(a) * 9.5, y: p.y + Math.sin(a) * 9.5 });
-        this.spawnEnemy('telespectador', sp.x, sp.y);
-      }
-    }
   }
 
   updateLots(dt) {
@@ -1849,7 +1804,7 @@ export class Game {
     }
   }
 
-  /** Rota: a escadaria abre quando o Especulador cai (carreira.js); a passagem recomeça o trecho no Morro. */
+  /** Rota: a escadaria abre quando o chefão da Orla cai (carreira.js); a passagem recomeça o trecho no Morro. */
   updateRoute() {
     const w = this.world;
     if (!w) return;

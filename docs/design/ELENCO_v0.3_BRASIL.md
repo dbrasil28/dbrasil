@@ -71,7 +71,7 @@ Arte necessária: caminhada e corrida do Caramelo em 16 direções, uma pose de 
 - Peão de obra
 
 **Chefes:**
-- Especulador da orla, no Rio
+- Monstrão, o fisiculturista gigante da orla, no Rio (D47; substituiu o Especulador)
 - O Rapa, em São Paulo
 - O Barbudo e O Capitão, que viram O Acordão, em Acordópolis
 - Barão do Guarda-Sol, no Nordeste

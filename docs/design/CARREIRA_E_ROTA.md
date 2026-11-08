@@ -14,7 +14,7 @@ Base no gênero: cada capítulo do Survivor.io termina num chefão e recomeça d
 
 | # | Trecho | Onde | Chefão e covil | Por onde sai |
 | --- | --- | --- | --- | --- |
-| 1 | Orla do Desespero | Rio, calçadão | Especulador Imobiliário, na obra cercada de tapume no fim da praia | O tapume do fundo da obra cai e revela a escadaria do morro |
+| 1 | Orla do Desespero | Rio, calçadão | Monstrão, o fisiculturista gigante, atrás do tapume no fim da praia (D47; era o Especulador Imobiliário) | O tapume do fundo da obra cai e revela a escadaria do morro |
 | 2 | Subida do Morro | Rio, favela | Chefe do Tráfico, na laje do topo | O caminho desce pelo outro lado do morro até a estrada |
 | 3 | São Paulo | Rodovia Rio–São Paulo e Centro do Desespero | O Rapa (a definir) | A definir |
 | 4 | Brasília | Rodovia até a capital e a Esplanada | O Barbudo e O Capitão, nos palanques (seção 7) | Fim da viagem |
@@ -56,6 +56,19 @@ Nada de seta, distância ou nome antes de o jogador descobrir. Ninguém diz "mor
 - **Minimapa:** mostra só o que o Juninho já andou.
 
 ## 4. O chefão
+
+**Orla: Monstrão (D47).** Fisiculturista gigante (3 vezes o Juninho), que vem para cima; o oposto do Chefe do Tráfico, que atira de longe.
+
+| Golpe | Aviso | O que faz |
+| --- | --- | --- |
+| Investida de ombro | Abaixa o corpo; faixa vermelha no chão (0,8 s) | Corre 15 m e atropela tudo, horda inclusive. Bateu em carro, poste ou barraca: fica tonto 2 s (o carro explode) |
+| Soco no chão | Ergue os punhos; círculo no chão (0,8 s) | Só quando o Juninho cola nele: dano e empurrão em volta |
+| Anilha | Ergue a anilha acima da cabeça; faixa fina no chão | A anilha rola pela areia em linha reta e derruba a horda no caminho |
+| Carro (fase 2 em diante) | Ergue um carro; círculo onde vai cair | O carro cai e explode; carros parados perto explodem junto |
+| Pose de fisiculturista | — | Depois da investida, para 1,5 s fazendo pose: a hora de bater (dobro de dano, como tonto) |
+
+Fase 2: três investidas seguidas, mirando de novo entre elas. Fase 3: vermelho e 20% mais rápido; a investida quica duas vezes na borda (prédios e mar); o soco no chão solta um anel de choque com uma brecha. Números em `ENEMIES.monstrao`.
+
 
 - **Mora no covil:** um lugar que faz parte do mapa e que o jogador pode achar antes, fechado.
 - **Entrada:** a TV anuncia, a tela treme e ele sai do covil. É gigante e tem uma barra de vida grande no alto da tela.
@@ -171,7 +184,7 @@ Tirado da lista de estereótipos do autor (`ELENCO_v0.3_BRASIL.md`).
 
 | Trecho | Horda | Inimigos | Elite e chefão | Aliados e eventos |
 | --- | --- | --- | --- | --- |
-| Orla do Desespero | Banhistas: Mulher de Biquíni Minúsculo, Tiozão de Sunga, Rato de Academia, telespectadores A, B e C | Golpista do Pix, Fiscal do Impossível | Político Corrupto, Bicheiro; chefão: Especulador | Vendedor de Picolé; desfile com a Rainha de Escola de Samba |
+| Orla do Desespero | Banhistas: Mulher de Biquíni Minúsculo, Tiozão de Sunga, Rato de Academia, telespectadores A, B e C | Golpista do Pix, Fiscal do Impossível | Político Corrupto, Bicheiro; chefão: Monstrão | Vendedor de Picolé; desfile com a Rainha de Escola de Samba |
 | Subida do Morro | Moradores | Traficante do PCC do Morro (armado), Funkeiro Raivoso, Cracudo, Trombadinha, Mototáxi | Chefe do Tráfico (armado) | Funkeiro e o baile na laje; o gatonet que cai |
 | São Paulo (com a rodovia) | Gente do engarrafamento e do centro: telemarketing, peão de obra | 2 Caras numa Moto, Playboy, Faria Limer, Coach Picareta, Influencer da Bet, Agiota, Burocrata-Monstro | Fiscal do pedágio; chefão: O Rapa | Vendedor de água e de milho; Jogador de Futebol, na várzea |
 | Brasília (com a rodovia) | Torcida do Barbudo e torcida do Capitão | Laranja, Assessor Aspone, Candidato a Político, Encostado do INSS | O Barbudo e O Capitão; O Acordão | Márcia, a Servidora |
@@ -232,7 +245,7 @@ Feito, com testes (`prototype/tests/mundo.test.mjs`, `achados.test.mjs`, `crises
 | --- | --- |
 | Caos por trecho (tempo, abates com teto de 30 pontos, propostas); a horda segue só o tempo e as propostas, na escala de antes | `carreira.js`, `CARREIRA` |
 | Obra do Especulador com tapume (arte de tapume inteira), barulho e tremor no sinal, holofote do helicóptero no chamado (fora da tela, o facho entra pela beira), horda chamada se o Juninho demora | `carreira.js`, `render_carreira.js` |
-| Especulador gigante em três fases, com assessoria; longe, corre atrás; derrubado, cai o sinal, zera o Caos, cai o tapume do fundo da obra e o da escadaria; solta um cofre | `carreira.js`, `ENEMIES.especulador` |
+| Monstrão (D47) no lugar do Especulador: investida de ombro com faixa de aviso, soco no chão com círculo, anilha rolando e, da fase 2, carro arremessado; investidas em sequência na fase 2; na fase 3 vermelho e mais rápido, investida que quica e anel de choque com brecha. Depois da investida faz pose de fisiculturista; batendo em carro, poste ou barraca fica tonto: nos dois leva o dobro de dano. Derrubado, cai o sinal, zera o Caos, cai o tapume do fundo da obra e o da escadaria; solta um cofre | `monstrao.js`, `render_monstrao.js`, `ENEMIES.monstrao` |
 | Recomeço a cada trecho ("atualização obrigatória do aplicativo") | `carreira.js` |
 | Chefe do Tráfico na laje do topo, chamado pelo Caos do Morro; entrega só com ele no chão | `carreira.js` |
 | Sem setas, sem marcador de destino, sem objetivo escrito; mapa da favela só com o que foi andado | `render.js`, `minimapa.js` |

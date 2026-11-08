@@ -25,7 +25,7 @@ test('Horda: em 100% o chefão sai sozinho; derrubado, a porta não abre e ele v
   const g = horda();
   g.trechoT0 = g.t - CARREIRA.caosTempoS;
   g.update(DT, parado);
-  assert.ok(g.boss && g.boss.type === 'especulador', 'o chefão não saiu sozinho');
+  assert.ok(g.boss && g.boss.type === 'monstrao', 'o chefão não saiu sozinho');
   const hp1 = g.boss.maxHp;
   g.damageEnemy(g.boss, 1e12, 'teste');
   assert.equal(g.boss, null);

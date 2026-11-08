@@ -6,6 +6,7 @@ import { clamp } from './math.js';
 import { removeSolid, addSolid, deliveryPoint, inside } from './mundo.js';
 import { playerStats } from './upgrades.js';
 import { cofreDoChefao } from './achados.js';
+import { limparMonstrao } from './monstrao.js';
 
 /** Covil do trecho: onde o chefão mora, de onde sai, e o estado das pistas. */
 export function covilDe(game, trecho) {
@@ -14,7 +15,7 @@ export function covilDe(game, trecho) {
   const base = { trecho, sinal: false, aberto: false, abertoT: 0, saiu: false, barulhoT: 0, demora: false };
   if (trecho === 'orla') {
     const o = w.obra;
-    return { ...base, boss: 'especulador', x: (o.x0 + o.x1) / 2, y: (o.y0 + o.y1) / 2 };
+    return { ...base, boss: 'monstrao', x: (o.x0 + o.x1) / 2, y: (o.y0 + o.y1) / 2 };
   }
   const c = deliveryPoint(w, {});
   return { ...base, boss: 'chefe_trafico', x: c.x, y: c.y };
@@ -94,10 +95,10 @@ export function soltarChefao(game, C) {
     if (!w.solids.includes(w.obraFundoSolid) && !w.gateOpen) addSolid(w, w.obraFundoSolid); // a frente cai; o fundo fica até o chefão cair
     w.obraAbertaT = game.t;
     for (let i = 0; i < 4; i++) game.burst(w.obra.x0 + ((i + 0.5) / 4) * (w.obra.x1 - w.obra.x0), w.obra.y1, 8, 'poeira');
-    const e = game.spawnEnemy('especulador', C.x, w.obra.y1 - 1.6, { lotT: 3.5, despejoT: ENEMIES.especulador.despejoS[0], fase: 0 });
+    const e = game.spawnEnemy('monstrao', C.x, w.obra.y1 - 1.6, { fase: 0, pausaT: 1.5 });
     game.boss = e;
     game.bossSpawned = true;
-    game.bossName = ENEMIES.especulador.name;
+    game.bossName = ENEMIES.monstrao.name;
     game.tv('boss');
     return;
   }
@@ -116,7 +117,7 @@ export function checkFase(game, e) {
   const f = e.fase || 0;
   if (f >= CARREIRA.fases.length || e.hp / e.maxHp > CARREIRA.fases[f]) return;
   e.fase = f + 1;
-  const trecho = e.type === 'especulador' ? 'orla' : 'morro';
+  const trecho = e.type === 'chefe_trafico' ? 'morro' : 'orla';
   game.tv(`fase_${trecho}`);
   game.shake(0.45);
   game.emit('flash', {});
@@ -130,7 +131,7 @@ export function checkFase(game, e) {
     game.spawnEnemy('telespectador', sp.x, sp.y);
   }
   const def = ENEMIES[e.type];
-  const extra = e.type === 'especulador' ? def.reforco[e.fase] : def.fases.reforco[e.fase];
+  const extra = def.fases.reforco[e.fase] || [];
   extra.forEach((type, i) => {
     const sp = game.fitSpawn({ x: e.x + (i % 2 ? 3 : -3), y: e.y + 2 });
     const o = game.spawnEnemy(type, sp.x, sp.y);
@@ -149,6 +150,7 @@ export function chefaoCaiu(game, e) {
   game.bossKilled = true;
   game.caosParado = true;
   game.lots.length = 0;
+  limparMonstrao(game); // anilhas rolando e carros no ar somem junto
   for (const o of game.enemies) {
     if (o.dead || o === e || Math.hypot(o.x - e.x, o.y - e.y) > R.quedaRaioM) continue;
     o.dead = true;
@@ -163,13 +165,13 @@ export function chefaoCaiu(game, e) {
     game.caosParado = false;
     game.chefe = null;
     if (e.type === 'chefe_trafico') game.chefeKilled = true;
-    game.metrics[e.type === 'especulador' ? 'chefaoOrlaS' : 'chefaoMorroS'] ??= Math.round(game.t);
+    game.metrics[e.type === 'chefe_trafico' ? 'chefaoMorroS' : 'chefaoOrlaS'] ??= Math.round(game.t);
     game.horda.chefoes++;
     game.horda.proxChefao = game.t + HORDA.chefaoVoltaS;
-    game.tv(e.type === 'especulador' ? 'chefaoCaiu' : 'chefeVencido');
+    game.tv(e.type === 'chefe_trafico' ? 'chefeVencido' : 'chefaoCaiu');
     return;
   }
-  if (e.type === 'especulador') {
+  if (e.type !== 'chefe_trafico') {
     game.metrics.chefaoOrlaS = Math.round(game.t);
     game.tv('chefaoCaiu');
     w.gateOpen = true;

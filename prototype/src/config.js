@@ -4,7 +4,7 @@
 // instituições reais por equivalentes fictícios (ver docs/ANALISE_CONCEITO_v0.1.md).
 
 export const SESSION = {
-  bossAt: 480, // 08:00 — chega o Especulador
+  bossAt: 480, // 08:00 — chega o chefão (Monstrão)
   bossWarnAt: 470,
   length: 600, // 10:00 — referência do MVP
   eventTimes: [120, 270, 420], // 3 propostas de Corrupção
@@ -111,14 +111,28 @@ export const ENEMIES = {
     hp: 1e9, speed: 6.4, dmg: 400, radius: 1.4, size: 2.2, xp: 0,
     elite: true, invencivel: true,
   },
-  especulador: {
-    name: 'Especulador Imobiliário',
-    hp: 4500, speed: 1.45, dmg: 26, radius: 1.2, size: 3.6, xp: 0, // gigante (D39), com três fases
-    behavior: 'boss', elite: true, boss: true,
-    // fase 1: loteia o chão; fase 2: dois lotes de cada vez; fase 3: cerca uma fileira de lotes até o Juninho
-    lotes: { cadaS: [5.5, 4.5, 4.0], porVez: [1, 2, 1], fileira: [0, 0, 4] },
-    despejoS: [12, 10, 8], // despejo: a horda cercando o Juninho
-    reforco: [[], ['politico'], ['fiscal', 'burocrata']], // assessoria a cada fase nova
+  // Monstrão (D47): o chefão da Orla, fisiculturista gigante que vem para cima (monstrao.js). Todo golpe tem
+  // aviso no chão; depois da investida faz pose e, se bateu em carro, poste ou barraca, fica tonto: a hora de bater
+  monstrao: {
+    name: 'Monstrão',
+    hp: 4500, speed: 1.5, dmg: 14, radius: 1.1, size: 3.0, xp: 0, // dmg: encostar nele (o perigo são os golpes)
+    behavior: 'monstrao', elite: true, boss: true,
+    alcanceM: 16, // só começa um golpe com o Juninho até esta distância
+    pausaS: [2.0, 1.6, 1.2], // entre um golpe e outro, por fase
+    furiaVel: 1.2, // fase 3: fica vermelho e mais rápido
+    escolha: { investida: 0.55 }, // o resto é a anilha; da fase 2, o carro entra antes
+    // seguidas: investidas em sequência por fase; quiques: quantas vezes quica na borda (fase 3)
+    investida: { avisoS: 0.8, avisoSeguidaS: 0.5, vel: 15, distM: 15, largM: 2.5, dano: 26, empurraM: 2.2, hordaDano: 80, voo: 9, poseS: 1.5, tontoS: 2.0, seguidas: [1, 3, 3], quiques: [0, 0, 2] },
+    // agachamento: quando o Juninho cola nele; na fase 3 solta o anel de choque (brecha: abertura em rad)
+    agacha: {
+      pertoM: 3.5, avisoS: 0.8, raioM: 3.2, dano: 16, empurraM: 2.5, hordaDano: 60, voo: 8, poseS: 0.5,
+      anel: { velM: 9, alcanceM: 12, largM: 0.9, brecha: 1.0, dano: 14 },
+    },
+    anilha: { avisoS: 0.6, lead: 0.5, vel: 9, distM: 16, raioM: 0.45, dano: 15, hordaDano: 40 },
+    carro: { chance: 0.3, avisoS: 0.9, lead: 0.9, vooS: 0.9, alturaM: 3.4, arcoM: 3, raioM: 3.0, dano: 30, hordaDano: 120, arte: ['cen_carro_fusca', 'cen_carro_brasilia', 'cen_carro_uno', 'cen_carro_taxi'] },
+    reforco: { cadaS: [14, 12, 10], horda: 8, raioM: 9.5 }, // a turma da academia (por enquanto, a horda)
+    fases: { reforco: [[], [], []] },
+    janela: { danoMul: 2 }, // pose de fisiculturista e tonto: leva o dobro de dano
   },
 };
 
@@ -435,7 +449,7 @@ export const CARREIRA = {
   chefaoAlcanceM: 14, // longe disso, o chefão corre atrás do Juninho (não dá para fugir dele para sempre)
   chefaoCorreMul: 2.4,
   portaCaiS: 0.9, // o tapume cai
-  // obra do Especulador: no último quarteirão, encostada nos prédios, de frente para a escadaria
+  // obra no fim da praia (covil do Monstrão): no último quarteirão, encostada nos prédios, de frente para a escadaria
   obra: { x0: -13.6, x1: -6.2, dy0: 1.2, fundoM: 10.5 },
   recomeco: 'ATUALIZAÇÃO OBRIGATÓRIA DO APLICATIVO: SEUS ITENS EXPIRARAM',
   trechoHpMul: { orla: 1, morro: 1.25 }, // cada trecho começa mais duro que o anterior
@@ -785,7 +799,7 @@ export const EVENTS = [
   {
     id: 'acordao',
     title: 'O Grande Acordo',
-    text: 'O Especulador propõe um acordo de bastidor: ele chega "mais fraco", você não pergunta por quê.',
+    text: 'O Monstrão propõe um acordo de bastidor: ele chega "mais fraco", você não pergunta por quê.',
     accept: {
       label: 'Fechar o acordo',
       good: ['Chefe chega com 40% menos vida'],
@@ -824,14 +838,14 @@ export const TV = {
   morro: ['ENTREGADOR COMEÇA A SUBIDA. APP CALCULA 3 MINUTOS (MENTIRA)'],
   recomeco: ['ATUALIZAÇÃO OBRIGATÓRIA DO APLICATIVO: SEUS ITENS EXPIRARAM', 'APP ATUALIZOU: NOVO TURNO, NOVA ENTREGA, ZERO BENEFÍCIOS'],
   // o Caos do trecho chama o chefão (D39): sinal na Calamidade e o chamado em 100%, sem dizer o nome
-  covilSinal_orla: ['MORADORES RECLAMAM DE BARULHO DE OBRA NO FIM DA PRAIA. PREFEITURA DIZ QUE NÃO TEM OBRA'],
+  covilSinal_orla: ['MORADORES RECLAMAM DE BARULHO DE FERRO BATENDO ATRÁS DO TAPUME DO FIM DA PRAIA'],
   covilSinal_morro: ['RÁDIO COMUNITÁRIA: MOVIMENTAÇÃO NO ALTO DO MORRO. MORADORES FECHAM AS JANELAS'],
-  covilAberto_orla: ['PLANTÃO: MOVIMENTAÇÃO ESTRANHA NA OBRA DO FIM DA PRAIA. HELICÓPTERO DA TV JÁ ESTÁ NO LOCAL'],
+  covilAberto_orla: ['PLANTÃO: ALGO ENORME SE MEXE ATRÁS DO TAPUME DO FIM DA PRAIA. HELICÓPTERO DA TV JÁ ESTÁ NO LOCAL'],
   covilAberto_morro: ['PLANTÃO: TIROS E FOGOS NO ALTO DO MORRO. HELICÓPTERO DA TV SOBREVOA A LAJE'],
   covilDemora: ['A PLATEIA INTEIRA ESTÁ INDO PARA LÁ. A EMISSORA AGRADECE A AUDIÊNCIA'],
-  fase_orla: ['ESPECULADOR ANUNCIA FASE 2 DO EMPREENDIMENTO: AGORA COM DOIS LOTES', 'ESPECULADOR CERCA A ÁREA: "CONDOMÍNIO FECHADO, PRIVATIVO E EXCLUSIVO"'],
+  fase_orla: ['MONSTRÃO PERDE A PACIÊNCIA: AGORA ARREMESSA CARROS', 'MONSTRÃO ENTRA NO MODO "SÉRIE ATÉ A FALHA"'],
   fase_morro: ['CHEFE DO TRÁFICO CHAMA A FIRMA INTEIRA', 'CHEFE DECRETA TOQUE DE RECOLHER NA LAJE'],
-  chefaoCaiu: ['ESPECULADOR SOFRE DESPEJO. O SINAL DA TV CAI JUNTO COM ELE'],
+  chefaoCaiu: ['MONSTRÃO VAI AO CHÃO. O SINAL DA TV CAI JUNTO COM ELE'],
   hordaChefaoVolta: ['ELE VOLTOU. E MAIS FORTE: A TV CHAMA DE "SEGUNDA TEMPORADA"'],
   rabecao: ['O RABECÃO CHEGOU. ELE NÃO PARA PARA NINGUÉM. AUDIÊNCIA RECORDE'],
   aberturaPlantao: ['PLANTÃO: TV CAOS TESTA SINAL NOVO NA ORLA. "VOCÊ NÃO VAI CONSEGUIR DESLIGAR"'],
@@ -861,13 +875,13 @@ export const TV = {
   lure: ['PLATEIA ESQUECE A NOVELA E CORRE ATRÁS DO DINHEIRO', 'MALETA ABERTA NO CALÇADÃO. HIPNOSE SUSPENSA POR TEMPO INDETERMINADO'],
   propina: ['ENTREGADOR É FLAGRADO COM DINHEIRO VIVO. "ERA GORJETA", DIZ'],
   wave: (dir) => [`PLATEIA HIPNOTIZADA SE APROXIMA PELO ${dir}`, `FIM DA NOVELA: TELESPECTADORES SAEM PELO ${dir}`],
-  bossWarn: ['URGENTE: ESPECULADOR ANUNCIA "REVITALIZAÇÃO" DA ÁREA'],
-  boss: ['MORADORES? QUE MORADORES? ESPECULADOR CHEGA AO CENTRO'],
+  bossWarn: ['URGENTE: FISICULTURISTA GIGANTE VISTO NA ORLA. ESPECIALISTAS: "É SÓ SHAPE"'],
+  boss: ['MONSTRÃO CHEGOU: "SAI DA FRENTE QUE HOJE É DIA DE PERNA"'],
   lot: ['LOTE VENDIDO. ÁREA AGORA É PRIVADA', 'MAIS UM TERRENO "REVITALIZADO"'],
   accept: ['ACORDO FECHADO! ENTREGADOR AGORA É "PARCEIRO"'],
   revive: ['VOLTAMOS DO INTERVALO. ENTREGADOR, INEXPLICAVELMENTE, CONTINUA DE PÉ'],
   refuse: ['ENTREGADOR RECUSA PROPOSTA. INVESTIGADO POR SER HONESTO DEMAIS'],
   rival: ['RIVAL PATROCINADO ENTRA NA DISPUTA. LOGO BEM VISÍVEL'],
   death: ['ENTREGADOR NÃO RESISTE. APP DESCONTA A ENTREGA'],
-  victory: ['ESPECULADOR SOFRE DESPEJO. TERRENO VOLTA A SER... DE NINGUÉM'],
+  victory: ['MONSTRÃO VAI AO CHÃO. ACADEMIA DA PRAIA FICA SEM DONO'],
 };

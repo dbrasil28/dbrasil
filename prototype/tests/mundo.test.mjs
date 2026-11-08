@@ -15,7 +15,7 @@ const newGame = (extra = {}) => {
 
 const parado = { x: 0, y: 0 };
 
-test('a escadaria do morro fica fechada até o Especulador cair; ele mora na obra e sai quando o Caos chama', () => {
+test('a escadaria do morro fica fechada até o Monstrão cair; ele mora na obra e sai quando o Caos chama', () => {
   const g = newGame();
   const w = g.world;
   const probe = { x: (w.gate.x0 + w.gate.x1) / 2, y: w.orlaTop - 3, r: 0.3 };
@@ -34,7 +34,7 @@ test('a escadaria do morro fica fechada até o Especulador cair; ele mora na obr
   g.player.x = g.covil.x;
   g.player.y = w.obra.y1 + 4;
   g.update(1 / 30, parado);
-  assert.ok(g.boss && g.boss.type === 'especulador', 'o Especulador não saiu da obra');
+  assert.ok(g.boss && g.boss.type === 'monstrao', 'o Monstrão não saiu da obra');
   assert.ok(!w.solids.includes(w.obraSolid), 'o tapume da obra não caiu');
   // fases: com 60% da vida, muda de fase e chama a assessoria
   const antes = g.enemies.filter((e) => !e.dead).length;
