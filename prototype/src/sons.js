@@ -82,9 +82,22 @@ const TAXA = 22050; // os provisórios não precisam de mais que isso
 
 // Sons gravados (docs/som/PEDIDO_SONS.md): id → as variações. Caminhos literais (o build acha pelo texto).
 // Um som com arquivo toca o gravado (sorteando a variação); sem arquivo, o provisório feito em código.
-const ARQUIVOS = {
+// De onde veio cada um (autor e licença): docs/som/CREDITOS_SONS.md.
+export const ARQUIVOS = {
   // Firefly (Adobe), 08/11/2026: 5 das 8 pancadas de uma geração (as mais pesadas; original em docs/som/originais/)
   golpe: ['assets/sons/golpe_1.mp3', 'assets/sons/golpe_2.mp3', 'assets/sons/golpe_3.mp3', 'assets/sons/golpe_4.mp3', 'assets/sons/golpe_5.mp3'],
+  // CC0 (OpenGameArt), aprovados pelo autor na sala de som em 08/11/2026
+  dano: ['assets/sons/dano_1.mp3', 'assets/sons/dano_2.mp3', 'assets/sons/dano_3.mp3', 'assets/sons/dano_4.mp3'],
+  morte: ['assets/sons/morte_1.mp3'],
+  tapa: ['assets/sons/tapa_1.mp3', 'assets/sons/tapa_2.mp3', 'assets/sons/tapa_3.mp3', 'assets/sons/tapa_4.mp3'],
+  morte_horda: ['assets/sons/morte_horda_1.mp3', 'assets/sons/morte_horda_2.mp3', 'assets/sons/morte_horda_3.mp3', 'assets/sons/morte_horda_4.mp3', 'assets/sons/morte_horda_5.mp3'],
+  gemido: ['assets/sons/gemido_1.mp3', 'assets/sons/gemido_2.mp3', 'assets/sons/gemido_3.mp3', 'assets/sons/gemido_4.mp3', 'assets/sons/gemido_5.mp3', 'assets/sons/gemido_6.mp3'],
+  quebra_plastico: ['assets/sons/quebra_plastico_1.mp3', 'assets/sons/quebra_plastico_2.mp3', 'assets/sons/quebra_plastico_3.mp3'],
+  quebra_madeira: ['assets/sons/quebra_madeira_1.mp3', 'assets/sons/quebra_madeira_2.mp3', 'assets/sons/quebra_madeira_3.mp3'],
+  baque: ['assets/sons/baque_1.mp3', 'assets/sons/baque_2.mp3'],
+  explosao: ['assets/sons/explosao_1.mp3', 'assets/sons/explosao_2.mp3', 'assets/sons/explosao_3.mp3'],
+  grito_funkeiro: ['assets/sons/grito_funkeiro_1.mp3', 'assets/sons/grito_funkeiro_2.mp3', 'assets/sons/grito_funkeiro_3.mp3'],
+  amb_orla: ['assets/sons/amb_orla_1.mp3'], // estéreo, 30 s, emenda no começo
 };
 
 /** Amostras do som (Float32Array, pico em 0,9). Sem navegador: dá para conferir nos testes. */
@@ -165,7 +178,13 @@ export class Sons {
           .then((r) => (r.ok ? r.arrayBuffer() : null))
           .then((dados) => dados && this.ctx.decodeAudioData(dados))
           .then((buf) => {
-            if (buf) (this.gravados[id] ||= []).push(buf);
+            if (!buf) return;
+            (this.gravados[id] ||= []).push(buf);
+            // o ambiente já tocava o provisório: troca pelo gravado (com fade)
+            if (this.amb.id === id && !this.amb.gravado) {
+              this.amb.id = null;
+              this.ambiente(id);
+            }
           })
           .catch(() => {});
       }
@@ -303,7 +322,7 @@ export class Sons {
     g.connect(this.mestre);
     src.start();
     g.gain.setTargetAtTime(this.abafado || this.calado ? 0 : SOM.ambVol * SONS[id].vol, t, 0.8);
-    this.amb = { id, src, g };
+    this.amb = { id, src, g, gravado: !!(this.gravados[id] && this.gravados[id].length) };
   }
 
   /** Os sons que o jogo pediu neste quadro (game.sons), no lugar de cada um; e a horda gemendo por perto. */

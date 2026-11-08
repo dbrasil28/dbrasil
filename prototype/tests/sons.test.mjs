@@ -1,9 +1,9 @@
 // Sons (sons.js): todo som pedido pelo jogo existe, tem receita provisória e soa; a fila não cresce sem fim.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { SONS, SOM, SOM_ARMA, SOM_GOLPE, THROWABLES } from '../src/config.js';
-import { RECEITAS, sintetizar } from '../src/sons.js';
+import { ARQUIVOS, RECEITAS, sintetizar } from '../src/sons.js';
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
 
@@ -45,4 +45,19 @@ test('uma partida pede sons, e a fila tem teto (nos testes, ninguém esvazia)', 
   assert.ok(g.sons.length > 0, 'a partida não pediu nenhum som');
   assert.ok(g.sons.length <= 64);
   for (const s of g.sons) assert.ok(SONS[s.id] && Number.isFinite(s.x) && Number.isFinite(s.y), JSON.stringify(s));
+});
+
+test('todo som gravado listado existe, é de um som da tabela e não pesa demais', () => {
+  const raiz = new URL('../', import.meta.url);
+  for (const [id, lista] of Object.entries(ARQUIVOS)) {
+    assert.ok(SONS[id], `arquivo de um som que não está em SONS: ${id}`);
+    assert.ok(lista.length > 0, id);
+    for (const src of lista) {
+      assert.match(src, /^assets\/sons\/[a-z_]+_\d+\.mp3$/, src);
+      const f = new URL(src, raiz);
+      assert.ok(existsSync(f), `falta o arquivo ${src}`);
+      const kb = statSync(f).size / 1024;
+      assert.ok(kb > 1 && kb < (id.startsWith('amb_') ? 600 : 80), `${src}: ${kb.toFixed(0)} KB`);
+    }
+  }
 });

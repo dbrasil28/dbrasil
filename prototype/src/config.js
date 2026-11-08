@@ -927,7 +927,9 @@ export const TV = {
 // Sons (docs/som/PEDIDO_SONS.md). Cada som: vol (0 a 1), max (quantos iguais ao mesmo tempo), espera (s
 // mínimos entre dois iguais), prio (1 a 3: quem fica quando estoura o limite de vozes), perto (false: não
 // diminui com a distância, para avisos e interface), varia (variação de tom, ±). Os arquivos gravados ficam
-// listados em sons.js (ARQUIVOS); sem arquivo, toca o provisório feito em código.
+// listados em sons.js (ARQUIVOS); sem arquivo, toca o provisório feito em código. O vol de quem tem arquivo
+// gravado foi acertado para o gravado soar perto do provisório (os gravados têm o pico preso em −1 dB e soam
+// mais baixos; vol acima de 1 é ganho, e o compressor do fim segura).
 const S = (vol, max = 3, espera = 0.05, prio = 1, o = {}) => ({ vol, max, espera, prio, perto: true, varia: 0.06, ...o });
 const FIXO = { perto: false };
 export const SOM = {
@@ -944,21 +946,21 @@ export const SOM = {
 };
 export const SONS = {
   // Juninho
-  dano: S(0.75, 1, 0.3, 3, FIXO), morte: S(0.9, 1, 1, 3, FIXO), nivel: S(0.55, 1, 0.3, 2, FIXO),
+  dano: S(0.85, 1, 0.3, 3, FIXO), morte: S(1, 1, 1, 3, FIXO), nivel: S(0.55, 1, 0.3, 2, FIXO),
   xp: S(0.22, 3, 0.04, 1, { varia: 0.12 }), cura: S(0.5, 1, 0.15, 2), gorjeta: S(0.45, 2, 0.08, 2),
   pega: S(0.5, 1, 0.1, 2), arremesso: S(0.45, 3, 0.06, 1),
   // golpes e horda
-  golpe: S(0.4, 4, 0.03, 1, { varia: 0.12 }), bonk: S(0.45, 3, 0.04, 1, { varia: 0.1 }), tapa: S(0.5, 3, 0.04, 1, { varia: 0.1 }),
-  morte_horda: S(0.45, 4, 0.04, 1, { varia: 0.15 }), morte_elite: S(0.8, 2, 0.1, 3),
-  acorda: S(0.3, 2, 0.1, 1), gemido: S(0.3, 2, 0.5, 1, { varia: 0.15 }),
-  quebra_plastico: S(0.6, 2, 0.05, 2), quebra_madeira: S(0.6, 2, 0.05, 2), baque: S(0.6, 2, 0.05, 2),
-  explosao: S(0.9, 2, 0.08, 3), atropelo: S(0.7, 2, 0.08, 2), buzina: S(0.5, 1, 0.5, 2),
+  golpe: S(0.4, 4, 0.03, 1, { varia: 0.12 }), bonk: S(0.45, 3, 0.04, 1, { varia: 0.1 }), tapa: S(0.7, 3, 0.04, 1, { varia: 0.1 }),
+  morte_horda: S(0.55, 4, 0.04, 1, { varia: 0.15 }), morte_elite: S(0.8, 2, 0.1, 3),
+  acorda: S(0.3, 2, 0.1, 1), gemido: S(0.5, 2, 0.5, 1, { varia: 0.15 }),
+  quebra_plastico: S(1.2, 2, 0.05, 2), quebra_madeira: S(0.95, 2, 0.05, 2), baque: S(0.95, 2, 0.05, 2),
+  explosao: S(1.4, 2, 0.08, 3), atropelo: S(0.7, 2, 0.08, 2), buzina: S(0.5, 1, 0.5, 2),
   // habilidades
   chinelo: S(0.4, 2, 0.05, 1), boleto: S(0.3, 1, 0.2, 1), carimbo: S(0.7, 2, 0.05, 2), picole: S(0.45, 2, 0.1, 1),
   moto: S(0.6, 1, 0.3, 2), megafone: S(0.35, 1, 0.3, 1), gato: S(0.45, 2, 0.08, 1), latido: S(0.55, 1, 0.25, 2),
   mordida: S(0.5, 2, 0.08, 1), bola: S(0.45, 2, 0.06, 1), paredao: S(0.85, 1, 0.5, 2),
   // inimigos
-  grito_funkeiro: S(0.55, 2, 0.3, 2), mira: S(0.4, 2, 0.15, 3), tiro: S(0.65, 4, 0.04, 2), radio: S(0.5, 1, 0.5, 2),
+  grito_funkeiro: S(0.8, 2, 0.3, 2), mira: S(0.4, 2, 0.15, 3), tiro: S(0.65, 4, 0.04, 2), radio: S(0.5, 1, 0.5, 2),
   urro: S(0.8, 1, 0.6, 3), investida: S(0.75, 1, 0.3, 3), soco_chao: S(0.9, 1, 0.2, 3), anilha: S(0.55, 2, 0.2, 2),
   carro_cai: S(0.9, 1, 0.3, 3), cata: S(0.35, 2, 0.2, 1), roubo: S(0.6, 1, 0.3, 3), multa: S(0.5, 1, 0.5, 2),
   // avisos, crises e chefão
@@ -968,7 +970,7 @@ export const SONS = {
   toque: S(0.3, 2, 0.05, 2, FIXO), carta: S(0.4, 1, 0.1, 2, FIXO), cofre: S(0.6, 1, 0.5, 3, FIXO),
   reliquia: S(0.6, 1, 1, 3, FIXO), passagem: S(0.55, 1, 1, 3, FIXO),
   // ambiente (em laço, um por trecho)
-  amb_orla: S(1, 1, 0, 1, FIXO), amb_morro: S(1, 1, 0, 1, FIXO),
+  amb_orla: S(1.3, 1, 0, 1, FIXO), amb_morro: S(1, 1, 0, 1, FIXO),
 };
 // som do golpe em quem leva, por habilidade (null: a habilidade já tem o som dela, ou é contínua)
 export const SOM_GOLPE = {

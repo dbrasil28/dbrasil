@@ -1,6 +1,11 @@
 # Pedido de sons do jogo (08/11/2026)
 
-O jogo já toca todos os sons abaixo, mas com versões provisórias feitas em código (`prototype/src/sons.js`). Elas servem para acertar quando cada som toca e o volume da mistura. Os sons gravados entram no lugar, um a um, sem mexer no resto. Gravados até agora: `golpe` (5 variações, Firefly, 08/11/2026; é também o som do capacete acertando).
+O jogo já toca todos os sons abaixo, mas com versões provisórias feitas em código (`prototype/src/sons.js`). Elas servem para acertar quando cada som toca e o volume da mistura. Os sons gravados entram no lugar, um a um, sem mexer no resto. Gravados até agora (créditos em `CREDITOS_SONS.md`):
+
+- `golpe`: 5 variações, Firefly, 08/11/2026; é também o som do capacete acertando.
+- CC0 do OpenGameArt, aprovados pelo autor em 08/11/2026: `tapa`, `morte_horda`, `gemido`, `dano`, `morte`, `grito_funkeiro`, `quebra_madeira`, `quebra_plastico`, `baque`, `explosao` e `amb_orla`.
+
+O autor pediu outra opção para `xp`, `gorjeta`, `nivel`, `acorda`, `mira`, `tiro`, `urro`, `soco_chao` e `latido`.
 
 ## Como gerar
 
