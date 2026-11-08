@@ -792,10 +792,53 @@ export const WEAPON_FX = {
   latidoS: 0.45, // o latido do nível 4 (6 quadros), uma vez por corrida, depois da última mordida
   latidoPico: 0.45, // a horda recua no pico do latido
   raioDur: 0.28, // quanto o choque fica visível
+  decretoMarcaS: 1.2, // a marca "INDEFERIDO" do Decreto (D66) some logo: ela pega a tela inteira
 };
 export const EVOLUTIONS = [
   { from: 'capacete', requires: 'tenis', to: 'entrega' },
+  // D66 (aprovadas pelo autor): uma evolução para cada arma; cada passiva serve para no máximo duas
+  { from: 'chinelo', requires: 'raiva', to: 'contaTres' },
+  { from: 'boleto', requires: 'cafe', to: 'juros' },
+  { from: 'carimbo', requires: 'mochila', to: 'decreto' },
+  { from: 'maleta', requires: 'ima', to: 'caixa2' },
+  { from: 'picole', requires: 'mochila', to: 'frenteFria' },
+  { from: 'mototaxi', requires: 'tenis', to: 'bonde' },
+  { from: 'microfone', requires: 'marmita', to: 'cadeia' },
+  { from: 'gato', requires: 'cafe', to: 'apagaoGeral' },
+  { from: 'caramelo', requires: 'marmita', to: 'matilha' },
 ];
+
+// Build completa (D66): com tudo no máximo, o nível novo não abre mais a tela de cartas. Vira um bônus na hora:
+// com a vida abaixo de curaAbaixo, "PASTEL!" cura `cura`; senão, "HORA EXTRA!" dá +danoMais de dano. E rende
+// `gorjetas` a mais no fim do turno.
+export const NIVEL_MAXIMO = { curaAbaixo: 0.5, cura: 30, danoMais: 0.05, gorjetas: 3 };
+
+// Evoluções (D66): o padrão da arma de base (`base`) com os números dela no nível 5 e o que muda.
+const nivel5 = (id) => {
+  const lv = WEAPONS[id].levels;
+  const out = { ...lv[0] };
+  for (const l of lv.slice(1)) for (const [k, v] of Object.entries(l)) if (k !== 'desc') out[k] = (out[k] || 0) + v;
+  delete out.desc;
+  return out;
+};
+const evolucao = (base, name, role, muda) => ({ name, role: `EVOLUÇÃO: ${role}`, evolution: true, base, levels: [{ ...nivel5(base), ...muda }] });
+Object.assign(WEAPONS, {
+  // dirs: rajada para todos os lados; espera: a contagem "1… 2… 3!" antes de sair
+  contaTres: evolucao('chinelo', 'Vou Contar Até Três', 'a chinelada sai para todos os lados', { dirs: 8, espera: 0.5, dmg: 30, pierce: 4, back: 0, cd: 1.5 }),
+  // juros: cada cobrança gera outro boleto, até esse número
+  juros: evolucao('boleto', 'Juros Compostos', 'cada cobrança gera outro boleto, até 12', { juros: 12, dmg: 24, duration: 6, cd: 4 }),
+  // tela: um carimbo só, gigante, em cima do Juninho (half: meia largura em m)
+  decreto: evolucao('carimbo', 'Decreto', 'um carimbo gigante bate na tela inteira', { tela: true, count: 1, half: 7.5, dmg: 70, slowT: 4, cd: 6 }),
+  // caixa2: quantas vezes as notas atraem a horda e explodem de novo
+  caixa2: evolucao('maleta', 'Caixa Dois', 'as notas atraem a horda e explodem de novo', { caixa2: 2, dmg: 55 }),
+  frenteFria: evolucao('picole', 'Frente Fria', 'a trilha de gelo congela todo mundo', { radius: 1.6, duration: 6, freeze: 1, dmg: 10 }),
+  bonde: evolucao('mototaxi', 'Bonde dos Mototáxis', '3 motos em fila atravessam a tela', { count: 3, dmg: 80, width: 1.8, cd: 2.8 }),
+  // cura: vida devolvida ao Juninho a cada pulso
+  cadeia: evolucao('microfone', 'Cadeia Nacional', 'o pulso empurra tudo e cura o Juninho', { radius: 4, knock: 6, dmg: 16, cura: 1, cd: 0.6 }),
+  // paraF: lentidão de quem leva o choque (0: parado)
+  apagaoGeral: evolucao('gato', 'Apagão Geral', 'o choque pula por 12 e deixa todos parados', { chain: 12, stunS: 1, paraF: 0, dmg: 40 }),
+  matilha: evolucao('caramelo', 'Matilha do Bairro', 'vem a matilha inteira de vira-latas', { count: 5, dmg: 80 }),
+});
 
 export const PASSIVES = {
   tenis: { name: 'Tênis Gasto', desc: '+8% de velocidade', max: 5 },
@@ -936,6 +979,8 @@ export const TV = {
   atropelado: ['ENTREGADOR É ATROPELADO NA AVENIDA DA PRAIA. MOTORISTA NÃO PARA', 'CARRO PASSA POR CIMA DE ENTREGADOR. APP DESCONTA A ENTREGA ATRASADA'],
   acai: ['ENTREGADOR PARA PARA TOMAR AÇAÍ NO MEIO DO APOCALIPSE', 'AÇAÍ COM GRANOLA: O ÚNICO SERVIÇO PÚBLICO QUE FUNCIONA'],
   entrega: ['ENTREGA FEITA NO ALTO DO MORRO: UMA PIZZA DE CALABRESA. GORJETA: NENHUMA'],
+  buildCompleta: ['BUILD COMPLETA: AGORA É ATRÁS DO CHEFÃO. O APP AGRADECE A DEDICAÇÃO (E NÃO PAGA HORA EXTRA)'],
+  evolucao: ['EVOLUÇÃO! O APP CHAMA DE "NOVA FUNCIONALIDADE". O ENTREGADOR CHAMA DE MILAGRE'],
   maleta: ['POLÍTICO ARREMESSA MALETA. ASSESSORIA FALA EM "DOAÇÃO ESPONTÂNEA"', 'MALETA VOANDO NA ORLA. DONO NÃO SE IDENTIFICA'],
   lure: ['PLATEIA ESQUECE A NOVELA E CORRE ATRÁS DO DINHEIRO', 'MALETA ABERTA NO CALÇADÃO. HIPNOSE SUSPENSA POR TEMPO INDETERMINADO'],
   propina: ['ENTREGADOR É FLAGRADO COM DINHEIRO VIVO. "ERA GORJETA", DIZ'],

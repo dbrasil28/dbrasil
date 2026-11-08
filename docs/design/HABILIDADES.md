@@ -9,7 +9,8 @@ Pedido do autor (07/11/2026): as habilidades eram diferentes no papel, mas na te
 - **4 vagas de habilidade** e **4 de passiva**; passiva vai até o nível 5.
 - **Exclusivas:** o Picolé só é oferecido na Orla e o Mototáxi só no Morro. Quem pega leva para os próximos trechos.
 - **Passivas valem para todas:** Raiva (+10% de dano), Café (−7% de recarga, multiplicando), Mochila Térmica (+10% no tamanho e no alcance de todas as habilidades: golpe do capacete e do chinelo, roda dos boletos, carimbo, explosão e isca da maleta, poça, faixa do mototáxi, aura do megafone, alcance e pulo do Gato de Luz, latido), Tênis (+8% de velocidade), Marmita (+20 de vida), Ímã (+25% de coleta).
-- **Evolução:** só uma no MVP. Capacete no nível 5 com o Tênis Gasto em qualquer nível vira **Entrega Expressa** (3 capacetes dourados que ricocheteiam 5 vezes). A carta de evolução aparece sempre primeiro e ocupa a vaga do Capacete.
+- **Evolução (D66):** toda arma tem uma. A arma no nível 5 com a passiva certa (em qualquer nível) libera a carta dourada, que aparece sempre primeiro e troca a arma pela versão evoluída, na mesma vaga. Cada passiva serve para no máximo duas. Tabela em "Evoluções", abaixo.
+- **Build completa (D66):** com tudo no máximo, o nível novo não abre mais a tela de cartas. Com a vida abaixo da metade, "PASTEL!" cura 30; senão, "HORA EXTRA!" dá +5% de dano. Cada nível assim rende 3 gorjetas a mais no fim do turno. Na primeira vez, a TV avisa "BUILD COMPLETA".
 - Com tudo no máximo: cartas de consolo (Pastel, cura 40; Hora Extra, +5% de dano permanente).
 
 ## As 11 habilidades
@@ -31,6 +32,25 @@ Pedido do autor (07/11/2026): as habilidades eram diferentes no papel, mas na te
 ### Por que o Capacete e o Chinelo miram a horda
 
 O Capacete é a arma inicial. Na versão que ia para onde o Juninho anda, o primeiro nível demorava uns 27 s, porque quem foge tem a horda atrás e o capacete ia para o lado vazio. Mirando o mais perto, volta a uns 15 s. Com o Chinelo aconteceu o mesmo: indo para onde o Juninho anda, quase não causava dano (5 por segundo na arena de teste). O autor confirmou: "o chinelo precisa ser atirado em direção à horda".
+
+## Evoluções
+
+Aprovadas pelo autor em 08/11/2026 (D66). Cada uma usa o padrão da arma de base com os números do nível 5 e o que muda (`config.js`, `EVOLUTIONS` e `WEAPONS`).
+
+| Arma no nível 5 | + Passiva | Evolução | O que faz |
+| --- | --- | --- | --- |
+| Capacete Bumerangue | Tênis Gasto | Entrega Expressa | 3 capacetes dourados que pulam de inimigo em inimigo |
+| Chinelo Voador | Raiva Acumulada | Vou Contar Até Três | "1… 2… 3!" e a chinelada sai para os 8 lados |
+| Boleto Atrasado | Café Requentado | Juros Compostos | Cada cobrança gera outro boleto, até 12 girando |
+| Carimbo Oficial | Mochila Térmica | Decreto | Um carimbo gigante "INDEFERIDO" bate na tela inteira e deixa todo mundo lento |
+| Maleta de Dinheiro | Ímã de Geladeira | Caixa Dois | As notas que sobram atraem a horda e explodem mais duas vezes |
+| Isopor de Picolé (Orla) | Mochila Térmica | Frente Fria | Poças maiores e mais longas, que congelam todo mundo que pisa |
+| Mototáxi Amigo (Morro) | Tênis Gasto | Bonde dos Mototáxis | 3 motos lado a lado atravessam a viela |
+| Megafone da TV | Marmita da Mãe | Cadeia Nacional | A aura cresce, empurra mais e cura 1 de vida a cada pulso |
+| Gato de Luz | Café Requentado | Apagão Geral | O choque pula por até 12 inimigos e deixa todos parados 1 s |
+| Cachorro Caramelo | Marmita da Mãe | Matilha do Bairro | 5 vira-latas no lugar de 3 |
+
+Bot, 16 partidas, com e sem as 9 novas: 16 evoluções contra 6, a primeira por volta dos 5 min 45 s (cabe no trecho), duração mediana igual (228 s) e os mesmos 5 de 16 chegando aos 8 min.
 
 ## Equilíbrio medido
 

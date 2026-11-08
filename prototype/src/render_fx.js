@@ -5,6 +5,7 @@
 // isso pode girar e pulsar. Em pé, a peça fica de frente para a câmera, como os personagens.
 import { FX, quadro, quadroNoTempo, quadroMisto } from './efeitos_arte.js';
 import { ARTE } from './sprites.js';
+import { WEAPONS } from './config.js';
 
 // caminhos literais: o build acha as imagens pelo texto
 const FX_SRC = {
@@ -139,7 +140,7 @@ export function precarregarFx(game) {
   const ids = game.player.weapons.map((w) => w.id).join(',');
   if (ids === armasVistas) return;
   armasVistas = ids;
-  for (const w of game.player.weapons) for (const n of DA_ARMA[w.id] || []) fxImg(n);
+  for (const w of game.player.weapons) for (const n of DA_ARMA[w.id] || DA_ARMA[WEAPONS[w.id] && WEAPONS[w.id].base] || []) fxImg(n); // evolução: os efeitos da arma de base
 }
 
 const src = { sx: 0, sy: 0, sw: 0, sh: 0 };
@@ -269,7 +270,7 @@ export function drawFxChao(ctx, game, cam, ppu) {
       continue;
     }
     const larg = (a.tam || F.cobreM || 2) / (F.borda || 1);
-    const alpha = (F.laco || a.nome === 'aura_pulso' || a.nome === 'latido_onda' ? fimSuave(a) : Math.min(1, a.t / 0.08) * fimSuave(a)) * (F.alpha ?? 1);
+    const alpha = (F.laco || a.nome === 'aura_pulso' || a.nome === 'latido_onda' ? fimSuave(a) : Math.min(1, a.t / 0.08) * fimSuave(a)) * (a.alpha ?? F.alpha ?? 1); // a.alpha: deste efeito (a marca do Decreto vem mais fraca)
     const img = F.suave ? fxSuave(a.nome) : im;
     const giro = a.rot ? Math.round(a.rot / (Math.PI / 8)) * (Math.PI / 8) : 0; // 16 giros: menos imagens prontas a guardar
     const n = F.n || F.cols * F.rows;

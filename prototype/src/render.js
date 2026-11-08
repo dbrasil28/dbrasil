@@ -1,6 +1,6 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA } from './config.js';
+import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA, WEAPONS } from './config.js';
 import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS, FIGURANTE_ART, carregarMonstrao } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto, drawEscuroPontas } from './mapa.js';
 import { drawMar } from './render_mar.js';
@@ -1320,9 +1320,10 @@ export class Renderer {
     const c = makeCanvas(size * this.dpr, size * this.dpr);
     const g = c.getContext('2d');
     g.scale(this.dpr, this.dpr);
-    const art = images[ICON_ART[kind]];
+    const base = (WEAPONS[kind] && WEAPONS[kind].base) || kind; // evolução: o desenho da arma de base (com a moldura dourada do HUD)
+    const art = images[ICON_ART[kind] || ICON_ART[base]];
     if (art) drawFit(g, art, 0, 0, size);
-    else drawIcon(g, kind, size);
+    else drawIcon(g, base, size);
     return c;
   }
 }

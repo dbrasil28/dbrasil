@@ -1,7 +1,7 @@
 // Comportamento das armas automáticas e dos projéteis. Tudo em metros/segundos.
 import { explosaoPerto, raioPerto, golpeNoCarro } from './reacoes.js';
 import { weaponStats } from './upgrades.js';
-import { INTERACT, WEAPON_FX, RELIQUIAS, ACHADOS } from './config.js';
+import { INTERACT, WEAPON_FX, RELIQUIAS, ACHADOS, WEAPONS } from './config.js';
 import { achadoParaFarejar } from './achados.js';
 
 const tmp = [];
@@ -60,7 +60,8 @@ export function fireWeapon(game, w, ps) {
   const area = ps.areaMul;
   let fired = false;
 
-  switch (w.id) {
+  // evolução (D66): o padrão da arma de base, com os números e os extras dela
+  switch (WEAPONS[w.id].base || w.id) {
     case 'capacete': {
       // vai e volta mirando a horda (é a arma inicial: quem foge precisa acertar o que vem atrás);
       // sem ninguém perto, vai para onde ele anda. Vários capacetes abrem em leque
@@ -128,13 +129,19 @@ export function fireWeapon(game, w, ps) {
           linhas.push({ x: (outro.x - p.x) / l, y: (outro.y - p.y) / l });
         } else linhas.push({ x: -a.x, y: -a.y });
       }
+      if (st.dirs) {
+        // Vou Contar Até Três: a chinelada sai para todos os lados, a partir da direção da horda
+        const a0 = Math.atan2(linhas[0].y, linhas[0].x);
+        linhas.length = 0;
+        for (let k = 0; k < st.dirs; k++) linhas.push({ x: Math.cos(a0 + (k / st.dirs) * Math.PI * 2), y: Math.sin(a0 + (k / st.dirs) * Math.PI * 2) });
+      }
       p.aimX = linhas[0].x;
       p.aimY = linhas[0].y;
       p.throwT = 0;
       for (let i = 0; i < st.count; i++) {
         for (const { x: ax, y: ay } of linhas) {
           // o primeiro de cada linha já sai voando; os outros esperam a vez na fila
-          const delay = i * st.gap;
+          const delay = i * st.gap + (st.espera || 0);
           game.projectiles.push({
             kind: 'slipper', x: p.x, y: p.y, delay, speed: st.speed, ax, ay,
             vx: delay > 0 ? 0 : ax * st.speed, vy: delay > 0 ? 0 : ay * st.speed,
@@ -142,7 +149,7 @@ export function fireWeapon(game, w, ps) {
           });
         }
       }
-      game.word(p.x, p.y, 'PÁ!', '#ffd21f');
+      game.word(p.x, p.y, st.dirs ? '1… 2… 3!' : 'PÁ!', '#ffd21f');
       fired = true;
       break;
     }
@@ -150,13 +157,23 @@ export function fireWeapon(game, w, ps) {
       // boletos girando em volta do Juninho (seguem ele), cobrando de quem encosta
       game.zones.push({
         kind: 'orbita', x: p.x, y: p.y, t: 0, dur: st.duration, n: st.count, r: st.radius * area, spin: st.spin,
-        ang: game.rng() * Math.PI * 2, dmg: st.dmg * dmgMul, every: st.hitEvery, hits: new Map(), pts: [], src: w.id,
+        ang: game.rng() * Math.PI * 2, dmg: st.dmg * dmgMul, every: st.hitEvery, hits: new Map(), pts: [], src: w.id, juros: st.juros || 0,
       });
       fired = true;
       break;
     }
     case 'carimbo': {
       // cai do céu: sombra no chão e o carimbão descendo em cima de inimigos da tela
+      if (st.tela) {
+        // Decreto: um carimbo gigante em cima do Juninho pega a tela inteira
+        game.zones.push({
+          kind: 'stamp', x: p.x, y: p.y, half: st.half * area, t: 0, delay: st.fallS, done: false,
+          life: st.fallS + 0.55, dmg: st.dmg * dmgMul, slow: st.slow, slowT: st.slowT, src: w.id, decreto: true,
+        });
+        game.word(p.x, p.y - 2, 'INDEFERIDO!', '#ff6b6b');
+        fired = true;
+        break;
+      }
       for (let i = 0; i < st.count; i++) {
         const t = randomEnemyWithin(game, p.x, p.y, 7);
         if (!t) break;
@@ -178,7 +195,7 @@ export function fireWeapon(game, w, ps) {
         const ty = p.y + Math.sin(ang) * st.distM;
         game.projectiles.push({
           kind: 'lob', sx: p.x, sy: p.y, x: p.x, y: p.y, tx, ty, t: 0, dur: st.flightS, arcH: st.arcM, h: 0, src: w.id,
-          isca: { dmg: st.dmg * dmgMul, radius: st.radius * area, r: st.iscaR * area, s: st.iscaS, voo: st.voo },
+          isca: { dmg: st.dmg * dmgMul, radius: st.radius * area, r: st.iscaR * area, s: st.iscaS, voo: st.voo, caixa2: st.caixa2 || 0 },
         });
       }
       p.throwT = 0;
@@ -230,6 +247,7 @@ export function fireWeapon(game, w, ps) {
         const l = d || 1;
         game.damageEnemy(e, st.dmg * dmgMul, w.id, (dx / l) * st.knock, (dy / l) * st.knock, true);
       }
+      if (st.cura) p.hp = Math.min(game.stats.maxHp, p.hp + st.cura); // Cadeia Nacional: cada pulso cura um pouco
       fired = true;
       break;
     }
@@ -250,7 +268,7 @@ export function fireWeapon(game, w, ps) {
           game.efeito('chamuscado_raio', cur.x, cur.y, { rot: giroFixo(cur.x, cur.y) });
           game.efeito('luz', cur.x, cur.y, { dur: 0.3, tam: 4.5, cor: '170,210,255' });
           cur.slowT = Math.max(cur.slowT, st.stunS);
-          cur.slowF = Math.min(cur.slowF || 1, 0.2);
+          cur.slowF = Math.min(cur.slowF || 1, st.paraF ?? 0.2); // Apagão Geral: parado
           const nx = nearestEnemies(game, cur.x, cur.y, st.jumpM * area, 1, seen)[0];
           cur = nx || null;
         }
@@ -388,7 +406,7 @@ export function updateProjectiles(game, dt) {
         if (pr.isca) {
           // a maleta da habilidade cai aberta: vira isca de dinheiro e depois explode (updateZones)
           const I = pr.isca;
-          game.zones.push({ kind: 'maleta', x: pr.x, y: pr.y, t: 0, dur: I.s, dmg: I.dmg, radius: I.radius, voo: I.voo, iscaR: I.r, src: pr.src });
+          game.zones.push({ kind: 'maleta', x: pr.x, y: pr.y, t: 0, dur: I.s, dmg: I.dmg, radius: I.radius, voo: I.voo, iscaR: I.r, src: pr.src, caixa2: I.caixa2 || 0 });
           game.lures.push({ x: pr.x, y: pr.y, t: 0, dur: I.s, r: I.r, speedMul: 1.6 });
           game.moneyBurst(pr.x, pr.y, 10);
           game.word(pr.x, pr.y - 0.5, 'DINHEIRO!', '#7fe08a');
@@ -558,6 +576,13 @@ export function updateZones(game, dt) {
         game.som('explosao', z.x, z.y);
         game.shake(0.3);
         remove = true;
+        if (z.caixa2 > 0) {
+          // Caixa Dois: as notas que sobraram atraem a horda de novo e explodem outra vez
+          const d2 = z.dur * 0.6;
+          game.zones.push({ ...z, t: 0, dur: d2, caixa2: z.caixa2 - 1 });
+          game.lures.push({ x: z.x, y: z.y, t: 0, dur: d2, r: z.iscaR, speedMul: 1.6 });
+          game.word(z.x, z.y - 1.2, 'CAIXA DOIS!', '#7fe08a');
+        }
       }
     } else if (z.kind === 'orbita') {
       // boletos girando em volta do Juninho; cada inimigo leva no máximo uma cobrança a cada `every`
@@ -581,6 +606,7 @@ export function updateZones(game, dt) {
           const dy = e.y - p.y;
           const l = Math.hypot(dx, dy) || 1;
           game.damageEnemy(e, z.dmg, z.src, (dx / l) * 1.5, (dy / l) * 1.5);
+          if (z.juros && z.n < z.juros) z.n++; // Juros Compostos: cada cobrança gera outro boleto
         }
       }
       if (z.t >= z.dur) remove = true;
@@ -623,7 +649,8 @@ export function updateZones(game, dt) {
         const h = z.half;
         game.efeito('carimbo_baque', z.x, z.y, { tam: h * 2 * 1.6 }); // poeira e papelada
         game.som('carimbo', z.x, z.y);
-        game.efeito('carimbo_marca', z.x, z.y, { tam: h * 2 * 1.35, rot: -0.18, dur: z.slowT + 0.6 }); // a tinta apaga com a lentidão
+        // a tinta apaga com a lentidão; a do Decreto (a tela inteira) some logo, para não cobrir o chão
+        game.efeito('carimbo_marca', z.x, z.y, z.decreto ? { tam: h * 2 * 1.1, rot: -0.18, dur: WEAPON_FX.decretoMarcaS, alpha: 0.55 } : { tam: h * 2 * 1.35, rot: -0.18, dur: z.slowT + 0.6 });
         golpeNoCarro(game, z.x, z.y, h, z.dmg);
         game.hash.query(z.x, z.y, h * 1.5 + 0.6, tmp);
         for (const e of tmp) {

@@ -4,8 +4,8 @@ import { SpatialHash } from './spatial.js';
 import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   ENEMY_POSE,
-  SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, FIGURANTES, DERRUBADO, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO,
+  SESSION, PLAYER, ENEMIES, WEAPONS, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
+  ROUTE, INTERACT, THROWABLES, FIGURANTES, DERRUBADO, NIVEL_MAXIMO, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO,
   SOM_GOLPE, SOM_ARMA,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
@@ -567,8 +567,9 @@ export class Game {
     dw[source] = (dw[source] || 0) + Math.min(dmg, Math.max(0, e.hp));
     e.hp -= dmg;
     e.flash = 0.09;
-    if (!quiet) this.som(source in SOM_GOLPE ? SOM_GOLPE[source] : 'golpe', e.x, e.y);
-    const I = IMPACTO[source];
+    const fonte = source in SOM_GOLPE || source in IMPACTO || !(WEAPONS[source] && WEAPONS[source].base) ? source : WEAPONS[source].base; // evolução: o da arma de base
+    if (!quiet) this.som(fonte in SOM_GOLPE ? SOM_GOLPE[fonte] : 'golpe', e.x, e.y);
+    const I = IMPACTO[fonte];
     if (I && !(this.t < (e.fxAte || 0)) && (!I.chance || ((e.id * 7 + Math.floor(this.t * 10)) % 100) / 100 < I.chance)) {
       e.fxAte = this.t + I.espera;
       this.efeito(I.fx, e.x, e.y, { alvo: e });
@@ -826,7 +827,14 @@ export class Game {
       return;
     }
     if (this.pendingLevels > 0) {
-      this.modal = { kind: 'levelup', level: this.player.level - this.pendingLevels + 1, options: rollOptions(this.player, this.rng, 3, this.segment) };
+      const options = rollOptions(this.player, this.rng, 3, this.segment);
+      if (options.every((o) => o.kind === 'heal' || o.kind === 'bonus')) {
+        // build completa (D66): o nível vira bônus na hora, sem pausar a partida
+        this.nivelAutomatico();
+        this.pendingLevels--;
+        return;
+      }
+      this.modal = { kind: 'levelup', level: this.player.level - this.pendingLevels + 1, options };
       if (this.rerollsLeft > 0) this.metrics.ads.ofertas.trocar_cartas++;
       this.emit('modal', {});
     }
@@ -843,7 +851,28 @@ export class Game {
     this.modal = null;
     this.stats = playerStats(this.player, this.mods);
     this.player.hp = Math.min(this.player.hp, this.stats.maxHp);
-    if (opt.kind === 'evolution') this.emit('tv', { text: 'EVOLUÇÃO! ENTREGA EXPRESSA GARANTIDA OU SEU DINHEIRO DE VOLTA (NÃO)' });
+    if (opt.kind === 'evolution') this.emit('tv', { text: opt.id === 'entrega' ? 'EVOLUÇÃO! ENTREGA EXPRESSA GARANTIDA OU SEU DINHEIRO DE VOLTA (NÃO)' : `${this.pickLine('evolucao')} ${WEAPONS[opt.id].name.toUpperCase()}!` });
+  }
+
+  /** Build completa (D66): com a vida baixa, cura; senão, mais dano. E gorjeta a mais no fim do turno. */
+  nivelAutomatico() {
+    const p = this.player;
+    const N = NIVEL_MAXIMO;
+    if (!this.metrics.buildCompleta) {
+      this.metrics.buildCompleta = Math.round(this.t);
+      this.tv('buildCompleta');
+    }
+    if (p.hp < this.stats.maxHp * N.curaAbaixo) {
+      p.hp = Math.min(this.stats.maxHp, p.hp + N.cura);
+      this.word(p.x, p.y - 1.8, 'PASTEL!', '#7fe08a');
+      this.som('cura');
+    } else {
+      p.bonusDmg = (p.bonusDmg || 0) + N.danoMais;
+      this.stats = playerStats(p, this.mods);
+      this.word(p.x, p.y - 1.8, 'HORA EXTRA!', '#ffd21f');
+      this.som('nivel');
+    }
+    this.metrics.niveisExtras = (this.metrics.niveisExtras || 0) + 1;
   }
 
   /** Pula a abertura (da segunda vez em diante). */
@@ -1268,7 +1297,7 @@ export class Game {
       if (w.cd <= 0) {
         const res = fireWeapon(this, w, this.stats);
         w.cd = res.fired ? res.cd : 0.25;
-        if (res.fired) this.som(SOM_ARMA[w.id]); // sem som próprio no disparo: vem no impacto
+        if (res.fired) this.som(SOM_ARMA[w.id] ?? SOM_ARMA[WEAPONS[w.id].base]); // sem som próprio no disparo: vem no impacto
       }
     }
   }
@@ -2223,6 +2252,7 @@ export class Game {
     if (this.bossKilled) parts.push(['Chefe vencido', G.chefe]);
     if (this.delivered) parts.push(['Entrega feita', G.entrega]);
     if (this.metrics.achadosGorjeta) parts.push(['Achados pelo caminho', this.metrics.achadosGorjeta]);
+    if (this.metrics.niveisExtras) parts.push(['Hora extra (níveis com a build completa)', this.metrics.niveisExtras * NIVEL_MAXIMO.gorjetas]);
     if (emHorda(this)) for (const p of parts) p[1] = Math.round(p[1] * HORDA.gorjetaMul); // a Carreira rende mais
     return { total: parts.reduce((a, p) => a + p[1], 0), parts };
   }
