@@ -1644,6 +1644,63 @@ body.mapa-aberto #warn {
   color: var(--muted);
 }
 
+.mel-efeito {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.mel-aviso {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(127, 224, 138, 0.14);
+  border: 1px solid rgba(127, 224, 138, 0.5);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.numeros {
+  box-sizing: border-box;
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+.numeros-tit {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.numeros-linha {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 10px;
+  font-size: 15px;
+}
+
+.numeros-linha b {
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.numeros-linha small {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .mel-pips {
   display: flex;
   gap: 3px;
@@ -1662,7 +1719,7 @@ body.mapa-aberto #warn {
 }
 
 .mel-buy {
-  grid-row: 1 / span 3;
+  grid-row: 1 / span 4;
   grid-column: 2;
   min-height: 44px;
   padding: 6px 12px;

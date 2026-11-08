@@ -370,12 +370,12 @@ function openRota() {
   scr.scrollTop = scr.scrollHeight; // a rota sobe: abre mostrando o começo, embaixo
 }
 function openMelhorias() {
-  const rebuild = () => ui.buildMelhorias(progress, (id) => {
+  const rebuild = (comprada = null) => ui.buildMelhorias(progress, (id) => {
     if (buyUpgrade(progress, id)) {
       ui.setTitleTips(progress);
-      rebuild();
+      rebuild(id);
     }
-  });
+  }, comprada);
   rebuild();
   ui.show('screen-melhorias');
 }
@@ -460,6 +460,7 @@ ui.on('pause', () => {
   if (state !== 'playing') return;
   state = 'paused';
   input.reset();
+  ui.showNumeros(game);
   ui.show('screen-pause');
 });
 ui.on('resume', () => {

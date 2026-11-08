@@ -21,7 +21,7 @@ import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, stairOut, inside, routeRemaining } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones, updateDogs } from './weapons.js';
-import { rollOptions, rollNewWeapons, applyOption, playerStats } from './upgrades.js';
+import { rollOptions, rollNewWeapons, applyOption, playerStats, resumoMelhorias } from './upgrades.js';
 
 const CHUNK = 10; // metros por chunk de cenário
 const tmp = [];
@@ -216,6 +216,9 @@ export class Game {
 
     this.applyView();
     this.emit('tv', { text: this.pickLine('start') });
+    // as melhorias permanentes que valem nesta partida (sem isso, comprar parecia não mudar nada)
+    const ativas = resumoMelhorias(this.meta.melhorias);
+    if (ativas.length) this.emit('tv', { text: `MELHORIAS ATIVAS: ${ativas.join(', ')}` });
   }
 
   // ---------- utilidades ----------

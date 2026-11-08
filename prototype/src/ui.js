@@ -1,5 +1,6 @@
 // Interface em DOM: HUD enxuto, TV Caos, cartas de melhoria, propostas e telas.
 import { WEAPONS, PASSIVES, SLOTS, ENEMIES, verdictFor, TRECHOS, MELHORIAS, RELIQUIAS, ACHADOS } from './config.js';
+import { efeitoAgoraEDepois, numerosDoJuninho } from './upgrades.js';
 import { upgradeLevel, upgradeCost } from './progresso.js';
 import { SETTINGS_SCHEMA } from './settings.js';
 import { formatTime, fmt } from './math.js';
@@ -776,9 +777,13 @@ export class UI {
     }
   }
 
-  /** Melhorias permanentes: nível, custo e compra com gorjetas. */
-  buildMelhorias(progress, onBuy) {
+  /** Melhorias permanentes: nível, efeito (agora → depois da compra), custo e compra com gorjetas. */
+  buildMelhorias(progress, onBuy, comprada = null) {
     $('mel-total').textContent = String(progress.gorjetas);
+    // depois da compra: o que mudou e quando vale
+    const aviso = $('mel-aviso');
+    aviso.hidden = !comprada;
+    if (comprada) aviso.textContent = `${MELHORIAS[comprada].name}: comprada! Vale a partir da próxima partida.`;
     const list = $('mel-list');
     list.textContent = '';
     for (const [id, m] of Object.entries(MELHORIAS)) {
@@ -792,6 +797,9 @@ export class UI {
       const desc = document.createElement('span');
       desc.className = 'mel-desc';
       desc.textContent = m.opcao ? m.desc : `${m.desc} por nível`;
+      const efeito = document.createElement('span');
+      efeito.className = 'mel-efeito';
+      efeito.textContent = efeitoAgoraEDepois(id, lv);
       const pips = document.createElement('span');
       pips.className = 'mel-pips';
       for (let i = 0; i < m.custo.length; i++) {
@@ -805,8 +813,30 @@ export class UI {
       buy.textContent = cost == null ? 'MÁXIMO' : `${cost} 💰`;
       buy.disabled = cost == null || progress.gorjetas < cost;
       buy.addEventListener('click', () => onBuy(id));
-      row.append(name, buy, desc, pips);
+      row.append(name, buy, desc, efeito, pips);
       list.append(row);
+    }
+  }
+
+  /** Pausa: os números do Juninho agora e de onde vem cada um (melhorias, cartas, propostas). */
+  showNumeros(game) {
+    const box = $('pause-numeros');
+    box.textContent = '';
+    const tit = document.createElement('p');
+    tit.className = 'numeros-tit';
+    tit.textContent = 'Seus números';
+    box.append(tit);
+    for (const l of numerosDoJuninho(game.player, game.mods, game.meta && game.meta.melhorias)) {
+      const row = document.createElement('div');
+      row.className = 'numeros-linha';
+      const nome = document.createElement('span');
+      nome.textContent = l.nome;
+      const valor = document.createElement('b');
+      valor.textContent = l.valor;
+      const partes = document.createElement('small');
+      partes.textContent = l.partes.join(' · ');
+      row.append(nome, valor, partes);
+      box.append(row);
     }
   }
 
