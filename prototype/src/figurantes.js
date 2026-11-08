@@ -76,7 +76,6 @@ function luta(game, f, e) {
     game.som('tapa', e.x, e.y);
     game.damageEnemy(e, A.dano * mul, 'bolsa', f.dirX * A.empurra, f.dirY * A.empurra);
   } else {
-    game.som('picole', e.x, e.y);
     e.frozenT = Math.max(e.frozenT || 0, A.congelaS);
     game.damageEnemy(e, A.dano * mul, 'picole_grupo', 0, 0);
   }

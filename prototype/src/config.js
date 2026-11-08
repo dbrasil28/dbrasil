@@ -967,7 +967,7 @@ export const SONS = {
   explosao: S(1.4, 2, 0.08, 3), atropelo: S(0.7, 2, 0.08, 2), buzina: S(0.5, 1, 0.5, 2),
   lataria: S(0.45, 3, 0.05, 1, { varia: 0.12 }), pega_fogo: S(0.7, 2, 0.3, 3), // porrada no carro; o carro pegou fogo (aviso)
   // habilidades
-  chinelo: S(0.4, 2, 0.05, 1), boleto: S(0.3, 1, 0.2, 1), carimbo: S(0.7, 2, 0.05, 2), picole: S(0.25, 1, 0.2, 1),
+  chinelo: S(0.4, 2, 0.05, 1), boleto: S(0.3, 1, 0.2, 1), carimbo: S(0.7, 2, 0.05, 2),
   moto: S(0.6, 1, 0.3, 2), megafone: S(0.35, 1, 0.3, 1), gato: S(0.45, 2, 0.08, 1), latido: S(0.5, 1, 0.25, 2),
   mordida: S(0.5, 2, 0.08, 1), bola: S(0.45, 2, 0.06, 1), paredao: S(0.85, 1, 0.5, 2),
   // inimigos
@@ -992,7 +992,7 @@ export const SOM_GOLPE = {
 };
 // som de quando a habilidade dispara (null: o som vem no impacto)
 export const SOM_ARMA = {
-  capacete: 'arremesso', entrega: 'arremesso', chinelo: 'chinelo', boleto: 'boleto', maleta: 'arremesso', picole: 'picole',
+  capacete: 'arremesso', entrega: 'arremesso', chinelo: 'chinelo', boleto: 'boleto', maleta: 'arremesso', picole: null, // o picolé fica sem som (o autor: "é algo constante, derretendo, fica chato")
   mototaxi: 'moto', microfone: 'megafone', gato: 'gato', carimbo: null, caramelo: null,
 };
 

@@ -43,7 +43,6 @@ export const RECEITAS = {
   chinelo: [sopro(0.12, { v: 0.5 }), ruido(0.06, { ini: 0.1, lp: 7000, hp: 900, q: 0.015, v: 0.8 })],
   boleto: [ruido(0.28, { lp: 4500, hp: 1500, am: 28, amP: 0.7, q: 0.12, v: 0.6 })],
   carimbo: [tom('sine', 95, 38, 0.28, { q: 0.1, v: 1 }), ruido(0.13, { lp: 900, q: 0.04, v: 0.6 })],
-  picole: [tom('sine', 1500, 1300, 0.09, { q: 0.04, v: 0.35 }), tom('sine', 2250, 2100, 0.07, { ini: 0.04, q: 0.03, v: 0.2 }), ruido(0.12, { hp: 1800, lp: 5000, q: 0.04, v: 0.3 })], // era um apito subindo (o autor achou horrível): agora um tilintar curto
   moto: [tom('saw', 85, 150, 0.65, { lp: 900, am: 24, amP: 0.5, a: 0.05, q: 0.35, v: 0.6 }), ruido(0.6, { lp: 500, q: 0.3, v: 0.3 })],
   megafone: [tom('tri', 800, 1100, 0.26, { am: 9, amP: 0.5, q: 0.12, v: 0.5 }), tom('square', 200, 200, 0.2, { lp: 900, q: 0.08, v: 0.2 })],
   gato: [ruido(0.3, { hp: 2000, lp: 8000, am: 60, amP: 0.9, q: 0.1, v: 0.6 }), tom('square', 60, 60, 0.3, { lp: 1200, q: 0.1, v: 0.25 })],

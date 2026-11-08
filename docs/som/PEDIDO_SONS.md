@@ -69,7 +69,6 @@ O jogo já toca todos os sons abaixo (60), mas com versões provisórias feitas 
 | `chinelo` | Chinelo Voador dispara | 3 | 0,2 s | Flip-flop thrown fast, whoosh with a flap |
 | `boleto` | Boleto Atrasado (papéis girando) | 2 | 0,4 s | Paper sheets fluttering in the wind, swirling papers |
 | `carimbo` | Carimbo Oficial cai | 2 | 0,35 s | Giant rubber stamp slamming on a desk, heavy official thump |
-| `picole` | Isopor de Picolé congela | 2 | 0,35 s | Ice freezing crackle, frost forming, crystal shimmer |
 | `moto` | Mototáxi Amigo passa | 2 | 0,8 s | Small motorcycle passing by fast, 125cc engine rev |
 | `megafone` | Megafone da TV (onda de som) | 2 | 0,4 s | Megaphone feedback squeal burst, loud distorted pulse |
 | `gato` | Gato de Luz (choque) | 3 | 0,35 s | Electric zap, crackling arc between wires, short circuit |
@@ -77,6 +76,8 @@ O jogo já toca todos os sons abaixo (60), mas com versões provisórias feitas 
 | `mordida` | Caramelo morde | 2 | 0,15 s | Dog bite snap with a short growl |
 | `bola` | Bola da Altinha quica | 3 | 0,15 s | Soccer ball kick on the beach, firm hollow pop |
 | `paredao` | Paredão de Som solta o grave | 2 | 0,6 s | Huge sub bass boom from a street sound system, funk kick drum, chest thump |
+
+O Isopor de Picolé não tem som, a pedido do autor (08/11/2026): o gelo fica o tempo todo na tela e qualquer som cansa.
 
 ## 4. Inimigos e avisos (prioridade)
 
