@@ -1,7 +1,7 @@
 // Desenho da regra da carreira (D39): a obra do Especulador, o tapume da escadaria (arte de tapume
 // inteira, só na escala) e o holofote do helicóptero da TV sobre o covil aberto, que é a pista no lugar
 // da seta. Quando o covil está fora da tela, só a claridade do holofote aparece na beira, sem seta nem texto.
-import { CARREIRA, ACHADOS, RELIQUIAS } from './config.js';
+import { CARREIRA, ACHADOS } from './config.js';
 import { images } from './sprites.js';
 
 const a = { x: 0, y: 0 };
@@ -348,28 +348,4 @@ export function drawParedao(ctx, x, y, playerPx, pulso, lado, t) {
     }
   }
   ctx.restore();
-}
-
-/** A onda do grave correndo no chão em volta do paredão: dois anéis que abrem e somem no alcance. */
-export function drawOndaParedao(ctx, game, cam, ppu) {
-  const R = RELIQUIAS.paredao;
-  for (const o of game.projectiles) {
-    if (o.kind !== 'paredao' || o.onda < 0) continue;
-    const k = Math.min(1, o.onda / R.raioM);
-    cam.toScreen(o.x, o.y, a);
-    const r = Math.min(o.onda, R.raioM) * ppu;
-    const f = (1 - k) ** 0.7;
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.lineWidth = Math.max(2, ppu * 0.32 * (1 - k * 0.5));
-    for (let i = 0; i < 2; i++) {
-      const rr = r * (1 - i * 0.2);
-      if (rr < 4) continue;
-      ctx.strokeStyle = `rgba(${LEDS[i]},${0.55 * f})`;
-      ctx.beginPath();
-      ctx.ellipse(a.x, a.y, rr, rr * cam.k, 0, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
 }

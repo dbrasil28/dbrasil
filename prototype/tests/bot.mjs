@@ -7,16 +7,22 @@ import { routeTarget, deliveryPoint } from '../src/mundo.js';
 const rtBot = { x: 0, y: 0 };
 
 // Opções do bot (o relatório de balanceamento desliga o desvio para comparar).
-export const BOT = { dodge: true, revive: false, goalPull: 2.4 };
+export const BOT = { dodge: true, revive: false, goalPull: 2.4, superPerto: 6 };
 
 export function botInput(game) {
   const p = game.player;
   let cx = 0;
   let cy = 0;
   let n = 0;
+  let perto = 0; // quantos estão a menos de 5 m (para a super da relíquia, D67)
+  let chefe = false;
   for (const e of game.enemies) {
     if (e.dmg <= 0) continue;
     const d2 = (e.x - p.x) ** 2 + (e.y - p.y) ** 2;
+    if (d2 < 25) {
+      perto++;
+      if (e.boss) chefe = true;
+    }
     if (d2 < 36) {
       const w = 1 / Math.max(0.5, d2);
       cx += (e.x - p.x) * w;
@@ -24,6 +30,9 @@ export function botInput(game) {
       n += w;
     }
   }
+  // super cheia: usa no aperto (muita gente perto, ou o chefão do lado)
+  const apertado = perto >= BOT.superPerto || chefe || (perto >= 3 && p.hp < game.stats.maxHp * 0.4);
+  if (apertado && game.superPronta && game.superPronta()) game.pedirSuper();
   // desviar das papeladas do Burocrata (perpendicular à trajetória)
   for (const s of BOT.dodge ? game.enemyShots : []) {
     const dx = p.x - s.x;

@@ -1,9 +1,9 @@
-// Achados (D40): isopor, cofre, relíquia e o faro do Caramelo.
+// Achados (D40): isopor, cofre, relíquia e o faro do Caramelo. A super da relíquia (D67): super.test.mjs.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
-import { ACHADOS, RELIQUIAS } from '../src/config.js';
+import { ACHADOS } from '../src/config.js';
 
 const DT = 1 / 30;
 const parado = { x: 0, y: 0 };
@@ -46,46 +46,6 @@ test('cada partida tem isopores, dois cofres e uma relíquia por trecho, sempre 
   }
 });
 
-test('relíquia do Morro: o Paredão de Som vai atrás do Juninho e a onda do grave empurra a horda', () => {
-  const g = jogo();
-  g.segment = 'morro'; // já subiu (a chegada no morro recomeça o trecho e tira a relíquia da Orla)
-  g.world.gateOpen = true;
-  const a = g.achados.find((x) => x.reliquia === 'paredao');
-  chegar(g, a);
-  g.update(DT, parado);
-  assert.equal(g.player.reliquia, 'paredao');
-  const cx = g.projectiles.find((o) => o.kind === 'paredao');
-  assert.ok(cx, 'sem o paredão');
-  // desce e anda: o carrinho vai atrás, sem encostar
-  g.player.plat = null;
-  g.player.lvl = 0;
-  g.player.z = 0;
-  g.player.x = a.plat.stair.x0;
-  g.player.y = a.plat.stair.y1 + 4;
-  for (let i = 0; i < 60; i++) g.update(DT, parado);
-  const d = Math.hypot(cx.x - g.player.x, cx.y - g.player.y);
-  assert.ok(d < RELIQUIAS.paredao.segueM + 0.3 && d > RELIQUIAS.paredao.segueM - 0.3, `o carrinho ficou a ${d.toFixed(2)} m`);
-  // horda em volta do carrinho: a onda bate em quem está no alcance e empurra para fora
-  const perto = [];
-  for (let i = 0; i < 6; i++) {
-    const ang = (i / 6) * Math.PI * 2;
-    const e = g.spawnEnemy('telespectador', cx.x + Math.cos(ang) * 3, cx.y + Math.sin(ang) * 3);
-    e.hp = e.maxHp = 1e5;
-    e.speed = 0;
-    perto.push({ e, d0: 3 });
-  }
-  const longe = g.spawnEnemy('telespectador', cx.x + RELIQUIAS.paredao.raioM + 3, cx.y);
-  longe.hp = longe.maxHp = 1e5;
-  longe.speed = 0;
-  cx.cd = 0;
-  for (let i = 0; i < 20; i++) g.update(DT, parado);
-  for (const { e } of perto) assert.ok(e.hp < 1e5, 'a onda não bateu');
-  // empurrados para fora (quem está encostado numa parede fica onde está)
-  const longeDele = perto.filter(({ e, d0 }) => Math.hypot(e.x - cx.x, e.y - cx.y) > d0 + 1).length;
-  assert.ok(longeDele >= 4, `só ${longeDele} de 6 foram empurrados`);
-  assert.equal(longe.hp, 1e5, 'a onda passou do alcance');
-});
-
 test('isopor: encostar dá gorjeta e um pouco de vida', () => {
   const g = jogo();
   const a = g.achados.find((x) => x.kind === 'isopor' && !x.cavar && !x.plat);
@@ -124,34 +84,6 @@ test('cofre: pausa o jogo e dá 1, 3 ou 5 cartas de uma vez', () => {
   assert.equal(g.modal, null);
   const ganho = g.player.weapons.reduce((s, w) => s + w.level, 0) + g.player.passives.reduce((s, p) => s + p.level, 0);
   assert.ok(ganho >= armas0 + g.metrics.cofres - 1, 'as cartas não entraram');
-});
-
-test('relíquia: a Bola da Altinha quica de inimigo em inimigo e não some', () => {
-  const g = jogo();
-  const a = g.achados.find((x) => x.kind === 'reliquia');
-  chegar(g, a);
-  g.update(DT, parado);
-  assert.equal(g.player.reliquia, 'altinha');
-  const bola = g.projectiles.find((o) => o.kind === 'altinha');
-  assert.ok(bola, 'sem bola');
-  // desce da torre e encontra a horda
-  g.player.plat = null;
-  g.player.lvl = 0;
-  g.player.z = 0;
-  g.player.x = 0;
-  g.player.y = -40;
-  bola.x = 0;
-  bola.y = -40;
-  const fila = [];
-  for (let i = 0; i < 4; i++) {
-    const e = g.spawnEnemy('telespectador', 2 + i * 1.5, -40);
-    e.hp = e.maxHp = 1e5;
-    e.speed = 0;
-    fila.push(e);
-  }
-  for (let i = 0; i < 90; i++) g.update(DT, parado);
-  assert.ok(fila.filter((e) => e.hp < 1e5).length >= 3, 'a bola não quicou entre eles');
-  assert.ok(g.projectiles.includes(bola), 'a bola sumiu');
 });
 
 test('faro: o Caramelo para e late na direção de um achado fechado por perto', () => {

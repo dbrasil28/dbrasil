@@ -111,6 +111,10 @@ O Isopor de Picolé não tem som, a pedido do autor (08/11/2026): o gelo fica o 
 | `carta` | Escolhe uma carta | 2 | 0,2 s | Card swipe and flip, satisfying UI select |
 | `cofre` | Cofre ou maleta de cartas abre | 1 | 1,0 s | Treasure chest opening with coins, magical shimmer |
 | `reliquia` | Pega a relíquia do trecho | 1 | 1,2 s | Legendary item pickup, shining choir chord, sparkle |
+| `reliquia_sobe` | Achou a relíquia: o tempo para e o Juninho sobe no ar (D67) | 1 | 1,5 s | Magical power-up riser, rising choir and shimmering whoosh building tension, ends abruptly |
+| `reliquia_estouro` | A relíquia entra no Juninho: clarão e onda (D67) | 1 | 1,8 s | Epic power-up impact, deep boom with bright heroic chord and sparkling tail |
+| `super` | Usa a super da relíquia (D67) | 1 | 0,6 s | Heroic brass stab with a deep punch, special move activation |
+| `super_pronta` | A carta da super encheu (D67) | 1 | 0,4 s | Short bright two-note chime, ability ready |
 | `passagem` | Uma passagem se abre | 1 | 0,6 s | Gate unlocking, heavy latch clunk then rising tone |
 
 ## 6. Ambiente (em laço, 30 s, estéreo)

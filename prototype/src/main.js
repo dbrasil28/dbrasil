@@ -5,7 +5,7 @@ import { minimapRect } from './minimapa.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, defaultSettings } from './settings.js';
-import { ENEMIES, FAVELA, SOM } from './config.js';
+import { ENEMIES, FAVELA, SOM, RELIQUIAS } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
 import { loadImages, images, prewarm, carregarMorro, prewarmMorro, arteSumiu, refazerArte } from './sprites.js';
@@ -196,6 +196,7 @@ function drainOutbox(now) {
     } else if (ev.type === 'criseAviso') sons.tocar('crise');
     else if (ev.type === 'crise' && ev.id === 'apagao') sons.tocar('apagao');
     else if (ev.type === 'reliquia') sons.tocar('reliquia');
+    else if (ev.type === 'super_pronta') ui.toast(`SUPER PRONTA: ${RELIQUIAS[ev.id].superNome.toUpperCase()}`, now);
     else if (ev.type === 'modal' && game.modal && (game.modal.kind === 'cofre' || game.modal.kind === 'chest')) sons.tocar('cofre');
   }
   game.outbox.length = 0;
@@ -203,6 +204,12 @@ function drainOutbox(now) {
 
 // mapa da favela: o botão fica por cima do mapa do canto; tocando, abre grande e o jogo pausa
 let mapaAberto = false;
+// super da relíquia (D67): o botão fica por cima da área do controle; o toque não move o Juninho
+$('btn-super').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (state === 'playing' && !game.modal && !mapaAberto) game.pedirSuper();
+});
 const btnMapa = $('btn-mapa');
 const mapaLast = { show: false, key: '' };
 btnMapa.addEventListener('click', () => {
@@ -522,6 +529,10 @@ ui.on('decide', (accept) => {
 
 window.addEventListener('keydown', (e) => {
   if ((e.key === 'Escape' || e.key === 'p') && state === 'playing' && !game.modal) ui.fire('pause');
+  if ((e.key === ' ' || e.key === 'e') && state === 'playing' && !game.modal) {
+    game.pedirSuper(); // super da relíquia no teclado (D67)
+    e.preventDefault();
+  }
   else if (e.key === 'Escape' && state === 'paused') ui.fire('resume');
   if (game.modal && state === 'playing' && /^[1-3]$/.test(e.key)) {
     if (game.modal.kind === 'event') ui.fire('decide', e.key === '1');

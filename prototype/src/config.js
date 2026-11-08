@@ -572,21 +572,38 @@ export const ACHADOS = {
   faroReliquiaM: 4, // a relíquia, só bem de perto
   faroCadaS: 6, // e late de novo a cada tanto, enquanto estiver perto
 };
-// Relíquias (D40): uma por trecho, sempre no mesmo lugar, já no máximo, numa vaga só dela.
+// Relíquias (D40, D67): uma por trecho, sempre no mesmo lugar. Desde o D67 cada uma é uma super: uma carta
+// especial fora das vagas de habilidade, com botão próprio, que vem cheia quando é achada e recarrega devagar.
+// Vale até o fim da rota (a relíquia da Orla segue para o Morro); achar a outra troca a carta.
 export const RELIQUIAS = {
   altinha: {
-    nome: 'Bola da Altinha', onde: 'orla',
-    desc: 'A bola quica de inimigo em inimigo, sem parar',
-    dmg: 28, speed: 13, alcanceM: 7, pulaM: 6, voltaM: 1.2,
+    nome: 'Bola da Altinha', onde: 'orla', superNome: 'Golaço',
+    desc: 'Super: a bola fica gigante e atravessa a tela quicando em todo mundo',
+    // a bola gigante corre pela tela por durS, quicando nas beiradas da tela; cada um leva dano a cada
+    // acertaCadaS enquanto ela passa; carros no caminho levam a pancada (pegam fogo e explodem)
+    super: { durS: 6, raioM: 0.85, velM: 15, dano: 45, empurra: 10, acertaCadaS: 0.45, quicaS: 0.42, altM: 1.1, carroDano: 60 },
   },
-  // no carrinho atrás do Juninho; a cada cadaS o grave solta uma onda que corre até raioM (velM, m/s),
-  // bate em quem ela passa e empurra para fora (o chefão só leva o dano)
   paredao: {
-    nome: 'Paredão de Som', onde: 'morro',
-    desc: 'O grave solta uma onda que empurra a horda para longe',
-    cadaS: 2.4, raioM: 6.5, velM: 16, dmg: 26, empurra: 16, segueM: 1.5, // empurra: ~1,8 m
+    nome: 'Paredão de Som', onde: 'morro', superNome: 'Solta o Batidão',
+    desc: 'Super: a horda da tela inteira para para dançar, e o grave empurra todo mundo',
+    // o paredão cai do céu do lado do Juninho (caiS) e solta o grave: uma onda até raioM (velM, m/s) que bate e
+    // empurra; quem está na tela dança por dancaS (o chefão, chefeDancaS) sem andar nem atacar; a cada batidaS
+    // o grave bate de novo, com dano pequeno, e quem chega na tela entra na dança
+    super: { durS: 4.6, caiS: 0.3, dancaS: 4, chefeDancaS: 1.5, raioM: 12, velM: 32, dano: 40, empurra: 27, batidaS: 0.47, batidaDano: 6 }, // empurra: ~3 m
   },
 };
+// A super (D67): carga de 0 a 1. Cheia em cargaS só com o tempo; cada inimigo derrubado adianta abateS
+// segundos (elite eliteS, chefão chefeS). Não carrega enquanto a super está ativa. Nada de anúncio ou compra.
+// A cena de achar a relíquia: o tempo para, o Juninho sobe alturaM em sobeS, a relíquia voa do esconderijo e
+// entra nele em chegaS; aí o estouro (luz, som, onda que empurra quem está até raioM) e o jogo volta, com ele
+// descendo devagar até durS, sem levar dano.
+export const SUPER = {
+  cargaS: 75, abateS: 0.04, eliteS: 3, chefeS: 15,
+  cena: { durS: 3.0, sobeS: 0.55, voaS: 0.3, chegaS: 1.55, alturaM: 1.3, raioM: 8, dano: 60, empurra: 18 },
+};
+// pista da relíquia (D67): o facho de luz dourado que sobe do esconderijo, visto até fachoM; fora da tela,
+// a claridade dourada na beira da tela, do lado dela
+export const FACHO_RELIQUIA = { fachoM: 40, alturaM: 14, larguraM: 1.1 };
 
 // Trechos da rota, de baixo para cima no Mapa da Rota (o que não foi descoberto aparece como ???).
 // `jogavel`: já existe no protótipo. A segunda parte (Nordeste, TV, sede do app) vem depois (D42).
@@ -966,6 +983,9 @@ export const TV = {
   cofre5: ['DEU BICHO! ENTREGADOR TIRA A SORTE GRANDE. BANCA PEDE RECONTAGEM'],
   reliquia_altinha: ['ENTREGADOR ACHA A BOLA DA ALTINHA. A PRAIA INTEIRA PARA PARA OLHAR'],
   reliquia_paredao: ['ENTREGADOR ACHA UM PAREDÃO NA LAJE. O MORRO INTEIRO SENTE O GRAVE'],
+  super_altinha: ['GOLAÇO! A BOLA DA ALTINHA ATRAVESSA A RUA LEVANDO A HORDA JUNTO', 'O NARRADOR PERDE A VOZ: QUE GOLAÇO DO ENTREGADOR'],
+  super_paredao: ['SOLTA O BATIDÃO: A HORDA INTEIRA PARA PARA DANÇAR', 'O GRAVE BATE E NINGUÉM RESISTE: É BAILE NO MEIO DA RUA'],
+  reliquia_leva: ['O APLICATIVO ATUALIZOU, MAS A RELÍQUIA CONTINUA NA MOCHILA DO ENTREGADOR'],
   grupo: ['ENTREGADOR FORMA GRUPO DE SOBREVIVENTES. APP COBRA TAXA POR PASSAGEIRO', 'MAIS UM SE JUNTA AO ENTREGADOR. TV CHAMA DE AGLOMERAÇÃO'],
   grupoPerdeu: ['SOBREVIVENTE CAI E VIRA TELESPECTADOR. AUDIÊNCIA AGRADECE'],
   chefe: ['CHEFE DO TRÁFICO DECRETA: PIZZA SÓ PASSA COM AUTORIZAÇÃO DA FIRMA'],
@@ -1042,12 +1062,16 @@ export const SONS = {
   // interface e TV
   toque: S(0.3, 2, 0.05, 2, FIXO), carta: S(0.4, 1, 0.1, 2, FIXO), cofre: S(0.6, 1, 0.5, 3, FIXO),
   reliquia: S(0.6, 1, 1, 3, FIXO), passagem: S(0.55, 1, 1, 3, FIXO),
+  // super da relíquia (D67): a subida na cena, o estouro, o disparo e a carga cheia
+  reliquia_sobe: S(0.7, 1, 1, 3, FIXO), reliquia_estouro: S(1, 1, 1, 3, FIXO), super: S(0.8, 1, 1, 3, FIXO), super_pronta: S(0.5, 1, 1, 2, FIXO),
   // ambiente (em laço, um por trecho)
   amb_orla: S(1.3, 1, 0, 1, FIXO), amb_morro: S(1, 1, 0, 1, FIXO),
 };
 // som do golpe em quem leva, por habilidade (null: a habilidade já tem o som dela, ou é contínua)
 export const SOM_GOLPE = {
-  capacete: 'golpe', entrega: 'golpe', chinelo: 'tapa', // o capacete usa o golpe gravado (Firefly), mais pesado que o bonk altinha: 'bola', mototaxi: 'atropelo', carro: 'atropelo',
+  // o capacete usa o golpe gravado (Firefly), mais pesado que o bonk
+  capacete: 'golpe', entrega: 'golpe', chinelo: 'tapa', mototaxi: 'atropelo', carro: 'atropelo',
+  golaco: 'bola', batidao: null, reliquia: 'baque', // super da relíquia (D67): a bola gigante; o grave já tem som
   caramelo: null, microfone: null, gato: null, curto: null, ressaca: null, paredao: null, objeto: null, carimbo: null,
   maleta: null, explosao: null, ressacaOnda: null,
   grupo_tiro: null, bolsa: null, picole_grupo: null, // o grupo de sobreviventes (o som sai de quem bate)

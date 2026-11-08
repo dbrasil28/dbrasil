@@ -202,9 +202,11 @@ export function recomecar(game, trecho) {
   p.bonusDmg = 0;
   p.auraR = 0;
   p.helmetsOut = 0;
-  p.reliquia = null; // a relíquia vale só no trecho dela
+  // a relíquia não é do aplicativo: segue com ele, com a carga que tinha (D67)
+  if (p.reliquia) game.tv('reliquia_leva');
   game.dogs.length = 0;
   game.projectiles = game.projectiles.filter((o) => o.kind === 'thrown');
+  game.superT = 0; // a super que estava no ar acaba com a porta
   game.zones.length = 0;
   game.pendingLevels = 0;
   game.pendingChests = 0;

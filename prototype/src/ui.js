@@ -105,13 +105,6 @@ export class UI {
       wrap.appendChild(el);
       this.slotEls.push(el);
     }
-    // relíquia do trecho (D40): uma vaga só dela, dourada, que aparece quando ela é achada
-    const rel = document.createElement('div');
-    rel.className = 'slot slot-reliquia';
-    rel.hidden = true;
-    rel.innerHTML = '<span class="slot-icon"></span>';
-    wrap.appendChild(rel);
-    this.relEl = rel;
   }
 
   setText(id, text) {
@@ -175,7 +168,7 @@ export class UI {
       $('avatar').classList.toggle('is-corrupt', corrupt);
     }
 
-    const sig = p.weapons.map((w) => `${w.id}${w.level}`).join() + '|' + p.passives.map((x) => `${x.id}${x.level}`).join() + '|' + (p.reliquia || '');
+    const sig = p.weapons.map((w) => `${w.id}${w.level}`).join() + '|' + p.passives.map((x) => `${x.id}${x.level}`).join();
     if (this.last.slots !== sig) {
       this.last.slots = sig;
       this.renderSlots(p);
@@ -200,21 +193,47 @@ export class UI {
       this.setWidth('obj-fill', obj.frac);
     }
 
+    this.updateSuper(game);
     this.updateTicker(game, now);
   }
 
-  renderSlots(p) {
-    if (this.relEl) {
-      const tem = !!p.reliquia;
-      this.relEl.hidden = !tem;
-      $('slots').classList.toggle('com-reliquia', tem);
-      const ic = this.relEl.querySelector('.slot-icon');
-      ic.textContent = '';
-      if (tem) {
-        ic.appendChild(this.icon(p.reliquia, 26));
-        this.relEl.title = RELIQUIAS[p.reliquia].nome;
-      }
+  /** A carta da super da relíquia (D67): botão redondo com o anel de carga; pisca quando está cheia. */
+  updateSuper(game) {
+    const p = game.player;
+    const el = $('btn-super');
+    const tem = !!p.reliquia && !game.over;
+    if (this.last.superTem !== tem) {
+      this.last.superTem = tem;
+      el.hidden = !tem;
     }
+    if (!tem) return;
+    if (this.last.superId !== p.reliquia) {
+      this.last.superId = p.reliquia;
+      const R = RELIQUIAS[p.reliquia];
+      const ic = el.querySelector('.super-icone');
+      ic.textContent = '';
+      ic.appendChild(this.icon(p.reliquia, 40));
+      el.querySelector('.super-nome').textContent = R.superNome.toUpperCase();
+      el.setAttribute('aria-label', `Usar a super: ${R.superNome} (${R.nome})`);
+    }
+    const c = (Math.round((p.superCarga || 0) * 200) / 200).toFixed(3);
+    if (this.last.superC !== c) {
+      this.last.superC = c;
+      el.style.setProperty('--carga', c);
+    }
+    const pronta = game.superPronta();
+    if (this.last.superPronta !== pronta) {
+      this.last.superPronta = pronta;
+      el.classList.toggle('pronta', pronta);
+    }
+    const ativa = game.superT > 0;
+    if (this.last.superAtiva !== ativa) {
+      this.last.superAtiva = ativa;
+      el.classList.toggle('ativa', ativa);
+    }
+  }
+
+  renderSlots(p) {
     const items = [];
     for (let i = 0; i < SLOTS.weapons; i++) items.push(p.weapons[i] ? { kind: 'w', ...p.weapons[i] } : null);
     for (let i = 0; i < SLOTS.passives; i++) items.push(p.passives[i] ? { kind: 'p', ...p.passives[i] } : null);

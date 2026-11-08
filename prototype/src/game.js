@@ -17,6 +17,7 @@ import { updateMonstrao, limparMonstrao } from './monstrao.js';
 import { updateCracudo, updateTrombadinha, trombada, devolveXp } from './morro_inimigos.js';
 import { updateFigurantes, ferirFigurantes } from './figurantes.js';
 import { arrancavelPerto, arrancar, updateArrancados } from './arrancar.js';
+import { updateCena, updateSuper, cargaPorAbate, usarSuper, superPronta } from './super.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, stairOut, inside, routeRemaining } from './mundo.js';
@@ -105,7 +106,7 @@ export class Game {
       weapons: [{ id: 'capacete', level: 1, cd: 0.4 }], passives: [],
       faceX: 1, faceY: 0, moving: false, slowT: 0, paperT: 0, acaiT: 0, hurtT: 0, invulnT: 0, bonusDmg: 0, vx: 0, vy: 0,
       // animação do arremesso (atlas de teste): tempo desde o disparo / desde a pegada, capacetes em voo e mira
-      throwT: 9, catchT: 9, helmetsOut: 0, aimX: 1, aimY: 0, walkPhase: 0,
+      throwT: 9, catchT: 9, helmetsOut: 0, aimX: 1, aimY: 0, walkPhase: 0, superCarga: 0,
       // mundo da rota: laje em que está (e nível 0/1 e altura z em m), pedaço da rota e objeto carregado
       plat: null, lvl: 0, z: 0, ri: 0, carry: null,
     };
@@ -245,6 +246,16 @@ export class Game {
 
   shake(amount) {
     this.emit('shake', { amount });
+  }
+
+  /** Super da relíquia (D67): pedida pelo botão da tela, pelo Espaço ou pelo bot. Devolve se usou. */
+  pedirSuper() {
+    return usarSuper(this);
+  }
+
+  /** A carta da relíquia está cheia e dá para usar agora. */
+  superPronta() {
+    return superPronta(this);
   }
 
   applyView(v) {
@@ -620,6 +631,7 @@ export class Game {
       return;
     }
     this.kills++;
+    cargaPorAbate(this, e); // cada um derrubado adianta um pouco a super (D67)
     this.som(e.elite || e.boss ? 'morte_elite' : 'morte_horda', e.x, e.y);
     if (!this.caosParado) this.caosAbates++;
     this.metrics.killsByType[e.type] = (this.metrics.killsByType[e.type] || 0) + 1;
@@ -801,7 +813,7 @@ export class Game {
 
   // ---------- escolhas ----------
   openModalIfNeeded() {
-    if (this.modal || this.over) return;
+    if (this.modal || this.over || this.cena) return; // a cena da relíquia termina antes da carta
     const tt = this.world ? tempoNoTrecho(this) : this.t; // propostas pelo tempo no trecho (a abertura não conta)
     if (this.eventIndex < SESSION.eventTimes.length && tt >= SESSION.eventTimes[this.eventIndex]) {
       const ev = EVENTS[this.eventIndex];
@@ -1004,6 +1016,11 @@ export class Game {
     }
     if (this.modal) return;
     const dt = rawDt * this.timeScale;
+    if (this.cena && updateCena(this, dt)) {
+      // achou a relíquia (D67): o tempo para enquanto ela voa e entra no Juninho; só os efeitos andam
+      this.updateFx(dt);
+      return;
+    }
     this.t += dt;
 
     this.caos = this.world ? caosDoTrecho(this) : clamp(DIRECTOR.caosFromTime(this.t) + this.caosBonus, 0, 100);
@@ -1025,6 +1042,7 @@ export class Game {
         updateCrises(this, dt);
         this.updateDirector(dt);
         this.updateWeapons(dt);
+        updateSuper(this, dt); // carga da super da relíquia (D67)
       }
     }
     if (this.avisosChao) this.avisosChao.length = 0; // avisos de golpe no chão: refeitos a cada quadro
@@ -1183,7 +1201,7 @@ export class Game {
     let worst = null;
     let worstDmg = 0;
     for (const e of tmp) {
-      if (e.dead || e.dmg <= 0) continue;
+      if (e.dead || e.dmg <= 0 || e.bailaT > 0) continue; // dançando o Batidão (D67) não bate
       if (Math.abs((e.z || 0) - p.z) > 1) continue; // um em cima da laje, outro no chão: não encosta
       const rr = p.r + e.r + 0.05;
       if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 > rr * rr) continue;
@@ -1320,6 +1338,19 @@ export class Game {
           this.killEnemy(e, 'tempo');
           continue;
         }
+      }
+      if (e.bailaT > 0) {
+        // Solta o Batidão (super do Paredão, D67): dançando no lugar, sem andar nem atacar; o grave ainda empurra
+        e.bailaT -= dt;
+        e.x += e.kx * dt;
+        e.y += e.ky * dt;
+        this.clampToMap(e);
+        if (this.world) applyLevels(this.world, e, e.plat, 0.05);
+        const dec = Math.exp(-9 * dt);
+        e.kx *= dec;
+        e.ky *= dec;
+        e.walk += dt * 5; // os pés mexendo no lugar
+        continue;
       }
       // alvo: o Juninho; no mundo da rota, pela escada (lajes) e pelas juntas das vielas
       e.cerco = false;

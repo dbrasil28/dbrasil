@@ -14,7 +14,9 @@ import { drawMinimap } from './minimapa.js';
 import { caosDoTrecho } from './carreira.js';
 import { drawCriseChao, drawCriseCeu, escondidoDeDia } from './render_crises.js';
 import { drawAvisosChao, monstraoNaLista, drawMonstraoObj, drawCarroErguido } from './render_monstrao.js';
-import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado, drawBola, drawParedao, drawOndaParedao } from './render_carreira.js';
+import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado } from './render_carreira.js';
+import { drawCenaFundo, drawCenaFrente, drawGolaco, drawBatidao, drawOndasBatidao, drawNotaDanca, drawFachoReliquia } from './render_super.js';
+import { alturaNaCena } from './super.js';
 import {
   entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace,
   drawAim, drawBullet, drawHeal,
@@ -185,7 +187,7 @@ export class Renderer {
 
     precarregarFx(game);
     drawFxChao(ctx, game, cam, ppu); // efeitos com arte deitados no chão e a luz que eles jogam na rua
-    drawOndaParedao(ctx, game, cam, ppu); // a onda do grave do Paredão de Som
+    drawOndasBatidao(ctx, game, cam, ppu); // o grave do Solta o Batidão no chão (super do Paredão, D67)
     this.drawZones(ctx, game, ppu, playerPx);
     drawAvisosChao(ctx, game, cam, game.t); // golpes do Monstrão: aviso no chão e o anel de choque
     if (game.world) {
@@ -616,7 +618,15 @@ export class Renderer {
             ctx.globalAlpha = 0.82 + Math.sin(t * 20 + o.id) * 0.18;
           }
           if (o.elite) drawEliteRing(ctx, pt, ppu, cam.k, o, t);
-          if (animated) {
+          if (animated && o.bailaT > 0) {
+            // dançando o Batidão (D67): o corpo balança e pula no ritmo, a partir dos pés
+            const bt = t * 6.7 + o.id * 0.9;
+            ctx.save();
+            ctx.translate(pt.x, pt.y - Math.abs(Math.sin(bt)) * h * 0.06);
+            ctx.rotate(Math.sin(bt * 0.5) * (o.boss ? 0.06 : 0.14));
+            blit(ctx, spr, 0, 0, flash);
+            ctx.restore();
+          } else if (animated) {
             blit(ctx, spr, pt.x, pt.y, flash);
           } else {
             // passada mecânica: o corpo balança a partir dos pés (recortes de pose única)
@@ -647,6 +657,7 @@ export class Renderer {
             ctx.stroke();
           }
           if (o.elite && !o.boss) drawHpPip(ctx, pt, h, o.hp / o.maxHp);
+          if (o.bailaT > 0) drawNotaDanca(ctx, o, pt, h, t); // notinha em cima de quem dança o Batidão
           if (o.segura === 'carro') drawCarroErguido(ctx, o, pt, h, ppu);
           if ((o.type === 'traficante' || o.type === 'chefe_trafico') && o.aimT > 0) drawAim(ctx, o, cam, pt, h, ppu, t); // aviso antes do tiro
           break;
@@ -708,6 +719,7 @@ export class Renderer {
     if (game.world) {
       if (game.crise) drawCriseCeu(ctx, game, cam, ppu, game.t, playerPx, cenarioInRange(game.world, bounds.minY - 3, bounds.maxY + 7, criseTmp));
       drawHolofoteCeu(ctx, game, cam, ppu, game.t); // facho do helicóptero, ou a claridade na beira da tela
+      drawFachoReliquia(ctx, game, cam, ppu, game.t); // pista da relíquia (D67)
       // mapa da favela no canto (no morro); aberto grande quando tocado
       if (FAVELA.minimapa && game.segment === 'morro' && !game.over) {
         const open = !!(perf && perf.mapa);
@@ -728,6 +740,14 @@ export class Renderer {
         this.vignette = vc;
       }
       ctx.drawImage(this.vignette, -20, -20, this.w + 40, this.h + 40);
+    }
+    if (game.cena) {
+      // achou a relíquia (D67): a tela escurece, raios atrás do Juninho no ar, a relíquia voa e entra nele
+      drawCenaFundo(ctx, game, cam, ppu, playerPx);
+      cam.toScreen(game.player.x, game.player.y, pt);
+      pt.y -= game.player.z * ppu;
+      this.drawPlayer(ctx, game, pt, playerPx, 1);
+      drawCenaFrente(ctx, game, cam, ppu, playerPx, !!settings.reduceFlashes);
     }
     if (this.flashT > 0) {
       this.flashT -= perf.dt;
@@ -759,7 +779,10 @@ export class Renderer {
       const jc = p.carry ? walkReady(WALK_ATLAS.jc) : null;
       const D = p.derrubado;
       const jat = D ? walkReady(WALK_ATLAS.jat) : null;
-      if (jat) {
+      const noAr = game.cena ? alturaNaCena(game) : 0; // na cena da relíquia (D67): no ar, de frente
+      if (noAr > 0 && !jat) {
+        id = 'ja_0_0';
+      } else if (jat) {
         // derrubado (D64): 8 direções de voo, 12 quadros em duas linhas de 6 no atlas
         const f = D.quadro;
         id = `jat_${(D.k >> 1) * 4 + (D.k & 1) * 2 + (f >= 6 ? 1 : 0)}_${f % 6}`;
@@ -781,7 +804,7 @@ export class Renderer {
       if (img) {
         const invulnBlink = p.invulnT > 0 && !D && Math.floor(game.t * 12) % 2 === 0 ? 0.45 : 1;
         ctx.globalAlpha = alpha * invulnBlink;
-        this.drawPlayerAtlas(ctx, img, pt, playerPx * (ATLAS.ch / ATLAS.figureH), p, row, game, jat ? D.z * game.camera.ppu : 0);
+        this.drawPlayerAtlas(ctx, img, pt, playerPx * (ATLAS.ch / ATLAS.figureH), p, row, game, (jat ? D.z : noAr) * game.camera.ppu);
         ctx.globalAlpha = 1;
         return;
       }
@@ -1810,12 +1833,12 @@ function drawGib(ctx, g, pt, P) {
 
 function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
   if (o.delay > 0) return; // chinelo na fila da rajada ou moto ainda no aviso
-  if (o.kind === 'altinha') {
-    drawBola(ctx, pt.x, pt.y, Math.max(5, 0.24 * ppu), o.fase * 0.7, o.alt * ppu);
+  if (o.kind === 'golaco') {
+    drawGolaco(ctx, o, pt, ppu, cam); // super da Bola da Altinha (D67)
     return;
   }
-  if (o.kind === 'paredao') {
-    drawParedao(ctx, pt.x, pt.y, playerPx, o.pulso, o.lado, o.cd);
+  if (o.kind === 'batidao') {
+    drawBatidao(ctx, o, pt, ppu, playerPx, o.t); // super do Paredão de Som (D67)
     return;
   }
   if (o.kind === 'moto') {

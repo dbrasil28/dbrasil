@@ -74,6 +74,21 @@ export const RECEITAS = {
   cofre: [tom('tri', 300, 900, 0.6, { a: 0.3, q: 0.25, v: 0.4 }), ...[0.6, 0.7, 0.8].map((ini) => tom('square', 2400, 2400, 0.12, { ini, lp: 6000, q: 0.05, v: 0.2 }))],
   reliquia: [...[523, 659, 784].map((f) => tom('tri', f, f, 1.0, { a: 0.05, q: 0.6, v: 0.3 })), ruido(0.8, { hp: 6000, lp: 12000, q: 0.4, v: 0.12 })],
   passagem: [tom('tri', 400, 800, 0.42, { q: 0.2, v: 0.45 })],
+  // super da relíquia (D67): a subida (o tempo parado, crescendo), o estouro quando ela entra no Juninho,
+  // o disparo da super e o aviso de carga cheia
+  reliquia_sobe: [
+    ruido(1.55, { lp: 400, lp1: 9000, hp: 150, a: 1.3, q: 0.2, am: 9, amP: 0.3, v: 0.55 }),
+    tom('saw', 110, 440, 1.55, { lp: 1800, a: 1.2, q: 0.2, am: 7, amP: 0.4, v: 0.3 }),
+    tom('sine', 220, 880, 1.55, { a: 1.1, q: 0.2, v: 0.35 }),
+  ],
+  reliquia_estouro: [
+    tom('sine', 85, 28, 1.3, { q: 0.45, v: 1 }),
+    ruido(1.4, { lp: 2400, lp1: 160, q: 0.45, v: 0.9 }),
+    ...[523, 659, 784, 1046].map((f, i) => tom('tri', f, f, 1.8, { ini: 0.03 * i, a: 0.01, q: 0.9, v: 0.26 })),
+    ruido(1.2, { ini: 0.05, hp: 6000, lp: 12000, q: 0.5, v: 0.2 }),
+  ],
+  super: [...[262, 330, 392].map((f) => tom('saw', f, f, 0.5, { lp: 2400, a: 0.01, q: 0.25, v: 0.3 })), tom('sine', 90, 40, 0.32, { q: 0.12, v: 0.9 })],
+  super_pronta: [tom('sine', 880, 880, 0.12, { q: 0.06, v: 0.4 }), tom('sine', 1320, 1320, 0.3, { ini: 0.1, q: 0.15, v: 0.4 }), ruido(0.3, { ini: 0.1, hp: 7000, lp: 12000, q: 0.15, v: 0.12 })],
   // ambiente em laço (o tremido fecha um número inteiro de voltas no laço: a emenda não estala)
   amb_orla: [ruido(6, { lp: 650, am: 1 / 3, amP: 0.6, v: 0.6 }), ruido(6, { hp: 2500, lp: 5000, am: 1 / 2, amP: 0.5, v: 0.05 })],
   amb_morro: [ruido(6, { lp: 240, am: 1 / 6, amP: 0.3, v: 0.5 }), tom('sine', 60, 60, 6, { v: 0.05 })],

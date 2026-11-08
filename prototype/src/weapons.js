@@ -1,8 +1,9 @@
 // Comportamento das armas automáticas e dos projéteis. Tudo em metros/segundos.
 import { explosaoPerto, raioPerto, golpeNoCarro } from './reacoes.js';
 import { weaponStats } from './upgrades.js';
-import { INTERACT, WEAPON_FX, RELIQUIAS, ACHADOS, WEAPONS } from './config.js';
+import { INTERACT, WEAPON_FX, ACHADOS, WEAPONS } from './config.js';
 import { achadoParaFarejar } from './achados.js';
+import { updateSuperProj } from './super.js';
 
 const tmp = [];
 
@@ -438,86 +439,9 @@ export function updateProjectiles(game, dt) {
         game.damageEnemy(e, pr.dmg, pr.src, (dx >= 0 ? 1 : -1) * 7, -3);
       }
       if (pr.life <= 0) remove = true;
-    } else if (pr.kind === 'paredao') {
-      // Paredão de Som (relíquia do Morro): vai no carrinho atrás do Juninho (espera embaixo quando ele sobe
-      // na laje); a cada tanto o grave solta uma onda que corre em volta, bate e empurra a horda para fora
-      const R = RELIQUIAS.paredao;
-      if (!p.plat) {
-        const dx = p.x - pr.x;
-        const dy = p.y - pr.y;
-        const l = Math.hypot(dx, dy);
-        if (l > R.segueM) {
-          const k = Math.min(l - R.segueM, Math.max(4, l * 4) * dt) / l;
-          pr.x += dx * k;
-          pr.y += dy * k;
-        }
-        if (Math.abs(dx) > 0.2) pr.lado = dx > 0 ? 1 : -1; // o puxador fica do lado do Juninho
-      }
-      if (pr.pulso > 0) pr.pulso = Math.max(0, pr.pulso - dt * 3);
-      pr.cd -= dt;
-      if (pr.cd <= 0 && pr.onda < 0) {
-        pr.cd = R.cadaS;
-        pr.onda = 0;
-        pr.pulso = 1;
-        pr.bateu.clear();
-        game.som('paredao', pr.x, pr.y);
-        game.shake(0.06);
-      }
-      if (pr.onda >= 0) {
-        pr.onda += R.velM * dt;
-        const r = Math.min(pr.onda, R.raioM);
-        game.hash.query(pr.x, pr.y, r + 1.2, tmp);
-        for (const e of tmp) {
-          if (e.dead || pr.bateu.has(e.id)) continue;
-          const dx = e.x - pr.x;
-          const dy = e.y - pr.y;
-          const d = Math.hypot(dx, dy) || 0.01;
-          if (d > r + (e.r || 0.3)) continue;
-          pr.bateu.add(e.id);
-          const emp = e.boss ? 0 : R.empurra;
-          game.damageEnemy(e, pr.dmg * (game.stats.dmgMul || 1), 'paredao', (dx / d) * emp, (dy / d) * emp);
-        }
-        if (pr.onda >= R.raioM) pr.onda = -1;
-      }
-      continue; // o paredão não some
-    } else if (pr.kind === 'altinha') {
-      // Bola da Altinha (relíquia): quica de inimigo em inimigo, sem parar; sem ninguém perto, volta ao pé
-      const R = RELIQUIAS.altinha;
-      pr.fase += dt * 9;
-      pr.alt = Math.abs(Math.sin(pr.fase)) * 0.9; // quicando (não é 'z': esse sobe o desenho inteiro)
-      if (pr.hitT > 0) pr.hitT -= dt;
-      if (!pr.tgt || pr.tgt.dead) {
-        pr.tgt = null;
-        const perto = Math.hypot(p.x - pr.x, p.y - pr.y) < R.voltaM;
-        const from = perto ? p : pr;
-        const t = nearestEnemies(game, from.x, from.y, perto ? R.alcanceM : R.pulaM, 2).find((e) => e !== pr.last);
-        if (t) {
-          pr.tgt = t;
-          if (perto) {
-            game.word(p.x, p.y, 'TOC!', '#f2efe8'); // o Juninho chuta
-            game.som('bola', pr.x, pr.y);
-          }
-        }
-      }
-      const g = pr.tgt || p;
-      const dx = g.x - pr.x;
-      const dy = g.y - pr.y;
-      const l = Math.hypot(dx, dy) || 1;
-      if (pr.tgt || l > R.voltaM * 0.6) {
-        const sp = R.speed * (pr.tgt ? 1 : 0.9) * dt;
-        pr.x += (dx / l) * Math.min(sp, l);
-        pr.y += (dy / l) * Math.min(sp, l);
-      }
-      if (pr.tgt && l < (pr.tgt.r || 0.3) + 0.3) {
-        game.damageEnemy(pr.tgt, pr.dmg * (game.stats.dmgMul || 1), 'altinha', (dx / l) * 2.5, (dy / l) * 2.5);
-        pr.last = pr.tgt;
-        pr.tgt = null;
-        pr.hitT = 0.12;
-        // quica no próximo, perto da bola; se não tem ninguém, volta para o Juninho
-        const nx = nearestEnemies(game, pr.x, pr.y, R.pulaM, 2).find((e) => e !== pr.last);
-        if (nx) pr.tgt = nx;
-      }
-      continue; // a bola não some
+    } else if (pr.kind === 'golaco' || pr.kind === 'batidao') {
+      // super da relíquia (D67): a bola gigante e o paredão que cai do céu (super.js)
+      if (updateSuperProj(game, pr, dt)) remove = true;
     } else if (pr.kind === 'thrown') {
       // objeto de cena arremessado (mesa, cadeira, botijão...): arco e impacto em área
       pr.t += dt;

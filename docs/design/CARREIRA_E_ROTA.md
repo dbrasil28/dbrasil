@@ -101,7 +101,7 @@ Fase 2: três investidas seguidas, mirando de novo entre elas. Fase 3: vermelho 
 | --- | --- | --- |
 | **Isopor perdido** (comum) | Uns 5 por trecho, sorteados entre uns 10 esconderijos | Gorjeta e um pouco de vida. Abre rápido, com um "plim" e as moedas saltando |
 | **Cofre** (raro) | 1 ou 2 por trecho, em lugar difícil; o chefão sempre solta um | 1, 3 ou 5 cartas de uma vez, e a evolução quando der |
-| **Relíquia** (única) | 1 por trecho, sempre no mesmo lugar, o mais escondido | Um poder que não existe em nenhum outro lugar do jogo |
+| **Relíquia** (única) | 1 por trecho, sempre no mesmo lugar, o mais escondido | Uma super, a carta especial com botão próprio (D67) |
 
 **A abertura do cofre.** O jogo pausa, como no Vampire Survivors, para a horda não matar ninguém durante o show:
 1. A tela escurece em volta e o cofre treme três vezes.
@@ -111,15 +111,26 @@ Fase 2: três investidas seguidas, mirando de novo entre elas. Fase 3: vermelho 
 
 Da segunda vez em diante, um toque acelera. **Quanto maior o Caos na hora de abrir, maior a chance de sair 5:** quem segura o cofre para abrir no meio do caos ganha mais.
 
-**A relíquia:**
-- Vem pronta e forte, já no máximo, sem níveis.
-- Tem uma vaga só dela, fora das 4 de habilidade.
-- Moldura dourada e uma frase da TV quando o jogador pega.
-- Vale só para o trecho (por causa do recomeço), mas dá para buscar de novo em toda partida. Quem conhece o mapa sabe o caminho.
+**A relíquia (D67: vira uma super):**
+- É uma carta especial, fora das 4 vagas de habilidade: um botão redondo dourado no canto de baixo, à direita, com o anel de carga em volta. Pisca quando está cheia. No teclado, Espaço ou E.
+- Vem cheia quando é achada. Depois de usada, recarrega bem devagar: cheia em 75 s só com o tempo; cada inimigo derrubado adianta um pouco (elite e chefão, mais). Dá umas 5 a 7 vezes num trecho de 8 a 10 minutos. Não carrega enquanto a super está no ar.
+- Recarga só pelo tempo e pelos inimigos: nada de anúncio nem compra.
+- O dano da super cresce junto com a vida da horda, para pesar igual no começo e no fim do trecho.
+- Na hora de usar, a TV comenta; quando enche, aviso "SUPER PRONTA".
+- Segue com o Juninho na rota: a da Orla vale no Morro, com a carga que tinha (a relíquia não é do aplicativo, o recomeço não leva). Achar a do Morro troca a carta.
+- **A cena de achar**, como o baú do Vampire Survivors: o tempo para e a tela escurece, o Juninho sobe no ar com raios de luz atrás, a relíquia sobe do esconderijo, gira em volta dele e entra no peito; aí o clarão, a explosão de som, uma onda dourada que empurra e machuca a horda até 8 m, e a faixa com o nome ("BOLA DA ALTINHA / SUPER: GOLAÇO"). O jogo volta com ele descendo devagar, sem levar dano.
+- **A pista que acha:** um facho de luz dourado sobe do esconderijo e se vê de uns 40 m; com o esconderijo fora da tela (ou debaixo do plantão da TV), uma claridade dourada entra pela beira, do lado dele. Sem seta e sem texto.
+
+| Relíquia | Super | O que faz |
+| --- | --- | --- |
+| Bola da Altinha (Orla) | **Golaço** | A bola fica gigante (1,7 m) e corre pela tela por 6 s, quicando no chão; chegando na beira da tela, volta para o meio da horda. Bate (45) em todo mundo que pega, de novo a cada 0,45 s, e empurra. Carro no caminho leva a pancada |
+| Paredão de Som (Morro) | **Solta o Batidão** | O paredão cai do céu do lado do Juninho e o grave sai numa onda até 12 m: bate (40) e empurra uns 3 m. Quem está na tela dança por 4 s, sem andar nem bater; o chefão dança 1,5 s. A cada batida (0,47 s), dano pequeno em quem dança e quem chega na tela entra na dança |
+
+Os números estão em `config.js` (`RELIQUIAS`, `SUPER`, `FACHO_RELIQUIA`).
 
 Candidatas: na Orla, **Bola da Altinha** (a bola quica de inimigo em inimigo como um fliperama, sem parar; a preferida), **Fogos do Réveillon** (de tempos em tempos a queima de fogos vem do mar e chove sobre a tela) e **Prancha do Surfista Lendário** (o Juninho pega uma onda que atravessa a tela e arrasta a horda). No Morro, **Pipa com cerol** e **Paredão de som**.
 
-**Escolhidas (D50):** na Orla, a Bola da Altinha, no alto da torre do salva-vidas do meio da praia. No Morro, o **Paredão de Som**, em cima da casa com laje da pracinha do meio: tocando sozinho lá em cima (a caixa incha no grave, os LEDs piscam), sobe pela escada da casa. Depois de pego, desce no carrinho e vai atrás do Juninho (espera embaixo quando ele sobe numa laje). A cada 2,4 s o grave solta uma onda que corre 6,5 m em volta do carrinho, bate (26) e empurra a horda uns 2 m para fora; o chefão só leva o dano. Números em `config.js` (`RELIQUIAS`).
+**Escolhidas (D50):** na Orla, a Bola da Altinha, no alto da torre do salva-vidas do meio da praia. No Morro, o **Paredão de Som**, em cima da casa com laje da pracinha do meio: tocando sozinho lá em cima (a caixa incha no grave, os LEDs piscam), sobe pela escada da casa. Até o D67 as duas eram poderes contínuos (a bola quicando sozinha e o paredão no carrinho soltando uma onda a cada 2,4 s); viraram as supers da tabela acima.
 
 **Esconderijos da Orla**, cada um com a sua pista e sem seta:
 
@@ -252,6 +263,7 @@ Feito, com testes (`prototype/tests/mundo.test.mjs`, `achados.test.mjs`, `crises
 | Chefe do Tráfico na laje do topo, chamado pelo Caos do Morro; entrega só com ele no chão | `carreira.js` |
 | Sem setas, sem marcador de destino, sem objetivo escrito; mapa da favela só com o que foi andado | `render.js`, `minimapa.js` |
 | Achados (isopor, cofre com a abertura, relíquia Bola da Altinha, faro do Caramelo) | `achados.js`, `render_carreira.js`, `ui.js` |
+| Relíquia como super (D67): botão com anel de carga, Golaço e Solta o Batidão, cena de achar e o facho de luz | `super.js`, `render_super.js`, `RELIQUIAS`, `SUPER` |
 | Crises: Ressaca e Apagão na Orla, Baile e Curto no Morro | `crises.js`, `render_crises.js`, `CRISES` |
 | Abertura: gente passeando, o sinal pega, a horda nasce; dá para pular da 2ª vez | `abertura.js`, `ABERTURA` |
 | Melhorias pequenas e de opção; Mapa da Rota com ??? e as estrelas novas | `MELHORIAS`, `TRECHOS`, `progresso.js` |

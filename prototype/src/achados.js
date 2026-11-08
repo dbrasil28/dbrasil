@@ -1,10 +1,11 @@
 // Achados pelo caminho (D40, docs/design/CARREIRA_E_ROTA.md seção 6): isopor perdido (gorjeta e vida),
-// cofre (1, 3 ou 5 cartas de uma vez, com a abertura em pausa) e a relíquia de cada trecho (um poder que
-// não existe em outro lugar). Esconderijos com pista e sem seta; o Cachorro Caramelo fareja.
+// cofre (1, 3 ou 5 cartas de uma vez, com a abertura em pausa) e a relíquia de cada trecho (a super, D67).
+// Esconderijos com pista e sem seta (a relíquia tem o facho de luz); o Cachorro Caramelo fareja.
 // Sem DOM: roda igual no navegador e nos testes.
 import { ACHADOS, RELIQUIAS } from './config.js';
 import { makeRng } from './math.js';
 import { rollOptions, applyOption, playerStats } from './upgrades.js';
+import { cenaReliquia } from './super.js';
 
 /** Esconderijos da Orla, tirados do mundo: torres de salva-vidas, areia, atrás dos quiosques, carros, a pedra. */
 export function esconderijosDaOrla(w, map) {
@@ -107,7 +108,7 @@ function abrir(game, a) {
     m.achadosGorjeta = (m.achadosGorjeta || 0) + ACHADOS.cofreGorjeta;
     abrirCofre(game, a);
   } else if (a.kind === 'reliquia') {
-    pegarReliquia(game, a.reliquia);
+    pegarReliquia(game, a.reliquia, a);
   }
 }
 
@@ -138,26 +139,15 @@ export function fecharCofre(game) {
   if (game.modal && game.modal.kind === 'cofre') game.modal = null;
 }
 
-/** A relíquia do trecho: vem pronta e forte, numa vaga só dela. */
-export function pegarReliquia(game, id) {
-  const p = game.player;
-  p.reliquia = id;
+/**
+ * A relíquia do trecho (D67): vira a carta da super, cheia. Começa a cena (o tempo para, o Juninho sobe, a
+ * relíquia voa e entra nele); a carta fica com ele no estouro (super.js). Achar a outra troca a carta.
+ */
+export function pegarReliquia(game, id, a = null) {
   const R = RELIQUIAS[id];
   game.metrics[`reliquia_${R.onde}`] = true; // estrela do trecho
-  game.tv(`reliquia_${id}`);
-  game.word(p.x, p.y - 1, R.nome.toUpperCase(), '#ffd21f');
-  game.emit('reliquia', { id });
-  game.shake(0.3);
-  game.projectiles = game.projectiles.filter((o) => o.kind !== 'altinha' && o.kind !== 'paredao'); // uma vaga só
-  if (id === 'altinha') {
-    game.projectiles.push({ kind: 'altinha', x: p.x, y: p.y, vx: 0, vy: 0, tgt: null, last: null, alt: 0, fase: 0, hitT: 0, dmg: R.dmg, src: 'altinha' });
-  } else if (id === 'paredao') {
-    // o paredão desce da laje no carrinho e vai atrás do Juninho; a primeira onda sai logo
-    const P = game.achados.find((a) => a.reliquia === id)?.plat;
-    const x = P ? P.stair.x0 + (P.stair.x1 - P.stair.x0) / 2 : p.x;
-    const y = P ? P.stair.y1 + 0.6 : p.y;
-    game.projectiles.push({ kind: 'paredao', x, y, cd: 0.6, onda: -1, bateu: new Set(), pulso: 0, lado: 1, dmg: R.dmg, src: 'paredao' });
-  }
+  game.metrics.reliquias = (game.metrics.reliquias || 0) + 1;
+  cenaReliquia(game, id, a);
 }
 
 /** O chefão sempre solta um cofre onde caiu. */
