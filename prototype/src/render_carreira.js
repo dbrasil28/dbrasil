@@ -121,10 +121,12 @@ export function drawHolofoteChao(ctx, game, cam, ppu, t) {
   holofote(game, spot);
   cam.toScreen(spot.x, spot.y, a);
   if (a.x < -200 || a.x > cam.viewW + 200 || a.y < -200 || a.y > cam.viewH + 200) return;
-  const R = 2.6 * ppu;
+  // mais fraca e menor que antes (D71): mostra onde é sem atrapalhar a luta em volta
+  const H = CARREIRA.heli;
+  const R = H.manchaM * ppu;
   const g = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, R);
-  g.addColorStop(0, 'rgba(255,248,214,0.55)');
-  g.addColorStop(0.7, 'rgba(255,240,190,0.22)');
+  g.addColorStop(0, `rgba(255,248,214,${H.manchaAlfa})`);
+  g.addColorStop(0.7, `rgba(255,240,190,${H.manchaAlfa * 0.4})`);
   g.addColorStop(1, 'rgba(255,240,190,0)');
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
@@ -136,8 +138,9 @@ export function drawHolofoteChao(ctx, game, cam, ppu, t) {
 }
 
 /**
- * Facho de luz descendo do helicóptero (acima da tela) até a mancha; com o covil fora da tela,
- * só a claridade na beira, do lado dele, pulsando devagar.
+ * O helicóptero da TV na beira da tela (D71). Com o covil na tela, nada no céu: a mancha do holofote no chão já
+ * mostra onde é. Fora da tela, um helicóptero pequeno na beira, do lado do covil, com a hélice girando e um facho
+ * curto embaixo, sobre uma claridade fraca. Sem cone atravessando a tela, sem seta e sem texto.
  */
 export function drawHolofoteCeu(ctx, game, cam, ppu, t) {
   if (!heliOn(game)) return;
@@ -145,59 +148,77 @@ export function drawHolofoteCeu(ctx, game, cam, ppu, t) {
   cam.toScreen(spot.x, spot.y, a);
   const top = cam.playTop + 125; // abaixo do plantão da TV, que cobre o alto da tela
   const bot = cam.playBottom - 30;
-  const visivel = a.x > -40 && a.x < cam.viewW + 40 && a.y > top && a.y < bot + 60;
+  if (a.x > 0 && a.x < cam.viewW && a.y > top && a.y < bot) return;
+  const m = 30; // da beira até o helicóptero
+  const cx = cam.viewW / 2;
+  const cy = (top + bot) / 2;
+  const dx = a.x - cx;
+  const dy = a.y - cy;
+  const s = Math.min((cam.viewW / 2 - m) / Math.abs(dx || 1e-6), ((bot - top) / 2 - m * 0.5) / Math.abs(dy || 1e-6));
+  const x = cx + dx * s;
+  const y = cy + dy * s + Math.sin(t * 2.1) * 2; // balança no ar
+  const pulso = 0.8 + 0.2 * Math.sin(t * 2.6);
   ctx.save();
+  // claridade fraca atrás (contraste no meio da bagunça) e o facho curto descendo
   ctx.globalCompositeOperation = 'lighter';
-  if (visivel) {
-    const hx = a.x + (cam.viewW / 2 - a.x) * 0.25;
-    const hy = top - 20;
-    const R = 2.4 * ppu;
-    const g = ctx.createLinearGradient(hx, hy, a.x, a.y);
-    g.addColorStop(0, 'rgba(255,250,225,0.32)');
-    g.addColorStop(1, 'rgba(255,250,225,0.06)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(hx - 6, hy);
-    ctx.lineTo(hx + 6, hy);
-    ctx.lineTo(a.x + R, a.y);
-    ctx.lineTo(a.x - R, a.y);
-    ctx.closePath();
-    ctx.fill();
-  } else {
-    // covil fora da tela: o facho do helicóptero entra pela beira, do lado dele, varrendo devagar
-    const cx = cam.viewW / 2;
-    const cy = (top + bot) / 2;
-    const dx = a.x - cx;
-    const dy = a.y - cy;
-    const s = Math.min((cam.viewW / 2) / Math.abs(dx || 1e-6), ((bot - top) / 2) / Math.abs(dy || 1e-6));
-    const ex = cx + dx * s;
-    const ey = cy + dy * s;
-    const base = Math.atan2(-dy, -dx); // para dentro da tela
-    const ang = base + Math.sin(t * 0.9) * 0.38;
-    const L = Math.min(cam.viewW, bot - top) * 0.62;
-    const W = L * 0.2;
-    const tx = ex + Math.cos(ang) * L;
-    const ty = ey + Math.sin(ang) * L;
-    const g = ctx.createLinearGradient(ex, ey, tx, ty);
-    g.addColorStop(0, 'rgba(255,248,220,0.42)');
-    g.addColorStop(0.6, 'rgba(255,244,205,0.14)');
-    g.addColorStop(1, 'rgba(255,244,205,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(ex - Math.sin(ang) * 6, ey + Math.cos(ang) * 6);
-    ctx.lineTo(ex + Math.sin(ang) * 6, ey - Math.cos(ang) * 6);
-    ctx.lineTo(tx + Math.sin(ang) * W, ty - Math.cos(ang) * W);
-    ctx.lineTo(tx - Math.sin(ang) * W, ty + Math.cos(ang) * W);
-    ctx.closePath();
-    ctx.fill();
-    // e a claridade na beira, de onde ele vem
-    const R = 120;
-    const rg = ctx.createRadialGradient(ex, ey, 0, ex, ey, R);
-    rg.addColorStop(0, 'rgba(255,246,210,0.45)');
-    rg.addColorStop(1, 'rgba(255,246,210,0)');
-    ctx.fillStyle = rg;
-    ctx.fillRect(ex - R, ey - R, R * 2, R * 2);
-  }
+  let g = ctx.createRadialGradient(x, y + 6, 0, x, y + 6, 46);
+  g.addColorStop(0, `rgba(255,246,210,${0.32 * pulso})`);
+  g.addColorStop(1, 'rgba(255,246,210,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(x - 46, y - 40, 92, 92);
+  g = ctx.createLinearGradient(x, y + 4, x, y + 38);
+  g.addColorStop(0, `rgba(255,248,220,${0.4 * pulso})`);
+  g.addColorStop(1, 'rgba(255,248,220,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(x - 2, y + 4);
+  ctx.lineTo(x + 2, y + 4);
+  ctx.lineTo(x + 9, y + 38);
+  ctx.lineTo(x - 9, y + 38);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+  // o helicóptero: cabine, cauda para o lado de fora da tela, hélice girando
+  const lado = dx > 0 ? 1 : -1;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = '#1e1c22';
+  ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(lado * 6, -1);
+  ctx.lineTo(lado * 20, -3);
+  ctx.lineTo(lado * 20, 0);
+  ctx.lineTo(lado * 6, 3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 9, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(150,200,230,0.9)'; // vidro da cabine
+  ctx.beginPath();
+  ctx.ellipse(-lado * 4, -1, 3.5, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#d23a2e'; // a faixa da emissora
+  ctx.fillRect(-4, 2, 8, 1.6);
+  ctx.strokeStyle = 'rgba(30,28,34,0.9)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-6, 7);
+  ctx.lineTo(6, 7); // o esqui
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(230,230,235,0.85)';
+  const giro = Math.abs(Math.cos(t * 28)); // a hélice girando
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-17 * giro, -8);
+  ctx.lineTo(17 * giro, -8);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(lado * 20, -2, 3 * giro + 0.5, 0, Math.PI * 2); // a hélice da cauda
+  ctx.stroke();
   ctx.restore();
 }
 

@@ -489,7 +489,7 @@ export const CARREIRA = {
   pistaHordaS: 45, // aberto o covil, se o Juninho não chega, a horda começa a andar para lá
   hordaChamadaFrac: 0.35, // parte dos inimigos novos que anda para o covil
   hordaChamadaPertoM: 6, // o chamado só vale enquanto o Juninho estiver longe deles
-  heli: { raioM: 3.5, voltaS: 5, alturaTela: 0.42 }, // holofote do helicóptero da TV circulando o covil
+  heli: { raioM: 3.5, voltaS: 5, alturaTela: 0.42, manchaM: 2.1, manchaAlfa: 0.32 }, // holofote do helicóptero da TV circulando o covil; a mancha no chão (raio, m; brilho)
   fases: [0.66, 0.33], // vida do chefão em que ele muda de fase
   reforcoHorda: 18, // assessoria: horda chamada em volta do chefão a cada fase nova
   quedaRaioM: 16, // ao cair, o sinal da TV cai junto: a horda em volta desaba
