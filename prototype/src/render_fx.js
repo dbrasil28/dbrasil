@@ -47,7 +47,7 @@ const FX_SRC = {
 };
 
 // as folhas do Morro (carregam quando a passagem para o morro abre)
-const DO_MORRO = ['fogos', 'clarao_tiro', 'faisca_gato'];
+const DO_MORRO = ['clarao_tiro', 'faisca_gato']; // os fogos (fogos.webp) estão fora da tela por enquanto (D51)
 
 // as folhas de cada habilidade (carregam quando o Juninho tem a habilidade)
 const DA_ARMA = {

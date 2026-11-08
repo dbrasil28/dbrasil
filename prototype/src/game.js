@@ -1879,18 +1879,13 @@ export class Game {
     this.efeito('luz', e.x + dx * 0.6, e.y + dy * 0.6, { dur: 0.16, tam: 3.2, cor: '255,190,110' });
   }
 
-  /** Traficante viu o Juninho: fogos no céu e moradores hipnotizados chegando. */
+  /** Traficante viu o Juninho: soltou os fogos (o som e a TV) e moradores hipnotizados chegando. */
   fogos(e) {
     const def = ENEMIES.traficante;
     this.emit('fogos', { x: e.x, y: e.y });
     this.tv('fogos', 20);
-    this.efeito('fogos', e.x, e.y);
-    this.efeito('luz', e.x, e.y, { delay: 0.45, dur: 1.1, tam: 12, cor: '255,170,90' }); // o estouro clareia a rua
-    const parts = this.fx.particles;
-    for (let i = 0; i < 18 && parts.length < 260; i++) {
-      const a = (i / 18) * Math.PI * 2;
-      parts.push({ x: e.x, y: e.y, z: 7, vx: Math.cos(a) * 2.2, vy: Math.sin(a) * 2.2, vz: 1.5, t: 0, life: 1.1, kind: 'fogo' });
-    }
+    // os fogos no céu saíram da tela por enquanto (D51: muita coisa na tela); a arte continua em
+    // assets/efeitos/morro/fogos.webp e volta com this.efeito('fogos', e.x, e.y)
     for (let i = 0; i < def.fogosPack; i++) {
       const sp = this.fitSpawn(this.edgePoint(this.rng() * Math.PI * 2, 40));
       this.spawnEnemy('telespectador', sp.x, sp.y);
