@@ -15,6 +15,7 @@ Responda e escreva documentos em **português do Brasil**.
 | Roteiro de playtest | `docs/PLAYTEST_FASE0.md` |
 | Specs de mecânica (MECH-xxx) e elenco/nomes | `docs/design/` |
 | Arte: guia de produção, mapas, prompts e recortes de referência | `docs/arte/` (página gerada por `node tools/guia-para-html.mjs`) |
+| Sons: lista de todos os sons, prompts e formato | `docs/som/PEDIDO_SONS.md` (motor em `prototype/src/sons.js`) |
 | Protótipo (HTML + JS, sem dependências) | `prototype/` |
 | Conteúdo e todos os números de balanceamento | `prototype/src/config.js` |
 | Simulação (sem DOM, roda no Node) | `prototype/src/game.js` |

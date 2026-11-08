@@ -45,6 +45,7 @@ export function updateCracudo(game, e, dt, ux, uy) {
         game.gems.splice(i, 1);
         e.guardou = (e.guardou || 0) + g.v;
         game.word(e.x, e.y - 1.2, 'CATOU!', '#c9b48a');
+        game.som('cata', e.x, e.y);
       }
       e.alvoGem = null;
       e.alvoD = undefined;
@@ -134,6 +135,7 @@ export function trombada(game, e) {
   e.fugaT = T.fugaS;
   e.dmg = 0; // fugindo, não encosta mais
   game.word(p.x, p.y - 1.6, v ? `-${v} XP` : 'NADA!', '#ff6b6b');
+  game.som('roubo', e.x, e.y);
   game.emit('fine', { amount: v });
   game.tv('trombadinha', 25);
 }

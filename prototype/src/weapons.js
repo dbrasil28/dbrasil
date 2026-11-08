@@ -439,6 +439,7 @@ export function updateProjectiles(game, dt) {
         pr.onda = 0;
         pr.pulso = 1;
         pr.bateu.clear();
+        game.som('paredao', pr.x, pr.y);
         game.shake(0.06);
       }
       if (pr.onda >= 0) {
@@ -471,7 +472,10 @@ export function updateProjectiles(game, dt) {
         const t = nearestEnemies(game, from.x, from.y, perto ? R.alcanceM : R.pulaM, 2).find((e) => e !== pr.last);
         if (t) {
           pr.tgt = t;
-          if (perto) game.word(p.x, p.y, 'TOC!', '#f2efe8'); // o Juninho chuta
+          if (perto) {
+            game.word(p.x, p.y, 'TOC!', '#f2efe8'); // o Juninho chuta
+            game.som('bola', pr.x, pr.y);
+          }
         }
       }
       const g = pr.tgt || p;
@@ -548,6 +552,7 @@ export function updateZones(game, dt) {
         game.moneyBurst(z.x, z.y, 22);
         game.burst(z.x, z.y, 14, 'debris');
         game.word(z.x, z.y - 0.5, 'BUM!', '#ffd21f');
+        game.som('explosao', z.x, z.y);
         game.shake(0.3);
         remove = true;
       }
@@ -614,6 +619,7 @@ export function updateZones(game, dt) {
         z.done = true;
         const h = z.half;
         game.efeito('carimbo_baque', z.x, z.y, { tam: h * 2 * 1.6 }); // poeira e papelada
+        game.som('carimbo', z.x, z.y);
         game.efeito('carimbo_marca', z.x, z.y, { tam: h * 2 * 1.35, rot: -0.18, dur: z.slowT + 0.6 }); // a tinta apaga com a lentidão
         game.hash.query(z.x, z.y, h * 1.5 + 0.6, tmp);
         for (const e of tmp) {
@@ -656,6 +662,7 @@ export function updateDogs(game, dt) {
           d.fx = a.x - d.x;
           d.fy = a.y - d.y;
           game.word(d.x, d.y - 0.2, 'AU!', '#f2efe8');
+          game.som('latido', d.x, d.y);
           continue;
         }
       }
@@ -685,12 +692,14 @@ export function updateDogs(game, dt) {
           const l = Math.hypot(d.fx, d.fy) || 1;
           game.damageEnemy(g, d.dmg || 20, 'caramelo', (d.fx / l) * 2, (d.fy / l) * 2);
           game.word(g.x, g.y, 'NHAC!', '#e0a14a');
+          game.som('mordida', g.x, g.y);
         }
       }
       if (d.st === 'late' && !d.hitDone && d.at >= F.latidoS * F.latidoPico) {
         d.hitDone = true;
         game.efeito('latido_onda', d.x, d.y, { rot: Math.atan2(d.fy, d.fx), tam: Math.max(3, d.bark * 2.2) });
         game.word(d.x, d.y - 0.2, 'AU AU!', '#f2efe8');
+        game.som('latido', d.x, d.y);
         game.hash.query(d.x, d.y, d.bark + 0.6, tmp);
         for (const e of tmp) {
           if (e.dead || e.boss) continue;

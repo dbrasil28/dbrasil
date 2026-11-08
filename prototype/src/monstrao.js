@@ -44,6 +44,7 @@ function iniciar(game, e, D, f, d) {
     // colou nele: levanta os punhos e soca o chão
     e.golpe = 'levanta';
     e.golpeT = D.agacha.avisoS;
+    game.som('aviso_chao', e.x, e.y);
     mira(e, p.x, p.y);
     return;
   }
@@ -54,6 +55,7 @@ function iniciar(game, e, D, f, d) {
     e.golpeT = D.carro.avisoS;
     e.segura = 'carro';
     e.carroArte = D.carro.arte[Math.floor(game.rng() * D.carro.arte.length)];
+    game.som('urro', e.x, e.y); // arrancando o carro do chão
     e.alvoX = p.x + p.vx * D.carro.lead;
     e.alvoY = p.y + p.vy * D.carro.lead;
     mira(e, e.alvoX, e.alvoY);
@@ -63,11 +65,13 @@ function iniciar(game, e, D, f, d) {
     e.golpe = 'preparo';
     e.golpeT = D.investida.avisoS;
     e.corridas = D.investida.seguidas[f];
+    game.som('urro', e.x, e.y); // o aviso da investida também se ouve
     mira(e, p.x, p.y);
     return;
   }
   e.golpe = 'arremesso';
   e.golpeT = D.anilha.avisoS;
+  game.som('aviso_chao', e.x, e.y);
   mira(e, p.x + p.vx * D.anilha.lead, p.y + p.vy * D.anilha.lead);
 }
 
@@ -140,6 +144,7 @@ function investida(game, e, D, f, dt) {
     game.shake(0.5);
     game.burst(e.x + e.dirX * e.r, e.y + e.dirY * e.r, 10, 'poeira');
     game.word(e.x, e.y - 1, 'BUM!', '#ffd21f');
+    game.som('carro_cai', e.x, e.y); // deu com o ombro no carro, no poste
     if (REACOES.carro.tipos[k.kind]) explosaoPerto(game, k.x, k.y, 0.5);
     game.emit('monstrao', { golpe: 'tonto' });
     return;
@@ -199,6 +204,7 @@ function socoNoChao(game, e, D, f) {
   game.burst(e.x, e.y, 16, 'poeira');
   game.efeito('latido_onda', e.x, e.y, { tam: A.raioM * 2.2 });
   game.word(e.x, e.y - 1, 'TUM!', '#d8d0c2');
+  game.som('soco_chao', e.x, e.y);
   if (f >= 2) {
     // fase 3: o anel de choque abre pela areia, com uma brecha para passar
     objs(game).push({ tipo: 'anel', x: e.x, y: e.y, r: A.raioM, brecha: game.rng() * Math.PI * 2, pegou: false });
@@ -211,6 +217,7 @@ function lancarAnilha(game, e) {
     dist: 0, giro: 0, hit: new Set(),
   });
   game.word(e.x, e.y - 1.5, 'UH!', '#d8d0c2');
+  game.som('anilha', e.x, e.y);
 }
 
 function lancarCarro(game, e, D) {
@@ -276,6 +283,7 @@ function atualizarObjs(game, D, dt) {
         game.efeito('luz', o.tx, o.ty, { dur: 0.5, tam: C.raioM * 3, cor: '255,150,60' });
         game.efeito('chamuscado', o.tx, o.ty, { tam: C.raioM * 1.6 });
         game.shake(0.7);
+        game.som('carro_cai', o.tx, o.ty);
         explosaoPerto(game, o.tx, o.ty, C.raioM); // carros parados perto explodem junto
       }
     } else if (o.tipo === 'anel') {
@@ -355,6 +363,7 @@ export function updateMonstrao(game, e, dt, ux, uy) {
         e.atropelou = new Set();
         e.quiques = D.investida.quiques[f];
         game.word(e.x, e.y - 1.5, 'RAAA!', '#ff5a3c');
+        game.som('investida', e.x, e.y);
       }
       break;
     }

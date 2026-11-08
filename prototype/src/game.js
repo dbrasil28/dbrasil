@@ -6,6 +6,7 @@ import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
   ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO,
+  SOM_GOLPE, SOM_ARMA,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
 import { FX, IMPACTO } from './efeitos_arte.js';
@@ -135,6 +136,7 @@ export class Game {
     this.dogs = []; // Cachorro Caramelo
     this.fxRng = makeRng((this.seed ^ 0x9e3779b9) >>> 0); // sorteio só dos efeitos: não mexe no da partida
     this.outbox = [];
+    this.sons = []; // sons pedidos (id, x, y): main.js toca e esvazia (sons.js); sem DOM aqui
 
     this.caos = 0;
     this.caosBonus = 0;
@@ -217,6 +219,11 @@ export class Game {
   // ---------- utilidades ----------
   emit(type, data = {}) {
     this.outbox.push({ type, ...data });
+  }
+
+  /** Pede um som no lugar (x, y). Só a fila: quem toca é o navegador (sons.js); nos testes, fica limitada. */
+  som(id, x = this.player.x, y = this.player.y) {
+    if (id && this.sons.length < 64) this.sons.push({ id, x, y });
   }
 
   pickLine(key, arg) {
@@ -555,6 +562,7 @@ export class Game {
     dw[source] = (dw[source] || 0) + Math.min(dmg, Math.max(0, e.hp));
     e.hp -= dmg;
     e.flash = 0.09;
+    if (!quiet) this.som(source in SOM_GOLPE ? SOM_GOLPE[source] : 'golpe', e.x, e.y);
     const I = IMPACTO[source];
     if (I && !(this.t < (e.fxAte || 0)) && (!I.chance || ((e.id * 7 + Math.floor(this.t * 10)) % 100) / 100 < I.chance)) {
       e.fxAte = this.t + I.espera;
@@ -600,6 +608,7 @@ export class Game {
       return;
     }
     this.kills++;
+    this.som(e.elite || e.boss ? 'morte_elite' : 'morte_horda', e.x, e.y);
     if (!this.caosParado) this.caosAbates++;
     this.metrics.killsByType[e.type] = (this.metrics.killsByType[e.type] || 0) + 1;
     this.recentKills.push(this.t);
@@ -658,6 +667,7 @@ export class Game {
   /** MECH-001: o telespectador acorda, para de lutar e vai embora (efeito visual, sem colisão). */
   wake(e) {
     this.burst(e.x, e.y, 6, 'static');
+    this.som('acorda', e.x, e.y); // o chiado da TV saindo da cabeça
     if (this.fx.woken.length >= WAKE.maxFx) this.fx.woken.shift();
     const p = this.player;
     const dx = e.x - p.x;
@@ -772,6 +782,7 @@ export class Game {
     const dmg = amount * (1 - this.stats.armor);
     p.hp -= dmg;
     p.hurtT = 0.12;
+    if (dmg > 0) this.som('dano');
     this.metrics.damageBySource[source] = (this.metrics.damageBySource[source] || 0) + dmg;
     this.metrics.lastDamageSource = source;
   }
@@ -836,6 +847,7 @@ export class Game {
 
   die() {
     this.tv('death');
+    this.som('morte');
     this.finish('defeat');
   }
 
@@ -1070,6 +1082,7 @@ export class Game {
         const fine = Math.min(p.xp, ENEMIES.fiscal.fine + p.level);
         p.xp -= fine;
         p.slowT = Math.max(p.slowT, 0.8);
+        this.som('multa', e.x, e.y);
         this.emit('fine', { amount: fine });
         this.tv('fiscal', 30);
       }
@@ -1096,6 +1109,7 @@ export class Game {
         if (d < 0.4) {
           g.dead = true;
           this.gainXp(g.v);
+          this.som('xp');
         }
       }
     }
@@ -1104,6 +1118,7 @@ export class Game {
   gainXp(v) {
     const p = this.player;
     p.xp += v;
+    if (p.xp >= p.xpNext) this.som('nivel');
     while (p.xp >= p.xpNext) {
       p.xp -= p.xpNext;
       p.level++;
@@ -1164,6 +1179,7 @@ export class Game {
       if (w.cd <= 0) {
         const res = fireWeapon(this, w, this.stats);
         w.cd = res.fired ? res.cd : 0.25;
+        if (res.fired) this.som(SOM_ARMA[w.id]); // sem som próprio no disparo: vem no impacto
       }
     }
   }
@@ -1339,6 +1355,7 @@ export class Game {
           if (e.fireT <= 0) {
             e.fireT = def.fireEvery;
             e.aimT = def.aimS;
+            this.som('mira', e.x, e.y);
             e.ax = p.x;
             e.ay = p.y;
           }
@@ -1398,10 +1415,12 @@ export class Game {
           if (e.callCd <= 0) {
             e.callCd = R.cadaS * ritmo;
             e.callT = R.gritoS;
+            this.som('radio', e.x, e.y);
             this.tv('chefeRadio', 30);
           } else if (d < def.range && e.fireT <= 0) {
             e.fireT = def.fireEvery * ritmo;
             e.aimT = def.aimS;
+            this.som('mira', e.x, e.y);
             e.ax = p.x;
             e.ay = p.y;
           }
@@ -1427,6 +1446,7 @@ export class Game {
           if (e.fireT <= 0) {
             e.fireT = I.every;
             e.windup = I.windupS;
+            this.som('grito_funkeiro', e.x, e.y);
             e.dashX = dpx / d;
             e.dashY = dpy / d;
           }
@@ -1702,6 +1722,7 @@ export class Game {
         best.obj = null;
         best.emptyT = 0;
         this.emit('pick', { kind: p.carry.kind });
+        this.som('pega');
       }
       return;
     }
@@ -1740,6 +1761,7 @@ export class Game {
     p.aimY = (target.y - p.y) / l;
     p.throwT = 0;
     p.carry = null;
+    this.som('arremesso');
     this.metrics.objetos = (this.metrics.objetos || 0) + 1;
     this.tv('objeto', 45);
   }
@@ -1747,6 +1769,7 @@ export class Game {
   /** Objeto arremessado caiu: acerta todos em volta e quebra; o botijão explode e machuca quem estiver perto. */
   objectLands(pr) {
     const T = THROWABLES[pr.obj];
+    this.som(T.som || 'baque', pr.x, pr.y);
     this.explode(pr.x, pr.y, pr.radius, pr.dmg, 'objeto');
     this.burst(pr.x, pr.y, 10, 'debris');
     if (T.explosive) {
@@ -1812,10 +1835,12 @@ export class Game {
       if (!c.warned && c.sentido < 0 && Math.abs(c.x - p.x) < hx + 0.8 && c.y > p.y && c.y - p.y < A.avisoM) {
         c.warned = true;
         this.emit('warn', { angle: Math.PI / 2, dur: 1.2, label: 'CARRO' });
+        this.som('buzina', c.x, c.y);
       }
       // atropelou o Juninho
       if (!this.over && !p.plat && Math.abs(p.x - c.x) < hx + p.r && Math.abs(p.y - c.y) < hy + p.r && !(p.invulnT > 0)) {
         this.hurtPlayer(A.dano, 'carro');
+        this.som('atropelo');
         p.x += (p.x < c.x ? -1 : 1) * A.empurraoM;
         p.invulnT = A.invulnS;
         this.shake(0.4);
@@ -1875,6 +1900,7 @@ export class Game {
 
   /** Clarão na boca do fuzil (só visual), virado para o lado do tiro, e a luz dele no chão. */
   clarao(e, dx, dy) {
+    this.som('tiro', e.x, e.y);
     this.efeito('clarao_tiro', e.x, e.y, { alvo: e, dx, dy });
     this.efeito('luz', e.x + dx * 0.6, e.y + dy * 0.6, { dur: 0.16, tam: 3.2, cor: '255,190,110' });
   }
@@ -1944,15 +1970,18 @@ export class Game {
           this.tv('acai', 40);
         }
         this.emit('pickup', { kind: k.kind });
+        this.som('cura');
       } else if (k.kind === 'propina') {
         // não é puxada pelo ímã: pegar é uma escolha do jogador
         p.hp = Math.min(this.stats.maxHp, p.hp + 15);
         this.corruption = clamp(this.corruption + 5, 0, 100);
         this.tv('propina', 20);
         this.emit('pickup', { kind: 'propina' });
+        this.som('gorjeta');
       } else if (k.kind === 'maleta') {
         this.pendingChests++;
         this.emit('pickup', { kind: 'maleta' });
+        this.som('gorjeta');
       }
     }
   }

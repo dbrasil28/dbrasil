@@ -924,9 +924,9 @@ export const TV = {
 
 // Sons (docs/som/PEDIDO_SONS.md). Cada som: vol (0 a 1), max (quantos iguais ao mesmo tempo), espera (s
 // mínimos entre dois iguais), prio (1 a 3: quem fica quando estoura o limite de vozes), perto (false: não
-// diminui com a distância, para avisos e interface), varia (variação de tom, ±), arquivos (quantas variações
-// gravadas em assets/sons/<id>_<n>.mp3; 0 = som provisório feito em código, sons.js).
-const S = (vol, max = 3, espera = 0.05, prio = 1, o = {}) => ({ vol, max, espera, prio, perto: true, varia: 0.06, arquivos: 0, ...o });
+// diminui com a distância, para avisos e interface), varia (variação de tom, ±). Os arquivos gravados ficam
+// listados em sons.js (ARQUIVOS); sem arquivo, toca o provisório feito em código.
+const S = (vol, max = 3, espera = 0.05, prio = 1, o = {}) => ({ vol, max, espera, prio, perto: true, varia: 0.06, ...o });
 const FIXO = { perto: false };
 export const SOM = {
   vozes: 22, // máximo de sons tocando juntos

@@ -5,7 +5,7 @@ import { minimapRect } from './minimapa.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, defaultSettings } from './settings.js';
-import { ENEMIES, FAVELA } from './config.js';
+import { ENEMIES, FAVELA, SOM } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
 import { loadImages, images, prewarm, carregarMorro, prewarmMorro } from './sprites.js';
@@ -13,6 +13,7 @@ import { loadProgress, applyRun, buyUpgrade } from './progresso.js';
 import { loadRanking, registrarPartida } from './ranking.js';
 import { desafioDaSemana } from './horda.js';
 import { Musica } from './musica.js';
+import { Sons } from './sons.js';
 
 const $ = (id) => document.getElementById(id);
 const STEP = 1 / 60;
@@ -28,6 +29,12 @@ ui.rewardedOk = () => ads.rewardedAvailable();
 let game = new Game(settings);
 let state = 'title'; // title | playing | paused | result
 const musica = new Musica(); // a música de cada trecho (musica.js)
+const sons = new Sons(); // efeitos sonoros (sons.js)
+// o navegador só deixa tocar depois de um toque: o primeiro toque em qualquer lugar libera; botão faz clique
+document.addEventListener('pointerdown', () => sons.liberar(), { capture: true });
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.closest && e.target.closest('button')) sons.tocar('toque');
+}, { capture: true });
 let settingsFrom = 'title';
 let modalOpen = false;
 let acc = 0;
@@ -129,6 +136,8 @@ function newGame() {
 function start() {
   musica.liberar(); // veio de um toque: o navegador deixa tocar
   musica.setVolume(Number(settings.musica ?? 60));
+  sons.liberar();
+  sons.setVolume(Number(settings.efeitos ?? 70));
   newGame();
   game.fastForward(Number(settings.startAt));
   state = 'playing';
@@ -144,13 +153,25 @@ function drainOutbox(now) {
     else if (ev.type === 'shake') renderer.addShake(ev.amount, settings.shake);
     else if (ev.type === 'flash') renderer.flash(!settings.reduceFlashes);
     else if (ev.type === 'warn') ui.warn(ev.angle, ev.dur * 1000, now, ev.label || 'PLATEIA');
-    else if (ev.type === 'boss') ui.warn(-Math.PI / 2, 2500, now, 'CHEFE');
+    else if (ev.type === 'boss') {
+      ui.warn(-Math.PI / 2, 2500, now, 'CHEFE');
+      sons.tocar('chefe');
+    }
     else if (ev.type === 'fine') ui.toast(`MULTA: −${ev.amount} XP`, now);
     else if (ev.type === 'paper') ui.toast('PAPELADA! VOCÊ FICOU LENTO', now);
-    else if (ev.type === 'unlock') ui.toast('UMA PASSAGEM SE ABRIU', now); // sem seta: o jogador descobre (D39)
+    else if (ev.type === 'unlock') {
+      ui.toast('UMA PASSAGEM SE ABRIU', now); // sem seta: o jogador descobre (D39)
+      sons.tocar('passagem');
+    }
     else if (ev.type === 'segment') ui.toast(ev.name, now);
     else if (ev.type === 'recomeco') ui.toast(ev.text, now);
-    else if (ev.type === 'fase') ui.warn(-Math.PI / 2, 1800, now, `FASE ${ev.fase + 1}`);
+    else if (ev.type === 'fase') {
+      ui.warn(-Math.PI / 2, 1800, now, `FASE ${ev.fase + 1}`);
+      sons.tocar('fase');
+    } else if (ev.type === 'criseAviso') sons.tocar('crise');
+    else if (ev.type === 'crise' && ev.id === 'apagao') sons.tocar('apagao');
+    else if (ev.type === 'reliquia') sons.tocar('reliquia');
+    else if (ev.type === 'modal' && game.modal && (game.modal.kind === 'cofre' || game.modal.kind === 'chest')) sons.tocar('cofre');
   }
   game.outbox.length = 0;
 }
@@ -233,6 +254,10 @@ function frame(now) {
   if (state !== 'title') musica.tocar(game.segment === 'morro' ? 'morro' : 'orla');
   musica.abafar(state !== 'playing' || !!game.modal);
   musica.update(dtReal);
+  // sons: os que o jogo pediu, no lugar de cada um; o ambiente do trecho, baixo fora da partida
+  sons.drenar(game, state === 'playing' && !game.modal ? dtReal : 0);
+  sons.ambiente(state === 'title' ? null : SOM.amb[game.segment === 'morro' ? 'morro' : 'orla']);
+  sons.abafar(state !== 'playing' || !!game.modal);
   renderer.draw(game, settings, { dt: dtReal, mapa: mapaAberto });
   updateMapaButton();
   ui.updateHud(game, now);
@@ -267,8 +292,10 @@ async function leaveResult(next) {
   if (ads.canShowInterstitial()) {
     ui.setBanner(false);
     musica.calar(true); // sem música durante o anúncio
+    sons.calar(true);
     await ads.showInterstitial('fim_de_turno');
     musica.calar(false);
+    sons.calar(false);
   }
   next();
 }
@@ -276,6 +303,7 @@ async function leaveResult(next) {
 function applySetting(id, value) {
   settings[id] = value;
   if (id === 'musica') musica.setVolume(Number(value));
+  if (id === 'efeitos') sons.setVolume(Number(value));
   saveSettings(settings);
   ads.configure(settings);
   updateBanner();
@@ -378,8 +406,10 @@ ui.on('revive', async (accept) => {
   if (accept) {
     ui.closeModal();
     musica.calar(true);
+    sons.calar(true);
     watched = await ads.showRewarded('reviver');
     musica.calar(false);
+    sons.calar(false);
   }
   game.chooseRevive(watched);
   modalOpen = false;
@@ -394,8 +424,10 @@ ui.on('rerollGratis', () => {
 ui.on('reroll', async () => {
   if (!game.modal || !game.modal.options) return;
   musica.calar(true);
+  sons.calar(true);
   const ok = await ads.showRewarded('trocar_cartas');
   musica.calar(false);
+  sons.calar(false);
   if (ok) game.rerollOptions();
   ui.openModal(game, performance.now());
 });
@@ -449,6 +481,7 @@ ui.on('cofreOk', () => {
   last = performance.now();
 });
 ui.on('choose', (i) => {
+  sons.tocar('carta');
   game.chooseOption(i);
   modalOpen = false;
   ui.closeModal();
@@ -489,7 +522,7 @@ window.addEventListener('resize', () => {
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // expõe estado para testes automatizados (Playwright)
-window.__bec = { get game() { return game; }, get state() { return state; }, settings: () => settings, ads, renderer, musica };
+window.__bec = { get game() { return game; }, get state() { return state; }, settings: () => settings, ads, renderer, musica, sons };
 
 $('fps').hidden = !settings.showFps;
 

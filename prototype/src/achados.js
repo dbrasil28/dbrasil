@@ -101,6 +101,7 @@ function abrir(game, a) {
     p.hp = Math.min(game.stats.maxHp, p.hp + ACHADOS.isoporCura);
     game.word(a.x, a.y, `+${ACHADOS.isoporGorjeta} GORJETA`, '#ffd21f');
     game.moneyBurst(a.x, a.y, 8);
+    game.som('gorjeta', a.x, a.y);
     game.emit('pickup', { kind: 'isopor' });
   } else if (a.kind === 'cofre') {
     m.achadosGorjeta = (m.achadosGorjeta || 0) + ACHADOS.cofreGorjeta;

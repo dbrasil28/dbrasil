@@ -113,6 +113,7 @@ const ATIVA = {
       c.ondaT = R.ondaS;
       c.onda = 0;
       game.word((c.agua + game.map.seaX) / 2, game.player.y - 3, 'ONDA!', '#cfeeff');
+      game.som('onda');
     }
   },
   baile(game, c) {
@@ -133,12 +134,14 @@ const ATIVA = {
       const f = game.fitSpawn({ x: p.x + Math.cos(a) * r, y: p.y + Math.sin(a) * r });
       c.faiscas.push({ x: f.x, y: f.y, t: 0 });
       game.efeito('faisca_gato', f.x, f.y, { dur: K.avisoS, laco: true, tam: 1.2 }); // o fio estalando (aviso)
+      game.som('aviso_chao', f.x, f.y);
     }
     for (const f of c.faiscas) {
       f.t += dt;
       if (!f.choque && f.t >= K.avisoS) {
         f.choque = true;
         game.efeito('faisca_gato', f.x, f.y, { dur: K.choqueS + 0.25, tam: 3.2 });
+        game.som('faisca', f.x, f.y);
         game.efeito('luz', f.x, f.y, { dur: 0.4, tam: K.raioM * 3.5, cor: '170,210,255' });
         if ((p.x - f.x) ** 2 + (p.y - f.y) ** 2 < K.raioM ** 2) game.hurtPlayer(K.danoJuninho, 'curto');
         game.hash.query(f.x, f.y, K.raioM + 0.6, tmp);
