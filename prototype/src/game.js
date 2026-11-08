@@ -609,6 +609,11 @@ export class Game {
 
   killEnemy(e, source) {
     e.dead = true;
+    if (e.type === 'monstrao') {
+      // o corpo cai (D65): variação sorteada pelo número dele, virado para o Juninho (0 frente, 1 direita, 2 costas, 3 esquerda)
+      const ang = ((Math.atan2(this.player.x - e.x, this.player.y - e.y) * 180) / Math.PI + 360) % 360;
+      (this.corpos ||= []).push({ tipo: 'monstrao', x: e.x, y: e.y, v: e.id % 3, j: Math.round(ang / 90) % 4, t: 0, furia: !!e.furia });
+    }
     if (e.type === 'isca') {
       this.burst(e.x, e.y, 5, 'glitch');
       return;
@@ -997,6 +1002,12 @@ export class Game {
     this.updateEnemies(dt);
     this.updateTraffic(dt);
     updateReacoes(this);
+    if (this.corpos && this.corpos.length) {
+      const C = ENEMIES.monstrao.corpo;
+      const vida = 12 * C.quadroS + C.noChaoS + C.someS;
+      for (const c of this.corpos) c.t += dt;
+      this.corpos = this.corpos.filter((c) => c.t < vida);
+    }
     updateProjectiles(this, dt);
     updateZones(this, dt);
     updateDogs(this, dt);

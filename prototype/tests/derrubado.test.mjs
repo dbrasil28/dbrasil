@@ -71,3 +71,19 @@ test('carro explodindo perto derruba o Juninho para longe dele', async () => {
   assert.ok(caiu, 'a explosão não derrubou o Juninho');
   assert.ok(p.derrubado.uy > 0.5, 'não voou para longe do carro');
 });
+
+test('Monstrão derrubado: o corpo fica no chão uns segundos (uma das 3 quedas) e some', async () => {
+  const { ENEMIES } = await import('../src/config.js');
+  const g = jogo();
+  const e = g.spawnEnemy('monstrao', g.player.x, g.player.y - 4);
+  g.killEnemy(e, 'teste');
+  assert.equal((g.corpos || []).length, 1, 'não ficou o corpo');
+  const c = g.corpos[0];
+  assert.ok(c.v >= 0 && c.v <= 2 && c.j >= 0 && c.j <= 3);
+  assert.equal(c.j, 0, 'o Juninho está na frente dele (para baixo na tela): a queda é a de frente');
+  const C = ENEMIES.monstrao.corpo;
+  for (let t = 0; t < 12 * C.quadroS + C.noChaoS - 0.2; t += DT) g.update(DT, { x: 0, y: 0 });
+  assert.equal(g.corpos.length, 1, 'sumiu cedo demais');
+  for (let t = 0; t < C.someS + 0.5; t += DT) g.update(DT, { x: 0, y: 0 });
+  assert.equal(g.corpos.length, 0, 'o corpo não sumiu');
+});

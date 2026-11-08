@@ -230,6 +230,11 @@ export const WALK_ATLAS = {
   jc: { atlas: 'juninho_carregando_atlas', prefix: 'jc', figureH: 133, escala: 0.8 },
   jat: { atlas: 'juninho_atropelado_atlas', prefix: 'jat', figureH: 158 }, // linha = (direção ÷ 2) × 4 + (direção % 2) × 2 + (quadro ≥ 6)
   mo: { atlas: 'monstrao_walk_atlas', prefix: 'mo', figureH: 157 },
+  mo12a: { atlas: 'monstrao_cam12a_atlas', prefix: 'moa', figureH: 157 },
+  mo12b: { atlas: 'monstrao_cam12b_atlas', prefix: 'mob', figureH: 157 },
+  mopar: { atlas: 'monstrao_parado_atlas', prefix: 'mopa', figureH: 157 },
+  momA: { atlas: 'monstrao_morteA_atlas', prefix: 'moma', figureH: 157, escala: 0.8 }, // vista uma vez só: célula menor
+  momB: { atlas: 'monstrao_morteB_atlas', prefix: 'momb', figureH: 157, escala: 0.8 },
   // Morro (pacotes v2): moradores da horda, Cracudo e Trombadinha; carregados ao chegar no morro (IMAGES_MORRO)
   mli: { atlas: 'morador_listrado_walk_atlas', prefix: 'mli', figureH: 158, escala: 0.7 },
   mmc: { atlas: 'morador_moca_walk_atlas', prefix: 'mmc', figureH: 157, escala: 0.7 },
@@ -340,7 +345,11 @@ export const ENEMY_ART = {
   trombadinha: { img: 'tr_0_0', walk: WALK_ATLAS.tr, poses: POSE_ATLAS.trp, estados: true, lazy: true },
   // Monstrão: estados (e.pose) escolhem a coluna das poses, virada para e.poseX/poseY; gigante, então não é
   // preparado antes (lazy) e a fúria da fase 3 pinta de vermelho
-  monstrao: { img: 'mo_0_0', walk: WALK_ATLAS.mo, poses: POSE_ATLAS.mop, estados: true, lazy: true, furia: [215, 40, 28, 0.3] },
+  // walk12: caminhada de 12 quadros (as duas metades); parado: entre os golpes; morte: as 3 quedas (render_monstrao.js)
+  monstrao: {
+    img: 'mo_0_0', walk: WALK_ATLAS.mo, poses: POSE_ATLAS.mop, estados: true, lazy: true, furia: [215, 40, 28, 0.3],
+    walk12: [WALK_ATLAS.mo12a, WALK_ATLAS.mo12b], parado: WALK_ATLAS.mopar, morte: [WALK_ATLAS.momA, WALK_ATLAS.momB],
+  },
 };
 
 /** Atlas do Morro: carregados quando a passagem para o morro abre (carregarMorro), não no começo do jogo. */
@@ -432,6 +441,25 @@ export function loadImages(onEach) {
   const entries = Object.entries(IMAGES);
   pending = entries.length;
   return Promise.all(entries.map(([id, src]) => carregar(id, src, onEach))).then(() => images);
+}
+
+// Monstrão com mais movimento (pacote do autor, D65): caminhada de 12 quadros (duas folhas de 6), parado e as
+// 3 mortes. Pesam: só carregam quando o chefão se aproxima (carregarMonstrao); até lá vale a caminhada antiga.
+export const IMAGES_MONSTRAO = {
+  monstrao_cam12a_atlas: 'assets/personagens/monstrao/cam12a_atlas.webp', // quadros 1 a 6 de cada direção
+  monstrao_cam12b_atlas: 'assets/personagens/monstrao/cam12b_atlas.webp', // quadros 7 a 12
+  monstrao_parado_atlas: 'assets/personagens/monstrao/parado_atlas.webp', // respirando entre os golpes (laço de 6)
+  monstrao_morteA_atlas: 'assets/personagens/monstrao/morteA_atlas.webp', // mortes 1 e 2
+  monstrao_morteB_atlas: 'assets/personagens/monstrao/morteB_atlas.webp', // morte 3
+};
+let monstraoPedido = null;
+/** Carrega o Monstrão novo uma vez só. */
+export function carregarMonstrao() {
+  if (monstraoPedido || typeof Image === 'undefined') return monstraoPedido;
+  const entries = Object.entries(IMAGES_MONSTRAO);
+  pending += entries.length;
+  monstraoPedido = Promise.all(entries.map(([id, src]) => carregar(id, src)));
+  return monstraoPedido;
 }
 
 let morroPedido = null;

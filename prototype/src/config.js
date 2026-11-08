@@ -143,6 +143,9 @@ export const ENEMIES = {
     },
     anilha: { avisoS: 0.6, lead: 0.5, vel: 9, distM: 16, raioM: 0.45, dano: 15, hordaDano: 40 },
     carro: { chance: 0.3, avisoS: 0.9, lead: 0.9, vooS: 0.9, alturaM: 3.4, arcoM: 3, raioM: 3.0, dano: 30, hordaDano: 120, arte: ['cen_carro_fusca', 'cen_carro_brasilia', 'cen_carro_uno', 'cen_carro_taxi'] },
+    // derrubado (D65): uma das 3 mortes, sorteada, na direção mais perto de onde ele olhava; fica no chão e some
+    corpo: { quadroS: 0.12, noChaoS: 4, someS: 1 },
+    paradoQuadroS: 0.12, // parado entre os golpes: laço de 6 quadros respirando
     reforco: { cadaS: [14, 12, 10], horda: 8, raioM: 9.5 }, // a turma da academia (por enquanto, a horda)
     fases: { reforco: [[], [], []] },
     janela: { danoMul: 2 }, // pose de fisiculturista e tonto: leva o dobro de dano

@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA } from './config.js';
-import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS, FIGURANTE_ART } from './sprites.js';
+import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS, FIGURANTE_ART, carregarMonstrao } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto, drawEscuroPontas } from './mapa.js';
 import { drawMar } from './render_mar.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
@@ -11,6 +11,7 @@ import {
   drawAura, drawCarimboQueda, drawFaixaMoto, drawRaio, drawNotasIsca, fxImg,
 } from './render_fx.js';
 import { drawMinimap } from './minimapa.js';
+import { caosDoTrecho } from './carreira.js';
 import { drawCriseChao, drawCriseCeu, escondidoDeDia } from './render_crises.js';
 import { drawAvisosChao, monstraoNaLista, drawMonstraoObj, drawCarroErguido } from './render_monstrao.js';
 import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado, drawBola, drawParedao, drawOndaParedao } from './render_carreira.js';
@@ -128,6 +129,8 @@ export class Renderer {
     const ppu = cam.ppu;
     const playerPx = settings.playerPct / 100 * (cam.playBottom - cam.playTop);
     const enemyMul = settings.enemyPct / 100;
+    // o Monstrão novo (D65) carrega quando o chefão da Orla se aproxima (Caos na metade) ou já está na tela
+    if (game.world && game.segment !== 'morro' && ((game.boss && game.boss.type === 'monstrao') || caosDoTrecho(game) >= 50)) carregarMonstrao();
     this.enemyMul = enemyMul;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -202,6 +205,7 @@ export class Renderer {
       list.push({ d: p.plat ? cam.depth(p.x, p.plat.y1) + 0.002 : cam.depth(p.x, p.y) - 0.4, k: 'pickup', o: p, z: p.plat ? p.plat.h : 0 });
     }
     for (const e of game.enemies) list.push({ d: entityDepth(cam, e), k: 'enemy', o: e });
+    for (const c of game.corpos || []) list.push({ d: cam.depth(c.x, c.y), k: 'corpo', o: c }); // o Monstrão caído (D65)
     if (game.abertura && game.abertura.fase !== 'feito') {
       for (const c of game.abertura.civis) if (!c.virou) list.push({ d: cam.depth(c.x, c.y), k: 'civil', o: c });
     }
@@ -446,6 +450,25 @@ export class Renderer {
         case 'mobj':
           drawMonstraoObj(ctx, o, pt, ppu, cam.k);
           break;
+        case 'corpo': {
+          // o Monstrão derrubado (D65): a queda em 12 quadros, uns segundos no chão e some
+          const art = ENEMY_ART.monstrao;
+          const C = ENEMIES.monstrao.corpo;
+          const A = walkReady(art.morte[o.v < 2 ? 0 : 1]);
+          if (!A) break;
+          const f = Math.min(11, Math.floor(o.t / C.quadroS));
+          const folha = o.v < 2 ? o.v * 2 + (o.j >= 2 ? 1 : 0) : o.j >= 2 ? 1 : 0;
+          const row = folha * 4 + (o.j % 2) * 2 + (f >= 6 ? 1 : 0);
+          const h = playerPx * ENEMIES.monstrao.size * enemyMul;
+          const spr = this.cache.get(`${A.prefix}_${row}_${f % 6}`, h * (ATLAS.ch / A.figureH), o.furia ? furiaOpts(art, enemyWalkOpts(art)) : enemyWalkOpts(art), true);
+          const fim = 12 * C.quadroS + C.noChaoS;
+          if (spr) {
+            ctx.globalAlpha = o.t > fim ? Math.max(0, 1 - (o.t - fim) / C.someS) : 1;
+            blit(ctx, spr, pt.x, pt.y, false);
+            ctx.globalAlpha = 1;
+          }
+          break;
+        }
         case 'enemy': {
           const def = ENEMIES[o.type];
           const h = playerPx * def.size * enemyMul;
@@ -535,6 +558,31 @@ export class Renderer {
               const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
               const f = o.windup > 0 ? Math.min(2, Math.floor((1 - o.windup / def.throw.windupS) * 3)) : 3;
               spr = this.cache.get(`${A.prefix}_${row}_${f}`, h * (ATLAS.ch / A.figureH), enemyWalkOpts(art));
+              animated = !!spr;
+            }
+          }
+          if (!spr && art && art.walk12 && walk) {
+            // Monstrão novo (D65): caminhada de 12 quadros e, parado entre os golpes, respirando
+            const a12 = walkReady(art.walk12[0]);
+            const b12 = walkReady(art.walk12[1]);
+            if (a12 && b12) {
+              cam.toScreen(o.x + (o.mx ?? game.player.x - o.x), o.y + (o.my ?? game.player.y - o.y), pt2);
+              const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+              if (o.walk !== o.walkAnt) {
+                o.walkAnt = o.walk;
+                o.walkT = game.t;
+              }
+              const par = game.t - (o.walkT ?? -1) > 0.15 ? walkReady(art.parado) : null;
+              let A = par;
+              let f = par ? Math.floor(game.t / ENEMIES.monstrao.paradoQuadroS) % 6 : 0;
+              if (!par) {
+                const f12 = Math.floor((o.walk / (Math.PI * 2)) * 12) % 12; // os mesmos dois passos da caminhada antiga
+                A = f12 < 6 ? a12 : b12;
+                f = f12 % 6;
+              }
+              const wo = o.furia && art.furia ? furiaOpts(art, enemyWalkOpts(art)) : enemyWalkOpts(art);
+              spr = this.cache.get(`${A.prefix}_${row}_${f}`, h * (ATLAS.ch / A.figureH), wo, true) || o.ultimaFig || null;
+              if (spr) o.ultimaFig = spr;
               animated = !!spr;
             }
           }
