@@ -95,10 +95,75 @@ export function drawOrlaGround(r, ctx, game, b) {
     ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
     dirt(ctx, pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y, 0.5);
   });
-  // a avenida não acaba no muro nem na obra: segue para fora da cena, e os carros vão e vêm por ela
+  // a cidade não acaba no muro nem na obra: a avenida (e os carros), a praia e, antes do começo, o calçadão
+  // seguem para fora da cena e somem no escuro. Depois do muro, do lado do morro, só a calçada da avenida
   const m = game.map;
-  avenidaFora(ctx, cam, m, b, Math.max(b.minY, yTop - AVENIDA.foraM), Math.min(b.maxY, yTop), yTop, yTop - AVENIDA.foraM);
-  avenidaFora(ctx, cam, m, b, Math.max(b.minY, yBot), Math.min(b.maxY, yBot + AVENIDA.foraM), yBot, yBot + AVENIDA.foraM);
+  const F = AVENIDA.foraM;
+  const calcadaX = m.avenidaX0 !== undefined ? m.avenidaX0 - AVENIDA.calcadaM : m.sandX;
+  orlaFora(r, ctx, game, b, calcadaX, b.maxX + 6, Math.max(b.minY, yTop - F), Math.min(b.maxY, yTop), yTop, yTop - F);
+  orlaFora(r, ctx, game, b, b.minX - 6, b.maxX + 6, Math.max(b.minY, yBot), Math.min(b.maxY, yBot + F), yBot, yBot + F);
+}
+
+/** O chão da Orla seguindo além de uma ponta, entre x0 e x1 e entre y0 e y1, escurecendo até longeY. */
+function orlaFora(r, ctx, game, b, x0, x1, y0, y1, pertoY, longeY) {
+  if (y1 <= y0) return;
+  const cam = game.camera;
+  cam.toScreen(x0, y0, pt);
+  cam.toScreen(x1, y1, pt2);
+  const x = pt.x;
+  const y = pt.y;
+  const wd = pt2.x - pt.x;
+  const ht = pt2.y - pt.y;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, wd, ht);
+  ctx.clip();
+  drawOrlaOnly(r, ctx, game, { minX: b.minX, maxX: b.maxX, minY: y0, maxY: y1 });
+  ctx.restore();
+}
+
+/**
+ * O escuro do fim da cena além das pontas da Orla, a cada quadro, por cima do chão e do mar (os dois somem
+ * juntos): nada na ponta, quase preto a AVENIDA.foraM dela, e preto daí em diante. Depois do muro do fim, só
+ * do lado da avenida e da praia (o morro é o caminho do jogo).
+ */
+const ESCURO_M = 16;
+export function drawEscuroPontas(ctx, game, vb) {
+  const w = game.world;
+  const m = game.map;
+  if (!w || m.avenidaX0 === undefined) return;
+  const cam = game.camera;
+  const F = AVENIDA.foraM;
+  const x0 = m.avenidaX0 - AVENIDA.calcadaM;
+  // depois do muro, o preto vai só até ESCURO_M além do fim da avenida: mais adiante é a favela do caminho
+  const lados = [
+    [x0, w.orlaTop, -1, w.orlaTop - F - ESCURO_M],
+    [vb.minX - 8, w.orla.y1, 1, vb.maxY + 4],
+  ];
+  for (const [xa, y, s, yFim] of lados) {
+    const yLonge = y + s * F;
+    const ya = s < 0 ? Math.max(yFim, vb.minY - 4) : y;
+    const yb = s < 0 ? y : Math.min(yFim, vb.maxY + 4);
+    if (yb <= ya) continue;
+    if (yb < vb.minY - 4 || ya > vb.maxY + 4) continue;
+    // a conta do chão (metros → tela), com o giro do mapa: o retângulo no mundo vira o da tela
+    cam.toScreen(0, 0, pt);
+    cam.toScreen(1, 0, pt2);
+    const ax = pt2.x - pt.x;
+    const ay = pt2.y - pt.y;
+    cam.toScreen(0, 1, pt2);
+    const bx = pt2.x - pt.x;
+    const by = pt2.y - pt.y;
+    ctx.save();
+    ctx.transform(ax, ay, bx, by, pt.x, pt.y);
+    const g = ctx.createLinearGradient(0, y, 0, yLonge);
+    g.addColorStop(0, 'rgba(30,24,20,0)');
+    g.addColorStop(0.35, 'rgba(30,24,20,0.25)');
+    g.addColorStop(1, 'rgba(30,24,20,0.96)');
+    ctx.fillStyle = g;
+    ctx.fillRect(xa, ya, vb.maxX + 8 - xa, yb - ya);
+    ctx.restore();
+  }
 }
 
 /** Asfalto da avenida da praia entre b.minY e b.maxY: meio-fio dos dois lados, faixa dupla e faixas tracejadas. */
@@ -134,38 +199,6 @@ function drawAvenida(ctx, cam, m, b) {
   linha(cx + 0.12, 'rgba(235,190,40,0.85)', 0.08);
   linha((m.avenidaX0 + cx) / 2, 'rgba(240,236,228,0.6)', 0.08, [ppu * 2, ppu * 2]);
   linha((cx + m.avenidaX1) / 2, 'rgba(240,236,228,0.6)', 0.08, [ppu * 2, ppu * 2]);
-}
-
-/**
- * A avenida seguindo depois do muro do fim da Orla (ou da obra do começo), entre y0 e y1, sumindo no escuro
- * para o lado de fora (pertoY: o muro ou a obra; longeY: a ponta longe). Os carros saem por ela; ninguém
- * mais anda ali.
- */
-function avenidaFora(ctx, cam, m, b, y0, y1, pertoY, longeY) {
-  if (m.avenidaX0 === undefined || y1 <= y0) return;
-  const f = AVENIDA.meioFioM;
-  cam.toScreen(m.avenidaX0 - f, y0, pt);
-  cam.toScreen(m.avenidaX1 + f, y1, pt2);
-  const x = pt.x;
-  const y = pt.y;
-  const wd = pt2.x - pt.x;
-  const ht = pt2.y - pt.y;
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(x, y, wd, ht);
-  ctx.clip();
-  drawAvenida(ctx, cam, m, { minX: b.minX, maxX: b.maxX, minY: y0, maxY: y1 });
-  // some no escuro do morro para o lado de fora
-  cam.toScreen(m.avenidaX0, longeY, pt);
-  const yLonge = pt.y;
-  cam.toScreen(m.avenidaX0, pertoY, pt); // pelas pontas fixas no mundo: os ladrilhos emendam
-  const g = ctx.createLinearGradient(0, pt.y, 0, yLonge);
-  g.addColorStop(0, 'rgba(30,24,20,0)');
-  g.addColorStop(0.35, 'rgba(30,24,20,0.25)');
-  g.addColorStop(1, 'rgba(30,24,20,0.95)');
-  ctx.fillStyle = g;
-  ctx.fillRect(x, y, wd, ht);
-  ctx.restore();
 }
 
 // Chão do Morro com a arte vista de cima (docs/arte/morro_figma/): quanto cada ladrilho cobre, em metros
@@ -722,7 +755,9 @@ export function orlaDecor(game, b, out) {
   const j1 = Math.ceil(b.maxY / SEG) + 1;
   for (let j = j0; j <= j1; j++) {
     const y = j * SEG;
-    if (w && (y < w.orlaTop || y > w.orla.y1)) continue; // decoração da orla só no trecho da orla
+    // decoração da orla só no trecho da orla e um pouco além das pontas (lá, só a da areia: com o mundo da
+    // rota, o lado da cidade são os prédios)
+    if (w && (y < w.orlaTop - AVENIDA.foraM * 0.45 || y > w.orla.y1 + AVENIDA.foraM * 0.45)) continue;
     const street = game.isStreet(y + SEG / 2) || game.isStreet(y);
     // lado do morro: casas da favela em 2 fileiras (com o mundo da rota, os prédios ficam no lugar)
     for (let row = 0; row < (w && w.predios ? 0 : 3); row++) {

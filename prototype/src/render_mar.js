@@ -14,6 +14,7 @@ const PASSO = 0.4; // amostra da beira ao longo da praia (m)
 const CRISTA = 1.5; // distância entre as cristas no mar (m)
 const CRISTA_ENCHENTE = 2.3;
 const MAX_AMOSTRAS = 400;
+const ALEM_MAR = 32; // m: o mar segue além das pontas da Orla até sumir no escuro (mapa.js, drawEscuroPontas)
 
 const fr = (v) => v - Math.floor(v);
 const liso = (u) => u * u * (3 - 2 * u);
@@ -184,8 +185,9 @@ export function drawMar(ctx, game, cam, t, vb, altos) {
   S.t = t;
   S.oy = Math.floor(cam.y);
   if (vb.maxX < S.base - S.amp - 1.2) return; // o mar não aparece
-  const Y0 = Math.max(vb.minY, w ? w.orlaTop : -Infinity);
-  const Y1 = Math.min(vb.maxY, w ? w.orla.y1 : Infinity);
+  // o mar segue um pouco além das pontas da Orla (lá o chão já vai escurecendo; mais longe, só o chão)
+  const Y0 = Math.max(vb.minY, w ? w.orlaTop - ALEM_MAR : -Infinity);
+  const Y1 = Math.min(vb.maxY, w ? w.orla.y1 + ALEM_MAR : Infinity);
   if (Y1 <= Y0) return;
   const n = Math.min(MAX_AMOSTRAS, Math.ceil((Y1 - Y0) / PASSO) + 1);
   for (let i = 0; i < n; i++) {

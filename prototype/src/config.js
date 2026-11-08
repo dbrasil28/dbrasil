@@ -285,6 +285,7 @@ export const AVENIDA = {
   meioFioM: 0.35, // o muro do fim da Orla abre a avenida mais esta folga dos dois lados (o meio-fio)
   foraM: 30, // a avenida segue esses metros depois do muro do fim e da obra do começo; os carros saem por ela
   livreM: 14, // e nenhuma casa da favela fica em cima dela até essa folga além do fim
+  calcadaM: 1.6, // depois do muro do fim, do lado do morro, a calçada da avenida (entre as casas e o meio-fio)
   someM: 12, // os carros somem aos poucos nos últimos metros da avenida, no escuro
   // (o Juninho e a horda não passam: a área de andar acaba no muro)
   modelos: ['fusca', 'brasilia', 'uno'],

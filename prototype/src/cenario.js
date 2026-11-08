@@ -453,6 +453,32 @@ function fachadas(w, map) {
   }
 }
 
+/**
+ * Além das pontas da Orla, a cidade continua (só de enfeite: a área de andar acaba no muro e na obra). Depois
+ * do muro do fim, a praia segue ao lado da avenida; antes do começo, os prédios e a praia. Fica
+ * só o que está fora da Orla e até ALEM_M dela (mais longe, a avenida já sumiu no escuro); sem curas nem
+ * objetos de pegar.
+ */
+const ALEM_M = 14;
+function alemDasPontas(w, map) {
+  const nP = w.props.length;
+  const nH = w.heals.length;
+  const nS = w.slots.length;
+  const nPr = w.predios.length;
+  praia(w, map, ROUTE.orla.blocks + 1);
+  praia(w, map, -1);
+  predios(w, map, -1); // o calçadão de lá fica sem as lojas e os bancos (eles trazem curas e lugares de jogo)
+  const top = w.orlaTop;
+  const bot = w.orla.y1;
+  const fora = (y0, y1) => (y1 < top - 0.3 && y0 > top - ALEM_M) || (y0 > bot + 0.3 && y1 < bot + ALEM_M);
+  const tirar = new Set(w.props.slice(nP).filter((p) => !fora(p.y0, p.y1)));
+  w.props = w.props.filter((p) => !tirar.has(p));
+  w.solids = w.solids.filter((k) => !tirar.has(k));
+  w.heals.length = nH; // nada de cura onde ninguém chega
+  w.slots.length = nS;
+  w.predios = w.predios.filter((pr, i) => i < nPr || fora(pr.y0, pr.y1 + 0.31));
+}
+
 export const SOLID_CELL = 6;
 
 /** Monta o cenário de todo o mundo e os índices por faixa de y (desenho e colisão). */
@@ -466,6 +492,7 @@ export function placeCenario(w, map) {
     calcadao(w, map, b);
     praia(w, map, b);
   }
+  alemDasPontas(w, map); // enfeite além do muro do fim e da obra do começo
   policia(w, map); // antes dos carros: o camburão tem vaga garantida no pé do morro
   for (let s = 0; s <= ROUTE.orla.blocks + 1; s++) rua(w, map, s);
   morro(w);

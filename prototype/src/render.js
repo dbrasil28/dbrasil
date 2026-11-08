@@ -2,7 +2,7 @@
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA } from './config.js';
 import { images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS } from './sprites.js';
-import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto } from './mapa.js';
+import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto, drawEscuroPontas } from './mapa.js';
 import { drawMar } from './render_mar.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
 import { drawCasaFavela } from './render_favela.js';
@@ -138,6 +138,7 @@ export class Renderer {
       this.orla.draw(ctx, game, bounds, this.dpr);
       const altos = game.world ? decorAlto(game, bounds) : null;
       drawMar(ctx, game, cam, game.t, bounds, altos); // a água mexe a cada quadro e fica por baixo do que está em pé
+      drawEscuroPontas(ctx, game, bounds); // além do muro do fim e da obra do começo, chão e mar somem no escuro
       if (altos) drawTallDecor(ctx, game, bounds, altos); // prédios e o que fica em pé, sem inclinar
     } else this.drawGround(ctx, game);
 
