@@ -5,6 +5,7 @@
 import { CENARIO, PLACES, ROUTE, CADEIRA_DIST, PREDIOS, AVENIDA, FIGURANTES } from './config.js';
 import { hash2 } from './math.js';
 import { montarFavela } from './favela.js';
+import { novoFigurante } from './figurantes.js';
 
 const H = hash2;
 
@@ -486,7 +487,8 @@ function alemDasPontas(w, map) {
  */
 function figurantes(w, map) {
   w.figurantes = [];
-  const novo = (tipo, x, y, v, extra = {}) => ({ tipo, x, y, ax: x, ay: y, v, dirX: 0, dirY: 1, walk: 0, anda: false, pausa: v * 3, alvo: null, pose: null, poseT: 0, gritoT: 4 + v * 8, ...extra });
+  w.voltas = [];
+  const novo = novoFigurante;
   w.props = w.props.filter((p) => {
     if (!FIGURAS.has(p.kind)) return true;
     const tipo = p.kind === 'garota' ? 'garota' : p.y < w.orlaTop - 1 ? 'tropa' : 'pm';

@@ -14,6 +14,7 @@ function morro() {
   p.hp = 1e6;
   p.xpNext = 1e9;
   p.weapons.length = 0;
+  g.world.figurantes.length = 0; // a tropa atiraria neles (figurantes.test.mjs cobre o grupo)
   return g;
 }
 

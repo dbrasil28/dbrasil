@@ -355,17 +355,35 @@ export class Renderer {
           const h = playerPx * ENEMIES.telespectador.size * enemyMul;
           cam.toScreen(o.x + o.dirX, o.y + o.dirY, pt2);
           const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+          if (o.grupo) {
+            // do grupo do Juninho: um anel verde no chão
+            ctx.strokeStyle = 'rgba(127,224,138,0.75)';
+            ctx.lineWidth = Math.max(1.5, ppu * 0.06);
+            ctx.beginPath();
+            ctx.ellipse(pt.x, pt.y, ppu * 0.45, ppu * 0.45 * cam.k, 0, 0, Math.PI * 2);
+            ctx.stroke();
+          }
           let spr = null;
+          const fl = o.hurtT > 0;
           if (o.pose && images[`${FA.poses.prefix}_0_0`]) {
-            spr = this.cache.get(`${FA.poses.prefix}_${row}_${FA.poses.col[o.pose]}`, h * (FA.poses.ch / FA.poses.figureH), POSE_OPTS, true);
+            spr = this.cache.get(`${FA.poses.prefix}_${row}_${FA.poses.col[o.pose]}`, h * (FA.poses.ch / FA.poses.figureH), fl ? POSE_FLASH : POSE_OPTS, true);
           }
           if (!spr) {
             const frame = o.anda ? Math.floor((o.walk / (Math.PI * 2)) * 6) % 6 : 1;
-            spr = this.cache.get(`${A.prefix}_${row}_${frame}`, h * (ATLAS.ch / A.figureH), CIVIL_OPTS, true) || o.ultimaFig;
+            spr = this.cache.get(`${A.prefix}_${row}_${frame}`, h * (ATLAS.ch / A.figureH), fl ? CIVIL_FLASH : CIVIL_OPTS, true) || o.ultimaFig;
           }
           if (spr) {
             o.ultimaFig = spr;
             blit(ctx, spr, pt.x, pt.y, false);
+          }
+          if (o.grupo || o.hp < o.maxHp) {
+            // a vida dele, em cima da cabeça
+            const bw = ppu * 0.8;
+            const by = pt.y - h * 1.08;
+            ctx.fillStyle = 'rgba(0,0,0,0.55)';
+            ctx.fillRect(pt.x - bw / 2 - 1, by - 1, bw + 2, 5);
+            ctx.fillStyle = o.hp / o.maxHp > 0.35 ? '#7fe08a' : '#ff6b6b';
+            ctx.fillRect(pt.x - bw / 2, by, bw * Math.max(0, o.hp / o.maxHp), 3);
           }
           break;
         }
@@ -2005,6 +2023,8 @@ function drawBoletoGirando(ctx, z, q, pt, playerPx, t) {
 const dogPt = { x: 0, y: 0 };
 const criseTmp = [];
 const CIVIL_OPTS = { shadowScale: 0.6 };
+const CIVIL_FLASH = { ...CIVIL_OPTS, flash: true }; // figurante levando dano
+const POSE_FLASH = { ...POSE_OPTS, flash: true };
 
 /**
  * Cachorro Caramelo com a arte: caminhada (seguindo), corrida (indo e voltando), mordida e latido em 16 direções.

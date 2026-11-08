@@ -39,31 +39,86 @@ test('andam perto do lugar deles; o picolezeiro vai e volta no trecho dele', () 
   }
 });
 
-test('reagem à horda sem lutar: o policial mira, a garota fica com raiva e, colada, ataca', () => {
+test('se defendem: o policial atira, a garota dá bolsada colada, o picolezeiro congela', () => {
   const g = jogo();
   const w = g.world;
-  const pm = w.figurantes.find((f) => f.tipo === 'pm');
-  const ga = w.figurantes.find((f) => f.tipo === 'garota');
-  g.player.x = pm.x;
-  g.player.y = pm.y + 6;
   const parado = (e) => {
     e.hp = e.maxHp = 1e6;
     e.speed = 0;
     return e;
   };
+  const roda = (n) => {
+    for (let i = 0; i < n; i++) g.update(DT, { x: 0, y: 0 });
+  };
+  const pm = w.figurantes.find((f) => f.tipo === 'pm');
+  g.player.x = pm.x;
+  g.player.y = pm.y + 9; // longe o bastante para não entrar no grupo
   const e1 = parado(g.spawnEnemy('telespectador', pm.x + 5, pm.y - 2));
-  g.update(DT, { x: 0, y: 0 });
-  assert.equal(pm.pose, 'ataque', 'o policial não mirou');
+  roda(40);
+  assert.ok(e1.hp < 1e6, 'o policial não atirou');
   assert.ok(pm.dirX > 0, 'não virou para a horda');
-  assert.equal(e1.hp, 1e6, 'figurante não luta');
-  // longe do Juninho a horda some: a da garota nasce depois que ele chega perto dela
+  const ga = w.figurantes.find((f) => f.tipo === 'garota');
   g.player.x = ga.x;
-  g.player.y = ga.y + 6;
-  const e2 = parado(g.spawnEnemy('telespectador', ga.x + 2.5, ga.y));
+  g.player.y = ga.y + 9;
+  const e2 = parado(g.spawnEnemy('telespectador', ga.x + 3, ga.y));
+  roda(10);
+  assert.equal(e2.hp, 1e6, 'a garota bateu de longe');
+  e2.x = ga.x + 1;
+  e2.y = ga.y;
+  roda(30);
+  assert.ok(e2.hp < 1e6, 'a garota não deu bolsada');
+  const pi = w.figurantes.find((f) => f.tipo === 'picole');
+  g.player.x = pi.x;
+  g.player.y = pi.y + 9;
+  const e3 = parado(g.spawnEnemy('telespectador', pi.x + 3, pi.y));
+  roda(80);
+  assert.ok(e3.hp < 1e6, 'o picolezeiro não jogou picolé');
+});
+
+test('grupo: o Juninho passa perto e eles vêm atrás (até o máximo), lutando junto', () => {
+  const g = jogo();
+  const w = g.world;
+  // quatro garotas na mesma esquina, perto do Juninho: só cabem grupoMax
+  const garotas = w.figurantes.filter((f) => f.tipo === 'garota').slice(0, FIGURANTES.grupoMax + 1);
+  garotas.forEach((ga, k) => {
+    ga.x = ga.ax = -4 + k * 0.4;
+    ga.y = ga.ay = -20;
+  });
+  g.player.x = -3.4;
+  g.player.y = -19.4;
   g.update(DT, { x: 0, y: 0 });
-  assert.equal(ga.pose, 'raiva');
-  e2.x = ga.x + 0.8;
-  g.update(DT, { x: 0, y: 0 });
-  assert.equal(ga.pose, 'ataque');
-  assert.equal(e2.hp, 1e6, 'figurante não luta');
+  const grupo = w.figurantes.filter((f) => f.grupo);
+  assert.equal(grupo.length, FIGURANTES.grupoMax, 'o grupo passou do máximo');
+  // o Juninho anda; o grupo vai atrás
+  for (let i = 0; i < 30 * 6; i++) g.update(DT, { x: 0, y: -1 });
+  for (const f of grupo) assert.ok(Math.hypot(f.x - g.player.x, f.y - g.player.y) < FIGURANTES.segueM + 2.5, `${f.tipo} ficou para trás`);
+});
+
+test('a horda mata um do grupo: ele vira telespectador, e depois outro aparece no lugar dele', () => {
+  const g = jogo();
+  const w = g.world;
+  const ga = w.figurantes.find((f) => f.tipo === 'garota');
+  const lugar = [ga.ax, ga.ay];
+  const n0 = w.figurantes.length;
+  // quase sem vida, com um da horda colado nela
+  g.player.x = ga.x;
+  g.player.y = ga.y + 9;
+  ga.hp = 0.2;
+  const e = g.spawnEnemy('telespectador', ga.x + 0.3, ga.y);
+  e.hp = e.maxHp = 1e6;
+  e.speed = 0;
+  const tele0 = g.enemies.filter((q) => q.type === 'telespectador').length;
+  for (let i = 0; i < 30 && w.figurantes.includes(ga); i++) g.update(DT, { x: 0, y: 0 });
+  assert.ok(!w.figurantes.includes(ga), 'a garota não caiu');
+  assert.equal(g.enemies.filter((e) => e.type === 'telespectador').length, tele0 + 1, 'não virou telespectador');
+  // o Juninho vai embora; depois de um tempo, outra garota no mesmo lugar
+  g.enemies.length = 0;
+  g.player.y = ga.ay - 60;
+  for (let i = 0; i < 30 * (FIGURANTES.voltaS + 2); i++) {
+    g.player.y = ga.ay - 60;
+    g.update(DT, { x: 0, y: 0 });
+  }
+  const volta = w.figurantes.find((f) => f.tipo === 'garota' && f.ax === lugar[0] && f.ay === lugar[1]);
+  assert.ok(volta, 'ninguém voltou para o lugar dela');
+  assert.equal(w.figurantes.length, n0);
 });

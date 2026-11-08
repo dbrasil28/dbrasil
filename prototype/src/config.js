@@ -896,6 +896,8 @@ export const TV = {
   cofre5: ['DEU BICHO! ENTREGADOR TIRA A SORTE GRANDE. BANCA PEDE RECONTAGEM'],
   reliquia_altinha: ['ENTREGADOR ACHA A BOLA DA ALTINHA. A PRAIA INTEIRA PARA PARA OLHAR'],
   reliquia_paredao: ['ENTREGADOR ACHA UM PAREDÃO NA LAJE. O MORRO INTEIRO SENTE O GRAVE'],
+  grupo: ['ENTREGADOR FORMA GRUPO DE SOBREVIVENTES. APP COBRA TAXA POR PASSAGEIRO', 'MAIS UM SE JUNTA AO ENTREGADOR. TV CHAMA DE AGLOMERAÇÃO'],
+  grupoPerdeu: ['SOBREVIVENTE CAI E VIRA TELESPECTADOR. AUDIÊNCIA AGRADECE'],
   chefe: ['CHEFE DO TRÁFICO DECRETA: PIZZA SÓ PASSA COM AUTORIZAÇÃO DA FIRMA'],
   chefeRadio: ['CHEFE CHAMA REFORÇO NO RÁDIO. MORADORES FECHAM AS JANELAS'],
   chefeVencido: ['CHEFE DO TRÁFICO CAI NA LAJE. ENTREGADOR SEGUE COM A PIZZA'],
@@ -973,6 +975,7 @@ export const SOM_GOLPE = {
   capacete: 'golpe', entrega: 'golpe', chinelo: 'tapa', // o capacete usa o golpe gravado (Firefly), mais pesado que o bonk altinha: 'bola', mototaxi: 'atropelo', carro: 'atropelo',
   caramelo: null, microfone: null, gato: null, curto: null, ressaca: null, paredao: null, objeto: null, carimbo: null,
   maleta: null, explosao: null, ressacaOnda: null,
+  grupo_tiro: null, bolsa: null, picole_grupo: null, // o grupo de sobreviventes (o som sai de quem bate)
 };
 // som de quando a habilidade dispara (null: o som vem no impacto)
 export const SOM_ARMA = {
@@ -980,19 +983,32 @@ export const SOM_ARMA = {
   mototaxi: 'moto', microfone: 'megafone', gato: 'gato', carimbo: null, caramelo: null,
 };
 
-// Figurantes (D55): a garota da esquina e o policial do pé do morro (Orla), a tropa nas vielas (Morro) e o
-// picolezeiro andando na areia. São de ambiente: não lutam, não bloqueiam e ninguém bate neles. Passeiam um
-// pouco em volta do lugar deles e reagem à horda chegando (raiva; os policiais miram; colada, a garota e o
-// picolezeiro fazem a pose de ataque). O picolezeiro grita de tempos em tempos.
+// Figurantes e o grupo de sobreviventes (D55, D56): a garota da esquina e o policial do pé do morro (Orla), a
+// tropa nas vielas (Morro) e o picolezeiro andando na areia. Passeiam em volta do lugar deles e se defendem da
+// horda (arma); quando o Juninho passa perto, entram no grupo dele e vão atrás, lutando junto. A horda que
+// encosta tira vida deles; sem vida, viram telespectador. Depois de voltaS, outro aparece no lugar, fora da tela.
 export const FIGURANTES = {
+  grupoMax: 3, // quantos andam com o Juninho
+  entraM: 2.2, // o Juninho passa a essa distância: entra no grupo
+  segueM: 1.7, // o grupo anda em leque atrás dele, a essa distância
+  correMS: 4.6, // correndo atrás do Juninho (m/s)
+  vida: { garota: 90, pm: 140, tropa: 180, picole: 100 },
+  danoRecebidoMul: 0.5, // a horda encostando tira essa fração do dano que tiraria do Juninho
+  arma: {
+    pm: { alcanceM: 7, cadaS: 0.9, dano: 16, empurra: 2 }, // pistola
+    tropa: { alcanceM: 9, cadaS: 0.7, dano: 20, empurra: 2.5 }, // fuzil
+    garota: { alcanceM: 1.4, cadaS: 0.8, dano: 18, empurra: 6 }, // bolsada em quem chega colado
+    picole: { alcanceM: 5, cadaS: 2.4, dano: 6, congelaS: 1.6 }, // picolé que congela
+  },
+  voltaS: 40, // quem caiu volta para o lugar dele depois disso
+  voltaLongeM: 14, // e só longe do Juninho, fora da tela
   passoMS: 0.55, // andando (m/s)
   pausaS: [1.5, 4.5], // parado entre um passeio e outro
   raioM: { garota: 0.9, pm: 0.9, tropa: 0.7 }, // quanto se afastam do lugar deles
   picoleCadaQuarteiroes: 2, // um picolezeiro a cada tanto de quarteirão, onde a areia tem caminho livre
   picoleX: 1.6, // a faixa dele na areia, a partir do começo dela (entre os coqueiros e os guarda-sóis)
   picoleMinM: 8, // o trecho livre mínimo para ele ir e voltar
-  reageM: { garota: 3.5, pm: 8, tropa: 8, picole: 4 }, // a horda chegando
-  pertoM: 1.6, // colada: pose de ataque (garota e picolezeiro)
+  reageM: { garota: 3.5, pm: 8, tropa: 10, picole: 5 }, // a horda chegando, fora do alcance: raiva (o policial mira)
   gritoCadaS: [8, 14], // o picolezeiro grita (pose de raiva)
   gritoS: 1.3,
   grito: 'OLHA O PICOLÉ!',
