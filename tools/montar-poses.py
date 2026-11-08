@@ -6,13 +6,22 @@
 # atlas de caminhada: o boneco andando tem 158 px na célula de 160; a pose agachada tem CROUCH disso.
 # Requer Python 3 com Pillow, numpy e opencv-python.
 # uso: python3 -I tools/montar-poses.py <pacote> prototype/assets/personagens/<pasta> <pasta-nova> <prefixo> ataque furia
+# Poses que mudam muito a altura (agachado, braços para cima) levam a altura da figura inteira em relação
+# ao boneco em pé: agachamento=0.66 levanta=1.22. O gerador desenha toda pose com a mesma altura na
+# célula, então sem isso o agachado sai do tamanho do boneco em pé.
 # Grava poses_atlas.webp e poses_meta.json (colunas, célula e figureH para POSE_ATLAS em sprites.js).
 import sys, os, json
 import numpy as np, cv2
 from PIL import Image, ImageDraw
 
 pkg, dst, work, tag = sys.argv[1:5]
-states = sys.argv[5:]
+rel = {}
+states = []
+for a in sys.argv[5:]:
+    nome, _, r = a.partition('=')
+    states.append(nome)
+    if r:
+        rel[nome] = float(r)
 assert states, 'diga os estados, ex.: ataque furia'
 os.makedirs(dst, exist_ok=True)
 os.makedirs(work, exist_ok=False)
@@ -72,9 +81,12 @@ for c, s in enumerate(states):
     figs = data[s]
     # cabeça-pés / altura total, medido de frente (0°) e de costas (180°)
     ratio = np.mean([(figs[k]['feet'] - figs[k]['head']) / (figs[k]['feet'] - figs[k]['top']) for k in (0, 8)])
-    print(f'{s}: cabeça-pés = {ratio:.2f} da altura total da pose')
+    print(f'{s}: cabeça-pés = {ratio:.2f} da altura total da pose' + (f'; altura dada: {rel[s]} do boneco em pé' if s in rel else ''))
     for r, v in enumerate(figs):
-        scale = WALK_FIG * CROUCH / ((v['feet'] - v['top']) * ratio)
+        if s in rel:
+            scale = WALK_FIG * rel[s] / (v['feet'] - v['top'])
+        else:
+            scale = WALK_FIG * CROUCH / ((v['feet'] - v['top']) * ratio)
         src = v['img'].copy()
         src[:, :, 3] = np.where(v['mask'], src[:, :, 3], 0)
         ys, xs = np.nonzero(v['mask'])

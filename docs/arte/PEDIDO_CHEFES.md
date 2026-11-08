@@ -99,3 +99,12 @@ Flat pure green #00FF00 background, no floor, no shadow, no glow, no text or bra
 ## Depois que chegar
 
 `tools/pacote-figma.py` tira o verde e monta o pacote; `tools/montar-atlas.py` faz o atlas da caminhada e `tools/montar-poses.py` as poses. O ângulo é medido contra o chão do jogo antes de publicar.
+
+## Situação (08/11/2026)
+
+Monstrão gerado no Figma (GPT Image, arquivo do protótipo): as 4 folhas de caminhada, as 7 poses e a anilha. Originais em `personagens_figma/monstrao/`; no jogo, `prototype/assets/personagens/monstrao/` (`caminhada_atlas.webp`, `poses_atlas.webp`, `anilha.webp`).
+
+- No Figma não dá para anexar referência. O que funcionou foi descrever a direção de cada linha ou célula com palavras ("row 1 = facing the camera...", "cell 5 exact right profile...") e a câmera como "slightly high, about 30 degrees above", igual aos prompts do Chefe do Tráfico. Saiu no mesmo ângulo da horda.
+- Na investida, as direções 225° e 247,5° saíram viradas para o lado errado; ficaram com o espelho de 135° e 112,5°.
+- O arremesso com um braço só apontava sempre para o lado; foi refeito com as duas mãos por cima da cabeça, que funciona em toda direção.
+- O gerador desenha toda pose com a mesma altura na célula. Na montagem (`tools/montar-poses.py`), cada pose leva a altura em relação ao boneco em pé: `preparo=0.8 investida=0.95 agachamento=0.66 arremesso=1.12 levanta=1.15 pose=1.02 tonto=0.98`.
