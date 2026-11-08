@@ -183,7 +183,14 @@ export function drawCenaFrente(ctx, game, cam, ppu, playerPx, poucoClarao = fals
     ctx.fillStyle = `rgba(255,250,232,${(poucoClarao ? 0.3 : 0.9) * (1 - d / 0.4)})`; // menos clarão se pedido nas opções
     ctx.fillRect(-20, -20, cam.viewW + 40, cam.viewH + 40);
   }
-  // a faixa com o nome da relíquia e da super
+}
+
+/** A faixa com o nome da relíquia e da super, fixa na tela (fora do zoom). */
+export function drawFaixaCena(ctx, game, cam) {
+  const C = game.cena;
+  const S = SUPER.cena;
+  const d = C.t - S.chegaS;
+  if (d < 0) return;
   const R = RELIQUIAS[C.id];
   const fim = S.durS - S.chegaS;
   const alfa = clamp01(d / 0.12) * clamp01((fim - d) / 0.35);

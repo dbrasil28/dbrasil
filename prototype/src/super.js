@@ -89,6 +89,19 @@ export function alturaNaCena(game) {
   return S.alturaM * (1 - ease(Math.min(1, (t - S.chegaS) / (S.durS - S.chegaS))));
 }
 
+/** Zoom da câmera na cena (só desenho, D69): chega perto enquanto ele sobe, tranco no estouro, volta na descida. */
+export function zoomNaCena(game) {
+  const C = game.cena;
+  if (!C) return 1;
+  const S = SUPER.cena;
+  const t = C.t;
+  if (t < S.chegaS) return 1 + (S.zoom - 1) * ease(Math.min(1, t / S.zoomS));
+  const d = t - S.chegaS;
+  if (d < S.trancoS) return S.zoom + S.tranco * (1 - d / S.trancoS);
+  const k = Math.min(1, (d - S.trancoS) / (S.durS - S.chegaS - S.trancoS));
+  return S.zoom - (S.zoom - 1) * (k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2);
+}
+
 // ---------- carga e uso ----------
 
 /** A carta está cheia e dá para usar agora. */

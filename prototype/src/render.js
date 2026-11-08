@@ -15,8 +15,8 @@ import { caosDoTrecho } from './carreira.js';
 import { drawCriseChao, drawCriseCeu, escondidoDeDia } from './render_crises.js';
 import { drawAvisosChao, monstraoNaLista, drawMonstraoObj, drawCarroErguido } from './render_monstrao.js';
 import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado } from './render_carreira.js';
-import { drawCenaFundo, drawCenaFrente, drawGolaco, drawBatidao, drawOndasBatidao, drawNotaDanca, drawFachoReliquia } from './render_super.js';
-import { alturaNaCena } from './super.js';
+import { drawCenaFundo, drawCenaFrente, drawFaixaCena, drawGolaco, drawBatidao, drawOndasBatidao, drawNotaDanca, drawFachoReliquia } from './render_super.js';
+import { alturaNaCena, zoomNaCena } from './super.js';
 import {
   entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace,
   drawAim, drawBullet, drawHeal,
@@ -153,6 +153,16 @@ export class Renderer {
       this.shakeAmp *= 0.88;
     }
     ctx.translate(sx, sy);
+    const zoom = game.cena ? zoomNaCena(game) : 1;
+    if (zoom !== 1) {
+      // cena da relíquia (D69): a câmera chega perto do Juninho no ar (a tela inteira, em volta do peito dele)
+      cam.toScreen(game.player.x, game.player.y, pt);
+      const zx = pt.x;
+      const zy = pt.y - ((game.player.z || 0) + alturaNaCena(game)) * ppu - playerPx * 0.5;
+      ctx.translate(zx, zy);
+      ctx.scale(zoom, zoom);
+      ctx.translate(-zx, -zy);
+    }
 
     if (game.map.bounded) {
       cam.visibleWorldBounds(1, bounds);
@@ -756,6 +766,9 @@ export class Renderer {
       pt.y -= game.player.z * ppu;
       this.drawPlayer(ctx, game, pt, playerPx, 1);
       drawCenaFrente(ctx, game, cam, ppu, playerPx, !!settings.reduceFlashes);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // fora do zoom: a faixa e o resto fixos na tela
+      ctx.translate(sx, sy);
+      drawFaixaCena(ctx, game, cam);
     }
     if (this.flashT > 0) {
       this.flashT -= perf.dt;

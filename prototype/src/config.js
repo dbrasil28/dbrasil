@@ -596,10 +596,11 @@ export const RELIQUIAS = {
 // segundos (elite eliteS, chefão chefeS). Não carrega enquanto a super está ativa. Nada de anúncio ou compra.
 // A cena de achar a relíquia: o tempo para, o Juninho sobe alturaM em sobeS, a relíquia voa do esconderijo e
 // entra nele em chegaS; aí o estouro (luz, som, onda que empurra quem está até raioM) e o jogo volta, com ele
-// descendo devagar até durS, sem levar dano.
+// descendo devagar até durS, sem levar dano. A câmera chega perto dele (zoom, D69): enche em zoomS, dá um
+// tranco a mais no estouro e volta ao normal na descida.
 export const SUPER = {
   cargaS: 75, abateS: 0.04, eliteS: 3, chefeS: 15,
-  cena: { durS: 3.0, sobeS: 0.55, voaS: 0.3, chegaS: 1.55, alturaM: 1.3, raioM: 8, dano: 60, empurra: 18 },
+  cena: { durS: 3.0, sobeS: 0.55, voaS: 0.3, chegaS: 1.55, alturaM: 1.3, raioM: 8, dano: 60, empurra: 18, zoom: 1.6, zoomS: 0.9, tranco: 0.14, trancoS: 0.25 },
 };
 // pista da relíquia (D67): o facho de luz dourado que sobe do esconderijo, visto até fachoM; fora da tela,
 // a claridade dourada na beira da tela, do lado dela
