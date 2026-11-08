@@ -5,6 +5,7 @@
 // Sem DOM e sem o sorteio da partida: o atraso de cada carro sai do lugar dele.
 import { REACOES } from './config.js';
 import { FX } from './efeitos_arte.js';
+import { ferirFigurantes } from './figurantes.js';
 import { lowerBound } from './cenario.js';
 
 const R = REACOES;
@@ -111,6 +112,7 @@ function explodirCarro(game, c) {
   }
   const p = game.player;
   if (!game.over && (p.x - cx) ** 2 + (p.y - cy) ** 2 < (raio * 0.8) ** 2 && !(p.z > 1)) game.hurtPlayer(C.danoJuninho, 'carro_explode');
+  ferirFigurantes(game, cx, cy, raio * 0.8, C.danoJuninho * 2); // quem estiver perto do carro também
   // fogo de verdade, como a maleta
   game.efeito('explosao', cx, cy, { tam: raio * 2.6, z: raio * 0.38 });
   game.efeito('explosao_fumaca', cx, cy, { tam: raio * 2.5, z: raio * 0.42, delay: 0.55, de: 3, entra: 0.4, sobe: 0.45 });

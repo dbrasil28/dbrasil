@@ -1005,12 +1005,15 @@ export const FIGURANTES = {
   entraM: 2.2, // o Juninho passa a essa distância: entra no grupo
   segueM: 1.7, // o grupo anda em leque atrás dele, a essa distância
   correMS: 4.6, // correndo atrás do Juninho (m/s)
-  vida: { garota: 90, pm: 140, tropa: 180, picole: 100 },
-  danoRecebidoMul: 0.5, // a horda encostando tira essa fração do dano que tiraria do Juninho
+  vida: { garota: 75, pm: 110, tropa: 140, picole: 85 }, // eram 90, 140, 180 e 100: aguentavam a partida inteira
+  danoRecebidoMul: 1.0, // a horda encostando tira essa fração do dano que tiraria do Juninho (era 0,5: ninguém caía)
+  aggroM: 4, // quem da horda está a essa distância de um parceiro, e mais perto dele que do Juninho, vai nele
+  agarraM: 0.3, // a horda agarra o parceiro um pouco antes de encostar (ele não foge como o Juninho)
+  atropeloMul: 2, // o carro da avenida tira do figurante o dobro do que tira do Juninho
   arma: {
-    pm: { alcanceM: 7, cadaS: 0.9, dano: 16, empurra: 2 }, // pistola
-    tropa: { alcanceM: 9, cadaS: 0.7, dano: 20, empurra: 2.5 }, // fuzil
-    garota: { alcanceM: 1.4, cadaS: 0.8, dano: 18, empurra: 6 }, // bolsada em quem chega colado
+    pm: { alcanceM: 7, cadaS: 0.9, dano: 12, empurra: 0.6 }, // pistola
+    tropa: { alcanceM: 9, cadaS: 0.7, dano: 14, empurra: 0.8 }, // fuzil
+    garota: { alcanceM: 1.4, cadaS: 0.8, dano: 18, empurra: 2.5 }, // bolsada em quem chega colado
     picole: { alcanceM: 5, cadaS: 2.4, dano: 6, congelaS: 1.6 }, // picolé que congela
   },
   voltaS: 40, // quem caiu volta para o lugar dele depois disso

@@ -9,6 +9,7 @@
 import { ENEMIES, REACOES } from './config.js';
 import { explosaoPerto } from './reacoes.js';
 import { pathIndex } from './mundo.js';
+import { ferirFigurantes } from './figurantes.js';
 
 const tmp = [];
 const mov = { x: 0, y: 0, vel: 1 };
@@ -125,6 +126,13 @@ function investida(game, e, D, f, dt) {
     const lado = (o.x - e.x) * -e.dirY + (o.y - e.y) * e.dirX >= 0 ? 1 : -1;
     game.damageEnemy(o, I.hordaDano, 'monstrao', (e.dirX - e.dirY * lado) * I.voo, (e.dirY + e.dirX * lado) * I.voo, true);
   }
+  // quem do grupo estiver no caminho leva a ombrada também
+  for (const f of (game.world && game.world.figurantes) || []) {
+    if ((e.atropelouF ||= new Set()).has(f) || Math.hypot(f.x - e.x, f.y - e.y) > e.r + f.r + 0.2) continue;
+    e.atropelouF.add(f);
+    f.hp -= I.dano;
+    f.hurtT = 0.2;
+  }
   // pega o Juninho uma vez por investida
   if (!e.acertou && Math.hypot(p.x - e.x, p.y - e.y) < e.r + (p.r || 0.3) + 0.2) {
     e.acertou = true;
@@ -186,6 +194,7 @@ function socoNoChao(game, e, D, f) {
   const A = D.agacha;
   const p = game.player;
   const dp = Math.hypot(p.x - e.x, p.y - e.y);
+  ferirFigurantes(game, e.x, e.y, A.raioM, A.dano);
   if (dp < A.raioM + (p.r || 0.3)) {
     game.hurtPlayer(A.dano, 'monstrao');
     const l = dp || 1;
@@ -240,6 +249,7 @@ function atualizarObjs(game, D, dt) {
       o.y += o.dy * s;
       o.dist += s;
       o.giro += (s / N.raioM) * (o.dx >= 0 ? 1 : -1);
+      if (!o.feriu && ferirFigurantes(game, o.x, o.y, N.raioM, N.dano)) o.feriu = true; // a anilha atropela um só
       if (Math.hypot(p.x - o.x, p.y - o.y) < N.raioM + (p.r || 0.3)) {
         game.hurtPlayer(N.dano, 'monstrao');
         empurraJuninho(game, o.dx, o.dy, 0.8);
@@ -269,6 +279,7 @@ function atualizarObjs(game, D, dt) {
       if (u >= 1) {
         fora = true;
         if (Math.hypot(p.x - o.tx, p.y - o.ty) < C.raioM + (p.r || 0.3)) game.hurtPlayer(C.dano, 'monstrao');
+        ferirFigurantes(game, o.tx, o.ty, C.raioM, C.dano);
         game.hash.query(o.tx, o.ty, C.raioM + 0.5, tmp);
         for (const e of tmp) {
           if (e.dead || e.boss) continue;
@@ -361,6 +372,7 @@ export function updateMonstrao(game, e, dt, ux, uy) {
         e.percorrido = 0;
         e.acertou = false;
         e.atropelou = new Set();
+        e.atropelouF = new Set();
         e.quiques = D.investida.quiques[f];
         game.word(e.x, e.y - 1.5, 'RAAA!', '#ff5a3c');
         game.som('investida', e.x, e.y);

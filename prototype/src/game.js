@@ -5,7 +5,7 @@ import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO,
+  ROUTE, INTERACT, THROWABLES, FIGURANTES, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO,
   SOM_GOLPE, SOM_ARMA,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
@@ -15,7 +15,7 @@ import { updateCrises, criseLentidao } from './crises.js';
 import { emHorda, iniciarHorda, updateHorda, durezaHorda } from './horda.js';
 import { updateMonstrao, limparMonstrao } from './monstrao.js';
 import { updateCracudo, updateTrombadinha, trombada, devolveXp } from './morro_inimigos.js';
-import { updateFigurantes } from './figurantes.js';
+import { updateFigurantes, ferirFigurantes } from './figurantes.js';
 import { arrancavelPerto, arrancar, updateArrancados } from './arrancar.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
@@ -1191,6 +1191,11 @@ export class Game {
   updateEnemies(dt) {
     const p = this.player;
     const recycle2 = (Math.max(this.camera.viewW, this.camera.viewH) / this.camera.ppu) ** 2 * 1.4;
+    // parceiros do grupo (D56): a horda também vai neles, senão ninguém cai
+    const parceiros = this.parceirosTmp || (this.parceirosTmp = []);
+    parceiros.length = 0;
+    if (this.world && this.world.figurantes && !p.plat) for (const f of this.world.figurantes) if (f.grupo) parceiros.push(f);
+    const aggro2 = FIGURANTES.aggroM ** 2;
     for (const e of this.enemies) {
       if (e.dead) continue;
       if (e.flash > 0) e.flash -= dt;
@@ -1268,6 +1273,18 @@ export class Game {
           routeTarget(this.world, e, tx, ty, p.ri, rt);
           tx = rt.x;
           ty = rt.y;
+        }
+      }
+      if (parceiros.length && !e.boss && !e.plat && !e.chamado && e.behavior !== 'ranged') {
+        // mais perto de um parceiro que do Juninho: vai no parceiro
+        let pd = Math.min(aggro2, (p.x - e.x) ** 2 + (p.y - e.y) ** 2);
+        for (const f of parceiros) {
+          const d2 = (f.x - e.x) ** 2 + (f.y - e.y) ** 2;
+          if (d2 < pd) {
+            pd = d2;
+            tx = f.x;
+            ty = f.y;
+          }
         }
       }
       e.tgx = tx; // alvo do quadro: quem bate na casa contorna pela quina mais curta até ele (mundo.js)
@@ -1794,6 +1811,7 @@ export class Game {
       this.tv('botijao', 25);
       const p = this.player;
       if ((p.x - pr.x) ** 2 + (p.y - pr.y) ** 2 < T.radius * T.radius) this.hurtPlayer(T.selfDmg, 'botijao');
+      ferirFigurantes(this, pr.x, pr.y, T.radius, T.selfDmg * 2);
     }
   }
 
@@ -1861,6 +1879,16 @@ export class Game {
         this.shake(0.4);
         this.tv('atropelado', 30);
         this.clampToMap(p);
+      }
+      // atropelou um figurante (do grupo ou não): o carro não para
+      for (const f of (this.world && this.world.figurantes) || []) {
+        if (Math.abs(f.x - c.x) < hx + f.r && Math.abs(f.y - c.y) < hy + f.r && !(f.carroT > this.t)) {
+          f.carroT = this.t + A.hordaInvulnS;
+          f.hp -= A.dano * FIGURANTES.atropeloMul;
+          f.hurtT = 0.2;
+          f.x += (f.x < c.x ? -1 : 1) * A.empurraoM;
+          this.som('atropelo', f.x, f.y);
+        }
       }
       // atropelou a horda
       this.hash.query(c.x, c.y, hy + 1, tmp);
@@ -1944,6 +1972,16 @@ export class Game {
       s.spin += dt * 8;
       const rr = s.r + p.r;
       let remove = s.life <= 0;
+      // a bala do traficante (e a papelada) pega o figurante que estiver no caminho
+      if (!remove && this.world && this.world.figurantes) {
+        for (const f of this.world.figurantes) {
+          if ((s.x - f.x) ** 2 + (s.y - f.y) ** 2 > (s.r + f.r) ** 2) continue;
+          f.hp -= s.kind === 'bala' ? s.dmg : ENEMIES.burocrata.shot.dmg;
+          f.hurtT = 0.2;
+          remove = true;
+          break;
+        }
+      }
       if (!remove && !this.over && s.kind === 'bala' && (s.x - p.x) ** 2 + (s.y - p.y) ** 2 < rr * rr) {
         this.hurtPlayer(s.dmg, 'traficante');
         remove = true;

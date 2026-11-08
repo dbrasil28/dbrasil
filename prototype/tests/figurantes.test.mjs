@@ -148,3 +148,20 @@ test('abertura: ninguém entra no grupo antes de a horda atacar; depois, entra',
   g.update(DT, { x: 0, y: 0 });
   assert.ok(ga.grupo, 'depois da abertura, não entrou no grupo');
 });
+
+test('a horda vai no parceiro que está mais perto dela, e o perigo em área pega o grupo também', async () => {
+  const { ferirFigurantes } = await import('../src/figurantes.js');
+  const g = jogo();
+  const w = g.world;
+  const ga = w.figurantes.find((f) => f.tipo === 'garota');
+  ga.grupo = true;
+  g.player.x = ga.x;
+  g.player.y = ga.y + 6;
+  const e = g.spawnEnemy('telespectador', ga.x + 3, ga.y - 0.5);
+  e.hp = e.maxHp = 1e6;
+  g.update(DT, { x: 0, y: 0 });
+  assert.ok(Math.hypot(e.tgx - ga.x, e.tgy - ga.y) < 1, 'a horda não foi no parceiro mais perto');
+  const hp = ga.hp;
+  assert.equal(ferirFigurantes(g, ga.x + 1, ga.y, 1.5, 10), 1);
+  assert.equal(ga.hp, hp - 10);
+});

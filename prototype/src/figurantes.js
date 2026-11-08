@@ -19,6 +19,24 @@ export function novoFigurante(tipo, x, y, v, extra = {}) {
   };
 }
 
+/**
+ * Perigo em área (explosão, tiro, carro, golpe do Monstrão) pega também os figurantes: tira `dano` de quem
+ * está a até `r` de (x, y). Quem fica sem vida cai no próximo quadro (vira telespectador). Devolve quantos.
+ */
+export function ferirFigurantes(game, x, y, r, dano) {
+  const w = game.world;
+  if (!w || !w.figurantes) return 0;
+  let n = 0;
+  for (const f of w.figurantes) {
+    const rr = r + f.r;
+    if ((f.x - x) ** 2 + (f.y - y) ** 2 > rr * rr) continue;
+    f.hp -= dano;
+    f.hurtT = 0.2;
+    n++;
+  }
+  return n;
+}
+
 export const noGrupo = (game) => (game.world && game.world.figurantes ? game.world.figurantes.filter((f) => f.grupo).length : 0);
 
 /** A horda mais perto até r (ou null). */
@@ -71,7 +89,10 @@ function cai(game, f) {
   game.spawnEnemy('telespectador', f.x, f.y);
   game.word(f.x, f.y - 1.4, 'VIROU TELESPECTADOR!', '#ff6b6b');
   game.som('acorda', f.x, f.y);
-  if (f.grupo) game.tv('grupoPerdeu', 20);
+  if (f.grupo) {
+    game.tv('grupoPerdeu', 20);
+    game.metrics.parceirosCaidos = (game.metrics.parceirosCaidos || 0) + 1;
+  }
   w.voltas.push({ tipo: f.tipo, ax: f.ax, ay: f.ay, v: f.v, ya: f.ya, yb: f.yb, t: F.voltaS });
   w.figurantes.splice(w.figurantes.indexOf(f), 1);
 }
@@ -92,6 +113,7 @@ export function updateFigurantes(game, dt) {
   }
   let grupo = 0;
   for (const f of w.figurantes) if (f.grupo) grupo++;
+  if (grupo) game.metrics.grupoS = (game.metrics.grupoS || 0) + grupo * dt; // parceiro × segundo (para o bot medir)
   // o grupo anda em leque atrás do Juninho
   const tras = Math.atan2(-(p.faceY || 0), -(p.faceX || 1));
   let vaga = 0;
@@ -108,7 +130,7 @@ export function updateFigurantes(game, dt) {
     game.hash.query(f.x, f.y, f.r + 1, tmp);
     for (const e of tmp) {
       if (e.dead || e.dmg <= 0) continue;
-      const rr = f.r + e.r + 0.05;
+      const rr = f.r + e.r + F.agarraM;
       if ((e.x - f.x) ** 2 + (e.y - f.y) ** 2 > rr * rr) continue;
       f.hp -= e.dmg * dt * F.danoRecebidoMul;
       f.hurtT = 0.12;
@@ -127,6 +149,7 @@ export function updateFigurantes(game, dt) {
       game.word(f.x, f.y - 1.4, '+1 NO GRUPO', '#7fe08a');
       game.som('pega', f.x, f.y);
       game.tv('grupo', 25);
+      game.metrics.parceirosEntraram = (game.metrics.parceirosEntraram || 0) + 1;
     }
     // luta com quem está no alcance; com a horda chegando, fica com raiva (o policial já mira)
     const A = F.arma[f.tipo];
