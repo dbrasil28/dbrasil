@@ -100,6 +100,12 @@ export const ARQUIVOS = {
   explosao: ['assets/sons/explosao_1.mp3', 'assets/sons/explosao_2.mp3', 'assets/sons/explosao_3.mp3'],
   grito_funkeiro: ['assets/sons/grito_funkeiro_1.mp3', 'assets/sons/grito_funkeiro_2.mp3', 'assets/sons/grito_funkeiro_3.mp3'],
   amb_orla: ['assets/sons/amb_orla_1.mp3'], // estéreo, 30 s, emenda no começo
+  // CC0, segunda rodada da sala de som (aprovados pelo autor em 08/11/2026)
+  xp: ['assets/sons/xp_1.mp3', 'assets/sons/xp_2.mp3'],
+  gorjeta: ['assets/sons/gorjeta_1.mp3', 'assets/sons/gorjeta_2.mp3', 'assets/sons/gorjeta_3.mp3'],
+  acorda: ['assets/sons/acorda_1.mp3', 'assets/sons/acorda_2.mp3'],
+  tiro: ['assets/sons/tiro_1.mp3', 'assets/sons/tiro_2.mp3'],
+  soco_chao: ['assets/sons/soco_chao_1.mp3', 'assets/sons/soco_chao_2.mp3'],
 };
 
 /** Amostras do som (Float32Array, pico em 0,9). Sem navegador: dá para conferir nos testes. */

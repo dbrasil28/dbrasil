@@ -5,7 +5,9 @@ O jogo já toca todos os sons abaixo (60), mas com versões provisórias feitas 
 - `golpe`: 5 variações, Firefly, 08/11/2026; é também o som do capacete acertando.
 - CC0 do OpenGameArt, aprovados pelo autor em 08/11/2026: `tapa`, `morte_horda`, `gemido`, `dano`, `morte`, `grito_funkeiro`, `quebra_madeira`, `quebra_plastico`, `baque`, `explosao` e `amb_orla`.
 
-O autor pediu outra opção para `xp`, `gorjeta`, `nivel`, `acorda`, `mira`, `tiro`, `urro`, `soco_chao` e `latido`.
+- CC0 do OpenGameArt, segunda rodada (08/11/2026): `xp`, `gorjeta`, `acorda`, `tiro` e `soco_chao`.
+
+Nas duas rodadas o autor recusou todas as opções de `nivel`, `mira`, `urro`, `latido` e `lataria`; seguem com o provisório.
 
 ## Como gerar
 
