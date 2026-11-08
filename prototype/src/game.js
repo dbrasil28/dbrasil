@@ -1331,6 +1331,7 @@ export class Game {
             const ay = e.ay - e.y;
             const al = Math.hypot(ax, ay) || 1;
             this.enemyShots.push({ kind: 'bala', x: e.x, y: e.y, vx: (ax / al) * b.speed, vy: (ay / al) * b.speed, life: b.life, r: b.radius, dmg: b.dmg, spin: 0 });
+            this.clarao(e, ax / al, ay / al);
             e.throwT = 0.2;
           }
         } else if (d < def.range && !this.over) {
@@ -1377,6 +1378,7 @@ export class Game {
             const k = tiros - e.burst;
             const a = Math.atan2(e.ay - e.y, e.ax - e.x) + (k - (tiros - 1) / 2) * def.rajada.abertura;
             this.enemyShots.push({ kind: 'bala', x: e.x, y: e.y, vx: Math.cos(a) * b.speed, vy: Math.sin(a) * b.speed, life: b.life, r: b.radius, dmg: b.dmg, spin: 0 });
+            this.clarao(e, Math.cos(a), Math.sin(a));
             e.burst--;
             e.burstT = def.rajada.intervaloS;
             e.throwT = 0.3;
@@ -1871,11 +1873,19 @@ export class Game {
     this.finish('victory');
   }
 
+  /** Clarão na boca do fuzil (só visual), virado para o lado do tiro, e a luz dele no chão. */
+  clarao(e, dx, dy) {
+    this.efeito('clarao_tiro', e.x, e.y, { alvo: e, dx, dy });
+    this.efeito('luz', e.x + dx * 0.6, e.y + dy * 0.6, { dur: 0.16, tam: 3.2, cor: '255,190,110' });
+  }
+
   /** Traficante viu o Juninho: fogos no céu e moradores hipnotizados chegando. */
   fogos(e) {
     const def = ENEMIES.traficante;
     this.emit('fogos', { x: e.x, y: e.y });
     this.tv('fogos', 20);
+    this.efeito('fogos', e.x, e.y);
+    this.efeito('luz', e.x, e.y, { delay: 0.45, dur: 1.1, tam: 12, cor: '255,170,90' }); // o estouro clareia a rua
     const parts = this.fx.particles;
     for (let i = 0; i < 18 && parts.length < 260; i++) {
       const a = (i / 18) * Math.PI * 2;

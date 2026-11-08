@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
-import { ACHADOS } from '../src/config.js';
+import { ACHADOS, RELIQUIAS } from '../src/config.js';
 
 const DT = 1 / 30;
 const parado = { x: 0, y: 0 };
@@ -27,16 +27,63 @@ const chegar = (g, a) => {
   }
 };
 
-test('cada partida da Orla tem isopores, dois cofres e a relíquia, sempre a Bola da Altinha na torre', () => {
+test('cada partida tem isopores, dois cofres e uma relíquia por trecho, sempre no mesmo lugar', () => {
   const g = jogo();
   const n = (k) => g.achados.filter((a) => a.kind === k).length;
   assert.equal(n('isopor'), ACHADOS.isopores);
   assert.equal(n('cofre'), 2);
-  assert.equal(n('reliquia'), 1);
-  const r = g.achados.find((a) => a.kind === 'reliquia');
+  assert.equal(n('reliquia'), 2);
+  const r = g.achados.find((a) => a.reliquia === 'altinha');
   assert.equal(r.onde, 'torre');
-  const r2 = jogo().achados.find((a) => a.kind === 'reliquia');
-  assert.deepEqual([r.x, r.y], [r2.x, r2.y], 'a relíquia mudou de lugar');
+  const m = g.achados.find((a) => a.reliquia === 'paredao');
+  assert.equal(m.onde, 'laje');
+  assert.ok(m.plat && m.plat.kind === 'laje_casa' && m.y < g.world.orlaTop, 'o paredão não está numa casa do morro');
+  const g2 = jogo();
+  for (const id of ['altinha', 'paredao']) {
+    const a = g.achados.find((x) => x.reliquia === id);
+    const b = g2.achados.find((x) => x.reliquia === id);
+    assert.deepEqual([a.x, a.y], [b.x, b.y], `a relíquia ${id} mudou de lugar`);
+  }
+});
+
+test('relíquia do Morro: o Paredão de Som vai atrás do Juninho e a onda do grave empurra a horda', () => {
+  const g = jogo();
+  g.segment = 'morro'; // já subiu (a chegada no morro recomeça o trecho e tira a relíquia da Orla)
+  g.world.gateOpen = true;
+  const a = g.achados.find((x) => x.reliquia === 'paredao');
+  chegar(g, a);
+  g.update(DT, parado);
+  assert.equal(g.player.reliquia, 'paredao');
+  const cx = g.projectiles.find((o) => o.kind === 'paredao');
+  assert.ok(cx, 'sem o paredão');
+  // desce e anda: o carrinho vai atrás, sem encostar
+  g.player.plat = null;
+  g.player.lvl = 0;
+  g.player.z = 0;
+  g.player.x = a.plat.stair.x0;
+  g.player.y = a.plat.stair.y1 + 4;
+  for (let i = 0; i < 60; i++) g.update(DT, parado);
+  const d = Math.hypot(cx.x - g.player.x, cx.y - g.player.y);
+  assert.ok(d < RELIQUIAS.paredao.segueM + 0.3 && d > RELIQUIAS.paredao.segueM - 0.3, `o carrinho ficou a ${d.toFixed(2)} m`);
+  // horda em volta do carrinho: a onda bate em quem está no alcance e empurra para fora
+  const perto = [];
+  for (let i = 0; i < 6; i++) {
+    const ang = (i / 6) * Math.PI * 2;
+    const e = g.spawnEnemy('telespectador', cx.x + Math.cos(ang) * 3, cx.y + Math.sin(ang) * 3);
+    e.hp = e.maxHp = 1e5;
+    e.speed = 0;
+    perto.push({ e, d0: 3 });
+  }
+  const longe = g.spawnEnemy('telespectador', cx.x + RELIQUIAS.paredao.raioM + 3, cx.y);
+  longe.hp = longe.maxHp = 1e5;
+  longe.speed = 0;
+  cx.cd = 0;
+  for (let i = 0; i < 20; i++) g.update(DT, parado);
+  for (const { e } of perto) assert.ok(e.hp < 1e5, 'a onda não bateu');
+  // empurrados para fora (quem está encostado numa parede fica onde está)
+  const longeDele = perto.filter(({ e, d0 }) => Math.hypot(e.x - cx.x, e.y - cx.y) > d0 + 1).length;
+  assert.ok(longeDele >= 4, `só ${longeDele} de 6 foram empurrados`);
+  assert.equal(longe.hp, 1e5, 'a onda passou do alcance');
 });
 
 test('isopor: encostar dá gorjeta e um pouco de vida', () => {

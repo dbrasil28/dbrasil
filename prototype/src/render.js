@@ -13,7 +13,7 @@ import {
 import { drawMinimap } from './minimapa.js';
 import { drawCriseChao, drawCriseCeu, escondidoDeDia } from './render_crises.js';
 import { drawAvisosChao, monstraoNaLista, drawMonstraoObj, drawCarroErguido } from './render_monstrao.js';
-import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado, drawBola } from './render_carreira.js';
+import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado, drawBola, drawParedao, drawOndaParedao } from './render_carreira.js';
 import {
   entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace,
   drawAim, drawBullet, drawHeal,
@@ -173,6 +173,7 @@ export class Renderer {
 
     precarregarFx(game);
     drawFxChao(ctx, game, cam, ppu); // efeitos com arte deitados no chão e a luz que eles jogam na rua
+    drawOndaParedao(ctx, game, cam, ppu); // a onda do grave do Paredão de Som
     this.drawZones(ctx, game, ppu, playerPx);
     drawAvisosChao(ctx, game, cam, game.t); // golpes do Monstrão: aviso no chão e o anel de choque
     if (game.world) {
@@ -1695,6 +1696,10 @@ function drawProjectile(ctx, o, pt, ppu, cam, playerPx) {
     drawBola(ctx, pt.x, pt.y, Math.max(5, 0.24 * ppu), o.fase * 0.7, o.alt * ppu);
     return;
   }
+  if (o.kind === 'paredao') {
+    drawParedao(ctx, pt.x, pt.y, playerPx, o.pulso, o.lado, o.cd);
+    return;
+  }
   if (o.kind === 'moto') {
     // mototáxi provisório: moto vista de 3/4 com o piloto de colete, rastro de velocidade
     const s = playerPx;
@@ -2308,6 +2313,20 @@ export function drawIcon(g, kind, S) {
       g.lineWidth = Math.max(1.5, S * 0.04);
       g.stroke();
       break;
+    case 'paredao': {
+      // Paredão de Som (relíquia), sem a arte: a caixa com dois falantes
+      g.fillStyle = '#1d1b1f';
+      g.fillRect(S * 0.28, S * 0.1, S * 0.44, S * 0.8);
+      g.strokeStyle = '#ff3cc8';
+      g.strokeRect(S * 0.28, S * 0.1, S * 0.44, S * 0.8);
+      g.fillStyle = '#4a4650';
+      for (const yy of [0.32, 0.66]) {
+        g.beginPath();
+        g.arc(c, S * yy, S * 0.15, 0, Math.PI * 2);
+        g.fill();
+      }
+      break;
+    }
     case 'altinha': {
       // Bola da Altinha (relíquia)
       g.fillStyle = '#f4f2ea';

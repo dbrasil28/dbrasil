@@ -2,6 +2,8 @@
 
 O `PEDIDO_FAVELA.md` é o pedido inteiro. Quase tudo dele já chegou e está no jogo: as casas, a casa com laje, as fachadas, os barracos, os objetos, os seis moradores, o Cracudo, o Trombadinha e o Mototaxista. Só falta o que está abaixo, por ordem de importância.
 
+**Situação (08/11/2026):** as seções 1, 2 e 3 foram geradas no Figma a pedido do autor e já estão no jogo (D50). Originais em `docs/arte/morro_figma/`; no jogo, `prototype/assets/chao/` (cimento_viela, escadaria_degraus, laje_concreto), `prototype/assets/efeitos/morro/` (fogos, clarao_tiro, faisca_gato) e `prototype/assets/objetos/paredao.webp` (o ícone é a mesma arte, `hud/w_paredao.png`). Diferenças do pedido: os fogos vieram em grade 3 × 2, o clarão em 2 × 2 e a faísca em 3 × 2 (em fundo preto, o jogo soma a luz); a escadaria tem 9 degraus por ladrilho. Fica só o **Opcional**.
+
 Cole antes o prompt de estilo do guia (`GUIA_DE_PRODUCAO_DE_ARTE.md`, seção 3), como nos outros pedidos.
 
 ## 1. Chão (3 imagens) — o que mais muda a tela

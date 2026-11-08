@@ -119,6 +119,8 @@ Da segunda vez em diante, um toque acelera. **Quanto maior o Caos na hora de abr
 
 Candidatas: na Orla, **Bola da Altinha** (a bola quica de inimigo em inimigo como um fliperama, sem parar; a preferida), **Fogos do Réveillon** (de tempos em tempos a queima de fogos vem do mar e chove sobre a tela) e **Prancha do Surfista Lendário** (o Juninho pega uma onda que atravessa a tela e arrasta a horda). No Morro, **Pipa com cerol** e **Paredão de som**.
 
+**Escolhidas (D50):** na Orla, a Bola da Altinha, no alto da torre do salva-vidas do meio da praia. No Morro, o **Paredão de Som**, em cima da casa com laje da pracinha do meio: tocando sozinho lá em cima (a caixa incha no grave, os LEDs piscam), sobe pela escada da casa. Depois de pego, desce no carrinho e vai atrás do Juninho (espera embaixo quando ele sobe numa laje). A cada 2,4 s o grave solta uma onda que corre 6,5 m em volta do carrinho, bate (26) e empurra a horda uns 2 m para fora; o chefão só leva o dano. Números em `config.js` (`RELIQUIAS`).
+
 **Esconderijos da Orla**, cada um com a sua pista e sem seta:
 
 | Esconderijo | Pista |

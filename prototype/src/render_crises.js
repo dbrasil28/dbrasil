@@ -2,6 +2,7 @@
 // horda brilhando), o Baile (luzes coloridas no chão) e o Gato de luz em curto (faísca estalando antes do
 // choque). A água da Ressaca vem com o mar (render_mar.js).
 import { CRISES } from './config.js';
+import { fxImg } from './render_fx.js';
 
 const a = { x: 0, y: 0 };
 const b = { x: 0, y: 0 };
@@ -49,7 +50,7 @@ export function drawCriseChao(ctx, game, cam, ppu, t, bounds) {
         ctx.fill();
         ctx.stroke();
         ctx.setLineDash([]);
-        estalo(ctx, a.x, a.y - 1.6 * ppu, 0.9 * ppu, t * 30 + f.x);
+        if (!fxImg('faisca_gato')) estalo(ctx, a.x, a.y - 1.6 * ppu, 0.9 * ppu, t * 30 + f.x); // sem a arte da faísca
       } else {
         const k = 1 - (f.t - K.avisoS) / K.choqueS;
         ctx.save();
@@ -62,7 +63,7 @@ export function drawCriseChao(ctx, game, cam, ppu, t, bounds) {
         ctx.ellipse(a.x, a.y, R * 1.3, R * 1.3 * cam.k, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
-        estalo(ctx, a.x, a.y - 1.6 * ppu, 1.6 * ppu, t * 50 + f.y);
+        if (!fxImg('faisca_gato')) estalo(ctx, a.x, a.y - 1.6 * ppu, 1.6 * ppu, t * 50 + f.y);
       }
     }
   }

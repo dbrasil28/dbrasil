@@ -545,6 +545,13 @@ export const RELIQUIAS = {
     desc: 'A bola quica de inimigo em inimigo, sem parar',
     dmg: 28, speed: 13, alcanceM: 7, pulaM: 6, voltaM: 1.2,
   },
+  // no carrinho atrás do Juninho; a cada cadaS o grave solta uma onda que corre até raioM (velM, m/s),
+  // bate em quem ela passa e empurra para fora (o chefão só leva o dano)
+  paredao: {
+    nome: 'Paredão de Som', onde: 'morro',
+    desc: 'O grave solta uma onda que empurra a horda para longe',
+    cadaS: 2.4, raioM: 6.5, velM: 16, dmg: 26, empurra: 16, segueM: 1.5, // empurra: ~1,8 m
+  },
 };
 
 // Trechos da rota, de baixo para cima no Mapa da Rota (o que não foi descoberto aparece como ???).
@@ -881,6 +888,7 @@ export const TV = {
   cofre: ['ENTREGADOR ACHA COFRE NA ORLA. RECEITA DIZ QUE NÃO VIU NADA', 'COFRE ABERTO AO VIVO. DONO AINDA NÃO SE APRESENTOU'],
   cofre5: ['DEU BICHO! ENTREGADOR TIRA A SORTE GRANDE. BANCA PEDE RECONTAGEM'],
   reliquia_altinha: ['ENTREGADOR ACHA A BOLA DA ALTINHA. A PRAIA INTEIRA PARA PARA OLHAR'],
+  reliquia_paredao: ['ENTREGADOR ACHA UM PAREDÃO NA LAJE. O MORRO INTEIRO SENTE O GRAVE'],
   chefe: ['CHEFE DO TRÁFICO DECRETA: PIZZA SÓ PASSA COM AUTORIZAÇÃO DA FIRMA'],
   chefeRadio: ['CHEFE CHAMA REFORÇO NO RÁDIO. MORADORES FECHAM AS JANELAS'],
   chefeVencido: ['CHEFE DO TRÁFICO CAI NA LAJE. ENTREGADOR SEGUE COM A PIZZA'],

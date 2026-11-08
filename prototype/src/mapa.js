@@ -97,6 +97,59 @@ export function drawOrlaGround(r, ctx, game, b) {
   });
 }
 
+// Chão do Morro com a arte vista de cima (docs/arte/morro_figma/): quanto cada ladrilho cobre, em metros
+// (larg × a proporção da imagem), e onde o ladrilho começa. O rego do cimento corre ao longo da viela, no meio
+// dela (rego: onde ele fica na largura do ladrilho); os degraus começam no pé da escadaria.
+const CHAO_MORRO = {
+  viela: { img: 'chao_viela', larg: 6, rego: 0.612 },
+  escadaria: { img: 'chao_escadaria', larg: 4 },
+  laje: { img: 'chao_laje', larg: 8 },
+};
+const padroes = new WeakMap();
+
+/** Pedaço da rota coberto pela textura (deitada no chão com a conta da câmera), mais escuro no fim de tarde. */
+function chaoComTextura(ctx, cam, im, T, r, x, y, wd, ht) {
+  let pat = padroes.get(ctx)?.get(im);
+  if (!pat) {
+    if (!padroes.has(ctx)) padroes.set(ctx, new Map());
+    pat = ctx.createPattern(im, 'repeat');
+    padroes.get(ctx).set(im, pat);
+  }
+  const alt = (T.larg * im.height) / im.width;
+  const ox = T.rego != null ? (r.x0 + r.x1) / 2 - T.rego * T.larg : r.x0;
+  const oy = r.y0;
+  // metros -> tela, tirado da própria câmera (serve para a câmera dos ladrilhos e para a do jogo)
+  cam.toScreen(ox, oy, pt);
+  cam.toScreen(ox + 1, oy, pt2);
+  const ax = pt2.x - pt.x;
+  const ay = pt2.y - pt.y;
+  cam.toScreen(ox, oy + 1, pt2);
+  const bx = pt2.x - pt.x;
+  const by = pt2.y - pt.y;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, wd, ht);
+  ctx.clip();
+  ctx.transform(ax, ay, bx, by, pt.x, pt.y);
+  ctx.scale(T.larg / im.width, alt / im.height);
+  ctx.fillStyle = pat;
+  const u0 = ((r.x0 - ox) * im.width) / T.larg;
+  const v0 = ((r.y0 - oy) * im.height) / alt;
+  ctx.fillRect(u0 - 2, v0 - 2, ((r.x1 - r.x0) * im.width) / T.larg + 4, ((r.y1 - r.y0) * im.height) / alt + 4);
+  ctx.restore();
+  // fim de tarde no morro: mais escuro que a arte, para a horda aparecer; sombra das paredes nas bordas
+  ctx.fillStyle = 'rgba(34,24,18,0.34)';
+  ctx.fillRect(x, y, wd, ht);
+  const sw = Math.min(wd * 0.25, cam.ppu * 0.7);
+  for (const [x0, x1] of [[x, x + sw], [x + wd, x + wd - sw]]) {
+    const g = ctx.createLinearGradient(x0, 0, x1, 0);
+    g.addColorStop(0, 'rgba(10,6,4,0.45)');
+    g.addColorStop(1, 'rgba(10,6,4,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(Math.min(x0, x1), y, sw, ht);
+  }
+}
+
 /** Subida do Morro: paredes de casas com janelas acesas pela TV e, por cima, as vielas, escadarias e lajes. */
 function drawMorroGround(ctx, cam, w, b) {
   const ppu = cam.ppu;
@@ -138,18 +191,25 @@ function drawMorroGround(ctx, cam, w, b) {
     // sombra das paredes em volta
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.fillRect(x - ppu * 0.25, y, wd + ppu * 0.5, ht);
-    ctx.fillStyle = r.kind === 'laje' ? '#8b857c' : r.kind === 'escadaria' ? '#7a736b' : '#6f6a63';
-    ctx.fillRect(x, y, wd, ht);
-    dirt(ctx, x, y, wd, ht, 0.55);
+    const tex = CHAO_MORRO[r.kind];
+    if (tex && images[tex.img]) {
+      chaoComTextura(ctx, cam, images[tex.img], tex, r, x, y, wd, ht);
+    } else {
+      ctx.fillStyle = r.kind === 'laje' ? '#8b857c' : r.kind === 'escadaria' ? '#7a736b' : '#6f6a63';
+      ctx.fillRect(x, y, wd, ht);
+      dirt(ctx, x, y, wd, ht, 0.55);
+    }
     if (r.kind === 'escadaria') {
-      ctx.strokeStyle = 'rgba(30,24,20,0.55)';
-      ctx.lineWidth = Math.max(1, ppu * 0.05);
-      for (let yy = r.y0 + 0.45; yy < r.y1; yy += 0.45) {
-        cam.toScreen(r.x0, yy, pt);
-        ctx.beginPath();
-        ctx.moveTo(x, pt.y);
-        ctx.lineTo(x + wd, pt.y);
-        ctx.stroke();
+      if (!images.chao_escadaria) {
+        ctx.strokeStyle = 'rgba(30,24,20,0.55)';
+        ctx.lineWidth = Math.max(1, ppu * 0.05);
+        for (let yy = r.y0 + 0.45; yy < r.y1; yy += 0.45) {
+          cam.toScreen(r.x0, yy, pt);
+          ctx.beginPath();
+          ctx.moveTo(x, pt.y);
+          ctx.lineTo(x + wd, pt.y);
+          ctx.stroke();
+        }
       }
       // corrimão de cano
       ctx.strokeStyle = 'rgba(190,190,195,0.7)';
@@ -158,7 +218,7 @@ function drawMorroGround(ctx, cam, w, b) {
       ctx.moveTo(x + ppu * 0.15, y);
       ctx.lineTo(x + ppu * 0.15, y + ht);
       ctx.stroke();
-    } else if (r.kind === 'viela') {
+    } else if (r.kind === 'viela' && !images.chao_viela) {
       // rachaduras e o rego de água no meio
       ctx.strokeStyle = 'rgba(30,25,22,0.4)';
       ctx.lineWidth = Math.max(1, ppu * 0.04);
@@ -167,7 +227,7 @@ function drawMorroGround(ctx, cam, w, b) {
       ctx.moveTo(pt.x, y);
       ctx.lineTo(pt.x, y + ht);
       ctx.stroke();
-    } else if (r.kind === 'laje') {
+    } else if (r.kind === 'laje' && !images.chao_laje) {
       ctx.strokeStyle = 'rgba(40,34,30,0.35)';
       ctx.lineWidth = Math.max(1, ppu * 0.03);
       ctx.strokeRect(x + 1, y + 1, wd - 2, ht - 2);
@@ -438,7 +498,7 @@ export class OrlaLayer {
   draw(ctx, game, vb, dpr) {
     const cam = game.camera;
     const m = game.map;
-    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${cam.sh.toFixed(3)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}|${images.cen_coqueiro_a ? 1 : 0}|${images.predio_a && images.predio_d ? 1 : 0}|${game.world && game.world.gateOpen ? 1 : 0}`;
+    const key = `${cam.ppu.toFixed(3)}|${cam.k.toFixed(4)}|${cam.sh.toFixed(3)}|${dpr}|${images.chao ? 1 : 0}|${images.poste ? 1 : 0}|${images.cen_coqueiro_a ? 1 : 0}|${images.predio_a && images.predio_d ? 1 : 0}|${images.chao_viela ? 1 : 0}${images.chao_escadaria ? 1 : 0}${images.chao_laje ? 1 : 0}|${game.world && game.world.gateOpen ? 1 : 0}`;
     if (key !== this.key) {
       this.tiles.clear();
       this.key = key;

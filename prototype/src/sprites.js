@@ -333,6 +333,12 @@ export const IMAGES_MORRO = {
   trombadinha_walk_atlas: 'assets/personagens/trombadinha/caminhada_atlas.webp',
   trombadinha_poses_atlas: 'assets/personagens/trombadinha/poses_atlas.webp',
   mototaxista_atlas: 'assets/personagens/mototaxista/pilotando_atlas.webp', // a moto do Mototáxi Amigo (só no Morro)
+  // chão do Morro visto de cima (sem emenda) e a relíquia do Morro (docs/arte/morro_figma/)
+  chao_viela: 'assets/chao/cimento_viela.webp',
+  chao_escadaria: 'assets/chao/escadaria_degraus.webp',
+  chao_laje: 'assets/chao/laje_concreto.webp',
+  paredao: 'assets/objetos/paredao.webp',
+  w_paredao: 'assets/hud/w_paredao.png',
 };
 
 /** Ícone de arma/HUD -> imagem. */
@@ -344,6 +350,7 @@ export const ICON_ART = {
   chinelo: 'w_chinelo',
   microfone: 'w_megafone',
   caramelo: 'caramelo_icone', // recortado do atlas do latido quando ele carrega
+  paredao: 'w_paredao',
 };
 
 export const images = {};

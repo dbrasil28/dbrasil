@@ -41,7 +41,13 @@ const FX_SRC = {
   mordida: 'assets/efeitos/caramelo/mordida.webp',
   latido_onda: 'assets/efeitos/caramelo/latido_onda.webp',
   poeira_patas: 'assets/efeitos/caramelo/poeira_patas.webp',
+  fogos: 'assets/efeitos/morro/fogos.webp',
+  clarao_tiro: 'assets/efeitos/morro/clarao_tiro.webp',
+  faisca_gato: 'assets/efeitos/morro/faisca_gato.webp',
 };
+
+// as folhas do Morro (carregam quando a passagem para o morro abre)
+const DO_MORRO = ['fogos', 'clarao_tiro', 'faisca_gato'];
 
 // as folhas de cada habilidade (carregam quando o Juninho tem a habilidade)
 const DA_ARMA = {
@@ -111,8 +117,13 @@ function fxSuave(nome) {
 }
 
 let armasVistas = '';
-/** Carrega as folhas das habilidades que o Juninho tem. */
+let morroVisto = false;
+/** Carrega as folhas das habilidades que o Juninho tem (e as do Morro, quando ele chega perto). */
 export function precarregarFx(game) {
+  if (!morroVisto && (game.segment === 'morro' || (game.world && game.world.gateOpen))) {
+    morroVisto = true;
+    for (const n of DO_MORRO) fxImg(n);
+  }
   const ids = game.player.weapons.map((w) => w.id).join(',');
   if (ids === armasVistas) return;
   armasVistas = ids;
@@ -121,6 +132,7 @@ export function precarregarFx(game) {
 
 const src = { sx: 0, sy: 0, sw: 0, sh: 0 };
 const pt = { x: 0, y: 0 };
+const pt2 = { x: 0, y: 0 };
 
 /** Peça deitada no chão: centro (x, y), largura em metros, giro no plano do chão. */
 export function drawChao(ctx, cam, ppu, im, s, x, y, largM, rot = 0, alpha = 1, altM = null) {
@@ -322,20 +334,38 @@ export function drawFxEmPe(ctx, a, game, cam, ppu, playerPx) {
   const wPx = a.tam ? a.tam * ppu : F.tamP ? F.tamP * playerPx : (F.cobreM || 1.5) * ppu;
   y -= a.z != null ? a.z * ppu : F.zP != null ? F.zP * playerPx : (F.zM || 0) * ppu;
   if (a.sobe) y -= a.sobe * a.t * ppu; // a fumaça sobe devagar
-  if (F.laco) {
-    quadro(F, im, quadroNoTempo(F, a.t, a.dur), src);
-    drawEmPe(ctx, im, src, pt.x, y, wPx, 1);
-    return;
+  if (F.luz) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter'; // fundo preto: só a luz aparece
   }
-  // um quadro se mistura no seguinte (sem pular), entrando aos poucos e saindo no fim
-  const alpha = fimSuave(a) * (a.entra ? Math.min(1, a.t / a.entra) : 1);
-  const [f0, f1, w] = quadroMisto(F, a.t, a.dur, a.de || 0, mix);
-  quadro(F, im, f0, src);
-  drawEmPe(ctx, im, src, pt.x, y, wPx, alpha * (1 - w * w));
-  if (w > 0.02 && f1 !== f0) {
-    quadro(F, im, f1, src);
-    drawEmPe(ctx, im, src, pt.x, y, wPx, alpha * w);
+  let cx = pt.x;
+  if (F.boca) {
+    // a boca do cano fica na borda esquerda da peça: gira para o lado do tiro, na tela
+    cam.toScreen(q.x + (a.dx || 1), q.y + (a.dy || 0), pt2);
+    ctx.save();
+    ctx.translate(pt.x, y);
+    ctx.rotate(Math.atan2(pt2.y - pt.y, pt2.x - pt.x));
+    ctx.translate(F.boca * playerPx + wPx / 2, 0);
+    cx = 0;
+    y = 0;
   }
+  if (a.laco ?? F.laco) {
+    const n = F.n || F.cols * F.rows;
+    quadro(F, im, Math.floor(a.t * (F.fps || 12)) % n, src);
+    drawEmPe(ctx, im, src, cx, y, wPx, F.luz ? fimSuave(a) : 1);
+  } else {
+    // um quadro se mistura no seguinte (sem pular), entrando aos poucos e saindo no fim
+    const alpha = fimSuave(a) * (a.entra ? Math.min(1, a.t / a.entra) : 1);
+    const [f0, f1, w] = quadroMisto(F, a.t, a.dur, a.de || 0, mix);
+    quadro(F, im, f0, src);
+    drawEmPe(ctx, im, src, cx, y, wPx, alpha * (1 - w * w));
+    if (w > 0.02 && f1 !== f0) {
+      quadro(F, im, f1, src);
+      drawEmPe(ctx, im, src, cx, y, wPx, alpha * w);
+    }
+  }
+  if (F.boca) ctx.restore();
+  if (F.luz) ctx.restore();
 }
 const mix = [0, 0, 0];
 

@@ -1,7 +1,7 @@
 // Desenho da regra da carreira (D39): a obra do Especulador, o tapume da escadaria (arte de tapume
 // inteira, só na escala) e o holofote do helicóptero da TV sobre o covil aberto, que é a pista no lugar
 // da seta. Quando o covil está fora da tela, só a claridade do holofote aparece na beira, sem seta nem texto.
-import { CARREIRA, ACHADOS } from './config.js';
+import { CARREIRA, ACHADOS, RELIQUIAS } from './config.js';
 import { images } from './sprites.js';
 
 const a = { x: 0, y: 0 };
@@ -252,6 +252,13 @@ export function drawAchado(ctx, game, a, pt, ppu, t, playerPx) {
     }
     return;
   }
+  if (a.kind === 'reliquia' && a.reliquia === 'paredao') {
+    // ligado na laje, batendo sozinho: o grave dá a pista de onde ele está
+    const bate = Math.max(0, Math.sin(t * 5.2)) ** 6;
+    drawParedao(ctx, pt.x, pt.y, playerPx, bate, -1, t);
+    if (!longe) brilho(ctx, pt.x + 0.35 * playerPx, pt.y - 0.8 * playerPx, 0.45 * ppu, t, seed);
+    return;
+  }
   if (a.kind === 'reliquia') {
     drawBola(ctx, pt.x, pt.y, 0.3 * ppu, t * 0.6, 0.15 * ppu);
     if (!longe) brilho(ctx, pt.x + 0.2 * ppu, pt.y - 0.75 * ppu, 0.45 * ppu, t, seed);
@@ -297,5 +304,72 @@ export function drawBola(ctx, x, y, r, spin, z = 0) {
     ctx.beginPath();
     ctx.arc(x + Math.cos(a) * r * 0.5, cy + Math.sin(a) * r * 0.5, r * 0.24, 0, Math.PI * 2);
     ctx.fill();
+  }
+}
+
+const LEDS = ['255,60,200', '60,220,255', '255,210,40'];
+
+/**
+ * Paredão de Som (relíquia do Morro) no carrinho: a arte inteira, só na escala (1,2 m: 0,7 do Juninho),
+ * espelhada para o puxador ficar do lado do Juninho; o grave (pulso, 0 a 1) incha a caixa e acende os LEDs.
+ */
+export function drawParedao(ctx, x, y, playerPx, pulso, lado, t) {
+  const im = images.paredao;
+  const h = playerPx * 0.7 * (1 + 0.05 * pulso);
+  ctx.fillStyle = 'rgba(0,0,0,0.34)';
+  ctx.beginPath();
+  ctx.ellipse(x, y, h * 0.4, h * 0.12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // a luz dos LEDs no chão, somada, mais forte no grave
+  const cor = LEDS[Math.floor(t * 2) % LEDS.length];
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createRadialGradient(x, y - h * 0.1, 0, x, y - h * 0.1, h * 1.1);
+  g.addColorStop(0, `rgba(${cor},${0.18 + 0.32 * pulso})`);
+  g.addColorStop(1, `rgba(${cor},0)`);
+  ctx.fillStyle = g;
+  ctx.fillRect(x - h * 1.1, y - h * 1.2, h * 2.2, h * 2.2);
+  ctx.restore();
+  ctx.save();
+  ctx.translate(x, y);
+  if (lado < 0) ctx.scale(-1, 1);
+  if (im) {
+    const w = (im.width / im.height) * h;
+    ctx.drawImage(im, -w / 2, -h, w, h);
+  } else {
+    // sem a arte: a caixa preta com dois falantes
+    ctx.fillStyle = '#1d1b1f';
+    ctx.fillRect(-h * 0.32, -h, h * 0.64, h * 0.92);
+    ctx.fillStyle = '#3a3640';
+    for (const yy of [-0.7, -0.32]) {
+      ctx.beginPath();
+      ctx.arc(0, h * yy, h * 0.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+/** A onda do grave correndo no chão em volta do paredão: dois anéis que abrem e somem no alcance. */
+export function drawOndaParedao(ctx, game, cam, ppu) {
+  const R = RELIQUIAS.paredao;
+  for (const o of game.projectiles) {
+    if (o.kind !== 'paredao' || o.onda < 0) continue;
+    const k = Math.min(1, o.onda / R.raioM);
+    cam.toScreen(o.x, o.y, a);
+    const r = Math.min(o.onda, R.raioM) * ppu;
+    const f = (1 - k) ** 0.7;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineWidth = Math.max(2, ppu * 0.32 * (1 - k * 0.5));
+    for (let i = 0; i < 2; i++) {
+      const rr = r * (1 - i * 0.2);
+      if (rr < 4) continue;
+      ctx.strokeStyle = `rgba(${LEDS[i]},${0.55 * f})`;
+      ctx.beginPath();
+      ctx.ellipse(a.x, a.y, rr, rr * cam.k, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 }

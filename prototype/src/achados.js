@@ -32,6 +32,14 @@ export function esconderijosDaOrla(w, map) {
   return out;
 }
 
+/** Esconderijo da relíquia do Morro: em cima da casa com laje da pracinha do meio, sempre a mesma. */
+export function esconderijosDoMorro(w) {
+  const casas = w.platforms.filter((P) => P.kind === 'laje_casa').sort((a, b) => b.y0 - a.y0);
+  if (!casas.length) return [];
+  const P = casas[Math.floor(casas.length / 2)];
+  return [{ onde: 'laje', x: (P.x0 + P.x1) / 2, y: (P.y0 + P.y1) / 2, plat: P, reliquia: 'paredao' }];
+}
+
 /** Sorteia os achados do trecho (sorteio próprio: não mexe no da partida). */
 export function sortearAchados(game) {
   const w = game.world;
@@ -56,6 +64,7 @@ export function sortearAchados(game) {
     const s = livres.splice(Math.floor(rng() * livres.length), 1)[0];
     out.push(achado('isopor', s));
   }
+  for (const s of esconderijosDoMorro(w)) out.push(achado('reliquia', s, { reliquia: s.reliquia }));
   return out;
 }
 
@@ -138,8 +147,15 @@ export function pegarReliquia(game, id) {
   game.word(p.x, p.y - 1, R.nome.toUpperCase(), '#ffd21f');
   game.emit('reliquia', { id });
   game.shake(0.3);
+  game.projectiles = game.projectiles.filter((o) => o.kind !== 'altinha' && o.kind !== 'paredao'); // uma vaga só
   if (id === 'altinha') {
     game.projectiles.push({ kind: 'altinha', x: p.x, y: p.y, vx: 0, vy: 0, tgt: null, last: null, alt: 0, fase: 0, hitT: 0, dmg: R.dmg, src: 'altinha' });
+  } else if (id === 'paredao') {
+    // o paredão desce da laje no carrinho e vai atrás do Juninho; a primeira onda sai logo
+    const P = game.achados.find((a) => a.reliquia === id)?.plat;
+    const x = P ? P.stair.x0 + (P.stair.x1 - P.stair.x0) / 2 : p.x;
+    const y = P ? P.stair.y1 + 0.6 : p.y;
+    game.projectiles.push({ kind: 'paredao', x, y, cd: 0.6, onda: -1, bateu: new Set(), pulso: 0, lado: 1, dmg: R.dmg, src: 'paredao' });
   }
 }
 

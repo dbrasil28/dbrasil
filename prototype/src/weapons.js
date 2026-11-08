@@ -417,6 +417,47 @@ export function updateProjectiles(game, dt) {
         game.damageEnemy(e, pr.dmg, pr.src, (dx >= 0 ? 1 : -1) * 7, -3);
       }
       if (pr.life <= 0) remove = true;
+    } else if (pr.kind === 'paredao') {
+      // Paredão de Som (relíquia do Morro): vai no carrinho atrás do Juninho (espera embaixo quando ele sobe
+      // na laje); a cada tanto o grave solta uma onda que corre em volta, bate e empurra a horda para fora
+      const R = RELIQUIAS.paredao;
+      if (!p.plat) {
+        const dx = p.x - pr.x;
+        const dy = p.y - pr.y;
+        const l = Math.hypot(dx, dy);
+        if (l > R.segueM) {
+          const k = Math.min(l - R.segueM, Math.max(4, l * 4) * dt) / l;
+          pr.x += dx * k;
+          pr.y += dy * k;
+        }
+        if (Math.abs(dx) > 0.2) pr.lado = dx > 0 ? 1 : -1; // o puxador fica do lado do Juninho
+      }
+      if (pr.pulso > 0) pr.pulso = Math.max(0, pr.pulso - dt * 3);
+      pr.cd -= dt;
+      if (pr.cd <= 0 && pr.onda < 0) {
+        pr.cd = R.cadaS;
+        pr.onda = 0;
+        pr.pulso = 1;
+        pr.bateu.clear();
+        game.shake(0.06);
+      }
+      if (pr.onda >= 0) {
+        pr.onda += R.velM * dt;
+        const r = Math.min(pr.onda, R.raioM);
+        game.hash.query(pr.x, pr.y, r + 1.2, tmp);
+        for (const e of tmp) {
+          if (e.dead || pr.bateu.has(e.id)) continue;
+          const dx = e.x - pr.x;
+          const dy = e.y - pr.y;
+          const d = Math.hypot(dx, dy) || 0.01;
+          if (d > r + (e.r || 0.3)) continue;
+          pr.bateu.add(e.id);
+          const emp = e.boss ? 0 : R.empurra;
+          game.damageEnemy(e, pr.dmg * (game.stats.dmgMul || 1), 'paredao', (dx / d) * emp, (dy / d) * emp);
+        }
+        if (pr.onda >= R.raioM) pr.onda = -1;
+      }
+      continue; // o paredão não some
     } else if (pr.kind === 'altinha') {
       // Bola da Altinha (relíquia): quica de inimigo em inimigo, sem parar; sem ninguém perto, volta ao pé
       const R = RELIQUIAS.altinha;

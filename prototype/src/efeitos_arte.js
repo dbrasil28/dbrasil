@@ -9,7 +9,9 @@
 //     personagem na tela (os personagens são desenhados 1,4 vez maiores que o metro).
 //   cobreM / zM (no mundo): largura da célula em metros e altura do centro em metros. Peças que seguem o
 //     tamanho de uma área (raio da explosão, da aura, da poça) recebem o tamanho em cada efeito.
-//   luz: desenho somado (brilho de arco elétrico); o resto é desenho normal, com a luz do sol da arte.
+//   luz: desenho somado (brilho de arco elétrico, fogo); o resto é desenho normal, com a luz do sol da arte.
+//   boca: a peça começa na borda esquerda da célula (a boca do cano) e gira para o lado do tiro; o número é
+//     quanto o cano passa do meio do corpo, em fração da altura do personagem na tela.
 export const FX = {
   // Capacete Bumerangue e a Entrega Expressa
   capacete_giro: { cols: 4, rows: 4 },
@@ -58,6 +60,11 @@ export const FX = {
   mordida: { cols: 3, rows: 2, dur: 0.3, tamP: 0.5, zP: 0.28 },
   latido_onda: { cols: 3, rows: 2, chao: true, dur: 0.45, cobreM: 5.5 },
   poeira_patas: { cols: 3, rows: 2, dur: 0.4, tamP: 0.42, zP: 0.12 },
+  // Morro (docs/arte/morro_figma/): fundo preto, desenho somado (luz)
+  fogos: { cols: 3, rows: 2, dur: 1.7, cobreM: 9, zM: 9, luz: true }, // o rojão do Traficante, alto no céu
+  // o clarão sai da boca do cano para a direita da célula e gira para o lado do tiro (a.dx, a.dy)
+  clarao_tiro: { cols: 2, rows: 2, dur: 0.14, tamP: 0.78, zP: 0.62, luz: true, boca: 0.3 },
+  faisca_gato: { cols: 3, rows: 2, dur: 0.35, fps: 14, cobreM: 1.8, zM: 2.1, luz: true }, // o fio do poste em curto
 };
 
 // impacto de cada habilidade em quem leva o golpe (o jogo põe no lugar do inimigo); espera: tempo mínimo
