@@ -37,3 +37,7 @@ Linha final de cada folha (cole depois da base):
 ## Depois que chegar
 
 `tools/montar-atlas.py` monta o atlas; o jogo troca para esta caminhada enquanto o Juninho carrega o objeto e põe o objeto entre as mãos, na altura certa.
+
+## Situação (08/11/2026)
+
+Gerado no Figma a pedido do autor, sem referência anexada (o Figma não aceita), pela descrição do Juninho: as 4 folhas, com as 16 direções certas (a folha 3 veio andando para a esquerda). Originais em `personagens_figma/juninho_carregando/`; no jogo, `prototype/assets/personagens/juninho_carregando/caminhada_atlas.webp`. Com os braços erguidos a figura fica mais alta: o corpo, da cabeça aos pés, mede 1,17 vez menos que a figura inteira, e o jogo desenha nessa escala (WALK_ATLAS.jc, figureH 133) para o corpo sair do tamanho do Juninho andando. O objeto vai nas mãos, a 1,04 da altura dele.

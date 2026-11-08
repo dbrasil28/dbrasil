@@ -6,6 +6,7 @@ export const IMAGES = {
   // Juninho: atlas de arremesso e de caminhada, 16 direções (linhas; 0° = de frente, 90° = direita) × 6 quadros
   juninho_atlas: 'assets/personagens/juninho_ataque_atlas.webp',
   juninho_walk_atlas: 'assets/personagens/juninho_caminhada_atlas.webp',
+  juninho_carregando_atlas: 'assets/personagens/juninho_carregando/caminhada_atlas.webp', // braços erguidos com o objeto (Figma)
   // Caminhada em 16 direções × 6 quadros (atlas montados por tools/montar-atlas.py; ver WALK_ATLAS)
   // Telespectadores Hipnotizados, com pose de acordado
   tele_a_walk_atlas: 'assets/personagens/telespectador_a/caminhada_atlas.webp', // A: camisa amarela
@@ -213,6 +214,9 @@ export const WALK_ATLAS = {
   fk: { atlas: 'funkeiro_walk_atlas', prefix: 'fk', figureH: 158 },
   tf: { atlas: 'traficante_walk_atlas', prefix: 'tf', figureH: 157 },
   ct: { atlas: 'chefe_trafico_walk_atlas', prefix: 'ct', figureH: 157 },
+  // Juninho carregando cadeira, mesa ou botijão acima da cabeça: a figura inteira (com os braços) tem 158 px, mas
+  // o corpo, da cabeça aos pés, tem 1,17 vez menos; figureH é o do corpo, para ele sair do tamanho do Juninho andando
+  jc: { atlas: 'juninho_carregando_atlas', prefix: 'jc', figureH: 133, escala: 0.8 },
   mo: { atlas: 'monstrao_walk_atlas', prefix: 'mo', figureH: 157 },
   // Morro (pacotes v2): moradores da horda, Cracudo e Trombadinha; carregados ao chegar no morro (IMAGES_MORRO)
   mli: { atlas: 'morador_listrado_walk_atlas', prefix: 'mli', figureH: 158, escala: 0.7 },

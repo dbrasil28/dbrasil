@@ -549,7 +549,11 @@ export class Renderer {
           // sem o anel vermelho no chão (o autor tirou, 07/11/2026): o Juninho se destaca pela arte e pela sombra
           this.drawPlayer(ctx, game, pt, playerPx, 1);
           if (o.paperT > 0) drawStuckPapers(ctx, pt, playerPx, o.paperT, game.t);
-          if (o.carry) drawObject(ctx, o.carry.kind, pt.x, pt.y - playerPx * 0.95, playerPx * 0.4, Math.sin(t * 9) * 0.08); // carregando acima da cabeça
+          if (o.carry) {
+            // carregando acima da cabeça: nas mãos erguidas (caminhada de carregar); sem ela, sobre a cabeça
+            const naMao = walkReady(WALK_ATLAS.jc) ? 1.04 : 0.95;
+            drawObject(ctx, o.carry.kind, pt.x, pt.y - playerPx * naMao, playerPx * 0.4, Math.sin(t * 9) * 0.04);
+          }
           break;
         }
         case 'proj':
@@ -638,14 +642,20 @@ export class Renderer {
       cam.toScreen(p.x + fx, p.y + fy, pt2);
       const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
       let id;
-      if (p.throwT < 0.08) id = `ja_${row}_1`; // arma o braço
+      let fig = ATLAS.figureH;
+      const jc = p.carry ? walkReady(WALK_ATLAS.jc) : null;
+      if (jc) {
+        // carregando o objeto acima da cabeça: braços erguidos, andando ou parado
+        id = `jc_${row}_${p.moving ? Math.floor((p.walkPhase / (Math.PI * 2)) * 6) % 6 : 0}`;
+        fig = jc.figureH;
+      } else if (p.throwT < 0.08) id = `ja_${row}_1`; // arma o braço
       else if (p.throwT < 0.2) id = `ja_${row}_2`; // solta
       else if (p.catchT < 0.09) id = `ja_${row}_4`; // estende para pegar
       else if (p.catchT < 0.22) id = `ja_${row}_5`; // pegou
       else if (p.moving && images.jw_0_0) id = `jw_${row}_${Math.floor((p.walkPhase / (Math.PI * 2)) * 6) % 6}`; // caminhada (fase mantida ao virar)
       else if (p.helmetsOut > 0) id = `ja_${row}_3`; // parado, capacete em voo
       else id = `ja_${row}_0`; // parado, capacete na mão
-      img = this.cache.get(id, playerPx * (ATLAS.ch / ATLAS.figureH), {
+      img = this.cache.get(id, playerPx * (ATLAS.ch / fig), {
         mode: hurtBlink ? 'hurt' : '', tint: game.corruption >= 50 ? [232, 182, 44, 0.22] : null, noShadow: true,
       });
       if (img) {
