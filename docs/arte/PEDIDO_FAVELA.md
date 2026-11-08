@@ -1,5 +1,7 @@
 # Pedido de arte: a Subida do Morro (favela)
 
+> **Resumo do que ainda falta (08/11/2026): `PEDIDO_MORRO_FALTA.md`.** Quase tudo deste pedido já está no jogo; este arquivo fica como referência das regras de ângulo e das medidas.
+
 Lista do que falta desenhar para a favela sair do provisório, com as medidas tiradas do mapa do jogo (`prototype/src/config.js`, `ROUTE.morro`, e `cenario.js`). Hoje o chão, as casas com laje e as escadarias do Morro são desenhados em código; os personagens principais e alguns objetos já têm arte.
 
 ## Regras para toda a arte
