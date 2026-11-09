@@ -19,6 +19,11 @@ function luta() {
   p.y = g.world.obra.y1 + 12;
   C.aberto = true;
   soltarChefao(g, C);
+  // os golpes sozinhos: sem o cerco da chegada (D82, tem teste próprio) e ele já na frente da obra
+  g.cerco = null;
+  g.boss.entrando = false;
+  g.boss.x = C.x;
+  g.boss.y = g.world.obra.y1 - 1.6;
   g.boss.reforcoT = 1e9;
   return g;
 }

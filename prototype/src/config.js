@@ -678,6 +678,28 @@ export const RELIQUIAS = {
 // entra nele em chegaS; aí o estouro (luz, som, onda que empurra quem está até raioM) e o jogo volta, com ele
 // descendo devagar até durS, sem levar dano. A câmera chega perto dele (zoom, D69): enche em zoomS, dá um
 // tranco a mais no estouro e volta ao normal na descida.
+// Chegada do Monstrão (D82, pedido do autor): com o covil aberto, a Orla silencia conforme o Juninho chega perto
+// da arena, na frente da obra do fim da praia, colada na entrada da favela (música e ambiente somem entre
+// silencioDeM e silencioAteM do centro dela, e a horda nasce menos). A disparaM do centro, a música para, o
+// tapume da obra cai, a arena fica vazia (sai o que estava no chão dentro da roda), a horda se organiza num
+// cerco (juntaS) e o Monstrão vem a pé pela avenida, do fim da Orla (entradaX, orlaTop + entradaDy), a
+// velEntrada, com um tremor a cada passoS; dentro do cerco, urra (urroS) e a luta começa. O cerco: linhas de
+// gente a espacoM, de raioM, que dá um passo para dentro (passoM) a cada fechaS, até minM; encostar machuca
+// (dano a cada cdS) e empurra para dentro; a horda não nasce mais (só a assessoria dele, de dentro do cerco).
+// Com o Monstrão no chão, a torcida se espalha em dispersaS e o tapume do fundo da obra cai: a escadaria do
+// Morro fica logo ali. centro: o meio da arena, a partir do canto da obra (dx do lado da rua, dy do meio dela).
+export const CHEGADA = {
+  silencioDeM: 40, silencioAteM: 12, hordaSilencio: 0.25,
+  disparaM: 8,
+  entradaX: 5.0, entradaDy: 1.2, velEntrada: 4, passoS: 0.62, urroS: 1.3,
+  cameraM: 7, // enquanto ele entra, a câmera vai até cameraM na direção dele (para ver o Monstrão chegando)
+  cerco: {
+    raioM: 9, minM: 4.5, fechaS: 5, passoM: 0.25, linhas: 2, linhaM: 0.85, espacoM: 0.8, limpaM: 0.8,
+    dano: 9, cdS: 0.6, empurra: 9, juntaS: 2.4, dispersaS: 2.2, brechaRad: 0.42,
+    centro: { dxObra: 1.2, dyObra: -1.5 },
+  },
+};
+
 export const SUPER = {
   cargaS: 75, abateS: 0.04, eliteS: 3, chefeS: 15,
   cena: { durS: 3.0, sobeS: 0.55, voaS: 0.3, chegaS: 1.55, alturaM: 1.3, raioM: 8, dano: 60, empurra: 18, zoom: 1.6, zoomS: 0.9, tranco: 0.14, trancoS: 0.25 },
@@ -1043,6 +1065,9 @@ export const TV = {
   burocrata: ['NOVA EXIGÊNCIA: FORMULÁRIO EM TRÊS VIAS'],
   fiscal: ['ENTREGADOR MULTADO POR EXCESSO DE ESFORÇO', 'FISCAL APLICA MULTA. MOTIVO: "SIM"'],
   elite: ['POLÍTICO APARECE PARA FOTO. TRAZ MALETA'],
+  chegada: ['SILÊNCIO NA ORLA. A HORDA PARA, FAZ UMA RODA E OLHA PARA A AVENIDA', 'ALGO ENORME VEM A PÉ PELA AVENIDA. O TRÂNSITO PAROU SOZINHO'],
+  chegadaUrro: ['O MONSTRÃO ENTRA NA RODA. A TORCIDA FECHA ATRÁS DELE'],
+  cercoEmpurra: ['A TORCIDA NÃO DEIXA NINGUÉM SAIR DA RODA. E ELA ESTÁ FECHANDO'],
   bicheiro: ['BICHEIRO ABRE A BANCA NO CALÇADÃO. POLÍCIA DIZ QUE NÃO VIU', 'APONTADORES CORREM NA ORLA. A BANCA ACEITA PIX E FIADO'],
   bicheiroPaga: ['ENTREGADOR ACERTA NO BICHO E LEVA O COFRE. BANCA PEDE RECONTAGEM'],
   unlock: ['O TAPUME CAIU. ATRÁS DA OBRA, UMA ESCADARIA QUE NINGUÉM TINHA VISTO', 'A OBRA ABRIU UMA PASSAGEM. GPS NÃO RECONHECE O CAMINHO'],

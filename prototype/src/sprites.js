@@ -33,10 +33,6 @@ export const IMAGES = {
   burocrata_poses_atlas: 'assets/personagens/burocrata/poses_atlas.webp', // ataque e fúria em 16 direções
   burocrata_papel: 'assets/personagens/burocrata/papel.png', // folha solta da pose de ataque: o projétil
   fiscal_walk_atlas: 'assets/personagens/fiscal/caminhada_atlas.webp', // Fiscal do Impossível
-  funkeiro_walk_atlas: 'assets/personagens/funkeiro/caminhada_atlas.webp', // Funkeiro Raivoso (Morro)
-  traficante_walk_atlas: 'assets/personagens/traficante/caminhada_atlas.webp', // Traficante do Morro (Figma)
-  chefe_trafico_walk_atlas: 'assets/personagens/chefe_trafico/caminhada_atlas.webp', // Chefe do Tráfico (Figma)
-  chefe_trafico_poses_atlas: 'assets/personagens/chefe_trafico/poses_atlas.webp', // ataque e raiva em 16 direções
   monstrao_walk_atlas: 'assets/personagens/monstrao/caminhada_atlas.webp', // Monstrão, chefão da Orla (Figma)
   // figurantes da Orla (pacotes GPT, D55): a garota da esquina, o policial do pé do morro e o picolezeiro da areia
   garota_programa_walk_atlas: 'assets/personagens/garota_programa/caminhada_atlas.webp',
@@ -49,8 +45,6 @@ export const IMAGES = {
   vendedor_picole_poses_atlas: 'assets/personagens/vendedor_picole/poses_atlas.webp',
   monstrao_poses_atlas: 'assets/personagens/monstrao/poses_atlas.webp', // 7 golpes e poses em 16 direções
   monstrao_anilha: 'assets/personagens/monstrao/anilha.webp',
-  traficante_poses_atlas: 'assets/personagens/traficante/poses_atlas.webp', // mira com o fuzil em 16 direções
-  funkeiro_poses_atlas: 'assets/personagens/funkeiro/poses_atlas.webp', // fúria de braços abertos em 16 direções
   // Cachorro Caramelo (habilidade): caminhada, corrida, mordida e latido em 16 direções × 6 quadros
   caramelo_walk_atlas: 'assets/personagens/caramelo/caminhada_atlas.webp',
   caramelo_corrida_atlas: 'assets/personagens/caramelo/corrida_atlas.webp',
@@ -76,9 +70,6 @@ export const IMAGES = {
   golpista: 'assets/personagens/golpista.png',
   burocrata: 'assets/personagens/burocrata.png',
   fiscal: 'assets/personagens/fiscal.png',
-  funkeiro: 'assets/personagens/funkeiro.webp',
-  traficante: 'assets/personagens/traficante.webp',
-  chefe_trafico: 'assets/personagens/chefe_trafico.webp',
   politico: 'assets/personagens/politico.png',
   // poste de luz cheio de gato (Figma); o antigo com o cartaz "vote em mim de novo" saiu
   poste: 'assets/cenario/orla/poste_gato_a.webp',
@@ -123,18 +114,7 @@ export const IMAGES = {
   // prédios da Orla (Figma), desenhados no ângulo do jogo (PREDIOS em config.js)
   salva_vidas: 'assets/cenario/orla/salva_vidas.webp',
   // favela (pacote v2): casas no ângulo do jogo (FAVELA em config.js) e objetos (ART em arte_cenario.js)
-  fav_casa_laje_dir: 'assets/cenario/favela/casa_laje_dir.webp',
-  fav_casa_laje_esq: 'assets/cenario/favela/casa_laje_esq.webp',
-  fav_fachada_a: 'assets/cenario/favela/fachada_a.webp',
-  fav_fachada_b: 'assets/cenario/favela/fachada_b.webp',
-  fav_fachada_c: 'assets/cenario/favela/fachada_c.webp',
-  fav_barraco_a: 'assets/cenario/favela/barraco_a.webp',
-  fav_barraco_b: 'assets/cenario/favela/barraco_b.webp',
-  fav_parede_viela_esq: 'assets/cenario/favela/parede_viela_esq.webp',
-  fav_telhado_viela_dir: 'assets/cenario/favela/telhado_viela_dir.webp',
   fav_placa_parede: 'assets/cenario/favela/placa_parede.webp',
-  fav_fios: 'assets/cenario/favela/fios_gatonet.webp',
-  fav_bandeirinhas: 'assets/cenario/favela/bandeirinhas.webp',
   cen_churrasqueira_a: 'assets/cenario/favela/churrasqueira_a.webp',
   cen_varal_a: 'assets/cenario/favela/varal_a.webp',
   cen_bandeira_a: 'assets/cenario/favela/bandeira_a.webp',
@@ -214,27 +194,27 @@ export const CROWD = [...new Set(CROWD_SETS.flatMap((s) => [...s.front, ...s.bac
  * figura na célula de 160 px (atlas_meta.json de cada pasta).
  */
 export const WALK_ATLAS = {
-  ta: { atlas: 'tele_a_walk_atlas', prefix: 'ta', figureH: 158 },
-  tb: { atlas: 'tele_b_walk_atlas', prefix: 'tb', figureH: 158 },
-  tc: { atlas: 'tele_c_walk_atlas', prefix: 'tc', figureH: 158 },
+  ta: { atlas: 'tele_a_walk_atlas', prefix: 'ta', figureH: 158, escala: 0.65 },
+  tb: { atlas: 'tele_b_walk_atlas', prefix: 'tb', figureH: 158, escala: 0.65 },
+  tc: { atlas: 'tele_c_walk_atlas', prefix: 'tc', figureH: 158, escala: 0.65 },
   // cidadãos (abertura), na escala dos telespectadores: caminhada e transformação (6 quadros, toca uma vez)
-  ca: { atlas: 'cid_a_walk_atlas', prefix: 'ca', figureH: 158 },
-  cb: { atlas: 'cid_b_walk_atlas', prefix: 'cb', figureH: 158 },
-  cc: { atlas: 'cid_c_walk_atlas', prefix: 'cc', figureH: 158 },
-  cat: { atlas: 'cid_a_transf_atlas', prefix: 'cat', figureH: 158 },
-  cbt: { atlas: 'cid_b_transf_atlas', prefix: 'cbt', figureH: 158 },
-  cct: { atlas: 'cid_c_transf_atlas', prefix: 'cct', figureH: 158 },
-  gd: { atlas: 'golpista_walk_atlas', prefix: 'gd', figureH: 157 },
-  bm: { atlas: 'burocrata_walk_atlas', prefix: 'bm', figureH: 158 },
-  fi: { atlas: 'fiscal_walk_atlas', prefix: 'fi', figureH: 158 },
-  pc: { atlas: 'politico_walk_atlas', prefix: 'pc', figureH: 158 },
-  fk: { atlas: 'funkeiro_walk_atlas', prefix: 'fk', figureH: 158 },
-  tf: { atlas: 'traficante_walk_atlas', prefix: 'tf', figureH: 157 },
-  ct: { atlas: 'chefe_trafico_walk_atlas', prefix: 'ct', figureH: 157 },
+  ca: { atlas: 'cid_a_walk_atlas', prefix: 'ca', figureH: 158, escala: 0.65 },
+  cb: { atlas: 'cid_b_walk_atlas', prefix: 'cb', figureH: 158, escala: 0.65 },
+  cc: { atlas: 'cid_c_walk_atlas', prefix: 'cc', figureH: 158, escala: 0.65 },
+  cat: { atlas: 'cid_a_transf_atlas', prefix: 'cat', figureH: 158, escala: 0.65 },
+  cbt: { atlas: 'cid_b_transf_atlas', prefix: 'cbt', figureH: 158, escala: 0.65 },
+  cct: { atlas: 'cid_c_transf_atlas', prefix: 'cct', figureH: 158, escala: 0.65 },
+  gd: { atlas: 'golpista_walk_atlas', prefix: 'gd', figureH: 157, escala: 0.7 },
+  bm: { atlas: 'burocrata_walk_atlas', prefix: 'bm', figureH: 158, escala: 0.7 },
+  fi: { atlas: 'fiscal_walk_atlas', prefix: 'fi', figureH: 158, escala: 0.7 },
+  pc: { atlas: 'politico_walk_atlas', prefix: 'pc', figureH: 158, escala: 0.8 },
+  fk: { atlas: 'funkeiro_walk_atlas', prefix: 'fk', figureH: 158, escala: 0.75 },
+  tf: { atlas: 'traficante_walk_atlas', prefix: 'tf', figureH: 157, escala: 0.75 },
+  ct: { atlas: 'chefe_trafico_walk_atlas', prefix: 'ct', figureH: 157, escala: 0.85 },
   // Juninho carregando cadeira, mesa ou botijão acima da cabeça: a figura inteira (com os braços) tem 158 px, mas
   // o corpo, da cabeça aos pés, tem 1,17 vez menos; figureH é o do corpo, para ele sair do tamanho do Juninho andando
   jc: { atlas: 'juninho_carregando_atlas', prefix: 'jc', figureH: 133, escala: 0.8 },
-  jat: { atlas: 'juninho_atropelado_atlas', prefix: 'jat', figureH: 158 },
+  jat: { atlas: 'juninho_atropelado_atlas', prefix: 'jat', figureH: 158, escala: 0.75 },
   // Juninho pegando e lançando o objeto com as duas mãos (elenco v2): mesmo recorte do carregando; corpo pela caminhada
   jd: { atlas: 'juninho_arremesso_atlas', prefix: 'jd', figureH: 128, escala: 0.8 },
   // horda da Orla, roupas novas (elenco v2): carregadas logo depois do começo (IMAGES_ORLA_HORDA)
@@ -246,11 +226,11 @@ export const WALK_ATLAS = {
   hpo: { atlas: 'horda_peao_walk_atlas', prefix: 'hpo', figureH: 157, escala: 0.7 },
   // inimigos do elenco v2 (D73): Laranja e Rato de Academia (carregam com as roupas novas da Orla)
   lj: { atlas: 'laranja_walk_atlas', prefix: 'lj', figureH: 157, escala: 0.8 },
-  ra: { atlas: 'rato_walk_atlas', prefix: 'ra', figureH: 157 }, // o tamanho vem de ENEMIES.rato.size (do Político, D79)
+  ra: { atlas: 'rato_walk_atlas', prefix: 'ra', figureH: 157, escala: 0.8 }, // o tamanho vem de ENEMIES.rato.size (do Político, D79)
   ag: { atlas: 'agiota_walk_atlas', prefix: 'ag', figureH: 157, escala: 0.8 }, // D76
   co: { atlas: 'coach_walk_atlas', prefix: 'co', figureH: 157, escala: 0.8 }, // linha = (direção ÷ 2) × 4 + (direção % 2) × 2 + (quadro ≥ 6)
   ps: { atlas: 'pastor_walk_atlas', prefix: 'ps', figureH: 157, escala: 0.8 }, // D77
-  bi: { atlas: 'bicheiro_walk_atlas', prefix: 'bi', figureH: 157 }, // D80: elite, do tamanho do Político (ENEMIES.bicheiro.size)
+  bi: { atlas: 'bicheiro_walk_atlas', prefix: 'bi', figureH: 157, escala: 0.8 }, // D80: elite, do tamanho do Político (ENEMIES.bicheiro.size)
   en: { atlas: 'encostado_walk_atlas', prefix: 'en', figureH: 157, escala: 0.8 }, // D77
   mo: { atlas: 'monstrao_walk_atlas', prefix: 'mo', figureH: 157 },
   mo12a: { atlas: 'monstrao_cam12a_atlas', prefix: 'moa', figureH: 157 },
@@ -274,13 +254,13 @@ export const WALK_ATLAS = {
   pm: { atlas: 'policial_militar_walk_atlas', prefix: 'pm', figureH: 157, escala: 0.6 },
   pt: { atlas: 'policial_tropa_walk_atlas', prefix: 'pt', figureH: 158, escala: 0.6 },
   vp: { atlas: 'vendedor_picole_walk_atlas', prefix: 'vp', figureH: 157, escala: 0.6 },
-  pa: { atlas: 'politico_attack_atlas', prefix: 'pa', figureH: 158 }, // mesma escala da caminhada
+  pa: { atlas: 'politico_attack_atlas', prefix: 'pa', figureH: 158, escala: 0.8 }, // mesma escala da caminhada
   // Caramelo: as quatro na mesma escala. feetRows: onde ficam as patas em cada direção (px da célula de 160);
   // de lado o cachorro pisa mais alto na folha, então o desenho desce até as patas tocarem o chão
-  cw: { atlas: 'caramelo_walk_atlas', prefix: 'cw', figureH: 152, feetRows: [153.7, 150.3, 147.5, 148.9, 136.0, 136.0, 143.3, 152.3, 153.0, 148.2, 144.3, 138.1, 129.0, 138.4, 146.1, 151.3] },
-  cr: { atlas: 'caramelo_corrida_atlas', prefix: 'cr', figureH: 152, feetRows: [155.5,  153.4,  145.0,  144.3,  127.3,  130.8,  131.5,  142.6,  159.0,  155.1,  146.8,  140.2,  129.4,  133.6,  142.3,  151.3] },
-  cm: { atlas: 'caramelo_mordida_atlas', prefix: 'cm', figureH: 152, feetRows: [156.9, 156.5, 156.2, 151.0, 131.1, 136.0, 139.5, 145.4, 156.5, 153.0, 149.9, 145.4, 132.9, 138.8, 143.7, 148.9] },
-  cl: { atlas: 'caramelo_latido_atlas', prefix: 'cl', figureH: 152, feetRows: [155.1, 151.7, 150.3, 150.6, 136.3, 139.5, 144.0, 152.3, 156.5, 153.0, 150.3, 143.7, 130.1, 140.5, 144.7, 151.7] },
+  cw: { atlas: 'caramelo_walk_atlas', prefix: 'cw', figureH: 152, feetRows: [153.7, 150.3, 147.5, 148.9, 136.0, 136.0, 143.3, 152.3, 153.0, 148.2, 144.3, 138.1, 129.0, 138.4, 146.1, 151.3], escala: 0.6 },
+  cr: { atlas: 'caramelo_corrida_atlas', prefix: 'cr', figureH: 152, feetRows: [155.5,  153.4,  145.0,  144.3,  127.3,  130.8,  131.5,  142.6,  159.0,  155.1,  146.8,  140.2,  129.4,  133.6,  142.3,  151.3], escala: 0.6 },
+  cm: { atlas: 'caramelo_mordida_atlas', prefix: 'cm', figureH: 152, feetRows: [156.9, 156.5, 156.2, 151.0, 131.1, 136.0, 139.5, 145.4, 156.5, 153.0, 149.9, 145.4, 132.9, 138.8, 143.7, 148.9], escala: 0.6 },
+  cl: { atlas: 'caramelo_latido_atlas', prefix: 'cl', figureH: 152, feetRows: [155.1, 151.7, 150.3, 150.6, 136.3, 139.5, 144.0, 152.3, 156.5, 153.0, 150.3, 143.7, 130.1, 140.5, 144.7, 151.7], escala: 0.6 },
 };
 
 /**
@@ -288,10 +268,10 @@ export const WALK_ATLAS = {
  * 320×200 com os pés na base, na mesma escala do atlas de caminhada (boneco em pé = figureH px).
  */
 export const POSE_ATLAS = {
-  bp: { atlas: 'burocrata_poses_atlas', prefix: 'bp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
-  fkp: { atlas: 'funkeiro_poses_atlas', prefix: 'fkp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
-  tfp: { atlas: 'traficante_poses_atlas', prefix: 'tfp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
-  ctp: { atlas: 'chefe_trafico_poses_atlas', prefix: 'ctp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
+  bp: { atlas: 'burocrata_poses_atlas', prefix: 'bp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  fkp: { atlas: 'funkeiro_poses_atlas', prefix: 'fkp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.75 },
+  tfp: { atlas: 'traficante_poses_atlas', prefix: 'tfp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.75 },
+  ctp: { atlas: 'chefe_trafico_poses_atlas', prefix: 'ctp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.85 },
   mop: { atlas: 'monstrao_poses_atlas', prefix: 'mop', cols: 7, rows: 16, cw: 320, ch: 200, figureH: 158, col: { preparo: 0, investida: 1, agachamento: 2, arremesso: 3, levanta: 4, pose: 5, tonto: 6 } },
   mlip: { atlas: 'morador_listrado_poses_atlas', prefix: 'mlip', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   mmcp: { atlas: 'morador_moca_poses_atlas', prefix: 'mmcp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
@@ -307,10 +287,10 @@ export const POSE_ATLAS = {
   hscp: { atlas: 'horda_controle_poses_atlas', prefix: 'hscp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   hatp: { atlas: 'horda_telemarketing_poses_atlas', prefix: 'hatp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   ljp: { atlas: 'laranja_poses_atlas', prefix: 'ljp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
-  rap: { atlas: 'rato_poses_atlas', prefix: 'rap', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
+  rap: { atlas: 'rato_poses_atlas', prefix: 'rap', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
   agp: { atlas: 'agiota_poses_atlas', prefix: 'agp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
   cop: { atlas: 'coach_poses_atlas', prefix: 'cop', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
-  bip: { atlas: 'bicheiro_poses_atlas', prefix: 'bip', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
+  bip: { atlas: 'bicheiro_poses_atlas', prefix: 'bip', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
   psp: { atlas: 'pastor_poses_atlas', prefix: 'psp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
   enp: { atlas: 'encostado_poses_atlas', prefix: 'enp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
   hpop: { atlas: 'horda_peao_poses_atlas', prefix: 'hpop', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
@@ -409,6 +389,27 @@ export const ENEMY_ART = {
 
 /** Atlas do Morro: carregados quando a passagem para o morro abre (carregarMorro), não no começo do jogo. */
 export const IMAGES_MORRO = {
+  // casas da favela e os inimigos só do Morro (D81): fora da memória enquanto o Juninho está na Orla
+  fav_casa_laje_dir: 'assets/cenario/favela/casa_laje_dir.webp',
+  fav_casa_laje_esq: 'assets/cenario/favela/casa_laje_esq.webp',
+  fav_fachada_a: 'assets/cenario/favela/fachada_a.webp',
+  fav_fachada_b: 'assets/cenario/favela/fachada_b.webp',
+  fav_fachada_c: 'assets/cenario/favela/fachada_c.webp',
+  fav_barraco_a: 'assets/cenario/favela/barraco_a.webp',
+  fav_barraco_b: 'assets/cenario/favela/barraco_b.webp',
+  fav_parede_viela_esq: 'assets/cenario/favela/parede_viela_esq.webp',
+  fav_telhado_viela_dir: 'assets/cenario/favela/telhado_viela_dir.webp',
+  fav_fios: 'assets/cenario/favela/fios_gatonet.webp',
+  fav_bandeirinhas: 'assets/cenario/favela/bandeirinhas.webp',
+  funkeiro_walk_atlas: 'assets/personagens/funkeiro/caminhada_atlas.webp', // Funkeiro Raivoso (Morro)
+  traficante_walk_atlas: 'assets/personagens/traficante/caminhada_atlas.webp', // Traficante do Morro (Figma)
+  chefe_trafico_walk_atlas: 'assets/personagens/chefe_trafico/caminhada_atlas.webp', // Chefe do Tráfico (Figma)
+  chefe_trafico_poses_atlas: 'assets/personagens/chefe_trafico/poses_atlas.webp', // ataque e raiva em 16 direções
+  traficante_poses_atlas: 'assets/personagens/traficante/poses_atlas.webp', // mira com o fuzil em 16 direções
+  funkeiro_poses_atlas: 'assets/personagens/funkeiro/poses_atlas.webp', // fúria de braços abertos em 16 direções
+  funkeiro: 'assets/personagens/funkeiro.webp',
+  traficante: 'assets/personagens/traficante.webp',
+  chefe_trafico: 'assets/personagens/chefe_trafico.webp',
   morador_listrado_walk_atlas: 'assets/personagens/morador_listrado/caminhada_atlas.webp',
   morador_listrado_poses_atlas: 'assets/personagens/morador_listrado/poses_atlas.webp',
   morador_moca_walk_atlas: 'assets/personagens/morador_moca/caminhada_atlas.webp',

@@ -49,7 +49,7 @@ Nada de seta, distância ou nome antes de o jogador descobrir. Ninguém diz "mor
 | Desde o começo | O cenário sugere. No fim da Orla tem uma obra cercada de tapume com um barulho estranho atrás, e o morro aparece ao fundo. Quem explora acha o lugar cedo, mas ele está fechado |
 | Caos chega a 100% | A TV dá uma pista do lugar, sem nome: "PLANTÃO: MOVIMENTAÇÃO ESTRANHA NA OBRA DO FIM DA PRAIA". O helicóptero da TV Caos passa a circular sobre o lugar com o holofote, visível de longe |
 | Se o jogador demorar | A pista cresce: a horda inteira começa a andar para lá, como se fosse chamada, e a sirene fica mais alta quanto mais perto ele está |
-| Chegando perto | O chão racha, o tapume cai e o chefão sai do covil |
+| Chegando perto | Na Orla (D82): o lugar vai ficando em silêncio, a música para, o tapume cai, a horda forma uma roda em volta da arena na frente da obra e o Monstrão chega a pé pela avenida. A roda fecha devagar até ele cair; aí a torcida se espalha e a escadaria do Morro fica logo ali. No Morro: o chefão aparece no fundo da laje do topo |
 
 - **Por que as pistas são grandes:** no Elden Ring dá para parar e olhar; aqui tem uma horda atrás, e no celular, fugindo, ninguém repara em detalhe pequeno. Por isso as pistas são luz, fumaça, helicóptero, som e a horda andando. A escalada da tabela é a rede de segurança para quem se perde, e nunca vira seta.
 - **O mistério é da primeira vez:** o que já foi descoberto fica marcado no minimapa do trecho e no Mapa da Rota. Nas partidas seguintes a graça passa a ser a velocidade.

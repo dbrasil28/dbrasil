@@ -98,6 +98,20 @@ export function botInput(game) {
     cy -= (by / bl) * 6;
     n += 2;
   }
+  // no cerco da chegada do Monstrão (D82): longe da torcida, que machuca e empurra
+  const K = game.cerco;
+  if (K && K.fase !== 'dispersa') {
+    const qx = p.x - K.x;
+    const qy = p.y - K.y;
+    const d = Math.hypot(qx, qy) || 1;
+    const folga = K.r - d;
+    if (folga < 3) {
+      const wgt = 5 * (3 - Math.max(0, folga));
+      cx += (qx / d) * wgt;
+      cy += (qy / d) * wgt;
+      n += 2;
+    }
+  }
   // fugir dos lotes vendidos
   for (const lot of game.lots) {
     if (Math.abs(p.x - lot.x) < lot.half + 0.8 && Math.abs(p.y - lot.y) < lot.half + 0.8) {

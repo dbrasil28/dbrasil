@@ -18,6 +18,7 @@ export class Musica {
     this.liberada = false;
     this.abafada = false;
     this.calada = false;
+    this.silencio = 0; // 0 a 1: perto do Monstrão a música some (D82)
   }
 
   el(id) {
@@ -56,6 +57,11 @@ export class Musica {
     this.abafada = b;
   }
 
+  /** Perto do fim da Orla, com o covil aberto: a música vai sumindo (1 = parada). */
+  silenciar(k) {
+    this.silencio = Math.max(0, Math.min(1, k || 0));
+  }
+
   /** Durante o anúncio: sem música. */
   calar(b) {
     this.calada = b;
@@ -64,7 +70,7 @@ export class Musica {
   update(dt) {
     const k = Math.min(1, dt / FADE_S);
     for (const [id, a] of Object.entries(this.els)) {
-      const alvo = id === this.atual && !this.calada ? this.vol * SOM.musica * (this.abafada ? PAUSA : 1) : 0;
+      const alvo = id === this.atual && !this.calada ? this.vol * SOM.musica * (this.abafada ? PAUSA : 1) * (1 - this.silencio) : 0;
       a._v += (alvo - a._v) * Math.min(1, k * 3);
       if (Math.abs(alvo - a._v) < 0.004) a._v = alvo;
       a.volume = Math.max(0, Math.min(1, a._v));

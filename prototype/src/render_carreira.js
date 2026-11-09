@@ -323,7 +323,7 @@ export function drawBolaArte(ctx, x, cy, r, quadro, dir) {
   const cel = im.width / 12;
   const q = ((quadro % 12) + 12) % 12;
   const linha = dir < 0 ? 0 : 1 + (dir % 8);
-  const s = (cel / 80) * r; // a bola tem 80 px de raio na célula de 192
+  const s = 2.4 * r; // a bola tem 80 px de raio na célula de 192: a célula mede 2,4 raios, qualquer que seja a resolução da folha
   ctx.drawImage(im, q * cel, linha * cel, cel, cel, x - s / 2, cy - s / 2, s, s);
   return true;
 }

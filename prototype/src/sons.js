@@ -256,11 +256,20 @@ export class Sons {
     this.aplicarVolume();
   }
 
+  /** O ambiente some perto do Monstrão (D82): 0 normal, 1 em silêncio. */
+  silenciar(k) {
+    const v = Math.max(0, Math.min(1, k || 0));
+    const antes = this.silencio || 0;
+    if (v === antes || (Math.abs(v - antes) < 0.03 && v > 0 && v < 1)) return; // só muda o volume quando muda de verdade
+    this.silencio = v;
+    this.aplicarVolume();
+  }
+
   aplicarVolume() {
     if (!this.ctx) return;
     const alvo = this.calado ? 0 : this.vol;
     this.mestre.gain.setTargetAtTime(alvo, this.ctx.currentTime, 0.05);
-    if (this.amb.g) this.amb.g.gain.setTargetAtTime(this.abafado || this.calado ? 0 : SOM.ambVol * SONS[this.amb.id].vol, this.ctx.currentTime, 0.3);
+    if (this.amb.g) this.amb.g.gain.setTargetAtTime(this.abafado || this.calado ? 0 : SOM.ambVol * SONS[this.amb.id].vol * (1 - (this.silencio || 0)), this.ctx.currentTime, 0.3);
   }
 
   buffer(id) {

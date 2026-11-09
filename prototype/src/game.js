@@ -6,7 +6,7 @@ import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, WEAPONS, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
   ROUTE, INTERACT, THROWABLES, FIGURANTES, DERRUBADO, NIVEL_MAXIMO, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO, HORDA_ORLA,
-  SOM_GOLPE, SOM_ARMA,
+  SOM_GOLPE, SOM_ARMA, CHEGADA,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
 import { FX, IMPACTO } from './efeitos_arte.js';
@@ -19,6 +19,7 @@ import { updateFigurantes, ferirFigurantes } from './figurantes.js';
 import { arrancavelPerto, arrancar, updateArrancados } from './arrancar.js';
 import { updateCena, updateSuper, cargaPorAbate, usarSuper, superPronta } from './super.js';
 import { updateAgiota, updateCoach, agiotaCaiu, updatePastor, updateEncostado, abrirBanca, updateApontador, updateBancas, bicheiroCaiu } from './elenco.js';
+import { updateCerco, silencioDoCovil, fimDoCerco, deslocaCamera } from './chegada.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, stairOut, inside, routeRemaining } from './mundo.js';
@@ -786,6 +787,7 @@ export class Game {
       return;
     }
     if (this.world) {
+      fimDoCerco(this); // a torcida do cerco se espalha (D82)
       chefaoCaiu(this, e); // carreira: a porta abre e a partida segue
       return;
     }
@@ -1120,6 +1122,8 @@ export class Game {
     if (this.avisosChao) this.avisosChao.length = 0; // avisos de golpe no chão: refeitos a cada quadro
     this.updateEnemies(dt);
     updateBancas(this); // a aposta no bicho (D80)
+    updateCerco(this, dt); // o cerco da chegada do Monstrão (D82)
+    this.silencio = silencioDoCovil(this); // a música e o ambiente somem perto do fim da Orla (main.js)
     this.updateTraffic(dt);
     updateReacoes(this);
     if (this.corpos && this.corpos.length) {
@@ -1138,8 +1142,9 @@ export class Game {
     this.updateFx(dt);
     this.compact();
 
-    this.camera.x = this.player.x;
-    this.camera.y = this.player.y;
+    const off = deslocaCamera(this, dt); // na chegada do Monstrão, a câmera olha para ele (D82)
+    this.camera.x = this.player.x + off.x;
+    this.camera.y = this.player.y + off.y;
 
     if (this.enemies.length > this.metrics.peakEnemies) this.metrics.peakEnemies = this.enemies.length;
 
@@ -1359,6 +1364,7 @@ export class Game {
   }
 
   updateDirector(dt) {
+    if (this.cerco) return; // no cerco (D82) a horda não nasce: é toda torcida em volta da arena
     const s = this.settings;
     const cap = s.maxEnemies;
     const pz = this.pressao;
@@ -1367,7 +1373,8 @@ export class Game {
     const lutaChefao = this.boss && !this.boss.dead && this.boss.type === 'monstrao';
     let target = Math.min(cap, DIRECTOR.targetAlive(pz) * s.spawnMul * this.spawnExtra);
     if (lutaChefao) target = Math.min(target, H.max);
-    this.spawnAcc += DIRECTOR.spawnPerSec(pz) * s.spawnMul * this.spawnExtra * (lutaChefao ? H.ritmo : 1) * dt;
+    const calma = 1 - (1 - CHEGADA.hordaSilencio) * (this.silencio || 0); // a horda rareia no silêncio antes do chefão
+    this.spawnAcc += DIRECTOR.spawnPerSec(pz) * s.spawnMul * this.spawnExtra * (lutaChefao ? H.ritmo : 1) * calma * dt;
     let alive = 0;
     for (const e of this.enemies) if (!e.dead && !e.elite) alive++;
     while (this.spawnAcc >= 1) {
@@ -2109,7 +2116,7 @@ export class Game {
     const wid = 1.8 * E;
     const y0 = w.orlaTop;
     const y1 = w.orla.y1;
-    const perto = p.y > y0 - A.raioM && this.segment === 'orla';
+    const perto = p.y > y0 - A.raioM && this.segment === 'orla' && !this.cerco; // com o cerco, a avenida está fechada
     A.faixas.forEach((f, i) => {
       this.trafficT[i] -= dt;
       if (this.trafficT[i] > 0 || !perto) return;

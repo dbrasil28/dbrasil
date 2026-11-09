@@ -7,6 +7,7 @@
 // barraca, fica tonto. Nos dois, leva o dobro de dano (config: ENEMIES.monstrao.janela).
 // Sem DOM: os avisos ficam em game.avisosChao (o desenho e o bot leem), os objetos em game.monstraoObjs.
 import { ENEMIES, REACOES } from './config.js';
+import { foraDoCerco, entradaDoMonstrao, pontoNoCerco } from './chegada.js';
 import { explosaoPerto } from './reacoes.js';
 import { pathIndex } from './mundo.js';
 import { ferirFigurantes } from './figurantes.js';
@@ -80,6 +81,7 @@ function iniciar(game, e, D, f, d) {
 function solidoEm(game, x, y, r) {
   const w = game.world;
   if (!w) return null;
+  if (foraDoCerco(game, x, y, r)) return { kind: 'cerco', x, y }; // a torcida do cerco é parede (D82)
   for (const k of w.solids) {
     if (y < k.y0 - r - 3 || y > k.y1 + r + 3) continue;
     const qx = Math.max(k.x0, Math.min(x, k.x1));
@@ -331,7 +333,7 @@ function reforco(game, e, D, f, dt) {
   const n = ratos + R.horda;
   for (let i = 0; i < n; i++) {
     const a = off + (i / n) * Math.PI * 2;
-    const sp = game.fitSpawn({ x: p.x + Math.cos(a) * R.raioM, y: p.y + Math.sin(a) * R.raioM });
+    const sp = game.cerco ? pontoNoCerco(game) : game.fitSpawn({ x: p.x + Math.cos(a) * R.raioM, y: p.y + Math.sin(a) * R.raioM });
     game.spawnEnemy(i < ratos ? 'rato' : 'telespectador', sp.x, sp.y);
   }
 }
@@ -346,6 +348,7 @@ export function updateMonstrao(game, e, dt, ux, uy) {
   const p = game.player;
   e.furia = f >= 2;
   if (e.janelaT > 0) e.janelaT -= dt;
+  if (e.entrando) return entradaDoMonstrao(game, e, mov); // vindo pela avenida (D82)
   atualizarObjs(game, D, dt);
   mov.x = ux * (e.furia ? D.furiaVel : 1);
   mov.y = uy * (e.furia ? D.furiaVel : 1);

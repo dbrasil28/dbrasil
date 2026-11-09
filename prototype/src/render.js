@@ -1,6 +1,6 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA, WEAPONS, INTERACT } from './config.js';
+import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA, WEAPONS, INTERACT, CHEGADA } from './config.js';
 import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS, FIGURANTE_ART, carregarMonstrao } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto, drawEscuroPontas } from './mapa.js';
 import { drawMar } from './render_mar.js';
@@ -18,6 +18,7 @@ import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHo
 import { drawCenaFundo, drawCenaFrente, drawFaixaCena, drawGolaco, drawBatidao, drawOndasBatidao, drawNotaDanca, drawFachoReliquia } from './render_super.js';
 import { alturaNaCena, zoomNaCena } from './super.js';
 import { drawPalestras, drawMarcaAgiota, drawCurasPastor, drawCurados, drawBilhetes, drawAposta } from './render_elenco.js';
+import { posDoMembro } from './chegada.js';
 import {
   entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace,
   drawAim, drawBullet, drawHeal,
@@ -286,6 +287,15 @@ export class Renderer {
       }
     }
     for (const c of game.traffic || []) list.push({ d: cam.depth(c.x, c.y + c.len / 2), k: 'trafego', o: c, x: c.x, y: c.y + c.len / 2 });
+    if (game.cerco) {
+      // a torcida do cerco (D82): cada um na sua posição da roda, na ordem de profundidade de todo mundo
+      const K = game.cerco;
+      for (const m of K.membros) {
+        posDoMembro(K, m, pt2);
+        if (pt2.y < bounds.minY - 2 || pt2.y > bounds.maxY + 2 || pt2.x < bounds.minX - 2 || pt2.x > bounds.maxX + 2) continue;
+        list.push({ d: cam.depth(pt2.x, pt2.y), k: 'cerco', o: m, x: pt2.x, y: pt2.y });
+      }
+    }
     for (const p of game.projectiles) list.push({ d: cam.depth(p.x, p.y) + 0.3, k: 'proj', o: p });
     fxEmPeNaLista(game, cam, list);
     for (const z of game.zones) {
@@ -480,6 +490,31 @@ export class Renderer {
         case 'mobj':
           drawMonstraoObj(ctx, o, pt, ppu, cam.k);
           break;
+        case 'cerco': {
+          // um da torcida do cerco: virado para o meio; anda no lugar e, no "HU!", levanta os braços
+          const K = game.cerco;
+          const anim = crowdAnim(o.tint);
+          if (!anim) break;
+          const h = playerPx * ENEMIES.telespectador.size * enemyMul;
+          cam.toScreen(K.x, K.y, pt2);
+          const row = K.fase === 'dispersa' ? atlasRow(pt.x - pt2.x, pt.y - pt2.y) : atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+          const andando = K.fase === 'junta' || K.fase === 'dispersa';
+          let spr = null;
+          const poses = K.heT > 0 && !andando ? walkReady(anim.poses) : null;
+          if (poses && poses.col.furia !== undefined && (o.fase | 0) % 2 === 0) {
+            spr = this.cache.get(`${poses.prefix}_${row}_${poses.col.furia}`, h * (poses.ch / poses.figureH), POSE_OPTS, true);
+          }
+          if (!spr) {
+            const f = Math.floor(t * (andando ? 9 : 3) + o.fase) % 6;
+            spr = this.cache.get(`${anim.walk.prefix}_${row}_${f}`, h * (ATLAS.ch / anim.walk.figureH), CROWD_WALK_OPTS, true);
+          }
+          if (spr) {
+            if (K.fase === 'dispersa') ctx.globalAlpha = Math.max(0, 1 - K.t / CHEGADA.cerco.dispersaS);
+            blit(ctx, spr, pt.x, pt.y, false);
+            ctx.globalAlpha = 1;
+          }
+          break;
+        }
         case 'corpo': {
           // o Monstrão derrubado (D65): a queda em 12 quadros, uns segundos no chão e some
           const art = ENEMY_ART.monstrao;

@@ -1,4 +1,5 @@
 // Mundo da rota: portão da escadaria, lajes com escada, pegar e arremessar objetos e a entrega no topo.
+import { centroDaArena } from '../src/chegada.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Game } from '../src/game.js';
@@ -31,10 +32,12 @@ test('a escadaria do morro fica fechada até o Monstrão cair; ele mora na obra 
   assert.equal(g.caos, 100);
   assert.ok(g.covil.aberto, 'o covil não abriu em 100%');
   assert.equal(g.boss, null, 'o chefão saiu sem o Juninho por perto');
-  g.player.x = g.covil.x;
-  g.player.y = w.obra.y1 + 4;
+  // com o Juninho na arena da frente da obra, o Monstrão chega pela avenida (D82)
+  const arena = centroDaArena(g);
+  g.player.x = arena.x + 2;
+  g.player.y = arena.y + 3;
   g.update(1 / 30, parado);
-  assert.ok(g.boss && g.boss.type === 'monstrao', 'o Monstrão não saiu da obra');
+  assert.ok(g.boss && g.boss.type === 'monstrao', 'o Monstrão não chegou com o Juninho na arena');
   assert.ok(!w.solids.includes(w.obraSolid), 'o tapume da obra não caiu');
   // fases: com 60% da vida, muda de fase e chama a assessoria
   const antes = g.enemies.filter((e) => !e.dead).length;

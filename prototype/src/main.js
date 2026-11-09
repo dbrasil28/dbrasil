@@ -316,6 +316,8 @@ function quadro(now) {
   // música: a do trecho em que o Juninho está; mais baixa fora da partida (pausa, menus, resultado)
   if (state !== 'title') musica.tocar(game.segment === 'morro' ? 'morro' : 'orla');
   musica.abafar(state !== 'playing' || !!game.modal);
+  musica.silenciar(game.silencio); // perto do Monstrão a Orla fica em silêncio (D82)
+  sons.silenciar(game.silencio);
   musica.update(dtReal);
   // sons: os que o jogo pediu, no lugar de cada um; o ambiente do trecho, baixo fora da partida
   sons.drenar(game, state === 'playing' && !game.modal ? dtReal : 0);

@@ -7,6 +7,7 @@ import { removeSolid, addSolid, deliveryPoint, inside } from './mundo.js';
 import { playerStats } from './upgrades.js';
 import { cofreDoChefao } from './achados.js';
 import { limparMonstrao } from './monstrao.js';
+import { hora, pontoDeEntrada, iniciarCerco, pontoNoCerco } from './chegada.js';
 
 /** Covil do trecho: onde o chefão mora, de onde sai, e o estado das pistas. */
 export function covilDe(game, trecho) {
@@ -80,7 +81,9 @@ export function updateCovil(game, dt) {
     game.tv('covilDemora');
   }
   const noTopo = C.trecho === 'morro' && inside(game.world.top, p.x, p.y);
-  if (d < R.covilPertoM || noTopo) soltarChefao(game, C);
+  // na Orla da carreira, o Monstrão chega pela avenida quando o Juninho chega no fim da praia (D82)
+  const chega = C.trecho === 'orla' && !game.horda ? hora(game) : d < R.covilPertoM || noTopo;
+  if (chega) soltarChefao(game, C);
 }
 
 /** O chefão sai do covil: na Orla, o tapume da frente da obra cai; no Morro, aparece no fundo da laje do topo. */
@@ -95,12 +98,21 @@ export function soltarChefao(game, C) {
     if (!w.solids.includes(w.obraFundoSolid) && !w.gateOpen) addSolid(w, w.obraFundoSolid); // a frente cai; o fundo fica até o chefão cair
     w.obraAbertaT = game.t;
     for (let i = 0; i < 4; i++) game.burst(w.obra.x0 + ((i + 0.5) / 4) * (w.obra.x1 - w.obra.x0), w.obra.y1, 8, 'poeira');
-    const e = game.spawnEnemy('monstrao', C.x, w.obra.y1 - 1.6, { fase: 0, pausaT: 1.5 });
+    let e;
+    if (!game.horda) {
+      // carreira (D82): ele vem a pé pela avenida, do fim da Orla, e a horda vira o cerco em volta do Juninho
+      const en = pontoDeEntrada(game);
+      e = game.spawnEnemy('monstrao', en.x, en.y, { fase: 0, pausaT: 1.5, entrando: true });
+      iniciarCerco(game, e);
+      game.tv('chegada');
+    } else {
+      e = game.spawnEnemy('monstrao', C.x, w.obra.y1 - 1.6, { fase: 0, pausaT: 1.5 });
+      game.aliviarHorda(CARREIRA.chefaoHorda.max); // a horda abre espaço para a luta (D75)
+    }
     game.boss = e;
-    game.aliviarHorda(CARREIRA.chefaoHorda.max); // a horda abre espaço para a luta (D75)
     game.bossSpawned = true;
     game.bossName = ENEMIES.monstrao.name;
-    game.tv('boss');
+    if (game.horda) game.tv('boss');
     return;
   }
   const top = w.top;
@@ -128,13 +140,14 @@ export function checkFase(game, e) {
   const off = game.rng() * Math.PI * 2;
   for (let i = 0; i < n; i++) {
     const a = off + (i / n) * Math.PI * 2;
-    const sp = game.fitSpawn({ x: e.x + Math.cos(a) * 7.5, y: e.y + Math.sin(a) * 7.5 });
+    // no cerco (D82), a assessoria sai da torcida, de dentro da roda
+    const sp = game.cerco ? pontoNoCerco(game) : game.fitSpawn({ x: e.x + Math.cos(a) * 7.5, y: e.y + Math.sin(a) * 7.5 });
     game.spawnEnemy('telespectador', sp.x, sp.y);
   }
   const def = ENEMIES[e.type];
   const extra = def.fases.reforco[e.fase] || [];
   extra.forEach((type, i) => {
-    const sp = game.fitSpawn({ x: e.x + (i % 2 ? 3 : -3), y: e.y + 2 });
+    const sp = game.cerco ? pontoNoCerco(game) : game.fitSpawn({ x: e.x + (i % 2 ? 3 : -3), y: e.y + 2 });
     const o = game.spawnEnemy(type, sp.x, sp.y);
     if (type === 'traficante') o.saw = true;
   });
@@ -219,6 +232,7 @@ export function recomecar(game, trecho) {
   game.caosParado = false;
   game.nextWaveAt = game.t + SESSION.firstWaveAt;
   game.covil = covilDe(game, trecho);
+  game.cerco = null;
   game.crise = null;
   game.crisesFeitas = new Set();
   if (game.meta.melhorias && game.meta.melhorias.armaInicial) game.pendingInicial = true; // "Bolsa de ferramentas"
