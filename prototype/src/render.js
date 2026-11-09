@@ -362,7 +362,7 @@ export class Renderer {
           // depois do muro do fim e da obra do começo, o carro some aos poucos no escuro da avenida
           const wl = game.world;
           const some = wl
-            ? Math.max(0, Math.min(1, (o.y - (wl.orlaTop - AVENIDA.foraM)) / AVENIDA.someM, (wl.orla.y1 + AVENIDA.foraM - o.y) / AVENIDA.someM))
+            ? Math.max(0, Math.min(1, (o.y - (wl.orlaTop - AVENIDA.foraTopoM)) / AVENIDA.someM, (wl.orla.y1 + AVENIDA.foraM - o.y) / AVENIDA.someM))
             : 1;
           if (some <= 0) break;
           ctx.save();

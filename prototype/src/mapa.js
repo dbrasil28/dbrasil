@@ -106,8 +106,9 @@ export function drawOrlaGround(r, ctx, game, b) {
   // seguem para fora da cena e somem no escuro. Depois do muro, do lado do morro, só a calçada da avenida
   const m = game.map;
   const F = AVENIDA.foraM;
+  const FT = AVENIDA.foraTopoM; // do lado do Morro, a avenida acaba logo (a favela enche o canto)
   const calcadaX = m.avenidaX0 !== undefined ? m.avenidaX0 - AVENIDA.calcadaM : m.sandX;
-  orlaFora(r, ctx, game, b, calcadaX, b.maxX + 6, Math.max(b.minY, yTop - F), Math.min(b.maxY, yTop), yTop, yTop - F);
+  orlaFora(r, ctx, game, b, calcadaX, b.maxX + 6, Math.max(b.minY, yTop - FT), Math.min(b.maxY, yTop), yTop, yTop - FT);
   orlaFora(r, ctx, game, b, b.minX - 6, b.maxX + 6, Math.max(b.minY, yBot), Math.min(b.maxY, yBot + F), yBot, yBot + F);
 }
 
@@ -134,7 +135,6 @@ function orlaFora(r, ctx, game, b, x0, x1, y0, y1, pertoY, longeY) {
  * juntos): nada na ponta, quase preto a AVENIDA.foraM dela, e preto daí em diante. Depois do muro do fim, só
  * do lado da avenida e da praia (o morro é o caminho do jogo).
  */
-const ESCURO_M = 16;
 export function drawEscuroPontas(ctx, game, vb) {
   const w = game.world;
   const m = game.map;
@@ -142,13 +142,13 @@ export function drawEscuroPontas(ctx, game, vb) {
   const cam = game.camera;
   const F = AVENIDA.foraM;
   const x0 = m.avenidaX0 - AVENIDA.calcadaM;
-  // depois do muro, o preto vai só até ESCURO_M além do fim da avenida: mais adiante é a favela do caminho
+  // depois do muro, o preto vai só até escuroTopoM além do fim da avenida: mais adiante é a favela do caminho
   const lados = [
-    [x0, w.orlaTop, -1, w.orlaTop - F - ESCURO_M],
+    [x0, w.orlaTop, -1, w.orlaTop - AVENIDA.foraTopoM - AVENIDA.escuroTopoM],
     [vb.minX - 8, w.orla.y1, 1, vb.maxY + 4],
   ];
   for (const [xa, y, s, yFim] of lados) {
-    const yLonge = y + s * F;
+    const yLonge = y + s * (s < 0 ? AVENIDA.foraTopoM : F);
     const ya = s < 0 ? Math.max(yFim, vb.minY - 4) : y;
     const yb = s < 0 ? y : Math.min(yFim, vb.maxY + 4);
     if (yb <= ya) continue;
@@ -815,7 +815,7 @@ export function orlaDecor(game, b, out) {
     const y = j * SEG;
     // decoração da orla só no trecho da orla e um pouco além das pontas (lá, só a da areia: com o mundo da
     // rota, o lado da cidade são os prédios)
-    if (w && (y < w.orlaTop - AVENIDA.foraM * 0.45 || y > w.orla.y1 + AVENIDA.foraM * 0.45)) continue;
+    if (w && (y < w.orlaTop - AVENIDA.foraTopoM * 0.45 || y > w.orla.y1 + AVENIDA.foraM * 0.45)) continue;
     const street = game.isStreet(y + SEG / 2) || game.isStreet(y);
     // lado do morro: casas da favela em 2 fileiras (com o mundo da rota, os prédios ficam no lugar)
     for (let row = 0; row < (w && w.predios ? 0 : 3); row++) {

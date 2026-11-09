@@ -2123,7 +2123,7 @@ export class Game {
       if (this.trafficT[i] > 0 || !perto) return;
       this.trafficT[i] = A.intervaloS[0] + this.rng() * (A.intervaloS[1] - A.intervaloS[0]);
       const y = p.y - f.sentido * A.raioM;
-      if (y < y0 - A.foraM || y > y1 + A.foraM) return; // a avenida segue depois do muro e da obra
+      if (y < y0 - A.foraTopoM || y > y1 + A.foraM) return; // a avenida segue depois do muro e da obra
       if (this.traffic.some((c) => c.faixa === i && Math.abs(c.y - y) < A.espacoM)) return;
       const v = A.velocidade[0] + this.rng() * (A.velocidade[1] - A.velocidade[0]);
       this.traffic.push({ x: f.x, y, faixa: i, sentido: f.sentido, v, len, wid, modelo: A.modelos[Math.floor(this.rng() * A.modelos.length)], warned: false });
@@ -2172,7 +2172,7 @@ export class Game {
       const c = list[i];
       c.y += c.sentido * c.vAtual * dt;
       c.giro = (c.giro || 0) + c.vAtual * dt; // metros andados: as rodas giram com isso
-      if (Math.abs(c.y - p.y) > A.raioM + 6 || c.y < y0 - A.foraM || c.y > y1 + A.foraM) {
+      if (Math.abs(c.y - p.y) > A.raioM + 6 || c.y < y0 - A.foraTopoM || c.y > y1 + A.foraM) {
         list[i] = list[list.length - 1];
         list.pop();
         continue;

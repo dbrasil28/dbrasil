@@ -409,8 +409,11 @@ export const AVENIDA = {
   hordaInvulnS: 1.2, // o mesmo inimigo só leva outro atropelamento depois disso (antes o chefe morria embaixo do carro)
   avisoM: 16, // carro vindo por trás, nessa distância, na faixa do Juninho: aviso
   meioFioM: 0.35, // o muro do fim da Orla abre a avenida mais esta folga dos dois lados (o meio-fio)
-  foraM: 30, // a avenida segue esses metros depois do muro do fim e da obra do começo; os carros saem por ela
-  livreM: 14, // e nenhuma casa da favela fica em cima dela até essa folga além do fim
+  foraM: 30, // a avenida segue esses metros depois da obra do começo; os carros saem por ela
+  // do lado do Morro (pedido do autor: o canto escuro ao lado da Travessa do Gato ficava vazio), a avenida segue só
+  // foraTopoM depois do muro do fim e some no escuro em escuroTopoM; dali em diante, a favela enche
+  foraTopoM: 10, escuroTopoM: 5,
+  livreM: 3, // e nenhuma casa da favela fica em cima dela até essa folga além do fim
   calcadaM: 1.6, // depois do muro do fim, do lado do morro, a calçada da avenida (entre as casas e o meio-fio)
   someM: 12, // os carros somem aos poucos nos últimos metros da avenida, no escuro
   // (o Juninho e a horda não passam: a área de andar acaba no muro)
@@ -1426,7 +1429,8 @@ export const SOM_GOLPE = {
 // som de quando a habilidade dispara (null: o som vem no impacto)
 export const SOM_ARMA = {
   capacete: 'arremesso', entrega: 'arremesso', chinelo: 'chinelo', boleto: 'boleto', maleta: 'arremesso', picole: null, // o picolé fica sem som (o autor: "é algo constante, derretendo, fica chato")
-  mototaxi: 'moto', microfone: 'megafone', gato: 'gato', carimbo: null, caramelo: null,
+  mototaxi: 'moto', gato: 'gato', carimbo: null, caramelo: null,
+  microfone: null, // o Megafone ativo fica sem o barulho (pedido do autor)
 };
 
 // Figurantes e o grupo de sobreviventes (D55, D56): a garota da esquina e o policial do pé do morro (Orla), a

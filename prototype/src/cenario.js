@@ -696,7 +696,7 @@ export function placeCenario(w, map) {
     // a avenida que segue depois do muro do fim da Orla não passa por dentro de casa
     const a0 = map.avenidaX0 - AVENIDA.meioFioM;
     const a1 = map.avenidaX1 + AVENIDA.meioFioM;
-    const longe = w.orlaTop - AVENIDA.foraM - AVENIDA.livreM;
+    const longe = w.orlaTop - AVENIDA.foraTopoM - AVENIDA.livreM;
     w.casas = w.casas.filter((c) => !(c.x1 > a0 && c.x0 < a1 && c.y0 < w.orlaTop && c.y1 > longe));
   }
   w.props.sort((p, q) => p.y - q.y);
