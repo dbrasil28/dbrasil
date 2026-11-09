@@ -327,7 +327,7 @@ test('Modo Horda no Morro: sem baile e com o portão aberto', () => {
   assert.equal(g.baile, null, 'o baile começou na Horda');
 });
 
-test('DJ Plantão (ideia do autor): encostar no canhão de luz ofusca o DJ; com 70% da vida ele desce para a roda na pista', () => {
+test('DJ Plantão (ideia do autor): com os dois holofotes nele ao mesmo tempo, fica ofuscado por poucos segundos; com 70% da vida desce para a roda', () => {
   const g = noMorro();
   const w = g.world;
   ateABriga(g);
@@ -338,21 +338,52 @@ test('DJ Plantão (ideia do autor): encostar no canhão de luz ofusca o DJ; com 
   const D = ENEMIES.dj_plantao;
   dj.hp = dj.maxHp = 1000;
   const p = g.player;
-  // o canhão: o Juninho encosta nele com o grave armando; o facho vira para o DJ e o grave se perde
-  const c = w.baileDeco.find((d) => d.tipo === 'canhao');
-  assert.ok(c, 'sem canhão de luz');
-  dj.graveCd = 0;
+  const C = D.canhao;
+  const [c, c2] = w.baileDeco.filter((d) => d.tipo === 'canhao');
+  assert.ok(c && c2, 'sem os dois canhões de luz');
   dj.dropCd = 99;
   dj.chamaCd = 99;
-  g.update(DT, parado);
+  dj.graveCd = 99;
+  // um holofote só: o facho vira para o DJ, mas não ofusca; sem o par a tempo, volta e o canhão descansa
   p.x = c.x;
   p.y = c.y;
+  g.update(DT, parado);
+  assert.ok(c.miraT > 0, 'o canhão não virou para o DJ');
+  assert.ok(!(dj.ofuscadoT > 0), 'um holofote só ofuscou o DJ');
+  p.x = c.x + 6;
+  rodar(g, C.esperaS + 0.2);
+  assert.ok(!(c.miraT > 0) && c.cdT > 0 && !(dj.ofuscadoT > 0), 'sem o par, o facho não voltou');
+  rodar(g, C.voltaS + 0.2);
+  // os dois, um depois do outro (dentro de esperaS), com o grave armando: ofusca e o grave se perde
+  p.x = c.x;
+  p.y = c.y;
+  g.update(DT, parado);
+  rodar(g, 1);
+  dj.graveCd = 0;
+  g.update(DT, parado);
+  p.x = c2.x;
+  p.y = c2.y;
   g.djAneis = [];
   g.update(DT, parado);
-  assert.ok(dj.ofuscadoT > 0, 'o DJ não ficou ofuscado');
-  assert.ok(c.miraT > 0 && c.cdT > 0, 'o canhão não virou para o DJ');
-  rodar(g, D.canhao.ofuscaS * 0.8);
+  assert.ok(dj.ofuscadoT > 0, 'com os dois holofotes, o DJ não ficou ofuscado');
+  assert.ok(c.miraT > 0 && c2.miraT > 0 && c.cdT > 0 && c2.cdT > 0, 'os dois fachos não ficaram nele');
+  rodar(g, C.ofuscaS * 0.8);
   assert.equal((g.djAneis || []).length, 0, 'ofuscado, o DJ soltou anel');
+  // poucos segundos: depois ele normaliza
+  rodar(g, C.ofuscaS * 0.3);
+  assert.ok(!(dj.ofuscadoT > 0), 'o DJ ficou ofuscado tempo demais');
+  // de novo ofuscado, para descer para a roda assim
+  for (const d of [c, c2]) {
+    d.cdT = 0;
+    d.miraT = 0;
+  }
+  p.x = c.x;
+  p.y = c.y;
+  g.update(DT, parado);
+  p.x = c2.x;
+  p.y = c2.y;
+  g.update(DT, parado);
+  assert.ok(dj.ofuscadoT > 0);
   // com 70% da vida, desce para a pista: a roda abre e ninguém sai
   dj.hp = dj.maxHp * D.pista.vidaFrac - 1;
   g.update(DT, parado);

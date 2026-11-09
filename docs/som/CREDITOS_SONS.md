@@ -95,3 +95,13 @@ Aprovados pelo autor na sala de som em 08/11/2026. Quando ele aprovou mais de um
 | `latido_3` | Bark.ogg duas vezes | [Baby animals sounds pack](https://opengameart.org/content/baby-animals-sounds-pack) | Technopeasant |
 | `lataria_1` | door_closing.wav | [Car door SFX](https://opengameart.org/content/cardoorsfx) | looneybits |
 | `lataria_2` | qubodup-crash.ogg | [Crash collision](https://opengameart.org/content/crash-collision) | qubodup |
+
+## OpenGameArt, o canhão de luz do baile (CC0)
+
+Pedido do autor em 09/11/2026: o som do holofote estava feio, queria "mais mecânico, de dobradiça". A opção A entrou no jogo; a B e a C foram mandadas para ele ouvir e escolher.
+
+| Arquivo | Arquivo original | Pacote | Autor |
+| --- | --- | --- | --- |
+| `holofote_1` (opção A) | creak1.ogg (0,55 s) e metalLatch.ogg em seguida | [50 RPG sound effects](https://opengameart.org/content/50-rpg-sound-effects) | Kenney |
+| opção B (fora do jogo) | creaky_door_hinge.wav (de 2,25 a 3 s) e metalLatch.ogg | [Creaky Door Hinge Spooky](https://opengameart.org/content/creaky-door-hinge-spooky) e o pacote acima | Age of Fable e Kenney |
+| opção C (fora do jogo) | metal_spring_02.ogg e metalClick.ogg | [100 CC0 metal and wood SFX](https://opengameart.org/content/100-cc0-metal-and-wood-sfx) e o pacote acima | Barina e Kenney |

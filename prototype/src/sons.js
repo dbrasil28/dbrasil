@@ -63,6 +63,7 @@ export const RECEITAS = {
   roubo: [tom('sine', 800, 1250, 0.11, { q: 0.06, v: 0.45 }), tom('sine', 1250, 800, 0.16, { ini: 0.12, q: 0.08, v: 0.45 })],
   multa: [tom('square', 2600, 2700, 0.32, { lp: 4000, am: 30, amP: 0.5, v: 0.25 })],
   aviso_chao: [tom('tri', 720, 500, 0.26, { q: 0.12, v: 0.5 })],
+  holofote: [tom('saw', 620, 980, 0.38, { lp: 2600, am: 26, amP: 0.7, q: 0.25, v: 0.45 }), ruido(0.05, { ini: 0.4, lp: 5000, hp: 900, q: 0.02, v: 0.7 })], // range e trava
   crise: [0, 0.25, 0.5, 0.75].map((ini, i) => tom('square', i % 2 ? 660 : 880, i % 2 ? 660 : 880, 0.24, { ini, lp: 3000, v: 0.25 })),
   onda: [ruido(1.6, { lp: 350, lp1: 1600, a: 0.6, q: 0.6, v: 0.8 })],
   apagao: [tom('saw', 130, 38, 0.85, { lp: 700, q: 0.4, v: 0.5 }), ruido(0.03, { hp: 2000, q: 0.01, v: 0.6 })],
@@ -126,6 +127,8 @@ export const ARQUIVOS = {
   urro: ['assets/sons/urro_1.mp3', 'assets/sons/urro_2.mp3', 'assets/sons/urro_3.mp3', 'assets/sons/urro_4.mp3', 'assets/sons/urro_5.mp3', 'assets/sons/urro_6.mp3', 'assets/sons/urro_7.mp3'],
   latido: ['assets/sons/latido_1.mp3', 'assets/sons/latido_2.mp3', 'assets/sons/latido_3.mp3'],
   lataria: ['assets/sons/lataria_1.mp3', 'assets/sons/lataria_2.mp3'],
+  // CC0 (OpenGameArt, Kenney), 09/11/2026: o rangido de dobradiça e a trava do canhão de luz do baile
+  holofote: ['assets/sons/holofote_1.mp3'],
 };
 
 /** Amostras do som (Float32Array, pico em 0,9). Sem navegador: dá para conferir nos testes. */

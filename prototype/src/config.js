@@ -208,11 +208,13 @@ export const ENEMIES = {
     // roda (pista); ofuscado pelo canhão ou subindo para o drop, leva o dobro (janela)
     resiste: { palco: 0.3, pista: 0.55 },
     // ideia do autor (o Juninho não conseguia nem chegar perto): no palco, quem encosta (ativaM) num dos canhões de luz
-    // vira o facho para o DJ, que fica ofuscado por ofuscaS (não solta anel, não foge, não faz o drop, e leva o dobro
-    // da janela); cada canhão
-    // volta a servir em cdS. Com a vida em vidaFrac, ele desce para a pista e a briga é na roda (rodaM de raio, como
-    // na Orla): ele vem para cima (velMul), a torcida empurra quem encosta (dano a cada cdS, empurra)
-    canhao: { ativaM: 1.8, ofuscaS: 4, cdS: 9 },
+    // vira o facho para o DJ. Depois (pedido do autor: "tem que apontar os 2 holofotes pra ele"), um facho sozinho
+    // não basta: ele espera o outro por esperaS (sem o par, o canhão descansa voltaS); com `juntos` fachos nele ao
+    // mesmo tempo, o DJ fica ofuscado por ofuscaS, poucos segundos (não solta anel, não foge, não faz o drop, e leva
+    // o dobro da janela), e os canhões voltam a servir cdS depois. Com a vida em vidaFrac, ele desce para a pista e
+    // a briga é na roda (rodaM de raio, como na Orla): ele vem para cima (velMul), a torcida empurra quem encosta
+    // (dano a cada cdS, empurra)
+    canhao: { ativaM: 1.8, juntos: 2, esperaS: 6, voltaS: 2, ofuscaS: 3.5, cdS: 9 },
     // a roda (pedido do autor: em volta do Juninho e do DJ, e vai fechando como na Orla): duas linhas (linhaM) de gente
     // a espacoM, que dá um passo para dentro (passoM) a cada fechaS, até minM; quem falta chega andando (andaMS)
     pista: { vidaFrac: 0.7, rodaM: 7, minM: 4.5, fechaS: 5, passoM: 0.35, velMul: 1.5, linhaM: 0.85, espacoM: 0.85, andaMS: 5, dano: 2, cdS: 0.6, empurra: 6 },
@@ -616,17 +618,24 @@ export const CENARIO = {
 // Carreira (docs/design/CARREIRA_E_ROTA.md). Gorjetas: ganhas em toda partida, mesmo perdendo;
 // compram melhorias permanentes das habilidades básicas, para voltar um pouco mais forte.
 export const GORJETAS = { porMinuto: 5, porNivel: 2, porMilAbates: 10, liberarTrecho: 25, chefe: 60, entrega: 80 };
+// O preço de cada nível: base × mult^nível, de 5 em 5 (pedido do autor, 09/11/2026: "está fácil demais completar
+// tudo... tem que ser bem mais lento, mais caro, com mais barrinhas"). Antes, tudo custava 2.465 gorjetas e o bot
+// comprava 20 dos 22 níveis em menos de 2 horas. Agora são 61 níveis e 27.635 gorjetas: o primeiro sai na primeira
+// partida e, no ritmo do bot, tudo completo fica em umas 20 a 25 horas (no Vampire Survivors, completar tudo leva umas 40)
+const curva = (base, mult, n) => Array.from({ length: n }, (_, i) => Math.round((base * mult ** i) / 5) * 5);
 export const MELHORIAS = {
-  // bem pequenas (D39): o jogo continua difícil; o progresso vem mais das melhorias de opção
-  vida: { name: 'Marmita reforçada', desc: '+5 de vida máxima', step: 5, custo: [40, 80, 130, 200] }, // até +20
-  dano: { name: 'Capacete de aço', desc: '+2,5% de dano', step: 0.025, custo: [50, 100, 160, 240] }, // até +10%
-  velocidade: { name: 'Tênis de corrida', desc: '+2% de velocidade', step: 0.02, custo: [40, 90, 150] }, // até +6%
-  recarga: { name: 'Café de garrafa', desc: '−2% de recarga das armas', step: 0.02, custo: [50, 110, 180] }, // até −6%
-  ima: { name: 'Mochila maior', desc: '+5% de raio de coleta', step: 0.05, custo: [30, 55, 85, 125, 180] }, // até +25%
+  // pequenas por nível (D39): o jogo continua difícil; no máximo, a soma pesa
+  vida: { name: 'Marmita reforçada', desc: '+3 de vida máxima', step: 3, custo: curva(50, 1.42, 10) }, // até +30
+  dano: { name: 'Capacete de aço', desc: '+1,5% de dano', step: 0.015, custo: curva(70, 1.43, 10) }, // até +15%
+  velocidade: { name: 'Tênis de corrida', desc: '+1% de velocidade', step: 0.01, custo: curva(60, 1.48, 8) }, // até +8%
+  recarga: { name: 'Café de garrafa', desc: '−1% de recarga das armas', step: 0.01, custo: curva(70, 1.48, 8) }, // até −8%
+  ima: { name: 'Mochila maior', desc: '+4% de raio de coleta', step: 0.04, custo: curva(40, 1.45, 8) }, // até +32%
+  armadura: { name: 'Colete de motoboy', desc: '−1,5% de dano recebido', step: 0.015, custo: curva(100, 1.55, 6) }, // até −9%
+  gorjeta: { name: 'Avaliação 5 estrelas', desc: '+4% de gorjeta no fim da partida', step: 0.04, custo: curva(80, 1.48, 8) }, // até +32%
   // melhorias de opção: dão escolha, não força
-  armaInicial: { name: 'Bolsa de ferramentas', desc: 'No começo de cada trecho, escolhe uma arma a mais', opcao: true, custo: [150] },
-  troca: { name: 'Contato no app', desc: '1 troca de cartas por partida, sem anúncio', opcao: true, custo: [120] },
-  pista: { name: 'Rádio da polícia', desc: 'O helicóptero da TV já aparece no sinal do covil', opcao: true, custo: [100] },
+  armaInicial: { name: 'Bolsa de ferramentas', desc: 'No começo de cada trecho, escolhe uma arma a mais', opcao: true, custo: [2000] },
+  troca: { name: 'Contato no app', desc: '1 troca de cartas por partida, sem anúncio', opcao: true, custo: [1500] },
+  pista: { name: 'Rádio da polícia', desc: 'O helicóptero da TV já aparece no sinal do covil', opcao: true, custo: [1000] },
 };
 // Carreira (D39, docs/design/CARREIRA_E_ROTA.md): cada trecho tem o seu Caos (0 a 100%), um chefão
 // que mora num covil do mapa e guarda a saída, e pistas que crescem em vez de setas.
@@ -1421,7 +1430,8 @@ export const SONS = {
   urro: S(0.9, 1, 0.6, 3), investida: S(0.75, 1, 0.3, 3), soco_chao: S(1.1, 1, 0.2, 3), anilha: S(0.55, 2, 0.2, 2),
   carro_cai: S(0.9, 1, 0.3, 3), cata: S(0.35, 2, 0.2, 1), roubo: S(0.6, 1, 0.3, 3), multa: S(0.5, 1, 0.5, 2),
   // avisos, crises e chefão
-  aviso_chao: S(0.4, 2, 0.15, 3), crise: S(0.55, 1, 1, 3, FIXO), onda: S(0.7, 1, 1, 2, FIXO), apagao: S(0.7, 1, 1, 3, FIXO),
+  aviso_chao: S(0.4, 2, 0.15, 3), holofote: S(0.7, 2, 0.1, 2), // o canhão de luz girando (pedido do autor: "mais mecânico, de dobradiça")
+  crise: S(0.55, 1, 1, 3, FIXO), onda: S(0.7, 1, 1, 2, FIXO), apagao: S(0.7, 1, 1, 3, FIXO),
   faisca: S(0.5, 3, 0.08, 2), chefe: S(0.75, 1, 2, 3, FIXO), fase: S(0.7, 1, 1, 3, FIXO),
   // interface e TV
   toque: S(0.3, 2, 0.05, 2, FIXO), carta: S(0.4, 1, 0.1, 2, FIXO), cofre: S(0.6, 1, 0.5, 3, FIXO),

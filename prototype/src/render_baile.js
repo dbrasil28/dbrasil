@@ -209,6 +209,12 @@ function marcasDaLutaDoDJ(ctx, game, cam, ppu, t) {
   if (!dj.naPista) {
     for (const d of game.world.baileDeco || []) {
       if (d.tipo !== 'canhao') continue;
+      if (d.miraT > 0 && !(dj.ofuscadoT > 0)) {
+        // virado para o DJ, esperando o outro: pisca rápido (falta o par)
+        const pr = 0.5 + 0.5 * Math.sin(t * 14);
+        elipse(d.x, d.y, C.ativaM, `rgba(255,95,210,${(0.45 + 0.45 * pr).toFixed(3)})`, Math.max(2, ppu * 0.1));
+        continue;
+      }
       if (d.cdT > 0) {
         elipse(d.x, d.y, C.ativaM, 'rgba(255,255,255,0.18)', Math.max(1, ppu * 0.05));
         continue;
@@ -903,13 +909,16 @@ function canhoes(ctx, game, cam, ppu, t) {
     let L = cam.viewH * 1.6;
     let larg1 = ppu * 4.5;
     const larg0 = ppu * 0.3;
-    if (dj && !dj.naPista && dj.ofuscadoT > 0 && d.miraT > 0) {
-      // o Juninho encostou: o facho vira para o DJ (na cara dele) e ofusca
+    if (dj && !dj.naPista && d.miraT > 0) {
+      // o Juninho encostou: o facho vira para o DJ (na cara dele); com os dois nele, ofusca (o brilho na cara)
       cam.toScreen(dj.x, dj.y, c1);
       const ay = c1.y - ppu * 1.7;
       ang = Math.atan2(ay - c0.y, c1.x - c0.x);
       L = Math.hypot(c1.x - c0.x, ay - c0.y) * 1.15;
       larg1 = ppu * 1.4;
+    }
+    if (dj && !dj.naPista && d.miraT > 0 && dj.ofuscadoT > 0) {
+      const ay = c1.y - ppu * 1.7;
       const gl = ctx.createRadialGradient(c1.x, ay, 0, c1.x, ay, ppu * 1.6);
       gl.addColorStop(0, 'rgba(255,255,240,0.95)');
       gl.addColorStop(0.4, 'rgba(255,250,200,0.5)');

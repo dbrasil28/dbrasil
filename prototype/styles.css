@@ -1956,7 +1956,7 @@ body.mapa-aberto #warn {
 }
 
 .mel-pips i {
-  width: 14px;
+  width: 11px; /* até 10 níveis cabem no celular */
   height: 6px;
   border-radius: 2px;
   background: rgba(255, 255, 255, 0.15);

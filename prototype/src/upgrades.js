@@ -167,6 +167,8 @@ export function efeitoMelhoria(id, lv) {
     case 'velocidade': return `Velocidade: ${mais}`;
     case 'recarga': return `Recarga das armas: ${v ? `−${pct(v)}` : '0%'}`;
     case 'ima': return `Raio de coleta: ${mais}`;
+    case 'armadura': return `Dano recebido: ${v ? `−${pct(v)}` : '0%'}`;
+    case 'gorjeta': return `Gorjeta no fim: ${mais}`;
     default: return `${M.desc} × ${lv}`;
   }
 }
@@ -189,6 +191,8 @@ export function resumoMelhorias(melhorias) {
   if (lv('velocidade')) out.push(`+${pct(lv('velocidade') * MELHORIAS.velocidade.step)} DE VELOCIDADE`);
   if (lv('recarga')) out.push(`−${pct(lv('recarga') * MELHORIAS.recarga.step)} DE RECARGA`);
   if (lv('ima')) out.push(`+${pct(lv('ima') * MELHORIAS.ima.step)} DE COLETA`);
+  if (lv('armadura')) out.push(`−${pct(lv('armadura') * MELHORIAS.armadura.step)} DE DANO RECEBIDO`);
+  if (lv('gorjeta')) out.push(`+${pct(lv('gorjeta') * MELHORIAS.gorjeta.step)} DE GORJETA`);
   return out;
 }
 
@@ -229,6 +233,9 @@ export function numerosDoJuninho(player, mods, melhorias) {
     { nome: 'Recarga das armas', valor: sinal(total.cdMul - 1), partes: partes(mel.recarga, cartas.cdMul, total.cdMul) },
     { nome: 'Raio de coleta', valor: sinal(total.magnetMul - 1), partes: partes(mel.ima, cartas.magnetMul, total.magnetMul) },
     { nome: 'Área das armas', valor: sinal(total.areaMul - 1), partes: partes(1, cartas.areaMul, total.areaMul) },
+    ...(total.armor > 0
+      ? [{ nome: 'Dano recebido', valor: `−${pct(total.armor)}`, partes: lv('armadura') ? [`melhorias −${pct(lv('armadura') * MELHORIAS.armadura.step)}`] : [] }]
+      : []),
   ];
 }
 

@@ -4,8 +4,8 @@
 //   linha do anel leva dano e voa para fora (como nos atropelamentos);
 // - o drop: sobe no som (a hora de bater: leva o dobro) e a batida cai: um anel forte e a horda corre mais;
 // - chama Funkeiros pelos lados da esplanada.
-// Fica no palco e se afasta de quem chega perto. Ideia do autor: encostando num canhão de luz, o facho vira para
-// o DJ e ele fica ofuscado (para os golpes e deixa chegar perto); com a vida em 70%, ele desce para a pista e a
+// Fica no palco e se afasta de quem chega perto. Ideia do autor: encostando nos canhões de luz, os fachos viram
+// para o DJ e, com dois nele ao mesmo tempo, ele fica ofuscado por poucos segundos (para os golpes e deixa chegar perto); com a vida em 70%, ele desce para a pista e a
 // briga é na roda, com o povo da festa em volta (como na Orla). Números em config.js (ENEMIES.dj_plantao). Sem DOM.
 import { ENEMIES } from './config.js';
 import { palcoDoBaile } from './cenario.js';
@@ -71,26 +71,49 @@ function canhoesDoBaile(game) {
   return (game.world.baileDeco || []).filter((d) => d.tipo === 'canhao');
 }
 
-/** O Juninho encostou num canhão pronto: o facho vira para o DJ e ele fica ofuscado (ideia do autor). */
+/**
+ * Os canhões de luz (pedido do autor): o Juninho encosta num canhão pronto e o facho vira para o DJ, esperando o
+ * outro (esperaS). Com dois fachos nele ao mesmo tempo, o DJ fica ofuscado por poucos segundos.
+ */
 function usarCanhoes(game, e, dt) {
   const C = ENEMIES.dj_plantao.canhao;
   const p = game.player;
-  for (const d of canhoesDoBaile(game)) {
+  const canhoes = canhoesDoBaile(game);
+  for (const d of canhoes) {
     if (d.cdT > 0) d.cdT -= dt;
-    if (d.miraT > 0) d.miraT -= dt;
-    if (d.cdT > 0 || Math.hypot(p.x - d.x, p.y - d.y) > C.ativaM) continue;
-    d.cdT = C.cdS;
-    d.miraT = C.ofuscaS;
-    e.ofuscadoT = C.ofuscaS;
-    game.metrics.ofuscaDJ = (game.metrics.ofuscaDJ || 0) + 1;
-    // o que ele estava armando se perde: o grave, os anéis da série e o drop
-    e.graveT = 0;
-    e.aneisFila = 0;
-    e.dropT = 0;
-    game.word(e.x, e.y - 2.6, 'OFUSCADO!', '#fff3a0');
-    game.som('aviso_chao', d.x, d.y);
-    game.emit('flash', {});
+    if (d.miraT > 0) {
+      d.miraT -= dt;
+      if (d.miraT <= 0 && d.esperando) {
+        // o outro não veio a tempo: o facho volta a varrer e o canhão descansa um pouco
+        d.esperando = false;
+        d.cdT = C.voltaS;
+        game.word(d.x, d.y - 2.2, 'SOZINHO NÃO DÁ!', '#ff9a3a');
+        game.som('holofote', d.x, d.y);
+      }
+    }
+    if (d.cdT > 0 || d.miraT > 0 || Math.hypot(p.x - d.x, p.y - d.y) > C.ativaM) continue;
+    d.miraT = C.esperaS;
+    d.esperando = true;
+    game.som('holofote', d.x, d.y); // o canhão gira na dobradiça e trava
+    const faltam = C.juntos - canhoes.filter((q) => q.miraT > 0).length;
+    if (faltam > 0) game.word(d.x, d.y - 2.2, faltam === 1 ? 'FALTA 1 HOLOFOTE!' : `FALTAM ${faltam}!`, '#fff3a0');
   }
+  const nele = canhoes.filter((d) => d.miraT > 0);
+  if (nele.length < C.juntos || e.ofuscadoT > 0) return;
+  // os dois fachos na cara dele: ofuscado (o que ele estava armando se perde: o grave, os anéis da série e o drop)
+  e.ofuscadoT = C.ofuscaS;
+  for (const d of nele) {
+    d.esperando = false;
+    d.miraT = C.ofuscaS;
+    d.cdT = C.ofuscaS + C.cdS;
+  }
+  game.metrics.ofuscaDJ = (game.metrics.ofuscaDJ || 0) + 1;
+  e.graveT = 0;
+  e.aneisFila = 0;
+  e.dropT = 0;
+  game.word(e.x, e.y - 2.6, 'OFUSCADO! BATE AGORA!', '#fff3a0');
+  game.shake(0.2);
+  game.emit('flash', {});
 }
 
 /** O DJ desce para a pista: a roda se forma em volta do Juninho (baile.js) e ele cai do lado dele. */
@@ -182,7 +205,10 @@ export function updateDJ(game, e, dt) {
     e.naPista = true;
     e.ofuscadoT = 0;
     // os canhões voltam a varrer a pista (antes o facho ficava preso na cara dele: o DJ brilhava até o fim)
-    for (const d of canhoesDoBaile(game)) d.miraT = 0;
+    for (const d of canhoesDoBaile(game)) {
+      d.miraT = 0;
+      d.esperando = false;
+    }
     e.graveT = 0;
     e.aneisFila = 0;
     e.dropT = 0;

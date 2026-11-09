@@ -128,6 +128,8 @@ export class Game {
     this.mods.speedMul *= 1 + lv('velocidade') * MELHORIAS.velocidade.step;
     this.mods.cdMul = 1 - lv('recarga') * MELHORIAS.recarga.step;
     this.mods.magnetMul = 1 + lv('ima') * MELHORIAS.ima.step;
+    this.mods.armor += lv('armadura') * MELHORIAS.armadura.step;
+    this.gorjetaMul = 1 + lv('gorjeta') * MELHORIAS.gorjeta.step;
     this.stats = playerStats(this.player, this.mods);
     this.player.hp = this.stats.maxHp;
     this.bossKilled = false;
@@ -2485,6 +2487,12 @@ export class Game {
     if (this.metrics.achadosGorjeta) parts.push(['Achados pelo caminho', this.metrics.achadosGorjeta]);
     if (this.metrics.niveisExtras) parts.push(['Hora extra (níveis com a build completa)', this.metrics.niveisExtras * NIVEL_MAXIMO.gorjetas]);
     if (emHorda(this)) for (const p of parts) p[1] = Math.round(p[1] * HORDA.gorjetaMul); // a Carreira rende mais
+    const soma = parts.reduce((a, p) => a + p[1], 0);
+    if (this.gorjetaMul > 1) {
+      // a melhoria Avaliação 5 estrelas: um tanto a mais em cima de tudo
+      const extra = Math.round(soma * (this.gorjetaMul - 1));
+      if (extra > 0) parts.push([`Avaliação 5 estrelas (+${Math.round((this.gorjetaMul - 1) * 100)}%)`, extra]);
+    }
     return { total: parts.reduce((a, p) => a + p[1], 0), parts };
   }
 

@@ -125,9 +125,9 @@ test('melhorias de opção: arma a mais no começo do trecho e troca de cartas s
   g.chooseOption(0);
   assert.equal(g.player.weapons.length, 2);
   assert.ok(antes.length > 0);
-  // as melhorias de força ficaram pequenas
+  // as melhorias de força são pequenas por nível; no máximo (umas 20 horas de jogo, pedido do autor), a soma pesa um pouco mais
   const max = (id) => MELHORIAS[id].step * MELHORIAS[id].custo.length;
-  assert.ok(max('vida') <= 20 && max('velocidade') <= 0.061 && max('dano') <= 0.101 && max('recarga') <= 0.061);
+  assert.ok(max('vida') <= 30 && max('velocidade') <= 0.081 && max('dano') <= 0.151 && max('recarga') <= 0.081 && max('armadura') <= 0.091);
 });
 
 test('abertura: o Juninho não pega cadeira nem mesa antes de a horda atacar', async () => {
