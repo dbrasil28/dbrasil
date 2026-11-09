@@ -15,7 +15,8 @@ test('partida completa roda sem erro e respeita o limite de inimigos', () => {
   assert.ok(game.t > 30, `partida curta demais: ${game.t.toFixed(1)} s`);
   // elites e o chefe não contam no limite; ondas podem passar um pouco
   assert.ok(game.metrics.peakEnemies <= game.settings.maxEnemies + 90, `pico ${game.metrics.peakEnemies}`);
-  assert.ok(game.player.level > 1, 'nunca subiu de nível');
+  // subiu de nível em algum momento (no Morro ele recomeça do nível 1, então o nível do fim não diz)
+  assert.ok(game.player.level > 1 || game.summary().melhorias_em_s.length > 0, 'nunca subiu de nível');
   assert.ok(game.metrics.firstLevelUpAt !== null && game.metrics.firstLevelUpAt < 30, 'primeira melhoria demorou demais');
   console.log('[sim seed 11]', JSON.stringify(game.summary()));
 });

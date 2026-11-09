@@ -327,9 +327,10 @@ function reforco(game, e, D, f, dt) {
   e.reforcoT = R.cadaS[f];
   const p = game.player;
   const off = game.rng() * Math.PI * 2;
-  const ratos = (R.ratos && R.ratos[f]) || 0; // a turma da academia (D73): Ratos de Academia, e o resto horda
-  for (let i = 0; i < R.horda; i++) {
-    const a = off + (i / R.horda) * Math.PI * 2;
+  const ratos = (R.ratos && R.ratos[f]) || 0; // a turma da academia (D73, D75): os Ratos e um pouco de horda
+  const n = ratos + R.horda;
+  for (let i = 0; i < n; i++) {
+    const a = off + (i / n) * Math.PI * 2;
     const sp = game.fitSpawn({ x: p.x + Math.cos(a) * R.raioM, y: p.y + Math.sin(a) * R.raioM });
     game.spawnEnemy(i < ratos ? 'rato' : 'telespectador', sp.x, sp.y);
   }

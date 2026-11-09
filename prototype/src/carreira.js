@@ -97,6 +97,7 @@ export function soltarChefao(game, C) {
     for (let i = 0; i < 4; i++) game.burst(w.obra.x0 + ((i + 0.5) / 4) * (w.obra.x1 - w.obra.x0), w.obra.y1, 8, 'poeira');
     const e = game.spawnEnemy('monstrao', C.x, w.obra.y1 - 1.6, { fase: 0, pausaT: 1.5 });
     game.boss = e;
+    game.aliviarHorda(CARREIRA.chefaoHorda.max); // a horda abre espaço para a luta (D75)
     game.bossSpawned = true;
     game.bossName = ENEMIES.monstrao.name;
     game.tv('boss');
@@ -123,7 +124,7 @@ export function checkFase(game, e) {
   game.emit('flash', {});
   game.emit('fase', { fase: e.fase });
   // assessoria: um anel de horda em volta do chefão e os inimigos do trecho
-  const n = CARREIRA.reforcoHorda;
+  const n = e.type === 'monstrao' ? CARREIRA.chefaoHorda.faseHorda : CARREIRA.reforcoHorda; // com o Monstrão, menos (D75)
   const off = game.rng() * Math.PI * 2;
   for (let i = 0; i < n; i++) {
     const a = off + (i / n) * Math.PI * 2;

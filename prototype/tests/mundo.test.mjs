@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
-import { INTERACT, CARREIRA, LAJE } from '../src/config.js';
+import { INTERACT, CARREIRA, LAJE, ENEMIES } from '../src/config.js';
 import { constrain, applyLevels, inside } from '../src/mundo.js';
 
 const newGame = (extra = {}) => {
@@ -40,7 +40,9 @@ test('a escadaria do morro fica fechada até o Monstrão cair; ele mora na obra 
   const antes = g.enemies.filter((e) => !e.dead).length;
   g.damageEnemy(g.boss, g.boss.maxHp * 0.4, 'teste');
   assert.equal(g.boss.fase, 1);
-  assert.ok(g.enemies.filter((e) => !e.dead).length >= antes + 18, 'a assessoria não chegou');
+  const assessoria = CARREIRA.chefaoHorda.faseHorda + ENEMIES.monstrao.fases.reforco[1].length; // com o Monstrão, menos horda e Ratos (D75)
+  assert.ok(g.enemies.filter((e) => !e.dead).length >= antes + assessoria, 'a assessoria não chegou');
+  assert.ok(g.enemies.filter((e) => !e.dead && e.type === 'rato').length >= ENEMIES.monstrao.fases.reforco[1].length, 'os Ratos não vieram');
   g.damageEnemy(g.boss, 1e9, 'teste');
   assert.equal(g.boss, null);
   assert.equal(g.over, null, 'derrubar o chefão não acaba a partida: falta atravessar');

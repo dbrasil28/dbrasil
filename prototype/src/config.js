@@ -167,8 +167,10 @@ export const ENEMIES = {
     // derrubado (D65): uma das 3 mortes, sorteada, na direção mais perto de onde ele olhava; fica no chão e some
     corpo: { quadroS: 0.12, noChaoS: 4, someS: 1 },
     paradoQuadroS: 0.12, // parado entre os golpes: laço de 6 quadros respirando
-    reforco: { cadaS: [14, 12, 10], horda: 8, raioM: 9.5, ratos: [1, 1, 2] }, // a turma da academia: Ratos de Academia (por fase) e a horda
-    fases: { reforco: [[], [], []] },
+    // a turma da academia (D75, sugestão do autor): poucos Ratos de Academia por chamada e um pouco de horda; a
+    // cada fase nova chegam mais Ratos (fases.reforco). Pouco mais que isso: a luta é com ele
+    reforco: { cadaS: [14, 12, 10], horda: 3, raioM: 9.5, ratos: [1, 1, 2] },
+    fases: { reforco: [[], ['rato', 'rato'], ['rato', 'rato', 'rato']] },
     janela: { danoMul: 2 }, // pose de fisiculturista e tonto: leva o dobro de dano
   },
 };
@@ -513,6 +515,10 @@ export const CARREIRA = {
   heli: { raioM: 3.5, voltaS: 5, alturaTela: 0.42, manchaM: 2.1, manchaAlfa: 0.32 }, // holofote do helicóptero da TV circulando o covil; a mancha no chão (raio, m; brilho)
   fases: [0.66, 0.33], // vida do chefão em que ele muda de fase
   reforcoHorda: 18, // assessoria: horda chamada em volta do chefão a cada fase nova
+  // luta com o Monstrão (D75, pedido do autor: horda demais, não dava para lutar e o jogo ficava lento): no máximo
+  // `max` inimigos comuns vivos, nascendo no `ritmo` de sempre × isso; na chegada dele, somem os que passam do
+  // máximo (os mais longe, fora da tela); a assessoria de cada fase traz `faseHorda` da horda
+  chefaoHorda: { max: 90, ritmo: 0.5, faseHorda: 4 }, // a assessoria de verdade são os Ratos de Academia (ENEMIES.monstrao)
   quedaRaioM: 16, // ao cair, o sinal da TV cai junto: a horda em volta desaba
   chefaoAlcanceM: 14, // longe disso, o chefão corre atrás do Juninho (não dá para fugir dele para sempre)
   chefaoCorreMul: 2.4,

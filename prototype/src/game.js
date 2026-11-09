@@ -248,6 +248,24 @@ export class Game {
     this.emit('shake', { amount });
   }
 
+  /** Tira da partida os inimigos comuns que passam de `max`: os mais longe, só os fora da tela (ninguém some à vista). */
+  aliviarHorda(max) {
+    const p = this.player;
+    const comuns = this.enemies.filter((e) => !e.dead && !e.elite && !e.boss);
+    let sobra = comuns.length - max;
+    if (sobra <= 0) return 0;
+    comuns.sort((a, b) => (b.x - p.x) ** 2 + (b.y - p.y) ** 2 - ((a.x - p.x) ** 2 + (a.y - p.y) ** 2));
+    let n = 0;
+    for (const e of comuns) {
+      if (sobra <= 0) break;
+      if (this.onScreen(e.x, e.y)) continue;
+      e.dead = true; // sai sem cair: não conta abate, não solta nada
+      sobra--;
+      n++;
+    }
+    return n;
+  }
+
   /** Empurra o Juninho na direção (dx, dy) com `forca` m/s, que perde rápido (updatePlayer). */
   empurrarJuninho(dx, dy, forca) {
     const p = this.player;
@@ -1338,8 +1356,12 @@ export class Game {
     const s = this.settings;
     const cap = s.maxEnemies;
     const pz = this.pressao;
-    const target = Math.min(cap, DIRECTOR.targetAlive(pz) * s.spawnMul * this.spawnExtra);
-    this.spawnAcc += DIRECTOR.spawnPerSec(pz) * s.spawnMul * this.spawnExtra * dt;
+    // luta com o Monstrão (D75): menos horda em volta, para dar para lutar com ele (e o jogo não pesar)
+    const H = CARREIRA.chefaoHorda;
+    const lutaChefao = this.boss && !this.boss.dead && this.boss.type === 'monstrao';
+    let target = Math.min(cap, DIRECTOR.targetAlive(pz) * s.spawnMul * this.spawnExtra);
+    if (lutaChefao) target = Math.min(target, H.max);
+    this.spawnAcc += DIRECTOR.spawnPerSec(pz) * s.spawnMul * this.spawnExtra * (lutaChefao ? H.ritmo : 1) * dt;
     let alive = 0;
     for (const e of this.enemies) if (!e.dead && !e.elite) alive++;
     while (this.spawnAcc >= 1) {

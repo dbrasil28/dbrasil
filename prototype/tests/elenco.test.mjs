@@ -84,3 +84,22 @@ test('a turma de reforço do Monstrão traz Ratos de Academia', async () => {
   const ratos = g.enemies.filter((e) => e.type === 'rato').length;
   assert.equal(ratos, ENEMIES.monstrao.reforco.ratos[1]);
 });
+
+test('luta com o Monstrão: a horda abre espaço na chegada dele e fica no máximo de chefaoHorda', async () => {
+  const { CARREIRA } = await import('../src/config.js');
+  const { soltarChefao } = await import('../src/carreira.js');
+  const g = jogo();
+  const p = g.player;
+  for (let i = 0; i < 250; i++) {
+    const a = (i / 250) * Math.PI * 2;
+    g.spawnEnemy('telespectador', p.x + Math.cos(a) * (25 + (i % 10)), p.y + Math.sin(a) * (25 + (i % 10)));
+  }
+  g.spawnAcc = 0;
+  g.nextWaveAt = 1e9;
+  soltarChefao(g, g.covil);
+  const vivos = () => g.enemies.filter((e) => !e.dead && !e.elite && !e.boss).length;
+  assert.ok(vivos() <= CARREIRA.chefaoHorda.max, `ficaram ${vivos()} na chegada do chefão`);
+  g.caosBonus = 100;
+  for (let i = 0; i < 300; i++) g.update(DT, parado);
+  assert.ok(vivos() <= CARREIRA.chefaoHorda.max + CARREIRA.chefaoHorda.faseHorda + 20, `a horda voltou a ${vivos()} na luta`);
+});
