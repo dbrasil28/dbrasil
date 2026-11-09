@@ -105,11 +105,13 @@ export const ENEMIES = {
   },
   // Rato de Academia: investida em linha reta (como o Funkeiro), mais pesado; se pega o Juninho na corrida,
   // empurra (empurra: m/s, perde rápido). Na Orla com o Caos alto e na turma de reforço do Monstrão.
+  // Pedido do autor (D74): o dobro da altura do Juninho, com o porte do Político (size é sobre a escala dos
+  // inimigos, que vem a 90% do Juninho: 2 / 0.9); por isso mais largo, mais vida e mais lento.
   rato: {
     name: 'Rato de Academia',
-    hp: 120, speed: 1.65, dmg: 14, radius: 0.4, size: 1.12, xp: 8,
+    hp: 220, speed: 1.5, dmg: 16, radius: 0.6, size: 2 / 0.9, xp: 12,
     behavior: 'investida',
-    investida: { rangeM: 6.5, windupS: 0.6, dashS: 0.55, dashMul: 3.6, every: 3.0, som: 'investida', empurra: 9 },
+    investida: { rangeM: 7, windupS: 0.65, dashS: 0.55, dashMul: 3.6, every: 3.2, som: 'investida', empurra: 11 },
   },
   // Chefe do morro (laje do topo): rajadas de 3 tiros com a linha de aviso antes; de tempo em tempo para,
   // grita no rádio (pose de raiva) e chama traficantes. A entrega só sai com ele derrubado.
@@ -165,7 +167,7 @@ export const ENEMIES = {
     // derrubado (D65): uma das 3 mortes, sorteada, na direção mais perto de onde ele olhava; fica no chão e some
     corpo: { quadroS: 0.12, noChaoS: 4, someS: 1 },
     paradoQuadroS: 0.12, // parado entre os golpes: laço de 6 quadros respirando
-    reforco: { cadaS: [14, 12, 10], horda: 8, raioM: 9.5, ratos: [1, 2, 3] }, // a turma da academia: Ratos de Academia (por fase) e a horda
+    reforco: { cadaS: [14, 12, 10], horda: 8, raioM: 9.5, ratos: [1, 1, 2] }, // a turma da academia: Ratos de Academia (por fase) e a horda
     fases: { reforco: [[], [], []] },
     janela: { danoMul: 2 }, // pose de fisiculturista e tonto: leva o dobro de dano
   },
@@ -667,7 +669,7 @@ export const DIRECTOR = {
     if (caos >= 8) list.push({ type: 'golpista', w: 0.16 });
     if (caos >= 28) list.push({ type: 'burocrata', w: 0.14 });
     if (caos >= 45) list.push({ type: 'fiscal', w: 0.1 });
-    if (caos >= 30) list.push({ type: 'rato', w: 0.05 }); // Rato de Academia (D73)
+    if (caos >= 30) list.push({ type: 'rato', w: 0.035 }); // Rato de Academia (D73; grandão desde o D74, mais raro)
     return list;
   },
   // ajuste "Elenco completo" (ligado por padrão enquanto a arte entra): todos os inimigos desde 00:00

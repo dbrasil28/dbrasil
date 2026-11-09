@@ -246,7 +246,7 @@ export const WALK_ATLAS = {
   hpo: { atlas: 'horda_peao_walk_atlas', prefix: 'hpo', figureH: 157, escala: 0.7 },
   // inimigos do elenco v2 (D73): Laranja e Rato de Academia (carregam com as roupas novas da Orla)
   lj: { atlas: 'laranja_walk_atlas', prefix: 'lj', figureH: 157, escala: 0.8 },
-  ra: { atlas: 'rato_walk_atlas', prefix: 'ra', figureH: 157, escala: 0.8 }, // linha = (direção ÷ 2) × 4 + (direção % 2) × 2 + (quadro ≥ 6)
+  ra: { atlas: 'rato_walk_atlas', prefix: 'ra', figureH: 157 }, // o dobro do Juninho (D74): célula inteira // linha = (direção ÷ 2) × 4 + (direção % 2) × 2 + (quadro ≥ 6)
   mo: { atlas: 'monstrao_walk_atlas', prefix: 'mo', figureH: 157 },
   mo12a: { atlas: 'monstrao_cam12a_atlas', prefix: 'moa', figureH: 157 },
   mo12b: { atlas: 'monstrao_cam12b_atlas', prefix: 'mob', figureH: 157 },
@@ -302,7 +302,7 @@ export const POSE_ATLAS = {
   hscp: { atlas: 'horda_controle_poses_atlas', prefix: 'hscp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   hatp: { atlas: 'horda_telemarketing_poses_atlas', prefix: 'hatp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   ljp: { atlas: 'laranja_poses_atlas', prefix: 'ljp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
-  rap: { atlas: 'rato_poses_atlas', prefix: 'rap', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
+  rap: { atlas: 'rato_poses_atlas', prefix: 'rap', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
   hpop: { atlas: 'horda_peao_poses_atlas', prefix: 'hpop', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   gpp: { atlas: 'garota_programa_poses_atlas', prefix: 'gpp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
   pmp: { atlas: 'policial_militar_poses_atlas', prefix: 'pmp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
