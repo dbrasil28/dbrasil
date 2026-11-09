@@ -11,6 +11,12 @@ O que foi feito em cada arquivo:
 
 O volume no jogo fica em `config.js` (`SONS`).
 
+## Música
+
+| Arquivo | Origem | Licença |
+| --- | --- | --- |
+| `prototype/assets/musica/baile_ela_nao_vale_nada.mp3` | "Ela Não Vale Nada", feita no Suno pelo autor (09/11/2026), a música do baile do Morro (D94). Tirada a capa embutida; o áudio é o original | Para vender o jogo, a conta do Suno do autor precisa ser de um plano que permite uso comercial (no plano grátis, não pode). A letra tem palavrão: entra na classificação etária da loja |
+
 ## Adobe Firefly
 
 | Arquivos | Origem | Licença |

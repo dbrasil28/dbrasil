@@ -1,9 +1,10 @@
 // Desenho do baile da esplanada (D91, baile.js e dj.js): as TVs no fundo (clipe, depois o Plantão com O Acordão
 // em silhueta), o palco, a barricada do portão, as luzes de néon girando no chão, os anéis do grave do DJ e,
 // por cima de tudo, a noite que cai só ali, com os buracos de luz. E a TV grande na tela durante o Plantão.
-import { BAILE } from './config.js';
+import { BAILE, ENEMIES } from './config.js';
 import { images, ARTE_BAILE } from './sprites.js';
 import { palcoDoBaile } from './cenario.js';
+import { olhoNoEscuro } from './render_crises.js';
 
 const a = { x: 0, y: 0 };
 const b = { x: 0, y: 0 };
@@ -11,8 +12,13 @@ const pos = { x: 0, y: 0, w: 0, h: 0, s: 1 };
 let escuro = null;
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
-/** O pulso do batidão (0 a 1, forte na batida). */
-const pulso = (t) => Math.pow(1 - ((t * BAILE.pulsoBpm) / 60) % 1, 3);
+let desvioBatida = 0;
+/** O pulso do batidão (0 a 1, forte na batida): com a música tocando, na batida dela (acertaBatida). */
+const pulso = (t) => Math.pow(1 - ((((t + desvioBatida) * BAILE.pulsoBpm) / 60) % 1 + 1) % 1, 3);
+/** Acerta o pulso com a música do baile (game.batida: o tempo da faixa desde a primeira batida, main.js). */
+function acertaBatida(game, t) {
+  desvioBatida = game.batida != null ? game.batida - t : 0;
+}
 
 /**
  * Onde a arte de uma peça cai na tela: o pé dela (art.base) no ponto (x, y) do chão, com mPorPx metros por pixel da
@@ -33,9 +39,8 @@ function arteNoChao(cam, im, art, x, y, mPorPx, ppu, out) {
 export function tvsDoBaile(w) {
   const k = w.baile;
   const pc = palcoDoBaile(w);
-  const pt = w.path[w.portaoI];
-  const xs = [k.x0 + 2.2, pc.x, pt ? (pt.x1 + k.x1) / 2 : k.x1 - 2.2];
-  return xs.map((x) => ({ x, y: k.y0 + 0.15 }));
+  // uma de cada lado do palco do DJ, por cima dos paredões (D94)
+  return [-1, 1].map((l) => ({ x: pc.x + l * BAILE.tv.palcoDx, y: k.y0 + 0.15 }));
 }
 
 /** Onde estão as luzes de néon agora (giram pela pista). */
@@ -147,6 +152,7 @@ function chiado(ctx, x, y, wd, ht, t, forca) {
 export function drawBaileChao(ctx, game, cam, ppu, t, bounds) {
   const w = game.world;
   if (!w || !w.baile) return;
+  acertaBatida(game, t);
   const k = w.baile;
   if (k.y1 < bounds.minY - 4 || k.y0 > bounds.maxY + 4) {
     drawAneis(ctx, game, cam, ppu, t);
@@ -247,11 +253,15 @@ function drawAneis(ctx, game, cam, ppu, t) {
   ctx.restore();
 }
 
-/** Por cima de tudo: a noite que cai só na esplanada, com os buracos de luz (Juninho, TVs, néon) e o brilho. */
-export function drawBaileCeu(ctx, game, cam, ppu, t) {
+/**
+ * Por cima de tudo: a noite que cai na chegada do baile, com os buracos de luz (Juninho, TVs, néon), o brilho e,
+ * do Plantão em diante, os olhos acesos do povo e da horda da festa (D94).
+ */
+export function drawBaileCeu(ctx, game, cam, ppu, t, playerPx) {
   const w = game.world;
   const noite = game.noiteBaile || 0;
   if (!w || !w.baile || game.segment !== 'morro') return;
+  acertaBatida(game, t);
   if (noite <= 0.01) {
     canhoes(ctx, game, cam, ppu, t); // de longe, os canhões de luz já aparecem
     return;
@@ -297,7 +307,7 @@ export function drawBaileCeu(ctx, game, cam, ppu, t) {
   ctx.restore();
   // o brilho colorido: néon no ar e a luz das TVs (azul do Plantão, ou o clipe)
   const S = game.baile;
-  const plant = S && (S.fase === 'plantao' || S.fase === 'sinal' || S.fase === 'luta');
+  const plant = S && (S.fase === 'plantao' || S.fase === 'briga' || S.fase === 'luta');
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   const pu = 0.6 + 0.4 * pulso(t);
@@ -314,6 +324,7 @@ export function drawBaileCeu(ctx, game, cam, ppu, t) {
   reflexosDoGlobo(ctx, game, cam, ppu, t, noite);
   refletoresAcesos(ctx, game, cam, ppu, t, noite);
   canhoes(ctx, game, cam, ppu, t);
+  if (playerPx) olhosAcesos(ctx, game, cam, playerPx, noite);
   if (!plant || (S && S.fase === 'luta')) {
     for (const l of luzes(w, t, luzTmp)) {
       cam.toScreen(l.x, l.y, a);
@@ -332,11 +343,35 @@ export function drawBaileCeu(ctx, game, cam, ppu, t) {
   ctx.restore();
 }
 
+/**
+ * Os olhos acesos (D94): no Plantão, o olho de cada um da festa acende na hora dele, encarando o Juninho; da
+ * pancadaria em diante, toda a horda da festa (e quem dançava junto) brilha no escuro, como no Apagão.
+ */
+function olhosAcesos(ctx, game, cam, playerPx, noite) {
+  const S = game.baile;
+  if (!S || S.fase === 'festa' || S.fase === 'fim' || noite < 0.05) return;
+  const p = game.player;
+  const s = Math.max(1.5, playerPx * 0.025);
+  ctx.globalCompositeOperation = 'lighter';
+  for (const c of S.pessoas) {
+    if (c.virou || !(c.olho > 0)) continue;
+    ctx.fillStyle = `rgba(160,230,255,${(0.9 * c.olho * noite).toFixed(3)})`;
+    olhoNoEscuro(ctx, cam, playerPx, c.x, c.y, p.x - c.x, p.y - c.y, c.tam ? c.tam / ENEMIES.telespectador.size : 1, s);
+  }
+  ctx.fillStyle = `rgba(160,230,255,${(0.85 * noite).toFixed(3)})`;
+  for (const e of game.enemies) {
+    if (e.dead || e.boss || !(e.doBaile || (e.dancaT > 0 && e.olhoEm >= 0 && S.fase === 'plantao' && S.faseT >= e.olhoEm))) continue;
+    olhoNoEscuro(ctx, cam, playerPx, e.x, e.y, e.mx ?? p.x - e.x, e.my ?? p.y - e.y, 1, s);
+  }
+}
+
 /** Na tela (fora do zoom): a TV grande do Plantão com O Acordão, enquanto o Plantão está no ar. */
 export function drawPlantaoTela(ctx, game, cam, t) {
   const S = game.baile;
-  if (!S || (S.fase !== 'plantao' && !(S.fase === 'sinal' && S.faseT < 1.2))) return;
-  const entra = S.fase === 'plantao' ? clamp01(S.faseT / 0.25) : 1 - clamp01((S.faseT - 0.8) / 0.4);
+  // D94: só no começo do Plantão; depois sai, para a pista aparecer com os olhos acendendo (as TVs seguem no ar)
+  if (!S || S.fase !== 'plantao') return;
+  const sai = BAILE.telaGrandeS;
+  const entra = Math.min(clamp01(S.faseT / 0.25), 1 - clamp01((S.faseT - sai) / 0.4));
   if (entra <= 0) return;
   const wd = Math.min(cam.viewW - 48, 300);
   const ht = wd * 0.6;
@@ -349,7 +384,7 @@ export function drawPlantaoTela(ctx, game, cam, t) {
   ctx.strokeStyle = '#3a3242';
   ctx.lineWidth = 3;
   ctx.strokeRect(x - 8, y - 8, wd + 16, ht + 16);
-  plantao(ctx, x, y, wd, ht, t, S.fase === 'sinal');
+  plantao(ctx, x, y, wd, ht, t, S.faseT > sai - 0.4);
   ctx.fillStyle = '#fff';
   ctx.font = `700 ${Math.round(ht * 0.075)}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
   ctx.textAlign = 'center';
@@ -368,6 +403,7 @@ const c3 = { x: 0, y: 0 };
 /** Uma peça do cenário da festa (entra na ordem de profundidade): mesa do DJ, néon, treliça, canhão ou globo. */
 export function drawDecoBaile(ctx, game, cam, ppu, t, o) {
   const noite = game.noiteBaile || 0;
+  acertaBatida(game, t);
   if (o.tipo === 'mesaDj') mesaDj(ctx, cam, ppu, t, o, noite);
   else if (o.tipo === 'neon') neon(ctx, cam, ppu, t, o, noite);
   else if (o.tipo === 'trelica') trelica(ctx, cam, ppu, t, o, noite);
@@ -789,13 +825,16 @@ function reflexosDoGlobo(ctx, game, cam, ppu, t, noite) {
   }
   ctx.globalAlpha = 1;
   const n = C.reflexos;
-  ctx.fillStyle = `rgba(255,255,255,${(0.55 * noite).toFixed(3)})`;
+  // manchas redondas de luz deitadas no chão, coloridas pela bola (D94: não parecem os olhos acesos)
+  const s = Math.max(2, ppu * 0.1);
   for (let i = 0; i < n; i++) {
     const r = 2 + ((i * 0.6180339) % 1) * Math.min(k.x1 - k.x0, k.y1 - k.y0) * 0.5;
     const ang = (i * 2.399963) + t * 0.6;
     cam.toScreen(g.x + Math.cos(ang) * r, g.y + Math.sin(ang) * r * 0.9, c0);
-    const s = Math.max(1.5, ppu * 0.07);
-    ctx.fillRect(c0.x - s, c0.y - s * 0.5, s * 2, s);
+    ctx.fillStyle = `rgba(${BAILE.luzes.cores[i % BAILE.luzes.cores.length]},${(0.32 * noite).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.ellipse(c0.x, c0.y, s, s * cam.k * 0.6, 0, 0, Math.PI * 2);
+    ctx.fill();
   }
 }
 

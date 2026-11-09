@@ -296,6 +296,17 @@ button {
   background: linear-gradient(to right, var(--caution), var(--tv-red));
 }
 
+/* no baile (D94): onde o Caos chama o DJ */
+#caos-marca {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  margin-left: -1px;
+  background: #fff;
+  box-shadow: 0 0 6px #ff4fd8;
+}
+
 #caos-val {
   min-width: 38px;
   text-align: right;

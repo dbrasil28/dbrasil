@@ -233,20 +233,23 @@ Tirado da lista de estereótipos do autor (`ELENCO_v0.3_BRASIL.md`).
   Nenhum atalho pula o portão do baile. Ao sul das vielas deitadas fica uma mureta e um quintal, porque casa ali esconderia a viela.
 - **Altura:** a subida tem cerca de 350 m (D91). No meio do caminho, a esplanada do baile e, no fundo dela, o portão fechado até o DJ Plantão cair. O covil do Chefe do Tráfico é a laje do topo.
 
-**O baile da esplanada (D91, pedido do autor).** Chegando na última esplanada antes do alto:
-1. **A festa.** A noite cai só ali, com néon girando na pista, treliças de iluminação com refletores, o globo espelhado, canhões de luz varrendo o céu (de longe, a claridade na beira de cima da tela mostra onde é o baile), TVs passando clipe, o palco do DJ entre dois paredões, dois bares, sinuca, sofá e o espetinho. O povo dança: cidadãos, mulheres de roupa curta, funkeiros e traficantes. A horda que vinha atrás entra na dança, e a de fora para de nascer.
-2. **O Plantão.** As TVs entram no Plantão com O Acordão, as duas cabeças de Brasília, só em silhueta (o risco de D21). Uma TV grande aparece na tela e o som corta.
-3. **O sinal.** O sinal pega na pista toda, um por um, como na abertura:
+**O baile da esplanada (D91; a chegada no roteiro do autor, D94).** Chegando na última esplanada antes do alto:
+1. **A chegada.** Nos últimos 40 m, os corredores da favela esvaziam (a horda para de nascer e a de fora da tela vai embora), a música do Morro some e a do baile ("Ela Não Vale Nada", do autor) vai subindo, e a noite cai. Quando a noite cai, o Juninho chega na festa.
+2. **A festa.** A pista está lotada, todo mundo dançando na batida da música: cidadãos, mulheres de roupa curta, funkeiros e traficantes. A horda que vinha atrás entra na dança. No fundo, o DJ Plantão toca atrás da mesa, com uma TV de cada lado do palco passando clipe. Em volta, néon girando, treliças com refletores, o globo espelhado, canhões de luz varrendo o céu (de longe, a claridade na beira de cima da tela mostra onde é o baile), dois paredões, dois bares, sinuca, sofá e o espetinho.
+3. **O Plantão.** As TVs entram no Plantão com O Acordão, as duas cabeças de Brasília, só em silhueta (o risco de D21). Uma TV grande aparece na tela por um instante e o som baixa. Os olhos de todos na festa vão acendendo, um por um, com o brilho que só aparece na noite (o do Apagão), e todos encaram o Juninho.
+4. **A pancadaria.** Todo mundo vira horda e parte para cima do Juninho:
    - o cidadão vira horda;
    - a mulher de roupa curta vira a Mulher de Biquíni da horda;
-   - o funkeiro e o traficante viram o inimigo deles.
-4. **O DJ Plantão sobe no palco** (chefe do meio):
+   - o funkeiro e o traficante viram o inimigo deles;
+   - o resto do baile vai chegando pelas beiradas da esplanada.
+   A polícia do grupo, que tinha ficado de guarda na entrada, entra para ajudar. O DJ segue tocando, só olhando. Cada um da festa que cai sobe o Caos, e a barra mostra a marca em que o DJ entra.
+5. **O DJ Plantão entra na luta** (chefe do meio), quando o Caos chega na marca:
    - **o grave:** braços para cima, com aviso no chão, e anéis que correm pelo chão. Cada anel tem uma brecha, e quem está nela passa; quem é pego voa para trás;
    - **o drop:** sobe no som (a hora de bater, leva o dobro) e a batida cai: um anel forte e a horda em volta corre mais;
    - **chama Funkeiros** pelos lados.
-5. **O DJ caiu.** O som cai, a pista acorda, o portão do fundo abre e a noite vai embora.
+6. **O DJ caiu.** O som cai, a pista acorda, o portão do fundo abre e a noite vai embora.
 
-A polícia não entra no baile: os policiais do grupo ficam de guarda embaixo da esplanada, só assistindo ("POLÍCIA ACOMPANHA O BAILE DE LONGE"). No Modo Horda, o morro fica todo aberto, sem baile.
+Na festa, a polícia não entra: os policiais do grupo ficam de guarda embaixo da esplanada, só assistindo ("POLÍCIA ACOMPANHA O BAILE DE LONGE"). Na pancadaria eles entram, e depois do DJ voltam para a entrada. No Modo Horda, o morro fica todo aberto, sem baile.
 - **Horda:** os moradores, hipnotizados pelas TVs das janelas.
 
 **Ameaças:**

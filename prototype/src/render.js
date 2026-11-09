@@ -1,6 +1,6 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA, WEAPONS, INTERACT, CHEGADA } from './config.js';
+import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA, WEAPONS, INTERACT, CHEGADA, BAILE } from './config.js';
 import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS, FIGURANTE_ART, carregarMonstrao } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto, drawEscuroPontas } from './mapa.js';
 import { drawMar } from './render_mar.js';
@@ -235,7 +235,11 @@ export class Renderer {
     if (game.abertura && game.abertura.fase !== 'feito') {
       for (const c of game.abertura.civis) if (!c.virou) list.push({ d: cam.depth(c.x, c.y), k: 'civil', o: c });
     }
-    if (game.baile) for (const c of game.baile.pessoas) if (!c.virou) list.push({ d: cam.depth(c.x, c.y), k: 'civil', o: c }); // o povo do baile (D91)
+    if (game.baile) {
+      for (const c of game.baile.pessoas) if (!c.virou) list.push({ d: cam.depth(c.x, c.y), k: 'civil', o: c }); // o povo do baile (D91)
+      const dj = game.baile.noPalco; // o DJ tocando atrás da mesa, antes de entrar na luta (D94)
+      if (dj) list.push({ d: cam.depth(dj.x, dj.y), k: 'civil', o: dj });
+    }
     if (game.world && game.world.baile && game.segment === 'morro') {
       // as TVs no muro do fundo da esplanada e a barricada do portão (na frente das casas do fundo)
       const w = game.world;
@@ -499,10 +503,19 @@ export class Renderer {
           let opts = CIVIL_OPTS;
           let pula = 0;
           if (o.danca) {
-            // dançando no baile (D91): o passo no lugar, virando de um lado para o outro, e o pulo na batida
+            // dançando no baile (D91): o passo no lugar, virando de um lado para o outro, e o pulo na batida da
+            // música (game.batida, main.js). Com o olho aceso (D94), dança encarando o Juninho; o DJ toca de frente
+            // e, na pancadaria, fica olhando.
             frame = Math.floor(o.walk) % 6;
-            o.row = DANCA_ROWS[(Math.floor(t * 1.3 + o.ritmo * 7) + (o.id % 5)) % DANCA_ROWS.length];
-            pula = Math.abs(Math.sin(t * Math.PI * 2.17 + o.ritmo * 6)) * h * 0.06;
+            const tb = game.batida ?? t;
+            if (o.olho > 0 || (o.dj && game.baile && game.baile.fase === 'briga')) {
+              cam.toScreen(game.player.x, game.player.y, pt2);
+              o.row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
+            } else if (o.dj) o.row = DJ_ROWS[Math.floor(tb * 0.8) % DJ_ROWS.length];
+            else o.row = DANCA_ROWS[(Math.floor(t * 1.3 + o.ritmo * 7) + (o.id % 5)) % DANCA_ROWS.length];
+            const batida = ((((tb * BAILE.pulsoBpm) / 60 + o.ritmo * 0.12) % 1) + 1) % 1;
+            pula = Math.sin(Math.PI * batida) * h * (o.dj ? 0.03 : 0.06);
+            if (o.dj) opts = DJ_OPTS;
           }
           if (o.viraT >= 0 && o.viraT <= S) {
             frame = Math.min(5, Math.floor((1 - o.viraT / S) * 6));
@@ -813,7 +826,7 @@ export class Renderer {
     if (game.map.bounded) this.drawAtmosfera(ctx, cam);
     if (game.world) {
       if (game.crise) drawCriseCeu(ctx, game, cam, ppu, game.t, playerPx, cenarioInRange(game.world, bounds.minY - 3, bounds.maxY + 7, criseTmp));
-      drawBaileCeu(ctx, game, cam, ppu, game.t); // a noite do baile, com a luz do néon e das TVs (D91)
+      drawBaileCeu(ctx, game, cam, ppu, game.t, playerPx); // a noite do baile: néon, TVs e os olhos acesos (D91, D94)
       drawHolofoteCeu(ctx, game, cam, ppu, game.t); // facho do helicóptero, ou a claridade na beira da tela
       drawFachoReliquia(ctx, game, cam, ppu, game.t); // pista da relíquia (D67)
       // mapa da favela no canto (no morro); aberto grande quando tocado
@@ -2228,6 +2241,8 @@ const criseTmp = [];
 const CIVIL_OPTS = { shadowScale: 0.6 };
 // para onde o povo do baile vira dançando (D91): de frente e meio de lado, para a câmera
 const DANCA_ROWS = [0, 1, 15, 2, 14, 0, 3, 13];
+const DJ_ROWS = [0, 1, 0, 15]; // o DJ tocando: de frente, virando pouco
+const DJ_OPTS = { ...CIVIL_OPTS, tint: ENEMY_ART.dj_plantao.tint }; // o DJ com o roxo dele (sprites.js)
 const CIVIL_FLASH = { ...CIVIL_OPTS, flash: true }; // figurante levando dano
 const POSE_FLASH = { ...POSE_OPTS, flash: true };
 

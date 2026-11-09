@@ -804,27 +804,41 @@ export const CHEGADA = {
 // pela hora da cena: [desde (s), quadro]. Sobe (1, 2), se encolhe (3 a 5), treme ('treme': 5 e 6 a cada tremeS),
 // se abre logo antes de a relíquia entrar (7 a 9), estica no estouro (10 a 12), o laço aberto ('laco': 13 a 18,
 // lacoFps), desce (19, 20) e pousa (21 a 24). Depois de pousar, se o jogador anda, volta a caminhada.
-// O baile da esplanada (D91, pedido do autor): o chefe do meio do Morro. Chegando a entraM da esplanada, a noite
-// cai ali (noiteDeM a noiteAteM da beira dela, em noiteS), o néon acende, as TVs passam clipe e o povo dança
-// (pessoas, longe palcoM do palco); a horda que vinha atrás para para dançar e a de fora não nasce. Em plantaoS
-// as TVs entram no Plantão com O Acordão (em silhueta, D21) e o som corta; em sinalS o sinal pega e cada um vira
-// horda, um por um (viraS, a transformação em transfS), o mais perto do Juninho por último. Em seguida o DJ
-// Plantão sobe no palco (chefeS) e a luta começa. Com o DJ no chão, o som cai, quem está na esplanada acorda
-// (acordaM), o portão do fundo abre e a noite vai embora em fimS. A polícia não entra no baile: quem está no grupo
-// fica de guarda postoM antes da beira da esplanada.
+// O baile da esplanada (D91; a chegada no roteiro do autor, D94): o chefe do meio do Morro.
+// A chegada: de chegaM até entraM da esplanada, os corredores esvaziam (a horda para de nascer e a de fora da tela
+// vai embora até sobrar hordaMax; mais longe, hordaMax + hordaLonge), a música do Morro some e a do baile sobe, e a
+// noite cai (cheia na entrada). Na entrada, a festa: a pista lotada (povo, longe palcoM do palco), o DJ tocando
+// atrás da mesa (djAtrasM do fundo) e a horda que vinha atrás dança junto. Em plantaoS as TVs entram no Plantão com
+// O Acordão (em silhueta, D21), o som baixa (musica.plantaoMul) e os olhos de todos acendem, um por um, em olhosS;
+// encaraS depois, a pancadaria: cada um vira horda (viraS, a transformação em transfS), o mais perto do Juninho por
+// último, a polícia do grupo, que tinha ficado de guarda postoM antes da beira, entra para ajudar, e o resto do baile
+// vai chegando pelas beiradas (briga). O DJ só olha:
+// entra na luta quando o Caos chega em caos.sobe pontos acima do da hora da pancadaria (no máximo caos.max), e cada
+// um da festa que cai soma caos.porAbate. Com o DJ no chão, o som cai, quem está na esplanada acorda (acordaM), o
+// portão do fundo abre e a noite vai embora em fimS. A música do baile é "Ela Não Vale Nada" (do autor, 130 BPM;
+// musica.faseS é a primeira batida, para a dança e as luzes baterem com ela).
 export const BAILE = {
-  entraM: 2, noiteDeM: 14, noiteAteM: 2, noiteS: 1.5, noite: 0.62, pistaLuz: 0.45, // pistaLuz: a luz geral da pista (o povo aparece)
-  // o povo da festa (pedido do autor): cidadãos, mulheres de roupa curta, funkeiros e traficantes. No sinal, cada um
-  // vira horda: o cidadão com a transformação dele, a mulher vira a Mulher de Biquíni da horda e o funkeiro e o
-  // traficante viram o inimigo deles (a firma). A arte dos funkeiros loiros está pedida (PEDIDO_MORRO_BAILE.md).
-  povo: { cidadao: 12, garota: 9, funkeiro: 5, traficante: 2 },
-  palcoM: 3.6, beiraM: 1.0,
-  hordaMax: 24, // na chegada, a horda que vinha atrás fica em no máximo isso (os de fora da tela vão embora, D75)
-  plantaoS: 5, sinalS: 3.5, viraS: 3, transfS: 1.2, chefeS: 1.2, acordaM: 18, fimS: 3,
+  entraM: 2, chegaM: 40, noiteS: 1.5, noite: 0.62, pistaLuz: 0.45, // pistaLuz: a luz geral da pista (o povo aparece)
+  musica: { faseS: 0.265, plantaoMul: 0.35, voltaS: 0.6 },
+  // o povo da festa (pedido do autor: lotado): cidadãos, mulheres de roupa curta, funkeiros e traficantes. Na
+  // pancadaria, cada um vira horda: o cidadão com a transformação dele, a mulher vira a Mulher de Biquíni da horda e
+  // o funkeiro e o traficante viram o inimigo deles (a firma). A arte dos funkeiros loiros está pedida
+  // (PEDIDO_MORRO_BAILE.md).
+  povo: { cidadao: 24, garota: 16, funkeiro: 10, traficante: 3 },
+  palcoM: 3.6, beiraM: 1.0, djAtrasM: 0.75,
+  hordaMax: 6, hordaLonge: 40,
+  plantaoS: 6, olhosS: 2.6, encaraS: 1.2, viraS: 1.8, transfS: 1.2, acordaM: 18, fimS: 3,
+  telaGrandeS: 2, // a TV grande do Plantão na tela: só no começo dele (depois, a pista e os olhos)
+  caos: { sobe: 20, max: 95, porAbate: 0.2 },
+  // na pancadaria, o resto do baile vai chegando pelas beiradas da esplanada (ritmo por segundo, até max da festa
+  // em pé, longe longeM do Juninho), até o DJ entrar; povo: o peso de cada um
+  briga: { ritmo: 2.5, max: 36, longeM: 7, povo: { cidadao: 6, garota: 4, funkeiro: 2 } },
   postoM: 2.5,
   // luzes do baile: refletores de néon girando (cores, raio no chão), as TVs (largura e altura, m) e o brilho
   luzes: { n: 7, raioM: 4.2, giroS: 5.5, cores: ['255,60,200', '60,220,255', '170,90,255', '60,255,140', '255,170,40'], brilho: 0.3 },
-  tv: { larg: 2.3, alt: 1.3, altura: 2.43 }, // a tela (m) e a altura da beirada de baixo dela: as da arte do Figma
+  // as duas TVs, uma de cada lado do palco (palcoDx do meio dele, em cima dos paredões): a tela (m) e a altura da
+  // beirada de baixo dela, as da arte do Figma
+  tv: { larg: 2.3, alt: 1.3, altura: 2.43, palcoDx: 3.1 },
   // o cenário da festa (pedido do autor): palco com a mesa do DJ entre os paredões e o néon no muro, treliças de
   // iluminação (a do palco emoldura a mesa do DJ; duas de lado, nos cantos da frente), canhões de luz no chão, o
   // globo espelhado no meio da pista, dois bares (com engradados, mesas e cadeiras para arremessar), sinuca, sofá,
@@ -1254,7 +1268,8 @@ export const TV = {
   // o baile da esplanada (D91)
   baileComeca: ['BAILE NA ESPLANADA: O MORRO INTEIRO SUBIU PARA DANÇAR', 'BATIDÃO NA ESPLANADA. A FESTA NÃO TEM HORA PARA ACABAR'],
   baileAcordao: ['PLANTÃO: O RESPONSÁVEL POR TUDO MANDA UM RECADO, AO VIVO DE BRASÍLIA', 'PLANTÃO URGENTE: DE BRASÍLIA, AS DUAS CABEÇAS DO PAÍS FALAM COM A NAÇÃO'],
-  baileSinal: ['O SINAL PEGOU NO BAILE. A PISTA INTEIRA VIROU PLATEIA'],
+  baileSinal: ['O SINAL PEGOU NO BAILE. A PISTA INTEIRA PARTE PARA CIMA DO ENTREGADOR', 'PANCADARIA NO BAILE. O DJ SEGUE TOCANDO: O SHOW NÃO PODE PARAR'],
+  policiaEntra: ['A POLÍCIA ENTRA NO BAILE PARA GARANTIR A ORDEM. A ORDEM NÃO FOI ENCONTRADA', 'PM ENTRA NA ESPLANADA. COMANDO DIZ QUE A FESTA "SAIU DO CONTROLE"'],
   djPlantao: ['DJ PLANTÃO ASSUME O SOM: A BATIDA AGORA É DO SINAL', 'NO PALCO, DJ PLANTÃO. O PANCADÃO AGORA É AO VIVO E HIPNÓTICO'],
   djDrop: ['DJ PLANTÃO VAI SOLTAR O DROP. A PISTA ENLOUQUECE', 'O GRAVE VAI CAIR. QUEM ESTIVER PERTO, VOA'],
   fase_dj: ['DJ PLANTÃO AUMENTA O VOLUME. VIZINHO RECLAMA, NINGUÉM ESCUTA', 'DJ PLANTÃO TOCA A VERSÃO ESTENDIDA'],

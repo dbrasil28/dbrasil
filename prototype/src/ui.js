@@ -160,7 +160,17 @@ export class UI {
     }
     this.setWidth('caos-fill', game.caos / 100);
     this.setText('caos-val', `${Math.round(game.caos)}%`);
-    this.setText('caos-band', game.band.name);
+    // no baile (D94), na pancadaria: a marca do Caos em que o DJ entra
+    const marca = game.caosMarca ? Math.round(game.caosMarca.v) : null;
+    if (this.last.caosMarca !== marca) {
+      this.last.caosMarca = marca;
+      const el = $('caos-marca');
+      if (el) {
+        el.hidden = marca == null;
+        if (marca != null) el.style.left = `${marca}%`;
+      }
+    }
+    this.setText('caos-band', marca != null ? `O ${game.caosMarca.nome} ENTRA AOS ${marca}%` : game.band.name);
     this.setText('kills', game.kills.toLocaleString('pt-BR'));
     const hpLow = p.hp < st.maxHp * 0.3;
     if (this.last.hpLow !== hpLow) {

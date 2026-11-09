@@ -152,7 +152,7 @@ export function updateFigurantes(game, dt) {
       game.metrics.parceirosEntraram = (game.metrics.parceirosEntraram || 0) + 1;
     }
     // luta com quem está no alcance; com a horda chegando, fica com raiva (o policial já mira)
-    // (no baile, D91, o policial de guarda só assiste: acompanha de longe)
+    // (no baile, D91, o policial de guarda só assiste, até a pancadaria começar: D94)
     const A = F.arma[f.tipo];
     const alvoLuta = f.grupo && policiaDeFora(game, f) ? null : maisPerto(game, f, A.alcanceM);
     if (alvoLuta && f.cd <= 0) luta(game, f, alvoLuta);
@@ -265,9 +265,14 @@ function passeia(game, f, dt) {
 // ---------- a polícia não entra no baile (D91) ----------
 // (aqui e não em baile.js: baile.js usa cenario.js, que usa este arquivo; o ciclo quebraria a página de teste)
 
-/** O policial do grupo está de guarda embaixo do baile (o Juninho da beira de baixo da esplanada para cima). */
+/**
+ * O policial do grupo está de guarda embaixo do baile (o Juninho da beira de baixo da esplanada para cima), a não
+ * ser na pancadaria e na luta com o DJ: aí a polícia que ficou na entrada entra para ajudar (D94).
+ */
 function policiaDeFora(game, f) {
   const w = game.world;
+  const S = game.baile;
+  if (S && (S.fase === 'briga' || S.fase === 'luta')) return false;
   return !!(w && w.baile && !game.horda && (f.tipo === 'pm' || f.tipo === 'tropa') && game.player.y <= w.baile.y1 + 0.5);
 }
 

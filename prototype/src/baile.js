@@ -1,9 +1,11 @@
-// O baile da esplanada (D91, pedido do autor): o chefe do meio do Morro. A última esplanada antes do alto do
-// morro vira um baile: a noite cai ali, néon e TVs, o povo dançando. As TVs entram no Plantão com O Acordão
-// (as duas cabeças de Brasília, em silhueta: D21), o sinal pega e a festa vira horda, um por um, como na
-// abertura. Aí o DJ Plantão sobe no palco (dj.js). Com ele no chão, o som cai, a pista acorda e o portão do
-// fundo da esplanada abre o resto do morro. A polícia não entra no baile. Números em config.js (BAILE).
-// Sem DOM: roda igual no navegador e nos testes.
+// O baile da esplanada (D91; a chegada no roteiro do autor, D94): o chefe do meio do Morro.
+// Chegando: os corredores da favela esvaziam (a horda para de nascer e a de fora da tela vai embora), a música do
+// Morro some e a do baile sobe, e a noite cai; quando a noite cai, o Juninho chega na festa. A pista está lotada,
+// todo mundo dançando, e o DJ Plantão toca lá no fundo, no palco, com uma TV de cada lado. Nas TVs entra O Acordão
+// (as duas cabeças de Brasília, em silhueta: D21) e os olhos do povo todo acendem com o brilho da noite. Aí começa
+// a pancadaria: todo mundo para cima do Juninho, e a polícia que tinha ficado na entrada entra para ajudar. O DJ
+// segue tocando, só olhando; quando o Caos sobe o bastante, ele entra na luta (dj.js). Com ele no chão, o som cai,
+// a pista acorda e o portão do fundo abre o resto do morro. Números em config.js (BAILE). Sem DOM.
 import { BAILE, ENEMIES } from './config.js';
 import { makeRng } from './math.js';
 import { palcoDoBaile } from './cenario.js';
@@ -24,10 +26,17 @@ export function distEsplanada(w, x, y) {
 /** O baile pode acontecer nesta partida (carreira, no Morro, com a esplanada e o portão ainda fechado). */
 const temBaile = (game) => !!(game.world && game.world.baile && !game.horda && game.segment === 'morro');
 
-/** Avança o baile: começa na chegada, plantão, sinal, o DJ, e o fim. Também a noite (game.noiteBaile). */
+/**
+ * Avança o baile: a chegada (corredores esvaziando, a música e a noite), a festa, o Plantão (os olhos acendem), a
+ * pancadaria, o DJ e o fim. Deixa no jogo a noite (game.noiteBaile), o quanto já se chegou (game.chegadaBaile, 0 a
+ * 1), o som do baile (game.somDoBaile, 0 a 1, para a música) e, na pancadaria, a marca do Caos em que o DJ entra.
+ */
 export function updateBaile(game, dt) {
   if (!temBaile(game)) {
     game.noiteBaile = 0;
+    game.chegadaBaile = 0;
+    game.somDoBaile = 0;
+    game.caosMarca = null;
     return;
   }
   const B = BAILE;
@@ -36,39 +45,67 @@ export function updateBaile(game, dt) {
   let S = game.baile;
   const d = distEsplanada(w, p.x, p.y);
   if (!S && !w.portaoAberto && !game.over && d <= B.entraM) S = iniciar(game);
-  // a noite: cai conforme o Juninho chega perto da esplanada e vai embora depois do DJ
-  const perto = 1 - clamp01((d - B.noiteAteM) / (B.noiteDeM - B.noiteAteM));
-  const alvo = (S && S.fase === 'fim') || (!S && w.portaoAberto) ? 0 : perto;
+  // a chegada: de chegaM até a beira (0 longe, 1 na entrada); depois do DJ, nada
+  const perto = w.portaoAberto ? 0 : 1 - clamp01((d - B.entraM) / (B.chegaM - B.entraM));
+  game.chegadaBaile = S ? (S.fase === 'fim' ? 0 : 1) : perto;
+  if (!S && perto > 0) esvaziarCorredores(game, perto, dt);
+  // a noite cai com a chegada (cheia na entrada) e vai embora depois do DJ
+  const alvo = (S && S.fase === 'fim') || (!S && w.portaoAberto) ? 0 : S ? 1 : perto;
   const passo = dt / (S && S.fase === 'fim' ? B.fimS : B.noiteS);
   const n = game.noiteBaile || 0;
   game.noiteBaile = alvo > n ? Math.min(alvo, n + passo) : Math.max(alvo, n - passo);
+  game.somDoBaile = somDoBaile(S, perto);
+  game.caosMarca = S && S.fase === 'briga' ? { v: S.caosDJ, nome: 'DJ' } : null;
   if (!S) return;
   S.t += dt;
   S.faseT += dt;
   for (const c of S.pessoas) atualizarPessoa(game, S, c, dt);
   switch (S.fase) {
     case 'festa':
-      if (S.faseT >= B.plantaoS) mudar(game, S, 'plantao');
+      if (S.faseT >= B.plantaoS) plantao(game, S);
       break;
     case 'plantao':
-      if (S.faseT >= B.sinalS) pegarSinal(game, S);
+      if (S.faseT >= B.olhosS + B.encaraS) briga(game, S);
       break;
-    case 'sinal':
-      if (S.pessoas.every((c) => c.virou) && S.faseT >= B.chefeS) soltarDJ(game, S);
+    case 'briga': {
+      // o resto do baile vai chegando; o DJ só olha e entra quando o Caos chega na marca
+      if (!S.pessoas.every((c) => c.virou)) break;
+      chegaMaisGente(game, S, dt);
+      if (game.caos >= S.caosDJ) soltarDJ(game, S);
       break;
+    }
     default:
       break;
   }
 }
 
-function mudar(game, S, fase) {
-  S.fase = fase;
+/** O som do baile (0 a 1): sobe na chegada, cheio na festa, baixa no Plantão (a TV fala), some no fim. */
+function somDoBaile(S, perto) {
+  const B = BAILE;
+  if (!S) return perto * perto; // de longe, só um eco; perto da entrada, alto
+  if (S.fase === 'plantao') return 1 - (1 - B.musica.plantaoMul) * clamp01(S.faseT / 0.5);
+  if (S.fase === 'briga') return B.musica.plantaoMul + (1 - B.musica.plantaoMul) * clamp01(S.faseT / B.musica.voltaS);
+  if (S.fase === 'fim') return 1 - clamp01(S.faseT / B.fimS);
+  return 1;
+}
+
+/** Chegando no baile, os corredores esvaziam: a horda de fora da tela vai embora, até sobrar hordaMax. */
+function esvaziarCorredores(game, perto, dt) {
+  game.esvaziaT = (game.esvaziaT || 0) - dt;
+  if (game.esvaziaT > 0) return;
+  game.esvaziaT = 0.5;
+  game.aliviarHorda(Math.round(BAILE.hordaMax + (1 - perto) * BAILE.hordaLonge));
+}
+
+/** As TVs entram no Plantão com O Acordão; os olhos do povo vão acendendo, um por um, e todos encaram o Juninho. */
+function plantao(game, S) {
+  S.fase = 'plantao';
   S.faseT = 0;
-  if (fase === 'plantao') {
-    // as TVs entram no Plantão com O Acordão e o som corta
-    game.tv('baileAcordao');
-    game.emit('plantao', {});
-  }
+  const rng = makeRng((game.seed ^ 0x01d05) >>> 0);
+  for (const c of S.pessoas) c.olhoEm = rng() * BAILE.olhosS;
+  for (const e of game.enemies) if (e.dancaT > 0) e.olhoEm = rng() * BAILE.olhosS;
+  game.tv('baileAcordao');
+  game.emit('plantao', {});
 }
 
 /** A chegada: o povo na pista, a horda que vinha atrás para para dançar e a de fora não nasce. */
@@ -94,10 +131,15 @@ function iniciar(game) {
     const tipo = fila[pessoas.length];
     pessoas.push({
       x: s.x, y: s.y, vx: 0, vy: 0, tipo, arte: ARTE_DO_POVO[tipo], tam: TAM_DO_POVO[tipo], tint: Math.floor(rng() * 3),
-      walk: rng() * 10, ritmo: rng(), danca: true, viraT: -1, virou: false, id: 950000 + pessoas.length,
+      walk: rng() * 10, ritmo: rng(), danca: true, viraT: -1, virou: false, id: 950000 + pessoas.length, olho: 0, olhoEm: -1,
     });
   }
-  const S = (game.baile = { fase: 'festa', t: 0, faseT: 0, pessoas, dj: null });
+  // o DJ Plantão atrás da mesa, tocando (ainda não é inimigo: só entra na luta quando o Caos chama)
+  const noPalco = {
+    x: pc.x, y: k.y0 + B.djAtrasM, vx: 0, vy: 0, tipo: 'dj', arte: 'fk', tam: ENEMIES.dj_plantao.size, tint: 0,
+    walk: 0, ritmo: 0.5, danca: true, viraT: -1, virou: false, id: 949999, olho: 0, olhoEm: -1, dj: true,
+  };
+  const S = (game.baile = { fase: 'festa', t: 0, faseT: 0, pessoas, noPalco, dj: null, caosDJ: 100 });
   // a horda que vinha atrás do Juninho: a de longe vai embora (fora da tela) e a de perto entra na dança,
   // os traficantes também (até o sinal pegar)
   game.aliviarHorda(B.hordaMax);
@@ -112,46 +154,106 @@ function iniciar(game) {
   return S;
 }
 
-/** A pessoa dançando no lugar; quando o sinal pega nela, trava, transforma e vira horda. */
+/** A pessoa dançando no lugar; no Plantão o olho acende; na pancadaria ela trava, transforma e vira horda. */
 function atualizarPessoa(game, S, c, dt) {
   if (c.virou) return;
   c.walk += dt * 9; // o passo no batidão (o desenho também pula no pulso)
+  if (c.olhoEm >= 0 && S.fase === 'plantao') c.olho = clamp01((S.faseT - c.olhoEm) / 0.4);
   if (c.viraT < 0) return;
   c.viraT -= dt;
   c.danca = c.viraT > BAILE.transfS; // a transformação começa: para de dançar
   if (c.viraT <= 0) {
     c.virou = true;
+    let e;
     if (c.tipo === 'funkeiro' || c.tipo === 'traficante') {
-      const e = game.spawnEnemy(c.tipo, c.x, c.y, { walk: c.walk });
+      e = game.spawnEnemy(c.tipo, c.x, c.y, { walk: c.walk });
       if (c.tipo === 'traficante') e.saw = true; // já está na festa: sem soltar os fogos
     } else {
       // a mulher de roupa curta vira a Mulher de Biquíni da horda (a primeira roupa nova da Orla, tint 200)
-      game.spawnEnemy('telespectador', c.x, c.y, { tint: c.tipo === 'garota' ? 200 : c.tint, walk: c.walk });
+      e = game.spawnEnemy('telespectador', c.x, c.y, { tint: c.tipo === 'garota' ? 200 : c.tint, walk: c.walk });
     }
+    e.doBaile = true; // cada um que cai na pancadaria sobe o Caos (abateNoBaile)
     game.burst(c.x, c.y, 6, 'static');
   }
 }
 
-/** O sinal pega no baile: cada um trava numa hora, o mais perto do Juninho por último; a horda dançando acorda. */
-function pegarSinal(game, S) {
+/**
+ * Começa a pancadaria: cada um trava numa hora (o mais perto do Juninho por último) e vira horda; a horda dançando
+ * acorda; a polícia da entrada entra (figurantes.js). O DJ segue tocando: entra quando o Caos chegar em caosDJ.
+ */
+function briga(game, S) {
   const B = BAILE;
-  S.fase = 'sinal';
+  S.fase = 'briga';
   S.faseT = 0;
+  S.caosDJ = Math.round(Math.min(B.caos.max, game.caos + B.caos.sobe));
   game.tv('baileSinal');
   game.emit('flash', {});
   game.shake(0.25);
   const p = game.player;
   const ord = [...S.pessoas].sort((a, b) => Math.hypot(b.x - p.x, b.y - p.y) - Math.hypot(a.x - p.x, a.y - p.y));
   ord.forEach((c, i) => { c.viraT = B.transfS + (i / Math.max(1, ord.length)) * B.viraS; });
-  for (const e of game.enemies) if (e.dancaT > 0) e.dancaT = 0;
+  for (const e of game.enemies) {
+    if (e.dancaT > 0) {
+      e.dancaT = 0;
+      e.doBaile = true;
+    }
+  }
+  // a polícia do grupo, que tinha ficado de guarda na entrada, entra para ajudar (figurantes.js)
+  const w = game.world;
+  if ((w.figurantes || []).some((f) => f.grupo && (f.tipo === 'pm' || f.tipo === 'tropa'))) game.tv('policiaEntra');
+  game.metrics.brigaS = Math.round(game.t);
 }
 
-/** O DJ Plantão sobe no palco. */
+/** Na pancadaria, o resto do baile chega pelas beiradas da esplanada (longe do Juninho), até o DJ entrar. */
+function chegaMaisGente(game, S, dt) {
+  const R = BAILE.briga;
+  const w = game.world;
+  const k = w.baile;
+  const p = game.player;
+  S.chegaAcc = (S.chegaAcc || 0) + R.ritmo * dt;
+  if (S.chegaAcc < 1) return;
+  let emPe = 0;
+  for (const e of game.enemies) if (!e.dead && e.doBaile) emPe++;
+  const rng = game.fxRng;
+  const pesos = Object.entries(R.povo);
+  const total = pesos.reduce((a, [, n]) => a + n, 0);
+  for (let tent = 0; S.chegaAcc >= 1 && tent < 8; tent++) {
+    if (emPe >= R.max) {
+      S.chegaAcc = Math.min(S.chegaAcc, 1);
+      return;
+    }
+    // um ponto na beirada (lados e frente), longe do Juninho
+    const lado = rng();
+    const x = lado < 0.35 ? k.x0 + 0.6 : lado < 0.7 ? k.x1 - 0.6 : k.x0 + 1 + rng() * (k.x1 - k.x0 - 2);
+    const y = lado < 0.7 ? k.y0 + 3 + rng() * (k.y1 - k.y0 - 4) : k.y1 - 0.6;
+    if (Math.hypot(x - p.x, y - p.y) < R.longeM) continue;
+    const s = game.fitSpawn({ x, y });
+    let r = rng() * total;
+    let tipo = pesos[0][0];
+    for (const [t, n] of pesos) if ((r -= n) < 0) { tipo = t; break; }
+    const e = tipo === 'funkeiro' ? game.spawnEnemy('funkeiro', s.x, s.y) : game.spawnEnemy('telespectador', s.x, s.y, { tint: tipo === 'garota' ? 200 : Math.floor(rng() * 3) });
+    e.doBaile = true;
+    game.burst(s.x, s.y, 4, 'static');
+    S.chegaAcc -= 1;
+    emPe++;
+  }
+}
+
+/** Na pancadaria (e na luta com o DJ), cada um da festa que cai sobe o Caos: é ele que chama o DJ. */
+export function abateNoBaile(game, e) {
+  const S = game.baile;
+  if (!e.doBaile || !S || (S.fase !== 'briga' && S.fase !== 'luta')) return;
+  game.caosBonus += BAILE.caos.porAbate;
+}
+
+/** O DJ Plantão para de só olhar: sai de trás da mesa e entra na luta. */
 function soltarDJ(game, S) {
   const w = game.world;
+  const q = S.noPalco;
   const pc = palcoDoBaile(w);
-  const e = game.spawnEnemy('dj_plantao', pc.x, pc.y, { fase: 0 });
+  const e = game.spawnEnemy('dj_plantao', q ? q.x : pc.x, q ? q.y : pc.y, { fase: 0 });
   e.ri = w.baileI;
+  S.noPalco = null;
   S.dj = e;
   S.fase = 'luta';
   S.faseT = 0;
@@ -194,12 +296,3 @@ export function djCaiu(game, e) {
 
 /** A horda nasce? Do começo do baile até o DJ cair, só a festa (e quem o DJ chama). */
 export const baileSegura = (game) => !!(game.baile && game.baile.fase !== 'fim');
-
-/** O som corta no Plantão e enquanto o sinal pega (para a música e o ambiente, como o silêncio da Orla). */
-export function silencioDoBaile(game) {
-  const S = game.baile;
-  if (!S) return 0;
-  if (S.fase === 'plantao') return clamp01(S.faseT / 0.4);
-  if (S.fase === 'sinal') return 1 - clamp01((S.faseT - 1.5) / 1.5);
-  return 0;
-}

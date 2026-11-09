@@ -14,7 +14,7 @@ import { explosaoPerto, updateReacoes, golpeNoCarro } from './reacoes.js';
 import { updateCrises, criseLentidao } from './crises.js';
 import { emHorda, iniciarHorda, updateHorda, durezaHorda } from './horda.js';
 import { updateMonstrao, limparMonstrao } from './monstrao.js';
-import { updateBaile, djCaiu, baileSegura, silencioDoBaile } from './baile.js';
+import { updateBaile, djCaiu, baileSegura, abateNoBaile } from './baile.js';
 import { updateDJ, atualizarAneis } from './dj.js';
 import { updateChefeTrafico } from './chefe_trafico.js';
 import { updateCracudo, updateTrombadinha, trombada, devolveXp } from './morro_inimigos.js';
@@ -203,6 +203,9 @@ export class Game {
     this.atualizacao = null; // a cena da atualização do app na subida do Morro (D90)
     this.baile = null; // o baile da esplanada do Morro (D91, baile.js)
     this.noiteBaile = 0;
+    this.chegadaBaile = 0; // chegando no baile (D94): 0 longe, 1 na entrada (os corredores esvaziam)
+    this.somDoBaile = 0; // o volume da música do baile (0 a 1), para a música (main.js)
+    this.caosMarca = null; // na pancadaria do baile: o Caos em que o DJ entra (a marca na barra)
     this.djAneis = [];
     this.avisoPorta = false; // a faixa do aviso perto da escadaria aberta
     // modo: 'carreira' (a viagem), 'horda' (um mapa, sobreviver) ou 'desafio' (a Horda da semana)
@@ -715,6 +718,7 @@ export class Game {
     cargaPorAbate(this, e); // cada um derrubado adianta um pouco a super (D67)
     this.som(e.elite || e.boss ? 'morte_elite' : 'morte_horda', e.x, e.y);
     if (!this.caosParado) this.caosAbates++;
+    abateNoBaile(this, e); // no baile, cada um da festa que cai sobe o Caos (é ele que chama o DJ)
     this.metrics.killsByType[e.type] = (this.metrics.killsByType[e.type] || 0) + 1;
     this.recentKills.push(this.t);
     const def = ENEMIES[e.type];
@@ -1151,7 +1155,7 @@ export class Game {
     updateBaile(this, dt); // o baile da esplanada do Morro (D91)
     atualizarAneis(this, dt); // os anéis do grave do DJ Plantão
     // a música e o ambiente somem perto do fim da Orla e no Plantão do baile (main.js)
-    this.silencio = Math.max(silencioDoCovil(this), silencioDoBaile(this));
+    this.silencio = silencioDoCovil(this);
     this.updateTraffic(dt);
     updateReacoes(this);
     if (this.corpos && this.corpos.length) {
@@ -1402,7 +1406,10 @@ export class Game {
     const lutaChefao = this.boss && !this.boss.dead && this.boss.type === 'monstrao';
     let target = Math.min(cap, DIRECTOR.targetAlive(pz) * s.spawnMul * this.spawnExtra);
     if (lutaChefao) target = Math.min(target, H.max);
-    const calma = 1 - (1 - CHEGADA.hordaSilencio) * (this.silencio || 0); // a horda rareia no silêncio antes do chefão
+    // chegando no baile (D94), os corredores esvaziam: menos horda, até nenhuma nascer na entrada
+    const vazio = 1 - (this.chegadaBaile || 0);
+    target *= vazio;
+    const calma = (1 - (1 - CHEGADA.hordaSilencio) * (this.silencio || 0)) * vazio; // a horda rareia no silêncio antes do chefão
     this.spawnAcc += DIRECTOR.spawnPerSec(pz) * s.spawnMul * this.spawnExtra * (lutaChefao ? H.ritmo : 1) * calma * dt;
     let alive = 0;
     for (const e of this.enemies) if (!e.dead && !e.elite) alive++;

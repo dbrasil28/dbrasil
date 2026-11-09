@@ -6,6 +6,7 @@ import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
 import { BAILE, ENEMIES, TV } from '../src/config.js';
 import { novoFigurante } from '../src/figurantes.js';
+import { distEsplanada } from '../src/baile.js';
 
 const DT = 1 / 30;
 const parado = { x: 0, y: 0 };
@@ -56,7 +57,50 @@ test('Morro maior (D91): a esplanada do baile e, depois dela, o portão fechado 
   assert.ok(p.y < w.baile.y0 - 2, 'não passou pelo portão aberto');
 });
 
-test('o baile: festa, Plantão com O Acordão, o sinal pega na pista toda e o DJ Plantão sobe no palco', () => {
+/** O Juninho a uns d metros da beira de baixo da esplanada, na rota (devolve a distância de verdade). */
+function aDistancia(g, d) {
+  const w = g.world;
+  const k = w.baile;
+  const y = k.y1 + d;
+  const i = w.path.findIndex((q, n) => n > 1 && n < w.baileI && q.y0 <= y && q.y1 >= y);
+  const q = w.path[i];
+  const p = g.player;
+  p.x = (q.x0 + q.x1) / 2;
+  p.y = y;
+  p.ri = i;
+  return distEsplanada(w, p.x, p.y);
+}
+
+/** Leva o baile até a pancadaria: chegada, festa, Plantão e todo mundo virado. */
+function ateABriga(g) {
+  chegar(g);
+  g.update(DT, parado);
+  rodar(g, BAILE.plantaoS + BAILE.olhosS + BAILE.encaraS + 0.2);
+  rodar(g, BAILE.transfS + BAILE.viraS + 0.3);
+}
+
+test('a chegada no baile (D94): os corredores esvaziam, a música do Morro dá lugar à do baile e a noite cai', () => {
+  const g = noMorro();
+  const longe = aDistancia(g, 30);
+  g.update(DT, parado);
+  const somLonge = g.somDoBaile;
+  const noiteLonge = g.chegadaBaile;
+  assert.ok(longe > BAILE.entraM * 4 && longe < BAILE.chegaM, `longe demais ou perto demais: ${longe}`);
+  assert.ok(somLonge > 0 && somLonge < 0.5, `a música do baile já devia aparecer, baixinha: ${somLonge}`);
+  // a horda de fora da tela vai embora e a nova quase não nasce
+  const perto = aDistancia(g, 4);
+  rodar(g, 2); // a câmera chega junto
+  for (let i = 0; i < 30; i++) g.spawnEnemy('telespectador', g.player.x + (i % 2 ? 30 : -30), g.player.y + 30 + i);
+  rodar(g, 3);
+  const vivos = g.enemies.filter((e) => !e.dead).length;
+  assert.ok(perto < BAILE.entraM * 3, `não chegou perto: ${perto}`);
+  assert.ok(vivos <= BAILE.hordaMax + 3, `o corredor não esvaziou: ${vivos} vivos`);
+  assert.ok(g.chegadaBaile > noiteLonge && g.somDoBaile > somLonge, 'a chegada não avançou');
+  assert.ok(g.noiteBaile > 0.8, `a noite não caiu na chegada: ${g.noiteBaile}`);
+  assert.equal(g.baile, null, 'a festa começou antes da entrada');
+});
+
+test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acordão, a pancadaria e o DJ entra pelo Caos', () => {
   const g = noMorro();
   const w = g.world;
   const vem = g.spawnEnemy('telespectador', w.baile.x0 + 6, w.baile.y1 + 4);
@@ -67,35 +111,54 @@ test('o baile: festa, Plantão com O Acordão, o sinal pega na pista toda e o DJ
   const S = g.baile;
   assert.ok(S && S.fase === 'festa', 'o baile não começou na chegada');
   const povo = Object.values(BAILE.povo).reduce((a, b) => a + b, 0);
-  assert.ok(S.pessoas.length >= povo * 0.8, `pouca gente: ${S.pessoas.length}`);
+  assert.ok(povo >= 50 && S.pessoas.length >= povo * 0.8, `pouca gente: ${S.pessoas.length}`);
   for (const tipo of Object.keys(BAILE.povo)) assert.ok(S.pessoas.some((c) => c.tipo === tipo), `sem ${tipo} na festa`);
+  assert.ok(S.noPalco && S.noPalco.dj && S.noPalco.y < w.baile.y0 + 1.5, 'o DJ não está tocando no palco');
+  assert.equal(g.boss, null, 'o DJ já entrou na luta');
   assert.ok(vem.dancaT > 0, 'a horda que vinha atrás não entrou na dança');
   assert.ok(tv(g, 'baileComeca'));
+  assert.ok(g.somDoBaile > 0.95, 'a música do baile não está no alto');
   rodar(g, BAILE.plantaoS * 0.8);
   assert.equal(g.enemies.filter((e) => !e.dead).length, 1, 'a horda nasceu na festa');
-  assert.ok(g.noiteBaile > 0.9, `a noite não caiu: ${g.noiteBaile}`);
-  rodar(g, BAILE.plantaoS * 0.2 + 0.6);
+  rodar(g, BAILE.plantaoS * 0.2 + 0.2);
   assert.equal(S.fase, 'plantao');
   assert.ok(tv(g, 'baileAcordao'), 'a TV não entrou com O Acordão');
-  assert.ok(g.silencio > 0.9, 'o som não cortou no Plantão');
-  rodar(g, BAILE.sinalS);
-  assert.equal(S.fase, 'sinal');
+  rodar(g, 0.6);
+  assert.ok(g.somDoBaile < 0.5, 'o som não baixou para a TV falar');
+  rodar(g, BAILE.olhosS);
+  assert.ok(S.pessoas.every((c) => c.olho > 0), 'sobrou olho apagado no Plantão');
+  assert.ok(S.pessoas.every((c) => !c.virou), 'virou antes da hora');
+  rodar(g, BAILE.encaraS);
+  assert.equal(S.fase, 'briga');
   assert.equal(vem.dancaT, 0, 'a horda dançando não acordou');
-  rodar(g, BAILE.transfS + BAILE.viraS + BAILE.chefeS + 0.3);
+  assert.ok(S.caosDJ > g.caos, 'a marca do DJ não ficou acima do Caos');
+  assert.ok(g.caosMarca && g.caosMarca.v === S.caosDJ, 'sem a marca do DJ na barra');
+  rodar(g, BAILE.transfS + BAILE.viraS + 0.3);
   assert.ok(S.pessoas.every((c) => c.virou), 'sobrou gente sem virar');
-  assert.ok(g.enemies.filter((e) => !e.dead && !e.boss).length >= S.pessoas.length, 'a pista não virou horda');
-  assert.ok(g.enemies.some((e) => !e.dead && e.type === 'traficante') && g.enemies.some((e) => !e.dead && e.type === 'funkeiro'), 'a firma da festa não virou inimigo');
-  assert.ok(g.enemies.some((e) => !e.dead && e.type === 'telespectador' && e.tint === 200), 'as mulheres da festa não viraram a horda delas');
+  const festa = g.enemies.filter((e) => !e.dead && e.doBaile);
+  assert.ok(festa.length >= S.pessoas.length, 'a pista não virou horda');
+  assert.ok(festa.some((e) => e.type === 'traficante') && festa.some((e) => e.type === 'funkeiro'), 'a firma da festa não virou inimigo');
+  assert.ok(festa.some((e) => e.type === 'telespectador' && e.tint === 200), 'as mulheres da festa não viraram a horda delas');
+  assert.equal(S.fase, 'briga');
+  assert.ok(S.noPalco && !g.boss, 'o DJ devia seguir só olhando');
+  // cada um da festa que cai sobe o Caos; na marca, o DJ entra
+  const bonus = g.caosBonus;
+  for (const e of festa.slice(0, 10)) g.damageEnemy(e, 1e9, 'teste');
+  g.update(DT, parado);
+  assert.ok(g.caosBonus >= bonus + 10 * BAILE.caos.porAbate - 1e-9, 'os abates da pancadaria não subiram o Caos');
+  g.caosBonus += S.caosDJ; // o resto até a marca
+  g.update(DT, parado);
   assert.equal(S.fase, 'luta');
-  assert.ok(g.boss && g.boss.type === 'dj_plantao' && g.bossName === ENEMIES.dj_plantao.name, 'o DJ não subiu no palco');
+  assert.ok(g.boss && g.boss.type === 'dj_plantao' && g.bossName === ENEMIES.dj_plantao.name, 'o DJ não entrou na luta');
+  assert.equal(S.noPalco, null);
 });
 
 test('DJ Plantão: o anel do grave derruba quem está na linha, o drop dá a hora de bater e a horda corre; caído, o portão abre', () => {
   const g = noMorro();
   const w = g.world;
-  chegar(g);
+  ateABriga(g);
+  g.caosBonus += 100;
   g.update(DT, parado);
-  rodar(g, BAILE.plantaoS + BAILE.sinalS + BAILE.transfS + BAILE.viraS + BAILE.chefeS + 0.5);
   const dj = g.boss;
   assert.ok(dj && dj.type === 'dj_plantao');
   dj.hp = dj.maxHp = 1e7;
@@ -139,19 +202,27 @@ test('DJ Plantão: o anel do grave derruba quem está na linha, o drop dá a hor
   assert.equal(g.enemies.filter((o) => !o.dead && Math.hypot(o.x - dj.x, o.y - dj.y) < BAILE.acordaM).length, 0, 'a pista não acordou');
   rodar(g, BAILE.fimS + 0.3);
   assert.ok(g.noiteBaile < 0.05, 'a noite não foi embora');
+  assert.ok(g.somDoBaile < 0.05, 'a música do baile não parou');
 });
 
-test('a polícia não entra no baile (D91): o policial do grupo fica de guarda embaixo da esplanada', () => {
+test('a polícia no baile (D94): na festa, fica de guarda na entrada; na pancadaria, entra para ajudar', () => {
   const g = noMorro();
   const w = g.world;
   chegar(g);
   const pm = novoFigurante('pm', g.player.x, g.player.y + 1, 0.3);
   pm.grupo = true;
+  pm.hp = pm.maxHp = 1e6;
   w.figurantes = [pm];
   g.player.y = w.baile.y1 - 6; // já dentro da esplanada
   rodar(g, 4);
-  assert.ok(pm.y > w.baile.y1, `o policial entrou no baile (y ${pm.y.toFixed(1)}, beira ${w.baile.y1})`);
+  assert.ok(pm.y > w.baile.y1, `o policial entrou na festa (y ${pm.y.toFixed(1)}, beira ${w.baile.y1})`);
   assert.ok(tv(g, 'policiaBaile'), 'a TV não zoou a polícia');
+  g.outbox.length = 0;
+  rodar(g, BAILE.plantaoS + BAILE.olhosS + BAILE.encaraS);
+  assert.equal(g.baile.fase, 'briga');
+  assert.ok(tv(g, 'policiaEntra'), 'a TV não deu a entrada da polícia');
+  rodar(g, 4);
+  assert.ok(pm.y < w.baile.y1 - 1, `o policial não entrou na pancadaria (y ${pm.y.toFixed(1)})`);
 });
 
 test('Modo Horda no Morro: sem baile e com o portão aberto', () => {

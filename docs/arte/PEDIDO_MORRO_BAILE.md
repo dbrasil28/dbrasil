@@ -2,8 +2,10 @@
 
 Pedido do autor (09/11/2026). O Morro cresceu. A última esplanada antes do alto vira um baile funk à noite, com muita luz, néon, TVs, bares, sinuca, treliças de iluminação, globo espelhado e canhões de luz para o céu. As TVs mostram O Acordão (as duas cabeças de Brasília, só em silhueta), o sinal pega e a festa vira horda. Aí sobe no palco o **DJ Plantão**, o chefe do meio. Derrubado ele, o portão do fundo abre o resto do morro, até o **Chefe do Tráfico gigante, com duas metralhadoras**, no topo.
 
+**A chegada mudou (D94, roteiro do autor):** chegando, os corredores esvaziam, a música do baile ("Ela Não Vale Nada") sobe e a noite cai. A pista está lotada, todo mundo dançando, e o DJ toca atrás da mesa desde o começo, com uma TV de cada lado do palco. O Acordão aparece nas TVs, os olhos de todos acendem (o brilho do Apagão, feito pelo jogo), começa a pancadaria e a polícia da entrada entra para ajudar. O DJ fica só olhando, até o Caos subir: aí ele entra na luta. Por isso o DJ precisa de mais duas folhas: **tocando** (34) e **olhando** (35).
+
 O jogo já roda tudo isso. Enquanto a arte nova não chega:
-- o DJ usa a arte do Funkeiro, pintada de roxo;
+- o DJ usa a arte do Funkeiro, pintada de roxo (atrás da mesa, dança no lugar);
 - o Chefe usa a arte de hoje, aumentada (mesma escala nas duas direções, nada espremido);
 - a mesa do DJ, o néon, o bar e a tela do Plantão são desenho de código.
 
@@ -21,6 +23,13 @@ O jogo já roda tudo isso. Enquanto a arte nova não chega:
 - **Ângulo:** a mesma câmera das folhas de referência, de cima, uns 50° acima do chão, sem perspectiva. É o ângulo do Juninho e da horda no jogo. Antes de pôr no jogo, a arte é medida contra o chão.
 - **Nomes e marcas:** tudo fictício. Nada de logo, marca, time, partido ou rosto de pessoa real.
 
+## O que desenhar primeiro (baile)
+
+1. **DJ Plantão:** tocando (34), olhando (35), caminhada (1–4), grave (5) e drop (6). São 8 imagens; é o rosto do baile.
+2. **A dança** (21–26): 6 imagens, uma por pessoa da pista.
+3. **Funkeiro loiro:** caminhada (16–19), ataque (20a) e fúria (20b). São 6 imagens.
+4. Depois do baile: o Chefe do Tráfico gigante (7–15).
+
 ## Lista de imagens
 
 | # | Arquivo | O que é | Uso no jogo |
@@ -28,6 +37,8 @@ O jogo já roda tudo isso. Enquanto a arte nova não chega:
 | 1–4 | `dj_plantao_caminhada_1..4.png` | DJ Plantão: caminhada, 16 direções, 6 quadros | Andando pelo palco |
 | 5 | `dj_plantao_grave.png` | Braços para cima, mãos abertas, soltando o grave (16 direções) | Aviso e anéis do grave |
 | 6 | `dj_plantao_drop.png` | Debruçado, punhos no alto, pronto para soltar o drop (16 direções) | Subindo no som (a hora de bater) |
+| 34 | `dj_plantao_tocando.png` | Tocando nos toca-discos, 6 quadros em laço, 4 direções (0, 22,5, 337,5 e 45) | Atrás da mesa, da festa até ele entrar na luta (D94) |
+| 35 | `dj_plantao_olhando.png` | Braços cruzados, sorriso de canto, olhando a pancadaria (16 direções) | Na pancadaria, só olhando o Juninho (D94) |
 | 7–10 | `chefe_gigante_caminhada_1..4.png` | Chefe do Tráfico com uma metralhadora em cada mão, 16 direções, 6 quadros | Andando na laje do topo |
 | 11 | `chefe_gigante_dupla.png` | Atirando com as duas, braços à frente (16 direções) | Rajada dupla |
 | 12 | `chefe_gigante_varre.png` | Braços abertos, armas para os lados (16 direções) | Varredura em leque |
@@ -35,7 +46,7 @@ O jogo já roda tudo isso. Enquanto a arte nova não chega:
 | 14 | `chefe_gigante_recarga.png` | Trocando o pente de uma das armas (16 direções) | Recarga (a hora de bater) |
 | 15 | `chefe_gigante_radio.png` | Gritando no rádio, a outra arma para o alto (16 direções) | Chamando a firma |
 | 16–19 | `funkeiro_loiro_caminhada_1..4.png` | Funkeiro de cabelo loiro platinado, 16 direções, 6 quadros | O povo do baile e a horda que ele vira |
-| 20 | `funkeiro_loiro_poses.png` | Ataque e fúria do Funkeiro loiro (16 direções, 2 colunas) | Igual ao Funkeiro de hoje |
+| 20a, 20b | `funkeiro_loiro_ataque.png`, `funkeiro_loiro_furia.png` | Ataque e fúria do Funkeiro loiro (16 direções cada) | Igual ao Funkeiro de hoje |
 | 21–26 | `danca_<pessoa>.png` | Dançando no lugar, 6 quadros, 4 direções (0, 22,5, 337,5 e 45) | O povo da festa antes do sinal |
 | 27 | `baile_trelica.png` | Torre de treliça de alumínio e um pedaço de viga com refletores | As estruturas de iluminação (**feito, D93**) |
 | 28 | `baile_globo.png` | Globo espelhado pendurado, 6 quadros girando | O globo do meio da pista (**feito, D93**, um quadro; o giro é do jogo) |
@@ -55,6 +66,18 @@ Medidas no jogo:
 
 ```
 Production game sprite sheet for the mobile game BRASIL: ESTADO DE CAOS. Character: DJ PLANTÃO, a fictional Brazilian baile funk DJ who broadcasts a hypnotic TV signal through his sound. Young man, lean, cocky. Bleached platinum-blond buzz cut, mirrored purple sunglasses, oversized GOLD headphones around the neck, open NEON PURPLE tracksuit jacket over a white tank top, thick gold chains, black cargo shorts, white high-top sneakers. A small old TV screen glowing blue is sewn on the back of the jacket (no image on it). NOTHING green on the character, no logos, no brands, no text.
+Style: 90s digitized arcade fighter look, near-photographic textures, saturated colors, slightly caricatural but not cartoon, warm light from the upper left.
+Camera: elevated orthographic 3/4 view, about 50 degrees above the ground, no perspective distortion. EXACTLY the same camera, scale, grid and foot baseline as the attached reference sheets. Use the references ONLY for camera, grid, row/cell direction order and gait. Do NOT copy the reference character.
+Direction angles: 0 = facing the camera, 90 = facing screen right, 180 = back to the camera, 270 = facing screen left (clockwise).
+Background: flat pure green #00FF00 everywhere. No floor, no cast shadow, no glow, no light effects, no motion lines, no text. Whole body inside each cell with padding, no overlap between cells, no mirroring, same person and size in every cell.
+```
+
+## BASE do Funkeiro loiro
+
+O Funkeiro de hoje é o grandão de camiseta roxa. O loiro é outro, mais magro e mais novo, para a pista ter variedade. Não confundir com o DJ: o DJ tem óculos roxos espelhados, fone dourado e jaqueta roxa; o loiro não.
+
+```
+Production game sprite sheet for the mobile game BRASIL: ESTADO DE CAOS. Character: a fictional young Brazilian baile funk dancer from the favela, lean and wiry, cocky grin. Bleached platinum-blond "nevou" hair, short on the sides with a shaved line design, thin mustache. White ribbed tank top, long red-and-black basketball shorts, thin gold chain, white socks pulled up, black slide sandals. Bare arms with a few simple tattoos. NOTHING green on the character, no logos, no brands, no team crests, no text.
 Style: 90s digitized arcade fighter look, near-photographic textures, saturated colors, slightly caricatural but not cartoon, warm light from the upper left.
 Camera: elevated orthographic 3/4 view, about 50 degrees above the ground, no perspective distortion. EXACTLY the same camera, scale, grid and foot baseline as the attached reference sheets. Use the references ONLY for camera, grid, row/cell direction order and gait. Do NOT copy the reference character.
 Direction angles: 0 = facing the camera, 90 = facing screen right, 180 = back to the camera, 270 = facing screen left (clockwise).
@@ -98,9 +121,22 @@ Linha da pose (uma por imagem):
 - Chefe, juntas: `POSE: both machine guns held together in front of the chest, pointing straight ahead, leaning forward.`
 - Chefe, recarga: `POSE: one machine gun under the arm, the other hand pulling out the empty magazine and pushing a new one in, head down looking at the gun.`
 - Chefe, rádio: `POSE: shouting into the radio held in one hand, the other machine gun raised high toward the sky.`
-- Funkeiro loiro: o mesmo pedido das poses do Funkeiro de hoje (ataque e fúria), com a BASE do Funkeiro trocando o cabelo por `bleached platinum-blond hair`.
+- DJ, olhando (35): `POSE: standing still behind the DJ decks, arms crossed over the chest, chin up, smug half smile, watching a fight below as a spectator, headphones on one ear.`
+- Funkeiro loiro, ataque (20a, com a BASE dele): `POSE: throwing a wide hooking punch, weight on the front foot, teeth clenched.`
+- Funkeiro loiro, fúria (20b, com a BASE dele): `POSE: fury, arms spread wide, chest out, shouting, about to charge.`
+
+## O DJ tocando (34)
+
+Anexe a folha de caminhada 1 do Funkeiro (só para câmera e grade). Cole a BASE do DJ e este bloco. Desenhe o corpo inteiro: no jogo a mesa cobre as pernas.
+
+```
+DJ PLAYING LOOP sheet. EXACT 1536x1024 image, 6 columns x 4 rows, 256x256 cells. Each ROW is one facing direction; the 6 COLUMNS are consecutive frames of one loop IN PLACE: one hand pressing a headphone cup to the ear, the other hand scratching a vinyl record at waist height in front of him (the turntable itself is NOT drawn, only the hand pose), head nodding hard to the beat, shoulders bouncing; frame 6 flows back into frame 1. Feet on cell line y=240, body centered on x=128, same scale as the walk sheets.
+Rows from top to bottom: 0, 22.5, 337.5, 45.
+```
 
 ## A dança (6 imagens, uma por pessoa)
+
+Pessoas: o cidadão A, o B e o C (as roupas de hoje), a mulher de roupa curta (a garota da esquina), o Funkeiro loiro (a BASE dele, acima) e o traficante (o de hoje, com o fuzil atravessado nas costas). Quando o Acordão aparece, o jogo vira cada um para o Juninho e acende o olho: a dança só precisa das 4 direções de frente.
 
 Anexe a folha de caminhada 1 da pessoa (para o cidadão, a do cidadão A; para a mulher, a da garota da esquina). Descreva a pessoa no lugar da BASE, com a mesma câmera e o mesmo fundo.
 

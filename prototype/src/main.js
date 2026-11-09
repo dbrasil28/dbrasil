@@ -5,7 +5,7 @@ import { minimapRect } from './minimapa.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, defaultSettings } from './settings.js';
-import { ENEMIES, FAVELA, SOM, RELIQUIAS } from './config.js';
+import { ENEMIES, FAVELA, SOM, RELIQUIAS, BAILE } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
 import { loadImages, images, prewarm, carregarMorro, prewarmMorro, carregarHordaOrla, prewarmHordaOrla, arteSumiu, refazerArte, carregarMonstrao } from './sprites.js';
@@ -321,8 +321,11 @@ function quadro(now) {
   if (state !== 'title') musica.tocar(game.segment === 'morro' ? 'morro' : 'orla');
   musica.abafar(state !== 'playing' || !!game.modal);
   musica.silenciar(game.silencio); // perto do Monstrão a Orla fica em silêncio (D82)
-  sons.silenciar(game.silencio);
+  musica.misturar('baile', state === 'title' ? 0 : game.somDoBaile); // chegando no baile, a música dele sobe (D94)
+  sons.silenciar(Math.max(game.silencio, game.somDoBaile || 0)); // e o ambiente da favela some
   musica.update(dtReal);
+  const tb = musica.tempoDe('baile'); // a dança e as luzes do baile na batida da música
+  game.batida = tb == null ? null : tb - BAILE.musica.faseS;
   // sons: os que o jogo pediu, no lugar de cada um; o ambiente do trecho, baixo fora da partida
   sons.drenar(game, state === 'playing' && !game.modal ? dtReal : 0);
   sons.ambiente(state === 'title' ? null : SOM.amb[game.segment === 'morro' ? 'morro' : 'orla']);
