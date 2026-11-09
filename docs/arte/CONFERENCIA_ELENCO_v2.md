@@ -21,6 +21,7 @@ Pacote do autor em 33 partes: 35 personagens do elenco (cada um com caminhada em
 
 ## No jogo
 
+- **Parte 2 (D73):** Laranja e Rato de Academia como inimigos. Atlas em `prototype/assets/personagens/laranja/` e `rato_academia/`.
 - **Parte 1 (D72):** as 6 roupas da horda na Orla, a bolsada da garota e o Juninho pegando e lançando com as duas mãos. Atlas em `prototype/assets/personagens/horda_*/`, `garota_programa/bolsada_atlas.webp` e `juninho_arremesso/`.
 
 ## Onde cada um entra (pelo `docs/design/ELENCO_v0.3_BRASIL.md`)

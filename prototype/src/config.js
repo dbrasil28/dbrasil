@@ -63,6 +63,7 @@ export const ENEMIES = {
     // arremessa a maleta de dinheiro em arco: machuca se acertar em cheio; onde cai, abre e vira
     // Propina no chão (pegar continua sendo escolha do jogador: cura e aumenta a Corrupção)
     throw: { range: 7, every: 4.5, windupS: 0.42, releaseS: 0.16, flightS: 0.8, arcM: 1.8, dmg: 10, hitR: 0.5, dropGapM: 1.3, maxOnGround: 6 },
+    laranjas: 2, // chegam com ele (D73)
     // quando a maleta cai aberta, quem está perto (horda e inimigos comuns) corre atrás do dinheiro por um instante
     lure: { radiusM: 7, durS: 2.5, speedMul: 1.35, reachM: 0.7 },
     // a maleta abre no ar (fases do pacote): fechada até 35% do voo, meio aberta até 65%, depois aberta
@@ -90,7 +91,25 @@ export const ENEMIES = {
     name: 'Funkeiro Raivoso',
     hp: 55, speed: 1.8, dmg: 12, radius: 0.34, size: 1.1, xp: 6,
     behavior: 'investida',
-    investida: { rangeM: 6, windupS: 0.7, dashS: 0.5, dashMul: 3.4, every: 3.2 },
+    investida: { rangeM: 6, windupS: 0.7, dashS: 0.5, dashMul: 3.4, every: 3.2, som: 'grito_funkeiro' },
+  },
+  // Elenco v2 (D73). Laranja: vem com o Político e fica entre ele e o Juninho (guarda: frenteM à frente do
+  // Político, ladoM para o lado); apanha no lugar dele: com um Laranja até escudo.raioM, `parte` do dano vai
+  // para o Laranja. Cai e espalha o dinheiro do chefe (uma Propina no chão).
+  laranja: {
+    name: 'Laranja',
+    hp: 70, speed: 1.75, dmg: 9, radius: 0.32, size: 1.0, xp: 5,
+    behavior: 'laranja',
+    guarda: { frenteM: 1.3, ladoM: 0.9, bateM: 1.6 },
+    escudo: { raioM: 3.2, parte: 0.7 },
+  },
+  // Rato de Academia: investida em linha reta (como o Funkeiro), mais pesado; se pega o Juninho na corrida,
+  // empurra (empurra: m/s, perde rápido). Na Orla com o Caos alto e na turma de reforço do Monstrão.
+  rato: {
+    name: 'Rato de Academia',
+    hp: 120, speed: 1.65, dmg: 14, radius: 0.4, size: 1.12, xp: 8,
+    behavior: 'investida',
+    investida: { rangeM: 6.5, windupS: 0.6, dashS: 0.55, dashMul: 3.6, every: 3.0, som: 'investida', empurra: 9 },
   },
   // Chefe do morro (laje do topo): rajadas de 3 tiros com a linha de aviso antes; de tempo em tempo para,
   // grita no rádio (pose de raiva) e chama traficantes. A entrega só sai com ele derrubado.
@@ -146,7 +165,7 @@ export const ENEMIES = {
     // derrubado (D65): uma das 3 mortes, sorteada, na direção mais perto de onde ele olhava; fica no chão e some
     corpo: { quadroS: 0.12, noChaoS: 4, someS: 1 },
     paradoQuadroS: 0.12, // parado entre os golpes: laço de 6 quadros respirando
-    reforco: { cadaS: [14, 12, 10], horda: 8, raioM: 9.5 }, // a turma da academia (por enquanto, a horda)
+    reforco: { cadaS: [14, 12, 10], horda: 8, raioM: 9.5, ratos: [1, 2, 3] }, // a turma da academia: Ratos de Academia (por fase) e a horda
     fases: { reforco: [[], [], []] },
     janela: { danoMul: 2 }, // pose de fisiculturista e tonto: leva o dobro de dano
   },
@@ -648,6 +667,7 @@ export const DIRECTOR = {
     if (caos >= 8) list.push({ type: 'golpista', w: 0.16 });
     if (caos >= 28) list.push({ type: 'burocrata', w: 0.14 });
     if (caos >= 45) list.push({ type: 'fiscal', w: 0.1 });
+    if (caos >= 30) list.push({ type: 'rato', w: 0.05 }); // Rato de Academia (D73)
     return list;
   },
   // ajuste "Elenco completo" (ligado por padrão enquanto a arte entra): todos os inimigos desde 00:00
@@ -656,6 +676,7 @@ export const DIRECTOR = {
     { type: 'golpista', w: 0.3 },
     { type: 'burocrata', w: 0.25 },
     { type: 'fiscal', w: 0.25 },
+    { type: 'rato', w: 0.12 },
   ],
   castTestFirstElite: 12, // com o elenco completo, o primeiro Político chega aos 12 s
   castTestEliteEvery: 35,
@@ -992,6 +1013,7 @@ export const TV = {
   crise_curto: ['GATO DE LUZ EM CURTO! FAÍSCA PARA TODO LADO, OLHE ONDE PISA'],
   cofre: ['ENTREGADOR ACHA COFRE NA ORLA. RECEITA DIZ QUE NÃO VIU NADA', 'COFRE ABERTO AO VIVO. DONO AINDA NÃO SE APRESENTOU'],
   cofre5: ['DEU BICHO! ENTREGADOR TIRA A SORTE GRANDE. BANCA PEDE RECONTAGEM'],
+  laranja: ['LARANJA CAI E ESPALHA O DINHEIRO DO CHEFE NA CALÇADA', 'O LARANJA APANHOU PELO POLÍTICO. A ASSESSORIA NEGA QUALQUER LIGAÇÃO'],
   reliquia_altinha: ['ENTREGADOR ACHA A BOLA DA ALTINHA. A PRAIA INTEIRA PARA PARA OLHAR'],
   reliquia_paredao: ['ENTREGADOR ACHA UM PAREDÃO NA LAJE. O MORRO INTEIRO SENTE O GRAVE'],
   super_altinha: ['GOLAÇO! A BOLA DA ALTINHA ATRAVESSA A RUA LEVANDO A HORDA JUNTO', 'O NARRADOR PERDE A VOZ: QUE GOLAÇO DO ENTREGADOR'],

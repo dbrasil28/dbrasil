@@ -248,6 +248,14 @@ export class Game {
     this.emit('shake', { amount });
   }
 
+  /** Empurra o Juninho na direção (dx, dy) com `forca` m/s, que perde rápido (updatePlayer). */
+  empurrarJuninho(dx, dy, forca) {
+    const p = this.player;
+    const l = Math.hypot(dx, dy) || 1;
+    p.kx = (dx / l) * forca;
+    p.ky = (dy / l) * forca;
+  }
+
   /** Super da relíquia (D67): pedida pelo botão da tela, pelo Espaço ou pelo bot. Devolve se usou. */
   pedirSuper() {
     return usarSuper(this);
@@ -539,7 +547,18 @@ export class Game {
 
   spawnElite(type = 'politico') {
     const p = this.fitSpawn(this.edgePoint(this.rng() * Math.PI * 2, 50));
-    this.spawnEnemy(type, p.x, p.y);
+    const el = this.spawnEnemy(type, p.x, p.y);
+    if (type === 'politico') {
+      // os Laranjas chegam com ele (D73)
+      el.laranjas = [];
+      for (let i = 0; i < ENEMIES.politico.laranjas; i++) {
+        const lado = i % 2 ? 1 : -1;
+        const l = this.spawnEnemy('laranja', p.x + lado * 0.9, p.y + 0.6);
+        l.dono = el;
+        l.lado = lado;
+        el.laranjas.push(l);
+      }
+    }
     this.tv(type === 'rival' ? 'rival' : 'elite', type === 'rival' ? 0 : 25);
     this.emit('elite', { type });
   }
@@ -570,6 +589,28 @@ export class Game {
 
   damageEnemy(e, amount, source, kx = 0, ky = 0, quiet = false) {
     if (e.dead || ENEMIES[e.type].invencivel) return; // o Rabecão não morre
+    if (e.laranjas && amount > 0) {
+      // o Laranja apanha no lugar do Político (D73): o mais perto, até escudo.raioM, leva `parte` do golpe
+      const L = ENEMIES.laranja.escudo;
+      let lj = null;
+      let ld = L.raioM * L.raioM;
+      for (const l of e.laranjas) {
+        if (l.dead) continue;
+        const d2 = (l.x - e.x) ** 2 + (l.y - e.y) ** 2;
+        if (d2 < ld) {
+          ld = d2;
+          lj = l;
+        }
+      }
+      if (lj) {
+        this.damageEnemy(lj, amount * L.parte, source, kx, ky, quiet);
+        amount *= 1 - L.parte;
+        if (!(this.t < (e.laranjaT || 0))) {
+          e.laranjaT = this.t + 1.6;
+          this.word(lj.x, lj.y - 1, 'LARANJA!', '#ff9a1f');
+        }
+      }
+    }
     let dmg = amount;
     if (e.elite) dmg *= this.stats.eliteDmgMul;
     // hora de bater: o Chefe parado mirando, atirando ou gritando no rádio; o Monstrão fazendo pose ou tonto
@@ -645,6 +686,12 @@ export class Game {
     if (this.kills === 1) this.tv('firstKill');
 
     if (def.xp) this.dropGem(e.x, e.y, def.xp);
+    if (e.type === 'laranja') {
+      // cai e espalha o dinheiro do chefe: uma Propina no chão (pegar continua sendo escolha do jogador)
+      this.pickups.push({ kind: 'propina', x: e.x, y: e.y, t: 0 });
+      this.moneyBurst(e.x, e.y, 10);
+      this.tv('laranja', 25);
+    }
     devolveXp(this, e); // Cracudo e Trombadinha soltam o XP que cataram ou roubaram
     if (e.type === 'telespectador' && this.rng() < 0.012 && this.pickups.filter((p) => p.kind === 'pastel').length < 3) {
       this.pickups.push({ kind: 'pastel', x: e.x, y: e.y, t: 0 });
@@ -1191,6 +1238,14 @@ export class Game {
     const onSand = this.map.bounded && p.x > this.map.sandX;
     p.x += p.vx * dt * (onSand ? this.map.sandSpeedMul : 1);
     p.y += p.vy * dt * (onSand ? this.map.sandSpeedMul : 1);
+    if (p.kx || p.ky) {
+      // empurrão (a investida do Rato de Academia): soma ao andar e perde rápido
+      p.x += p.kx * dt;
+      p.y += p.ky * dt;
+      const dec = Math.exp(-8 * dt);
+      p.kx = Math.abs(p.kx * dec) < 0.05 ? 0 : p.kx * dec;
+      p.ky = Math.abs(p.ky * dec) < 0.05 ? 0 : p.ky * dec;
+    }
     this.collideProps(p);
     this.clampToMap(p);
     if (this.world) applyLevels(this.world, p);
@@ -1211,6 +1266,15 @@ export class Game {
       if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 > rr * rr) continue;
       const d = e.dmg * dt;
       e.atkT = ENEMY_POSE.ataqueS; // encostou: pose de ataque virada para o Juninho
+      const inv = e.dashT > 0 && ENEMIES[e.type].investida;
+      if (inv && inv.empurra) {
+        // o Rato de Academia na corrida (D73): empurra o Juninho e para
+        this.empurrarJuninho(e.dashX, e.dashY, inv.empurra);
+        e.dashT = 0;
+        this.word(p.x, p.y - 1, 'TOMA!', '#ff6b6b');
+        this.som('baque', p.x, p.y);
+        this.shake(0.2);
+      }
       if (d > worstDmg) {
         worstDmg = d;
         worst = e.type;
@@ -1600,8 +1664,8 @@ export class Game {
           my = 0;
         }
       } else if (e.behavior === 'investida') {
-        // Funkeiro: abre os braços (fúria) com a direção travada e parte reto; depois volta a andar
-        const I = ENEMIES.funkeiro.investida;
+        // Funkeiro e Rato de Academia: abre os braços (fúria) com a direção travada e parte reto; depois volta a andar
+        const I = ENEMIES[e.type].investida;
         if (e.dashT > 0) {
           e.dashT -= dt;
           mx = e.dashX * I.dashMul;
@@ -1616,10 +1680,27 @@ export class Game {
           if (e.fireT <= 0) {
             e.fireT = I.every;
             e.windup = I.windupS;
-            this.som('grito_funkeiro', e.x, e.y);
+            this.som(I.som, e.x, e.y);
             e.dashX = dpx / d;
             e.dashY = dpy / d;
           }
+        }
+      } else if (e.behavior === 'laranja') {
+        // Laranja (D73): fica entre o Político e o Juninho, do lado dele; colado no Juninho, vai nele
+        const dono = e.dono;
+        const G = ENEMIES.laranja.guarda;
+        if (dono && !dono.dead && d > G.bateM) {
+          const ox = p.x - dono.x;
+          const oy = p.y - dono.y;
+          const ol = Math.hypot(ox, oy) || 1;
+          const gx = dono.x + (ox / ol) * G.frenteM - (oy / ol) * G.ladoM * (e.lado || 1);
+          const gy = dono.y + (oy / ol) * G.frenteM + (ox / ol) * G.ladoM * (e.lado || 1);
+          const gdx = gx - e.x;
+          const gdy = gy - e.y;
+          const gl = Math.hypot(gdx, gdy);
+          const k = gl > 0.25 ? Math.min(1.4, gl) / gl : 0;
+          mx = gdx * k;
+          my = gdy * k;
         }
       } else if (e.behavior === 'intercept') {
         // mira no ponto onde o jogador estará daqui a ~1 s
