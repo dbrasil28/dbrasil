@@ -195,7 +195,6 @@ export function updateDJ(game, e, dt) {
   const ritmo = D.fases.cadenciaMul ** f;
   mov.x = 0;
   mov.y = 0;
-  e.furia = true; // a arte provisória (a do Funkeiro) sai com a cor de néon dele, nas poses também
   if (e.janelaT > 0) e.janelaT -= dt;
   if (game.over) {
     e.pose = null;
@@ -226,9 +225,18 @@ export function updateDJ(game, e, dt) {
   e.poseX = dx / d;
   e.poseY = dy / d;
   if (e.ofuscadoT > 0) {
-    // ofuscado pelo canhão: parado, sem atacar nem fugir, levando o dobro (o Juninho chega perto e bate)
+    // ofuscado pelos holofotes: parado, braço na frente dos olhos, sem atacar nem fugir, levando o dobro
     e.ofuscadoT -= dt;
-    e.pose = null;
+    e.pose = 'ofuscado';
+    // a pose olha para o lado de onde vem a luz (o meio dos canhões que estão nele)
+    const fachos = canhoesDoBaile(game).filter((d) => d.miraT > 0);
+    if (fachos.length) {
+      const lx = fachos.reduce((a, d) => a + d.x, 0) / fachos.length - e.x;
+      const ly = fachos.reduce((a, d) => a + d.y, 0) / fachos.length - e.y;
+      const l = Math.hypot(lx, ly) || 1;
+      e.poseX = lx / l;
+      e.poseY = ly / l;
+    }
     e.janelaT = Math.max(e.janelaT || 0, 0.15);
     return mov;
   }

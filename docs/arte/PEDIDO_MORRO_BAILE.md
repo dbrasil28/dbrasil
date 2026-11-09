@@ -5,7 +5,7 @@ Pedido do autor (09/11/2026). O Morro cresceu. A última esplanada antes do alto
 **A chegada mudou (D94, roteiro do autor):** chegando, os corredores esvaziam, a música do baile ("Ela Não Vale Nada") sobe e a noite cai. A pista está lotada, todo mundo dançando, e o DJ toca atrás da mesa desde o começo, com uma TV de cada lado do palco. O Acordão aparece nas TVs, os olhos de todos acendem (o brilho do Apagão, feito pelo jogo), começa a pancadaria e a polícia da entrada entra para ajudar. O DJ fica só olhando, até o Caos subir: aí ele entra na luta. Por isso o DJ precisa de mais duas folhas: **tocando** (34) e **olhando** (35).
 
 O jogo já roda tudo isso. Enquanto a arte nova não chega:
-- o DJ usa a arte do Funkeiro, pintada de roxo (atrás da mesa, dança no lugar);
+- ~~o DJ usa a arte do Funkeiro, pintada de roxo~~: **o DJ chegou** (Figma, 09/11/2026; ver a seção abaixo);
 - o Chefe usa a arte de hoje, aumentada (mesma escala nas duas direções, nada espremido);
 - a mesa do DJ, o néon, o bar e a tela do Plantão são desenho de código.
 
@@ -19,9 +19,17 @@ O jogo já roda tudo isso. Enquanto a arte nova não chega:
 - **Ângulo:** a mesma câmera das folhas de referência, de cima, uns 50° acima do chão, sem perspectiva. É o ângulo do Juninho e da horda no jogo. Antes de pôr no jogo, a arte é medida contra o chão.
 - **Nomes e marcas:** tudo fictício. Nada de logo, marca, time, partido ou rosto de pessoa real.
 
+## DJ Plantão: gerado no Figma (09/11/2026)
+
+Pedido do autor: "faça o DJ chefe da festa de funk". Nove imagens no Figma (conta pessoal, GPT Image), com a descrição [DJ] abaixo e o texto que funcionou com o Monstrão (direção de cada linha ou célula em palavras, câmera "slightly high, about 30 degrees above", fundo verde): as 4 folhas de caminhada, o grave, o drop, **ofuscado** (braço na frente dos olhos, para os dois holofotes da D97), olhando e tocando. Originais em `personagens_figma/dj_plantao/`; no jogo, `prototype/assets/personagens/dj_plantao/` (`caminhada_atlas.webp`, `poses_atlas.webp` com grave, drop, ofuscado e olhando, `tocando_atlas.webp`).
+
+- Na caminhada, três linhas vieram trocadas: a de 67,5° saiu de costas (uns 112,5°), a de 292,5° saiu como um 67,5° e a de 247,5° como um 292,5°. As duas certas foram para o lugar delas; o 247,5° é o espelho da linha de costas (o DJ é simétrico: a TV fica no meio das costas). Nada foi girado nem entortado.
+- A jaqueta saiu com duas listras brancas na manga e ficou assim em todas as folhas (três listras lembrariam uma marca).
+- O ângulo bate com o do Funkeiro e o do Monstrão (mesma câmera, um pouco de cima).
+
 ## O que desenhar primeiro (baile)
 
-1. **DJ Plantão:** tocando (34), olhando (35), caminhada (1–4), grave (5) e drop (6). São 8 imagens; é o rosto do baile.
+1. ~~**DJ Plantão:** tocando (34), olhando (35), caminhada (1–4), grave (5) e drop (6).~~ Feito no Figma (acima).
 2. **A dança** (21–26): 6 imagens, uma por pessoa da pista.
 3. **Funkeiro loiro:** caminhada (16–19), ataque (20a) e fúria (20b). São 6 imagens.
 4. Depois do baile: o Chefe do Tráfico gigante (7–15).

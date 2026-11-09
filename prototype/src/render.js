@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA, WEAPONS, INTERACT, CHEGADA, BAILE } from './config.js';
-import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS, FIGURANTE_ART, carregarMonstrao, DANCA_ATLAS } from './sprites.js';
+import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS, FIGURANTE_ART, carregarMonstrao, DANCA_ATLAS, DJ_ARTE } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto, drawEscuroPontas } from './mapa.js';
 import { drawMar } from './render_mar.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
@@ -502,6 +502,7 @@ export class Renderer {
           let frame = mv ? Math.floor((o.walk / (Math.PI * 2)) * 6) % 6 : 0;
           let opts = CIVIL_OPTS;
           let pula = 0;
+          let poseDJ = null;
           if (o.danca) {
             // dançando no baile (D91): o passo no lugar, virando de um lado para o outro, e o pulo na batida da
             // música (game.batida, main.js). Com o olho aceso (D94), dança encarando o Juninho; o DJ toca de frente
@@ -526,7 +527,22 @@ export class Renderer {
               frame = Math.floor(((tb * BAILE.pulsoBpm) / 60 / BAILE.danca.batidasPorVolta + o.ritmo) * 6) % 6;
               pula = 0;
             }
-            if (o.dj) opts = DJ_OPTS;
+            if (o.dj) {
+              // o DJ (arte do Figma): na festa, tocando atrás da mesa, os 6 quadros na batida; do Plantão em diante,
+              // de braços cruzados, olhando o Juninho. Sem a arte carregada ainda, o Funkeiro em roxo
+              const olha = game.baile && game.baile.fase !== 'festa' ? walkReady(DJ_ARTE.poses) : null;
+              const toca = walkReady(DJ_ARTE.toca);
+              if (olha) {
+                cam.toScreen(game.player.x, game.player.y, pt2);
+                poseDJ = { chave: `${olha.prefix}_${atlasRow(pt2.x - pt.x, pt2.y - pt.y)}_${olha.col.olhando}`, alt: h * (olha.ch / olha.figureH) };
+                pula = 0;
+              } else if (toca) {
+                A = toca;
+                o.row = DJ_TOCA_ROWS[Math.floor(tb * 0.25) % DJ_TOCA_ROWS.length];
+                frame = Math.floor((tb * BAILE.pulsoBpm) / 60) % 6;
+                pula = 0;
+              } else opts = DJ_OPTS;
+            }
           }
           if (o.viraT >= 0 && o.viraT <= S) {
             frame = Math.min(5, Math.floor((1 - o.viraT / S) * 6));
@@ -534,7 +550,7 @@ export class Renderer {
             else frame = 0; // sem a arte da transformação: trava parado e o brilho da TV acende
             if (frame >= 2 || (!tr && o.viraT < S * 0.6)) opts = CROWD_WALK_OPTS; // o brilho da TV a partir do 3º quadro
           }
-          const spr = this.cache.get(`${A.prefix}_${o.row}_${frame}`, h * (ATLAS.ch / A.figureH), opts);
+          const spr = poseDJ ? this.cache.get(poseDJ.chave, poseDJ.alt, POSE_OPTS) : this.cache.get(`${A.prefix}_${o.row}_${frame}`, h * (ATLAS.ch / A.figureH), opts);
           if (o.some != null) ctx.globalAlpha = o.some; // o DJ caiu: quem só olhava vai sumindo (D94)
           if (spr) blit(ctx, spr, pt.x, pt.y - pula, false);
           ctx.globalAlpha = 1;
@@ -2256,6 +2272,7 @@ const CIVIL_OPTS = { shadowScale: 0.6 };
 const DANCA_ROWS = [0, 1, 15, 2, 14, 0, 3, 13];
 const DANCA_ROWS_ARTE = [0, 1, 2, 1, 0, 3, 2, 1]; // com a arte da dança: só as 4 direções da folha
 const DJ_ROWS = [0, 1, 0, 15]; // o DJ tocando: de frente, virando pouco
+const DJ_TOCA_ROWS = [0, 0, 1, 0, 0, 2, 1, 0]; // a folha do DJ tocando (0, 22,5, 45 e 67,5 graus): quase sempre de frente
 const DJ_OPTS = { ...CIVIL_OPTS, tint: ENEMY_ART.dj_plantao.tint }; // o DJ com o roxo dele (sprites.js)
 const CIVIL_FLASH = { ...CIVIL_OPTS, flash: true }; // figurante levando dano
 const POSE_FLASH = { ...POSE_OPTS, flash: true };

@@ -247,6 +247,9 @@ export const WALK_ATLAS = {
   msa: { atlas: 'morador_senhora_walk_atlas', prefix: 'msa', figureH: 158, escala: 0.7 },
   mtz: { atlas: 'morador_tiozinho_walk_atlas', prefix: 'mtz', figureH: 158, escala: 0.7 },
   cq: { atlas: 'cracudo_walk_atlas', prefix: 'cq', figureH: 158, escala: 0.7 },
+  // DJ Plantão (Figma, 09/11/2026): a caminhada e, atrás da mesa, tocando (6 quadros nas 4 direções da folha 1)
+  djw: { atlas: 'dj_walk_atlas', prefix: 'djw', figureH: 157 },
+  djt: { atlas: 'dj_tocando_atlas', prefix: 'djt', figureH: 140, rows: 4 },
   tr: { atlas: 'trombadinha_walk_atlas', prefix: 'tr', figureH: 158, escala: 0.7 },
   // figurantes (D55): cortados em 60% (são de fundo e não lutam)
   gp: { atlas: 'garota_programa_walk_atlas', prefix: 'gp', figureH: 157, escala: 0.6 },
@@ -286,6 +289,8 @@ export const POSE_ATLAS = {
   msap: { atlas: 'morador_senhora_poses_atlas', prefix: 'msap', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   mtzp: { atlas: 'morador_tiozinho_poses_atlas', prefix: 'mtzp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   cqp: { atlas: 'cracudo_poses_atlas', prefix: 'cqp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { agachado: 0 }, escala: 0.7 },
+  // DJ Plantão: ataque é o grave (braços para cima), furia é o drop, ofuscado pelos holofotes e olhando a briga
+  djp: { atlas: 'dj_poses_atlas', prefix: 'djp', cols: 4, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1, ofuscado: 2, olhando: 3 } },
   trp: { atlas: 'trombadinha_poses_atlas', prefix: 'trp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { correndo: 0 }, escala: 0.7 },
   hbqp: { atlas: 'horda_biquini_poses_atlas', prefix: 'hbqp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   htsp: { atlas: 'horda_sunga_poses_atlas', prefix: 'htsp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
@@ -318,6 +323,7 @@ export const POSE_OPTS = { shadowScale: 0.4 };
  * lugar). linhas: a ordem das direções em que ele vira dançando, só as que a folha tem certas.
  */
 export const DANCA_ATLAS = { gp: WALK_ATLAS.gpd, mli: WALK_ATLAS.mlid };
+export const DJ_ARTE = { toca: WALK_ATLAS.djt, poses: POSE_ATLAS.djp }; // o DJ atrás da mesa: tocando e, na briga, olhando
 
 export const walkReady = (w) => (w && images[`${w.prefix}_0_0`] ? w : null);
 
@@ -385,7 +391,7 @@ export const ENEMY_ART = {
   // chefe: ataque (rajada) enquanto mira e atira; raiva (grito no rádio) enquanto chama reforço
   chefe_trafico: { img: 'chefe_trafico', walk: WALK_ATLAS.ct, poses: POSE_ATLAS.ctp, aim: 'ataque', fury: true },
   // D91: o DJ Plantão usa por enquanto a arte do Funkeiro (maior); a dele está pedida em docs/arte/PEDIDO_MORRO_BAILE.md
-  dj_plantao: { img: 'funkeiro', walk: WALK_ATLAS.fk, poses: POSE_ATLAS.fkp, estados: true, tint: [170, 60, 255, 0.3], furia: [170, 60, 255, 0.3] },
+  dj_plantao: { img: 'djw_0_0', walk: WALK_ATLAS.djw, poses: POSE_ATLAS.djp, estados: true, lazy: true }, // arte do Figma (antes, a do Funkeiro em roxo)
   // throwAnim: quadros 0–2 na preparação, 3 ao soltar a maleta
   politico: { img: 'politico', walk: WALK_ATLAS.pc, throwAnim: WALK_ATLAS.pa },
   // Rival: o Político tingido de laranja até chegar a arte dele; aparece pouco, então não é preparado antes
@@ -473,6 +479,9 @@ export const IMAGES_MORRO = {
   morador_senhora_poses_atlas: 'assets/personagens/morador_senhora/poses_atlas.webp',
   morador_tiozinho_walk_atlas: 'assets/personagens/morador_tiozinho/caminhada_atlas.webp',
   morador_tiozinho_poses_atlas: 'assets/personagens/morador_tiozinho/poses_atlas.webp',
+  dj_walk_atlas: 'assets/personagens/dj_plantao/caminhada_atlas.webp', // DJ Plantão (Figma)
+  dj_poses_atlas: 'assets/personagens/dj_plantao/poses_atlas.webp',
+  dj_tocando_atlas: 'assets/personagens/dj_plantao/tocando_atlas.webp',
   cracudo_walk_atlas: 'assets/personagens/cracudo/caminhada_atlas.webp',
   cracudo_poses_atlas: 'assets/personagens/cracudo/poses_atlas.webp',
   trombadinha_walk_atlas: 'assets/personagens/trombadinha/caminhada_atlas.webp',
@@ -735,12 +744,12 @@ export function prewarmMorro(cache, enemyPx, sizeOf) {
       for (let c = 0; c < a.poses.cols; c++) jobs.push(() => cache.get(`${a.poses.prefix}_${r}_${c}`, enemyPx * (a.poses.ch / a.poses.figureH), POSE_OPTS));
     }
   }
-  for (const type of ['cracudo', 'trombadinha']) {
+  for (const type of ['cracudo', 'trombadinha', 'dj_plantao']) {
     const art = ENEMY_ART[type];
     const h = enemyPx * sizeOf(type);
     for (let r = 0; r < ATLAS.rows; r++) {
       for (let f = 0; f < ATLAS.cols; f++) jobs.push(() => cache.get(`${art.walk.prefix}_${r}_${f}`, h * (ATLAS.ch / art.walk.figureH), enemyWalkOpts(art)));
-      jobs.push(() => cache.get(`${art.poses.prefix}_${r}_0`, h * (art.poses.ch / art.poses.figureH), POSE_OPTS));
+      for (let c = 0; c < art.poses.cols; c++) jobs.push(() => cache.get(`${art.poses.prefix}_${r}_${c}`, h * (art.poses.ch / art.poses.figureH), POSE_OPTS));
     }
   }
   return jobs;

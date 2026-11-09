@@ -918,13 +918,15 @@ function canhoes(ctx, game, cam, ppu, t) {
       larg1 = ppu * 1.4;
     }
     if (dj && !dj.naPista && d.miraT > 0 && dj.ofuscadoT > 0) {
+      // o brilho na cara: pequeno, para a pose de ofuscado (o braço na frente dos olhos) aparecer
       const ay = c1.y - ppu * 1.7;
-      const gl = ctx.createRadialGradient(c1.x, ay, 0, c1.x, ay, ppu * 1.6);
-      gl.addColorStop(0, 'rgba(255,255,240,0.95)');
-      gl.addColorStop(0.4, 'rgba(255,250,200,0.5)');
+      const R = ppu * 0.7;
+      const gl = ctx.createRadialGradient(c1.x, ay, 0, c1.x, ay, R);
+      gl.addColorStop(0, 'rgba(255,255,240,0.55)');
+      gl.addColorStop(0.45, 'rgba(255,250,200,0.22)');
       gl.addColorStop(1, 'rgba(255,250,200,0)');
       ctx.fillStyle = gl;
-      ctx.fillRect(c1.x - ppu * 1.6, ay - ppu * 1.6, ppu * 3.2, ppu * 3.2);
+      ctx.fillRect(c1.x - R, ay - R, R * 2, R * 2);
     }
     const ux = Math.cos(ang);
     const uy = Math.sin(ang);
