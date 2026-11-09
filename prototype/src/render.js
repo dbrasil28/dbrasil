@@ -166,6 +166,18 @@ export class Renderer {
       ctx.scale(zoom, zoom);
       ctx.translate(-zx, -zy);
     }
+    const foco = game.focoBaile;
+    if (!game.cena && foco && foco.k > 0) {
+      // o Plantão no baile (pedido do autor): a câmera foi às TVs do palco e chega perto, com as duas TVs na tela
+      const T = BAILE.tv;
+      const C = BAILE.cenaTv;
+      const larg = 2 * T.palcoDx + T.larg + 2 * C.margemM;
+      const zMax = Math.min(C.zoomMax, Math.max(1, cam.viewW / (larg * ppu)));
+      const z = 1 + (zMax - 1) * foco.k;
+      ctx.translate(cam.anchorX, cam.anchorY);
+      ctx.scale(z, z);
+      ctx.translate(-cam.anchorX, -cam.anchorY);
+    }
 
     if (game.map.bounded) {
       cam.visibleWorldBounds(1, bounds);

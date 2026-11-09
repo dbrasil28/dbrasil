@@ -178,7 +178,7 @@ function start() {
 
 function drainOutbox(now) {
   for (const ev of game.outbox) {
-    if (ev.type === 'tv') ui.pushTicker(ev.text);
+    if (ev.type === 'tv') ui.pushTicker(ev.text, ev.urgente);
     else if (ev.type === 'shake') renderer.addShake(ev.amount, settings.shake);
     else if (ev.type === 'flash') renderer.flash(!settings.reduceFlashes);
     else if (ev.type === 'warn') ui.warn(ev.angle, ev.dur * 1000, now, ev.label || 'PLATEIA');

@@ -40,6 +40,7 @@ export function updateBaile(game, dt) {
     game.somDoBaile = 0;
     game.pertoBaile = 0;
     game.povoBaile = 0;
+    game.focoBaile = null;
     game.caosMarca = null;
     return;
   }
@@ -65,6 +66,7 @@ export function updateBaile(game, dt) {
   game.noiteBaile = alvo > n ? Math.min(alvo, n + passo) : Math.max(alvo, n - passo);
   game.somDoBaile = somDoBaile(S, vazio ? perto : 0);
   game.pertoBaile = S ? 1 : vazio ? perto : 0; // o filtro do som ao vivo: de longe, só o grave (musica.js)
+  game.focoBaile = S && S.fase === 'plantao' ? focoNasTvs(game, S.faseT) : null;
   game.povoBaile = povoDoBaile(S, vazio ? perto : 0);
   game.caosMarca = S && S.fase === 'briga' ? { v: S.caosDJ, nome: 'DJ' } : null;
   if (!S) return;
@@ -76,7 +78,7 @@ export function updateBaile(game, dt) {
       if (S.faseT >= B.plantaoS) plantao(game, S);
       break;
     case 'plantao':
-      if (S.faseT >= B.olhosS + B.encaraS) briga(game, S);
+      if (S.faseT >= plantaoDuraS()) briga(game, S);
       break;
     case 'briga':
       // a pista vem em levas (e depois o resto do baile); o DJ só olha e entra quando o Caos chega na marca
@@ -86,6 +88,34 @@ export function updateBaile(game, dt) {
     default:
       break;
   }
+}
+
+/** Quanto dura a ida da câmera às TVs do palco (s). */
+function cenaTvS() {
+  const C = BAILE.cenaTv;
+  return C.vaiS + C.ficaS + C.voltaS;
+}
+
+/** O Plantão inteiro: a câmera nas TVs, os olhos acendendo e o povo encarando (depois, a pancadaria). */
+export function plantaoDuraS() {
+  return cenaTvS() + BAILE.olhosS + BAILE.encaraS;
+}
+
+/**
+ * Para onde a câmera olha no começo do Plantão (pedido do autor): o meio das duas TVs do palco, no alto delas.
+ * k vai de 0 (no Juninho) a 1 (nas TVs, com o zoom), suave na ida e na volta. Sem a cena, null.
+ */
+function focoNasTvs(game, t) {
+  const C = BAILE.cenaTv;
+  const suave = (u) => u * u * (3 - 2 * u);
+  let k = 0;
+  if (t < C.vaiS) k = suave(clamp01(t / C.vaiS));
+  else if (t < C.vaiS + C.ficaS) k = 1;
+  else k = suave(clamp01(1 - (t - C.vaiS - C.ficaS) / C.voltaS));
+  if (k <= 0) return null;
+  const w = game.world;
+  const pc = palcoDoBaile(w);
+  return { x: pc.x, y: w.baile.y0 + 0.15, h: BAILE.tv.altura + BAILE.tv.alt / 2, k };
 }
 
 /** O povo da festa (0 a 1, sons.js): de longe, baixinho; cheio na festa; cala no Plantão; grita na briga e na roda. */
@@ -127,9 +157,11 @@ function plantao(game, S) {
   S.fase = 'plantao';
   S.faseT = 0;
   const rng = makeRng((game.seed ^ 0x01d05) >>> 0);
-  for (const c of S.pessoas) c.olhoEm = rng() * BAILE.olhosS;
-  for (const e of game.enemies) if (e.dancaT > 0) e.olhoEm = rng() * BAILE.olhosS;
-  game.tv('baileAcordao');
+  // os olhos acendem depois que a câmera volta das TVs (cenaTv)
+  const t0 = cenaTvS();
+  for (const c of S.pessoas) c.olhoEm = t0 + rng() * BAILE.olhosS;
+  for (const e of game.enemies) if (e.dancaT > 0) e.olhoEm = t0 + rng() * BAILE.olhosS;
+  game.tv('baileAcordao', 0, undefined, true); // a manchete fura a fila: entra junto com a câmera nas TVs
   game.emit('plantao', {});
 }
 

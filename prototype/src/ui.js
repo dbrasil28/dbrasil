@@ -285,7 +285,14 @@ export class UI {
   }
 
   // ---------- TV Caos ----------
-  pushTicker(text) {
+  pushTicker(text, urgente = false) {
+    if (urgente) {
+      // o Plantão do baile: sai o que estava no ar e na fila, e a manchete fica mais tempo
+      this.tickerQueue = [text];
+      this.tickerUntil = 0;
+      this.tickerLonga = true;
+      return;
+    }
     if (this.tickerQueue.length >= 3) this.tickerQueue.shift();
     this.tickerQueue.push(text);
   }
@@ -304,7 +311,8 @@ export class UI {
     el.classList.remove('is-in');
     void el.offsetWidth; // reinicia a animação
     el.classList.add('is-in');
-    this.tickerUntil = now + 3600;
+    this.tickerUntil = now + (this.tickerLonga ? 5400 : 3600);
+    this.tickerLonga = false;
   }
 
   warn(angle, durMs, now, label) {

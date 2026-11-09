@@ -260,10 +260,11 @@ export class Game {
     return lines[Math.floor(this.rng() * lines.length)];
   }
 
-  tv(key, cooldown = 0, arg) {
+  /** Manchete na faixa da TV. urgente: fura a fila e fica mais tempo no ar (o Plantão do baile). */
+  tv(key, cooldown = 0, arg, urgente = false) {
     if (cooldown && this.tvCooldown[key] > this.t) return;
     if (cooldown) this.tvCooldown[key] = this.t + cooldown;
-    this.emit('tv', { text: this.pickLine(key, arg) });
+    this.emit('tv', urgente ? { text: this.pickLine(key, arg), urgente: true } : { text: this.pickLine(key, arg) });
   }
 
   shake(amount) {

@@ -881,6 +881,10 @@ export const BAILE = {
   // depois o vagabundo aparece nas TVs do palco e o povo muda)
   plantaoS: 20, olhosS: 2.6, encaraS: 1.2, viraS: 1.8, transfS: 1.2, acordaM: 18, fimS: 3,
   telaGrandeS: 0, // a TV grande do Plantão no meio da tela (pedido do autor: não; só as TVs do palco). 0 = sem ela
+  // a câmera vai às TVs (pedido do autor: com a câmera no Juninho, ninguém via o Plantão nas TVs do palco): quando o
+  // sinal entra, ela vai até o palco em vaiS, dá zoom nas duas TVs (até zoomMax, com margemM de folga dos lados), fica
+  // ficaS e volta em voltaS; só então os olhos acendem (olhosS) e o povo encara (encaraS)
+  cenaTv: { vaiS: 0.9, ficaS: 3, voltaS: 0.9, zoomMax: 1.8, margemM: 0.4 },
   // o DJ entra quando o Caos chega na marca: sobe pontos acima do de quando a pancadaria começa, e pelo menos min
   // (pedido do autor: chegava rápido demais no DJ e o Caos mal subia); cada um da festa que cai soma porAbate
   caos: { sobe: 40, min: 70, max: 95, porAbate: 0.25 },

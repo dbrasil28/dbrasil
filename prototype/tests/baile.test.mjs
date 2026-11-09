@@ -6,7 +6,7 @@ import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
 import { BAILE, ENEMIES, TV } from '../src/config.js';
 import { novoFigurante } from '../src/figurantes.js';
-import { distEsplanada } from '../src/baile.js';
+import { distEsplanada, plantaoDuraS } from '../src/baile.js';
 
 const DT = 1 / 30;
 const parado = { x: 0, y: 0 };
@@ -75,7 +75,7 @@ function aDistancia(g, d) {
 function ateABriga(g) {
   chegar(g);
   g.update(DT, parado);
-  rodar(g, BAILE.plantaoS + BAILE.olhosS + BAILE.encaraS + 0.2);
+  rodar(g, BAILE.plantaoS + plantaoDuraS() + 0.2);
   rodar(g, BAILE.transfS + BAILE.viraS + 0.3);
 }
 
@@ -156,6 +156,16 @@ test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acord
   assert.ok(tv(g, 'baileAcordao'), 'a TV não entrou com O Acordão');
   rodar(g, 0.6);
   assert.ok(g.somDoBaile < 0.5, 'o som não baixou para a TV falar');
+  // a câmera vai às TVs do palco (pedido do autor), dá zoom, fica e volta; os olhos só acendem depois
+  const C = BAILE.cenaTv;
+  rodar(g, C.vaiS + C.ficaS * 0.5 - 0.6);
+  assert.ok(g.focoBaile && g.focoBaile.k === 1, 'a câmera não foi às TVs');
+  const palco = g.world.baile.y0;
+  assert.ok(Math.abs(g.camera.y - g.player.y) > 5 && g.camera.y < palco, `a câmera não está no palco (y ${g.camera.y.toFixed(1)}, palco ${palco.toFixed(1)})`);
+  assert.ok(S.pessoas.every((c) => !(c.olho > 0)), 'os olhos acenderam com a câmera nas TVs');
+  rodar(g, C.ficaS * 0.5 + C.voltaS + 0.05);
+  assert.equal(g.focoBaile, null, 'a câmera não voltou para o Juninho');
+  assert.ok(Math.abs(g.camera.y - g.player.y) < 0.5, 'a câmera não voltou para o Juninho');
   rodar(g, BAILE.olhosS);
   assert.ok(S.pessoas.every((c) => c.olho > 0), 'sobrou olho apagado no Plantão');
   assert.ok(S.pessoas.every((c) => !c.virou), 'virou antes da hora');
@@ -312,7 +322,7 @@ test('a polícia no baile (D94): na festa, fica de guarda na entrada; na pancada
   assert.ok(pm.y > w.baile.y1, `o policial entrou na festa (y ${pm.y.toFixed(1)}, beira ${w.baile.y1})`);
   assert.ok(tv(g, 'policiaBaile'), 'a TV não zoou a polícia');
   g.outbox.length = 0;
-  rodar(g, BAILE.plantaoS + BAILE.olhosS + BAILE.encaraS);
+  rodar(g, BAILE.plantaoS + plantaoDuraS());
   assert.equal(g.baile.fase, 'briga');
   assert.ok(tv(g, 'policiaEntra'), 'a TV não deu a entrada da polícia');
   rodar(g, 4);

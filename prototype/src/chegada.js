@@ -279,6 +279,17 @@ export function updateCerco(game, dt) {
 /** Para onde a câmera se desloca do Juninho (m): na direção do Monstrão enquanto ele entra; depois volta. */
 export function deslocaCamera(game, dt) {
   const o = game.camOff || (game.camOff = { x: 0, y: 0 });
+  const F = game.focoBaile;
+  if (F && F.k > 0) {
+    // no Plantão do baile (baile.js), a câmera vai às TVs do palco: o meio da tela delas, que ficam no alto
+    // (com o giro do mapa, o que está no alto também anda de lado na tela: sh × altura)
+    const cam = game.camera;
+    const fy = F.y - (F.h || 0) / (cam.k || 1);
+    const fx = F.x - (cam.sh || 0) * (F.h || 0);
+    o.x = (fx - game.player.x) * F.k;
+    o.y = (fy - game.player.y) * F.k;
+    return o;
+  }
   let tx = 0;
   let ty = 0;
   const K = game.cerco;
