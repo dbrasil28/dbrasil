@@ -377,6 +377,10 @@ export const AVENIDA = {
     uno_sul: [[279, 348, 104, 104, 0], [344, 176, 105, 105, 104]],
   },
   distanciaM: 2.5, // distância mínima entre dois carros na mesma faixa
+  // dia normal (D88): na abertura, antes do sinal pegar, o carro para para quem atravessa (pedestre ou o Juninho)
+  // na frente dele: começa a frear a pararM, para a paradoM, olha ladoM para os lados da faixa; freia e acelera
+  // com esses limites (m/s²) e, parado por gente, às vezes buzina
+  pedestre: { pararM: 9, paradoM: 1.4, ladoM: 0.7, frear: 22, acelerar: 6, buzina: 0.3 },
   espacoM: 11.4, // um carro novo só entra na faixa com essa folga para o anterior (o trânsito não fica mais denso com carro menor)
   escala: 0.95, // tamanho dos carros da avenida (cabem na faixa de 2,6 m; os parados nas ruas usam CENARIO.carros.escala)
 };
@@ -611,6 +615,12 @@ export const ABERTURA = {
   viraS: 4, // todas viram horda nesse tempo, a mais perto do Juninho por último
   lentoMul: 0.6, // logo depois, só telespectadores lentos (o tutorial sem texto)
   lentosS: 30,
+  // dia normal (D88): antes do sinal, a pessoa olha antes de atravessar: não pisa olharM na frente de um carro
+  // andando (acima de carroAndandoMs) nem entra nele (folgaCarroM em volta); quem já está na rua termina de passar
+  // e o carro para (AVENIDA.pedestre)
+  olharM: 10,
+  carroAndandoMs: 1.5,
+  folgaCarroM: 0.9, // espera fora do que o carro olha para os lados (AVENIDA.pedestre.ladoM), senão ele para à toa
 };
 
 // Crises da cidade (D39): em 30% e 60% do Caos do trecho; a TV avisa antes e nada fecha a passagem.

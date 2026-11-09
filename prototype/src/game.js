@@ -2128,6 +2128,10 @@ export class Game {
       this.traffic.push({ x: f.x, y, faixa: i, sentido: f.sentido, v, len, wid, modelo: A.modelos[Math.floor(this.rng() * A.modelos.length)], warned: false });
     });
     const list = this.traffic;
+    // dia normal (D88): na abertura, antes do sinal pegar, os carros param para quem atravessa a rua
+    const ab = this.abertura;
+    const pedestres = ab && ab.fase === 'normal' ? [...ab.civis, p] : null;
+    const PD = A.pedestre;
     // fila na faixa: quem vem atrás de um carro mais lento freia e mantém distância (não passa por dentro)
     for (const c of list) {
       let ahead = null;
@@ -2136,11 +2140,32 @@ export class Game {
         const d = (o.y - c.y) * c.sentido; // > 0: o outro está na frente
         if (d > 0 && (!ahead || d < (ahead.y - c.y) * c.sentido)) ahead = o;
       }
-      c.vAtual = c.v;
+      let alvo = c.v;
       if (ahead) {
         const gap = (ahead.y - c.y) * c.sentido - (c.len + ahead.len) / 2;
-        if (gap < A.distanciaM) c.vAtual = Math.min(c.v, ahead.v * Math.max(0, gap / A.distanciaM));
+        const vFrente = ahead.vAtual ?? ahead.v; // o da frente parado: o de trás para atrás dele
+        alvo = Math.min(alvo, vFrente + c.v * Math.max(0, Math.min(1, (gap - A.distanciaM) / 6)));
       }
+      let porGente = false;
+      if (pedestres) {
+        for (const q of pedestres) {
+          if (Math.abs(q.x - c.x) > c.wid / 2 + PD.ladoM) continue;
+          const d = (q.y - c.y) * c.sentido - c.len / 2; // da frente do carro até a pessoa
+          if (d < -0.5 || d > PD.pararM) continue;
+          const v = c.v * Math.max(0, Math.min(1, (d - PD.paradoM) / (PD.pararM - PD.paradoM)));
+          if (v < alvo) {
+            alvo = v;
+            porGente = true;
+          }
+        }
+      }
+      // freia e acelera aos poucos (não para nem arranca de uma vez)
+      const cur = c.vAtual ?? c.v;
+      c.vAtual = alvo < cur ? Math.max(alvo, cur - PD.frear * dt) : Math.min(alvo, cur + PD.acelerar * dt);
+      if (porGente && c.vAtual < 0.3 && !c.buzinou) {
+        c.buzinou = true;
+        if (this.fxRng() < PD.buzina) this.som('buzina', c.x, c.y); // parou para alguém: às vezes buzina
+      } else if (!porGente && c.vAtual > c.v * 0.6) c.buzinou = false;
     }
     for (let i = list.length - 1; i >= 0; i--) {
       const c = list[i];
@@ -2160,7 +2185,8 @@ export class Game {
         this.som('buzina', c.x, c.y);
       }
       // atropelou o Juninho
-      if (!this.over && !p.plat && Math.abs(p.x - c.x) < hx + p.r && Math.abs(p.y - c.y) < hy + p.r && !(p.invulnT > 0)) {
+      const andando = (c.vAtual ?? c.v) > ABERTURA.carroAndandoMs; // parado (esperando alguém atravessar) não atropela
+      if (andando && !this.over && !p.plat && Math.abs(p.x - c.x) < hx + p.r && Math.abs(p.y - c.y) < hy + p.r && !(p.invulnT > 0)) {
         this.hurtPlayer(A.dano, 'carro');
         this.som('atropelo');
         // voa no sentido do carro e para fora da faixa, cai de costas, rola e levanta (D64)
@@ -2172,7 +2198,7 @@ export class Game {
       }
       // atropelou um figurante (do grupo ou não): o carro não para
       for (const f of (this.world && this.world.figurantes) || []) {
-        if (Math.abs(f.x - c.x) < hx + f.r && Math.abs(f.y - c.y) < hy + f.r && !(f.carroT > this.t)) {
+        if (andando && Math.abs(f.x - c.x) < hx + f.r && Math.abs(f.y - c.y) < hy + f.r && !(f.carroT > this.t)) {
           f.carroT = this.t + A.hordaInvulnS;
           f.hp -= A.dano * FIGURANTES.atropeloMul;
           f.hurtT = 0.2;

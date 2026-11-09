@@ -51,9 +51,14 @@ export function updateAbertura(game, dt) {
       c.vx = Math.cos(a) * v;
       c.vy = Math.sin(a) * v;
     }
-    c.x += c.vx * dt;
-    c.y += c.vy * dt;
-    if (c.vx || c.vy) c.walk += dt * 5;
+    // dia normal (D88): olha antes de atravessar e não pisa na frente de carro andando (nem entra no carro)
+    const nx = c.x + c.vx * dt;
+    const ny = c.y + c.vy * dt;
+    if ((c.vx || c.vy) && !(ab.fase === 'normal' && esperaCarro(game, c, nx, ny))) {
+      c.x = nx;
+      c.y = ny;
+      c.walk += dt * 5;
+    }
   }
   if (ab.fase === 'normal' && ab.t >= A.plantaoS && !ab.plantao) {
     ab.plantao = true;
@@ -63,6 +68,18 @@ export function updateAbertura(game, dt) {
   if (ab.fase === 'sinal' && ab.civis.every((c) => c.virou)) {
     acabar(game);
   }
+}
+
+/** O passo leva a pessoa para a frente (ou para dentro) de um carro, e ela ainda não estava lá: espera. */
+function esperaCarro(game, c, nx, ny) {
+  const A = ABERTURA;
+  for (const k of game.traffic) {
+    const andando = (k.vAtual ?? k.v) > A.carroAndandoMs;
+    const ate = k.len / 2 + (andando ? A.olharM : 0); // na frente do carro andando, olha até aqui
+    const zona = (x, y) => Math.abs(x - k.x) < k.wid / 2 + A.folgaCarroM && (y - k.y) * k.sentido > -k.len / 2 - A.folgaCarroM && (y - k.y) * k.sentido < ate;
+    if (zona(nx, ny) && !zona(c.x, c.y)) return true;
+  }
+  return false;
 }
 
 function acabar(game) {
