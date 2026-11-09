@@ -105,3 +105,28 @@ test('Monstrão: a anilha sai das mãos, cai na frente dele e só machuca depois
   assert.ok(rolou > 2 || p.hp < hp, `a anilha não rolou (${rolou.toFixed(1)} m) nem acertou`);
   assert.ok(N.arteRaioM >= 0.9, 'a anilha rolando ficou menor que a das mãos');
 });
+
+test('Monstrão: o golpe que pega derruba o Juninho, que voa para trás como atropelado (D86)', async () => {
+  const { ENEMIES } = await import('../src/config.js');
+  const g = luta();
+  const b = g.boss;
+  const p = g.player;
+  g.world.solids.length = 0;
+  p.x = b.x;
+  p.y = b.y + 4;
+  p.invulnT = 0;
+  Object.assign(b, { golpe: 'preparo', golpeT: 0.02, dirX: 0, dirY: 1, poseX: 0, poseY: 1, corridas: 1, quiques: 0, pausaT: 1e9 });
+  const y0 = p.y;
+  const hp = p.hp;
+  let derrubado = false;
+  for (let i = 0; i < 40 && !derrubado; i++) {
+    g.update(1 / 30, { x: 0, y: 0 });
+    derrubado = !!p.derrubado;
+  }
+  assert.ok(derrubado, 'a investida pegou e o Juninho não foi derrubado');
+  assert.ok(p.hp < hp, 'não machucou');
+  const hp2 = p.hp;
+  for (let i = 0; i < 30; i++) g.update(1 / 30, { x: 0, y: 0 });
+  assert.ok(p.y - y0 > ENEMIES.monstrao.investida.derrubaM * 0.6, `não voou no sentido do golpe (${(p.y - y0).toFixed(1)} m)`);
+  assert.ok(p.hp >= hp2, 'apanhou de novo no chão');
+});

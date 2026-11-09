@@ -202,16 +202,17 @@ export const ENEMIES = {
     furiaVel: 1.2, // fase 3: fica vermelho e mais rápido
     escolha: { investida: 0.55 }, // o resto é a anilha; da fase 2, o carro entra antes
     // seguidas: investidas em sequência por fase; quiques: quantas vezes quica na borda (fase 3)
-    investida: { avisoS: 0.8, avisoSeguidaS: 0.5, vel: 15, distM: 15, largM: 2.5, dano: 26, empurraM: 2.2, hordaDano: 80, voo: 9, poseS: 1.5, tontoS: 2.0, seguidas: [1, 3, 3], quiques: [0, 0, 2] },
+    // derrubaM (D86): acertado, o Juninho voa essa distância para trás, cai de costas, rola e levanta (como atropelado)
+    investida: { avisoS: 0.8, avisoSeguidaS: 0.5, vel: 15, distM: 15, largM: 2.5, dano: 26, empurraM: 2.2, derrubaM: 4.5, hordaDano: 80, voo: 9, poseS: 1.5, tontoS: 2.0, seguidas: [1, 3, 3], quiques: [0, 0, 2] },
     // agachamento: quando o Juninho cola nele; na fase 3 solta o anel de choque (brecha: abertura em rad)
     agacha: {
-      pertoM: 3.5, avisoS: 0.8, raioM: 3.2, dano: 16, empurraM: 2.5, hordaDano: 60, voo: 8, poseS: 0.5,
-      anel: { velM: 9, alcanceM: 12, largM: 0.9, brecha: 1.0, dano: 14 },
+      pertoM: 3.5, avisoS: 0.8, raioM: 3.2, dano: 16, empurraM: 2.5, derrubaM: 3.2, hordaDano: 60, voo: 8, poseS: 0.5,
+      anel: { velM: 9, alcanceM: 12, largM: 0.9, brecha: 1.0, dano: 14, derrubaM: 2.6 },
     },
     // anilha (D85): do tamanho da que ele segura na arte (arteRaioM, ~2 m de diâmetro); sai das mãos (alturaM) e
     // cai no chão em quedaS antes de rolar; raioM é a área que machuca (só depois de cair)
-    anilha: { avisoS: 0.6, lead: 0.5, vel: 9, distM: 16, raioM: 0.8, arteRaioM: 1.0, alturaM: 4.0, quedaS: 0.24, dano: 15, hordaDano: 40 },
-    carro: { chance: 0.3, avisoS: 0.9, lead: 0.9, vooS: 0.9, alturaM: 3.4, arcoM: 3, raioM: 3.0, dano: 30, hordaDano: 120, arte: ['cen_carro_fusca', 'cen_carro_brasilia', 'cen_carro_uno', 'cen_carro_taxi'] },
+    anilha: { avisoS: 0.6, lead: 0.5, vel: 9, distM: 16, raioM: 0.8, arteRaioM: 1.0, alturaM: 4.0, quedaS: 0.24, dano: 15, derrubaM: 3.2, hordaDano: 40 },
+    carro: { chance: 0.3, avisoS: 0.9, lead: 0.9, vooS: 0.9, alturaM: 3.4, arcoM: 3, raioM: 3.0, dano: 30, derrubaM: 3.8, hordaDano: 120, arte: ['cen_carro_fusca', 'cen_carro_brasilia', 'cen_carro_uno', 'cen_carro_taxi'] },
     // derrubado (D65): uma das 3 mortes, sorteada, na direção mais perto de onde ele olhava; fica no chão e some
     corpo: { quadroS: 0.12, noChaoS: 4, someS: 1 },
     paradoQuadroS: 0.12, // parado entre os golpes: laço de 6 quadros respirando

@@ -108,6 +108,19 @@ function empurraJuninho(game, dx, dy, m) {
   game.clampToMap(p);
 }
 
+/**
+ * O golpe pegou no Juninho (D86): machuca e ele voa para trás no sentido (dx, dy), cai de costas, rola e levanta,
+ * como atropelado (game.derrubar). Imune (já no chão ou levantando), não acontece nada.
+ */
+function acertaJuninho(game, dano, dx, dy, vooM) {
+  const p = game.player;
+  if (p.invulnT > 0 || game.over) return false;
+  game.hurtPlayer(dano, 'monstrao');
+  if (!game.derrubar(dx, dy, vooM)) empurraJuninho(game, dx, dy, Math.min(1.5, vooM));
+  game.som('atropelo', p.x, p.y);
+  return true;
+}
+
 function investida(game, e, D, f, dt) {
   const I = D.investida;
   const p = game.player;
@@ -138,9 +151,7 @@ function investida(game, e, D, f, dt) {
   // pega o Juninho uma vez por investida
   if (!e.acertou && Math.hypot(p.x - e.x, p.y - e.y) < e.r + (p.r || 0.3) + 0.2) {
     e.acertou = true;
-    game.hurtPlayer(I.dano, 'monstrao');
-    empurraJuninho(game, e.dirX, e.dirY, I.empurraM);
-    game.shake(0.35);
+    if (acertaJuninho(game, I.dano, e.dirX, e.dirY, I.derrubaM)) game.shake(0.35);
   }
   // bateu em carro, poste ou barraca: fica tonto (e o carro pode explodir)
   const k = solidoEm(game, e.x + e.dirX * e.r * 0.6, e.y + e.dirY * e.r * 0.6, e.r * 0.55);
@@ -198,9 +209,8 @@ function socoNoChao(game, e, D, f) {
   const dp = Math.hypot(p.x - e.x, p.y - e.y);
   ferirFigurantes(game, e.x, e.y, A.raioM, A.dano);
   if (dp < A.raioM + (p.r || 0.3)) {
-    game.hurtPlayer(A.dano, 'monstrao');
     const l = dp || 1;
-    empurraJuninho(game, (p.x - e.x) / l, (p.y - e.y) / l, A.empurraM);
+    acertaJuninho(game, A.dano, (p.x - e.x) / l, (p.y - e.y) / l, A.derrubaM);
   }
   game.hash.query(e.x, e.y, A.raioM + 0.5, tmp);
   for (const o of tmp) {
@@ -264,9 +274,7 @@ function atualizarObjs(game, D, dt) {
       }
       if (!o.feriu && ferirFigurantes(game, o.x, o.y, N.raioM, N.dano)) o.feriu = true; // a anilha atropela um só
       if (Math.hypot(p.x - o.x, p.y - o.y) < N.raioM + (p.r || 0.3)) {
-        game.hurtPlayer(N.dano, 'monstrao');
-        empurraJuninho(game, o.dx, o.dy, 0.8);
-        fora = true;
+        if (acertaJuninho(game, N.dano, o.dx, o.dy, N.derrubaM)) fora = true; // levando a anilha de frente, voa junto
       }
       game.hash.query(o.x, o.y, N.raioM + 0.6, tmp);
       for (const e of tmp) {
@@ -291,7 +299,8 @@ function atualizarObjs(game, D, dt) {
       aviso(game, { tipo: 'circulo', x: o.tx, y: o.ty, r: C.raioM, k: 0.5 + 0.5 * u });
       if (u >= 1) {
         fora = true;
-        if (Math.hypot(p.x - o.tx, p.y - o.ty) < C.raioM + (p.r || 0.3)) game.hurtPlayer(C.dano, 'monstrao');
+        const dc = Math.hypot(p.x - o.tx, p.y - o.ty);
+        if (dc < C.raioM + (p.r || 0.3)) acertaJuninho(game, C.dano, (p.x - o.tx) / (dc || 1), (p.y - o.ty) / (dc || 1), C.derrubaM);
         ferirFigurantes(game, o.tx, o.ty, C.raioM, C.dano);
         game.hash.query(o.tx, o.ty, C.raioM + 0.5, tmp);
         for (const e of tmp) {
@@ -322,8 +331,7 @@ function atualizarObjs(game, D, dt) {
           if (dif > Math.PI) dif = Math.PI * 2 - dif;
           if (dif > A.brecha / 2) {
             o.pegou = true;
-            game.hurtPlayer(A.dano, 'monstrao');
-            empurraJuninho(game, (p.x - o.x) / (dp || 1), (p.y - o.y) / (dp || 1), 1.2);
+            acertaJuninho(game, A.dano, (p.x - o.x) / (dp || 1), (p.y - o.y) / (dp || 1), A.derrubaM);
           }
         }
       }
