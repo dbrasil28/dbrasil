@@ -3,8 +3,8 @@
 Uso: python3 -I tools/montar-danca.py <folha.png> <saida.webp> <colunas>x<linhas> <linhas usadas> <quadros usados> [altura]
   ex.: ... input_file_10.png prototype/assets/personagens/cidadao_a/danca_atlas.webp 6x4 0,1,2 0,1,2,3,4
 
-- O melhor fundo é o verde chapado (#00FF00): sai limpo, como no tools/recortar-pecas.py. Também serve fundo
-  transparente de verdade ou preto liso.
+- O melhor fundo é o verde chapado (#00FF00): sai limpo, como no tools/recortar-pecas.py, e o verde que respinga na
+  borda da pessoa é tirado (a pessoa não pode ter verde). Também serve fundo transparente de verdade ou preto liso.
 - O xadrez "de transparência" PINTADO na imagem (o ChatGPT faz muito isso) só sai pela metade: quadradinho preto
   e cinza tem a cor de roupa e de cabelo, e o recorte deixa cacos em volta da pessoa (a regra mais solta come
   roupa). Nesse caso a ferramenta avisa; peça a folha de novo com o fundo verde.
@@ -49,7 +49,7 @@ def mascara_fundo(rgb):
     if ((bi[:, 1] - np.maximum(bi[:, 0], bi[:, 2])) > 90).mean() > 0.8:
         # fundo verde chapado: sai o verde (a pessoa não pode ter verde)
         ri = rgb.astype(np.int32)
-        return (ri[..., 1] - np.maximum(ri[..., 0], ri[..., 2])) > 60
+        return (ri[..., 1] - np.maximum(ri[..., 0], ri[..., 2])) > 60, True
     if borda.max(axis=1).mean() < 30 and borda.max(axis=1).std() < 12:
         cand = rgb.max(axis=2) < 22  # fundo preto liso
     else:
@@ -79,7 +79,7 @@ def mascara_fundo(rgb):
     fundo = np.isin(lab, list(na_borda))
     # o que sobrou do xadrez em ilhas pequenas, fora da pessoa: fecha com uma abertura
     fundo = cv2.morphologyEx(fundo.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8)).astype(bool)
-    return fundo
+    return fundo, False
 
 
 def main():
@@ -91,10 +91,19 @@ def main():
     im = Image.open(src)
     rgba = np.array(im.convert('RGBA'))
     rgb = rgba[..., :3]
+    verde = False
     if im.mode == 'RGBA' and (rgba[..., 3] < 250).mean() > 0.2:
         alfa = rgba[..., 3] > 40
     else:
-        alfa = ~mascara_fundo(rgb)
+        fundo, verde = mascara_fundo(rgb)
+        alfa = ~fundo
+    if verde:
+        # o verde que respinga na borda (e o do JPEG em volta): o verde nunca passa do maior dos outros dois
+        ri = rgba[..., :3].astype(np.int32)
+        ri[..., 1] = np.minimum(ri[..., 1], np.maximum(ri[..., 0], ri[..., 2]))
+        rgba[..., :3] = ri.astype(np.uint8)
+        # e a borda de 1 px, onde o verde se mistura com a pessoa
+        alfa = cv2.erode(alfa.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
     h, w = alfa.shape
     cw, ch = w / cols, h / rows
     celulas = {}
@@ -114,8 +123,9 @@ def main():
                 cx, cy, cw2, ch2, area = st[i]
                 if i == maior or (area > 30 and cx < bx + bw + 8 and cx + cw2 > bx - 8 and cy < by + bh + 8 and cy + ch2 > by - 8):
                     manter |= lab == i
-            # buraquinho dentro da pessoa (o xadrez comeu um pedaço de roupa escura da mesma cor): fecha
-            fora = (~manter).astype(np.uint8)
+            # buraquinho dentro da pessoa (o xadrez comeu um pedaço de roupa escura da mesma cor): fecha. No fundo
+            # verde não: ali o vão entre o braço e o corpo é fundo mesmo
+            fora = (~manter).astype(np.uint8) if not verde else np.zeros_like(m)
             nb, lb, sb, _ = cv2.connectedComponentsWithStats(fora, 4)
             borda_lab = set(np.unique(np.concatenate([lb[0], lb[-1], lb[:, 0], lb[:, -1]])))
             for i in range(1, nb):
