@@ -227,6 +227,10 @@ Tirado da lista de estereótipos do autor (`ELENCO_v0.3_BRASIL.md`).
 | Laje ou pracinha | 10 a 14 m | Arena para respirar e lutar; aqui acontecem os eventos |
 | Beco fechado | — | O toque de recolher fecha com barricada; é preciso dar a volta |
 
+- **Becos (D92):** da rota principal saem seis becos com placa na entrada:
+  - **quatro sem saída**, com uma pracinha no fundo e um achado: dois cofres, um isopor e a relíquia do Morro, no beco mais escondido, depois do portão;
+  - **duas voltas:** uma contorna uma escadaria e a outra chega no topo por trás.
+  Nenhum atalho pula o portão do baile. Ao sul das vielas deitadas fica uma mureta e um quintal, porque casa ali esconderia a viela.
 - **Altura:** a subida tem cerca de 350 m (D91). No meio do caminho, a esplanada do baile e, no fundo dela, o portão fechado até o DJ Plantão cair. O covil do Chefe do Tráfico é a laje do topo.
 
 **O baile da esplanada (D91, pedido do autor).** Chegando na última esplanada antes do alto:

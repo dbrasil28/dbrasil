@@ -35,10 +35,19 @@ export function esconderijosDaOrla(w, map) {
 
 /** Esconderijo da relíquia do Morro: em cima da casa com laje da pracinha do meio, sempre a mesma. */
 export function esconderijosDoMorro(w) {
+  // D92: a relíquia fica no fundo do beco que a pede (o mais escondido); sem beco, no alto de uma casa com laje
+  const fundo = w.path.find((k) => k.pracinha && k.achado === 'reliquia');
+  if (fundo) return [{ onde: 'beco', x: (fundo.x0 + fundo.x1) / 2, y: (fundo.y0 + fundo.y1) / 2, reliquia: 'paredao' }];
   const casas = w.platforms.filter((P) => P.kind === 'laje_casa').sort((a, b) => b.y0 - a.y0);
   if (!casas.length) return [];
   const P = casas[Math.floor(casas.length / 2)];
   return [{ onde: 'laje', x: (P.x0 + P.x1) / 2, y: (P.y0 + P.y1) / 2, plat: P, reliquia: 'paredao' }];
+}
+
+/** Os achados do fundo dos becos (D92): cofre ou isopor no meio da pracinha. */
+function achadosDosBecos(w) {
+  return w.path.filter((k) => k.pracinha && (k.achado === 'cofre' || k.achado === 'isopor'))
+    .map((k) => achado(k.achado, { onde: 'beco', x: (k.x0 + k.x1) / 2, y: (k.y0 + k.y1) / 2 }));
 }
 
 /** Sorteia os achados do trecho (sorteio próprio: não mexe no da partida). */
@@ -66,6 +75,7 @@ export function sortearAchados(game) {
     out.push(achado('isopor', s));
   }
   for (const s of esconderijosDoMorro(w)) out.push(achado('reliquia', s, { reliquia: s.reliquia }));
+  out.push(...achadosDosBecos(w));
   return out;
 }
 

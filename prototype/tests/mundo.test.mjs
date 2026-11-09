@@ -238,7 +238,7 @@ test('andando de verdade (passos curtos), o Juninho atravessa todas as emendas d
   const step = (PLAYER.speed * 0.75) / 60; // escadaria, 60 quadros por segundo
   let i = 0;
   for (; i < 40000; i++) {
-    routeTarget(w, e, goal.x, goal.y, w.path.length - 1, out);
+    routeTarget(w, e, goal.x, goal.y, w.topI, out);
     const dx = out.x - e.x;
     const dy = out.y - e.y;
     const d = Math.hypot(dx, dy) || 1;
@@ -279,7 +279,8 @@ test('favela: casas dos dois lados de cada pedaço do Morro, sem entrar no chão
       }
     }
   }
-  w.path.slice(1).forEach((k, i) => {
+  w.path.slice(1, w.topI + 1).forEach((k, i) => {
+    // a rota principal (os becos, D92, têm o teste deles)
     const esq = w.casas.filter((c) => Math.abs(c.x1 - k.x0) < 0.01 && c.y1 > k.y0 && c.y0 < k.y1);
     const dir = w.casas.filter((c) => Math.abs(c.x0 - k.x1) < 0.01 && c.y1 > k.y0 && c.y0 < k.y1);
     assert.ok(esq.length, `pedaço ${i + 1} sem casa à esquerda`);

@@ -27,17 +27,24 @@ const chegar = (g, a) => {
   }
 };
 
-test('cada partida tem isopores, dois cofres e uma relíquia por trecho, sempre no mesmo lugar', () => {
+test('cada partida tem isopores, dois cofres e uma relíquia por trecho, sempre no mesmo lugar; no Morro, o fundo dos becos', () => {
   const g = jogo();
-  const n = (k) => g.achados.filter((a) => a.kind === k).length;
+  const orla = g.achados.filter((a) => a.onde !== 'beco');
+  const n = (k) => orla.filter((a) => a.kind === k).length;
   assert.equal(n('isopor'), ACHADOS.isopores);
   assert.equal(n('cofre'), 2);
-  assert.equal(n('reliquia'), 2);
+  assert.equal(n('reliquia'), 1);
   const r = g.achados.find((a) => a.reliquia === 'altinha');
   assert.equal(r.onde, 'torre');
+  // D92: a relíquia do Morro no fundo do beco mais escondido, e cada beco sem saída com o achado dele
   const m = g.achados.find((a) => a.reliquia === 'paredao');
-  assert.equal(m.onde, 'laje');
-  assert.ok(m.plat && m.plat.kind === 'laje_casa' && m.y < g.world.orlaTop, 'o paredão não está numa casa do morro');
+  assert.equal(m.onde, 'beco');
+  const fundos = g.world.path.filter((k) => k.pracinha);
+  assert.ok(fundos.length >= 3, 'poucos becos sem saída');
+  for (const k of fundos) {
+    assert.ok(g.achados.some((a) => a.x > k.x0 && a.x < k.x1 && a.y > k.y0 && a.y < k.y1), `o fundo do ${k.nome} está vazio`);
+  }
+  assert.ok(m.y < g.world.orlaTop, 'o paredão não está no morro');
   const g2 = jogo();
   for (const id of ['altinha', 'paredao']) {
     const a = g.achados.find((x) => x.reliquia === id);

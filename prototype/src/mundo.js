@@ -23,13 +23,18 @@ export function buildWorld(map) {
   // Subida do Morro: pedaços em sequência, cada um encostado no anterior
   let y = gate.y0 + 0.5;
   for (const p of R.morro.pieces) {
-    const k = rect(p.x0, y - p.len, p.x1, y + 0.5, { kind: p.kind, slow: p.kind === 'escadaria' ? R.morro.stairSlow : 1 });
+    const k = rect(p.x0, y - p.len, p.x1, y + 0.5, { kind: p.kind, slow: p.kind === 'escadaria' ? R.morro.stairSlow : 1, principal: true });
     if (p.baile) k.baile = true;
     if (p.portao) k.portao = true;
     path.push(k);
     y = k.y0 + 0.5;
   }
-  const top = path[path.length - 1];
+  const topI = path.length - 1; // a laje do topo: o último pedaço da rota principal (os becos vêm depois)
+  const top = path[topI];
+  // a rota principal: cada pedaço ligado ao de baixo; os becos (D92) entram depois, com as ligações deles
+  const ligacoes = [];
+  for (let i = 0; i < path.length - 1; i++) ligacoes.push([i, i + 1]);
+  montarBecos(path, R, ligacoes);
   // D91: a esplanada do baile e o portão do fundo dela (o pedaço de cima, fechado até o DJ Plantão cair)
   const baileI = path.findIndex((k) => k.baile);
   const portaoI = path.findIndex((k) => k.portao);
@@ -43,8 +48,9 @@ export function buildWorld(map) {
     portaoI,
     portaoAberto: portaoI < 0,
     orlaTop,
-    morroTop: top.y0,
+    morroTop: Math.min(...path.slice(2).map((k) => k.y0)),
     top,
+    topI,
     exitOpen: false,
     joints: [],
     platforms: [],
@@ -55,20 +61,148 @@ export function buildWorld(map) {
     visto: new Set([0, 1]), // pedaços da rota em que o Juninho já pisou (o mapa da favela só mostra esses)
   };
   w.corridors = [];
-  for (let i = 0; i < path.length - 1; i++) {
-    const a = path[i];
-    const b = path[i + 1];
-    w.joints.push({ x: (Math.max(a.x0, b.x0) + Math.min(a.x1, b.x1)) / 2, y: (Math.max(a.y0, b.y0) + Math.min(a.y1, b.y1)) / 2 });
+  w.links = [];
+  w.adj = path.map(() => []);
+  for (const [ia, ib] of ligacoes) {
+    const em = emenda(path[ia], path[ib]);
+    if (!em) throw new Error(`os pedaços ${ia} e ${ib} da rota não se encostam`);
     // passagem entre dois pedaços (largura comum, 1 m para dentro de cada um): sem ela, quem tem raio
     // maior que metade da emenda ficava preso na fresta entre os dois retângulos
-    w.corridors.push(rect(Math.max(a.x0, b.x0), a.y0 - JOINT_M, Math.min(a.x1, b.x1), b.y1 + JOINT_M, { gate: i <= 1, portao: portaoI >= 0 && (i === portaoI - 1 || i === portaoI) }));
+    em.cor.gate = ia <= 1 && ib <= 2;
+    em.cor.portao = portaoI >= 0 && (ia === portaoI || ib === portaoI);
+    const l = { a: ia, b: ib, j: em.j, cor: em.cor };
+    w.links.push(l);
+    w.joints.push(em.j);
+    w.corridors.push(em.cor);
+    w.adj[ia].push({ to: ib, l });
+    w.adj[ib].push({ to: ia, l });
   }
+  w.prox = proximoPasso(path, w.adj);
   placeOrla(w, map);
   placeObra(w, map); // covil do Especulador: fechado por tapume até o Caos chamar o chefão (D39)
   placeMorro(w);
   placeCenario(w, map); // carros, barracas, bancos, postes, placas e lixo
   return w;
 }
+
+/**
+ * A emenda de dois pedaços que se encostam: o ponto do meio (junta) e a passagem, 1 m para dentro de cada um
+ * (esticada em y quando um está em cima do outro e em x quando estão lado a lado). null se não se encostam.
+ */
+function emenda(a, b) {
+  const x0 = Math.max(a.x0, b.x0);
+  const x1 = Math.min(a.x1, b.x1);
+  const y0 = Math.max(a.y0, b.y0);
+  const y1 = Math.min(a.y1, b.y1);
+  if (x1 - x0 <= 0.01 || y1 - y0 <= 0.01) return null;
+  const j = { x: (x0 + x1) / 2, y: (y0 + y1) / 2 };
+  const cor = x1 - x0 >= y1 - y0 ? rect(x0, y0 - JOINT_M, x1, y1 + JOINT_M) : rect(x0 - JOINT_M, y0, x1 + JOINT_M, y1);
+  return { j, cor };
+}
+
+/**
+ * Os becos do Morro (D92, config ROUTE.morro.ramos): cada um sai do lado de um pedaço da rota principal e anda por
+ * trechos (vielas deitadas para os lados e vielas que sobem), até a pracinha do fundo, com um achado, ou até
+ * outro pedaço principal (atalho). Os pedaços dos becos entram no fim de path; as ligações, em ligacoes.
+ */
+function montarBecos(path, R, ligacoes) {
+  const principal = (i) => path[i + 2];
+  for (const [n, rm] of (R.morro.ramos || []).entries()) {
+    const L = rm.larg;
+    const pai = principal(rm.de);
+    let ant = rm.de + 2; // de onde o trecho sai (índice em path)
+    let cur = null; // o último trecho: { k, vai }
+    const novo = (k, extra) => {
+      Object.assign(k, { ramo: n, nome: rm.nome, principal: false, slow: 1 }, extra);
+      path.push(k);
+      ligacoes.push([ant, path.length - 1]);
+      ant = path.length - 1;
+      return k;
+    };
+    for (const [ti, t] of rm.trechos.entries()) {
+      let k;
+      if (t.vai === 'sobe') {
+        // sobe da ponta de fora do trecho deitado de baixo
+        const c = cur.k;
+        const x0 = cur.vai === 'esq' ? c.x0 : c.x1 - L;
+        const y1 = c.y1;
+        const y0 = t.ate !== undefined ? (principal(t.ate).y0 + principal(t.ate).y1) / 2 - L / 2 : c.y0 - t.comp;
+        k = novo(rect(x0, y0, x0 + L, y1, { kind: 'viela' }));
+      } else {
+        // deitado: o primeiro sai do lado do pedaço principal; os outros, do alto do trecho que subiu
+        let yc;
+        let xi;
+        if (!cur) {
+          yc = pai.y1 - rm.em * (pai.y1 - pai.y0);
+          xi = t.vai === 'esq' ? pai.x0 + 0.5 : pai.x1 - 0.5;
+        } else {
+          yc = cur.k.y0 + L / 2;
+          xi = t.vai === 'esq' ? cur.k.x1 : cur.k.x0;
+        }
+        let xf;
+        if (t.ate !== undefined) xf = t.vai === 'esq' ? principal(t.ate).x1 - 0.5 : principal(t.ate).x0 + 0.5;
+        else xf = t.vai === 'esq' ? xi - t.comp : xi + t.comp;
+        k = novo(rect(Math.min(xi, xf), yc - L / 2, Math.max(xi, xf), yc + L / 2, { kind: 'viela', deitada: true }), ti === 0 ? { entrada: true } : {});
+      }
+      cur = { k, vai: t.vai };
+    }
+    const F = rm.fim || {};
+    if (F.liga !== undefined) {
+      ligacoes.push([ant, F.liga + 2]); // o atalho volta para a rota principal
+      path[ant].atalho = true;
+    } else if (F.pracinha) {
+      // a pracinha do fundo, encostada na ponta do último trecho
+      const [pw, pd] = F.pracinha;
+      const c = cur.k;
+      let r;
+      if (cur.vai === 'sobe') {
+        const cx = (c.x0 + c.x1) / 2;
+        r = rect(cx - pw / 2, c.y0 + 0.5 - pd, cx + pw / 2, c.y0 + 0.5);
+      } else {
+        const cy = (c.y0 + c.y1) / 2;
+        r = cur.vai === 'esq' ? rect(c.x0 + 0.5 - pw, cy - pd / 2, c.x0 + 0.5, cy + pd / 2) : rect(c.x1 - 0.5, cy - pd / 2, c.x1 - 0.5 + pw, cy + pd / 2);
+      }
+      novo(r, { kind: 'laje', pracinha: true, fundo: true, achado: F.achado || null });
+    }
+  }
+}
+
+/** Para cada par (de, para), o pedaço vizinho de 'de' no caminho mais curto até 'para' (-1: sem caminho). */
+function proximoPasso(path, adj) {
+  const n = path.length;
+  const INF = 1e9;
+  const d = Array.from({ length: n }, () => new Float64Array(n).fill(INF));
+  const nx = Array.from({ length: n }, () => new Int16Array(n).fill(-1));
+  const cx = (k) => (k.x0 + k.x1) / 2;
+  const cy = (k) => (k.y0 + k.y1) / 2;
+  for (let i = 0; i < n; i++) {
+    d[i][i] = 0;
+    nx[i][i] = i;
+    for (const { to } of adj[i]) {
+      const c = Math.hypot(cx(path[i]) - cx(path[to]), cy(path[i]) - cy(path[to]));
+      if (c < d[i][to]) {
+        d[i][to] = c;
+        nx[i][to] = to;
+      }
+    }
+  }
+  for (let k = 0; k < n; k++) {
+    for (let i = 0; i < n; i++) {
+      if (d[i][k] >= INF) continue;
+      for (let j = 0; j < n; j++) {
+        const v = d[i][k] + d[k][j];
+        if (v < d[i][j]) {
+          d[i][j] = v;
+          nx[i][j] = nx[i][k];
+        }
+      }
+    }
+  }
+  return nx;
+}
+
+/** A ligação entre dois pedaços vizinhos (ou undefined). */
+export const ligacaoEntre = (w, a, b) => w.adj[a]?.find((v) => v.to === b)?.l;
 
 function addPlatform(w, x0, y0, x1, y1, h, stair, kind) {
   const P = rect(x0, y0, x1, y1, { h, kind, stair });
@@ -172,6 +306,7 @@ function placeMorro(w) {
       // casa com laje encostada no fundo da pracinha, do lado oposto à passagem para o pedaço de cima
       // (antes ficava sempre à direita e, em duas lajes, fechava a passagem)
       if (k.baile) return; // a esplanada do baile fica livre para a pista (baile.js)
+      if (!k.principal) return; // a pracinha do fundo do beco (D92) tem o achado e o cenário dela (cenario.js)
       let side = 0; // -1: casa à esquerda, 1: à direita, 0: sem casa
       if (k.x1 - k.x0 >= 13 && k !== w.top) side = houseSide(k, path[i + 1]);
       const m = side === -1 ? -1 : 1; // o boteco fica espelhado do lado livre
@@ -268,16 +403,21 @@ export function routeTarget(w, e, tx, ty, ti, out) {
   let ei = pathIndex(w, e.x, e.y, e.ri);
   // já na emenda (dentro do pedaço seguinte também): mira a próxima junta, senão fica parado na junta
   if (ei >= 0 && ti >= 0) {
-    while (ei < ti && !bloqueado(w, ei + 1) && inside(w.path[ei + 1], e.x, e.y)) ei++;
-    while (ei > ti && !bloqueado(w, ei - 1) && inside(w.path[ei - 1], e.x, e.y)) ei--;
+    for (let k = 0; k < 4 && ei !== ti; k++) {
+      const nh = w.prox[ei][ti];
+      if (nh < 0 || bloqueado(w, nh) || !inside(w.path[nh], e.x, e.y)) break;
+      ei = nh;
+    }
   }
   if (ei >= 0) e.ri = ei;
-  if (ei < 0 || ti < 0 || ei === ti) {
+  const nh = ei >= 0 && ti >= 0 ? w.prox[ei][ti] : -1;
+  if (ei < 0 || ti < 0 || ei === ti || nh < 0) {
     out.x = tx;
     out.y = ty;
     return out;
   }
-  const j = ei < ti ? w.joints[ei] : w.joints[ei - 1];
+  // pela rede de vielas (D92): a junta com o próximo pedaço do caminho mais curto
+  const j = ligacaoEntre(w, ei, nh).j;
   out.x = j.x;
   out.y = j.y;
   return out;
@@ -295,11 +435,19 @@ export function routeRemaining(w, x, y, ri = -1) {
   let i = pathIndex(w, x, y, ri);
   if (i < 0) i = ri >= 0 ? ri : 0;
   const goal = deliveryPoint(w);
-  const J = w.joints;
-  if (i >= w.path.length - 1) return Math.hypot(goal.x - x, goal.y - y);
-  let d = Math.hypot(J[i].x - x, J[i].y - y);
-  for (let k = i; k < J.length - 1; k++) d += Math.hypot(J[k + 1].x - J[k].x, J[k + 1].y - J[k].y);
-  return d + Math.hypot(goal.x - J[J.length - 1].x, goal.y - J[J.length - 1].y);
+  let d = 0;
+  let px = x;
+  let py = y;
+  for (let k = 0; k < w.path.length && i !== w.topI; k++) {
+    const nh = w.prox[i][w.topI];
+    if (nh < 0) break;
+    const j = ligacaoEntre(w, i, nh).j;
+    d += Math.hypot(j.x - px, j.y - py);
+    px = j.x;
+    py = j.y;
+    i = nh;
+  }
+  return d + Math.hypot(goal.x - px, goal.y - py);
 }
 
 /** Multiplicador de velocidade do lugar (escadaria mais lenta). */

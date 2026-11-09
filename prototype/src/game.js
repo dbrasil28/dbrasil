@@ -1494,7 +1494,7 @@ export class Game {
       const C = this.covil;
       if (e.chamado && C && !C.saiu && (p.x - e.x) ** 2 + (p.y - e.y) ** 2 > CARREIRA.hordaChamadaPertoM ** 2) {
         // chamado pelo covil: anda para lá, junta por junta
-        routeTarget(this.world, e, C.x, C.y + 1, C.trecho === 'orla' ? 0 : this.world.path.length - 1, rt);
+        routeTarget(this.world, e, C.x, C.y + 1, C.trecho === 'orla' ? 0 : this.world.topI, rt);
         tx = rt.x;
         ty = rt.y;
       } else if (this.world) {

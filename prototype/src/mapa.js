@@ -290,6 +290,24 @@ function drawMorroGround(ctx, cam, w, b) {
       }
     }
   }
+  // os quintais atrás da mureta dos becos (D92): concreto gasto e terra, mais escuros que o caminho (ali não se anda)
+  for (const r of w.quintais || []) {
+    if (r.y1 < b.minY - 1 || r.y0 > b.maxY + 1) continue;
+    cam.toScreen(r.x0, r.y0, pt);
+    cam.toScreen(r.x1, r.y1, pt2);
+    const x = pt.x;
+    const y = pt.y;
+    const wd = pt2.x - pt.x;
+    const ht = pt2.y - pt.y;
+    if (images.chao_laje) chaoComTextura(ctx, cam, images.chao_laje, CHAO_MORRO.laje, r, x, y, wd, ht);
+    else {
+      ctx.fillStyle = '#6f675d';
+      ctx.fillRect(x, y, wd, ht);
+    }
+    ctx.fillStyle = 'rgba(28,20,14,0.38)';
+    ctx.fillRect(x, y, wd, ht);
+    dirt(ctx, x, y, wd, ht, 0.6);
+  }
   // caminhos: viela (cimento), escadaria (degraus) e laje (concreto claro)
   for (const r of w.path) {
     if (r.kind === 'orla' || r.y1 < b.minY - 1 || r.y0 > b.maxY + 1) continue;
@@ -302,7 +320,7 @@ function drawMorroGround(ctx, cam, w, b) {
     // sombra das paredes em volta
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.fillRect(x - ppu * 0.25, y, wd + ppu * 0.5, ht);
-    const tex = CHAO_MORRO[r.kind];
+    const tex = CHAO_MORRO[r.deitada ? 'laje' : r.kind]; // viela deitada (D92): o chão de laje, sem o rego (a arte não gira)
     if (tex && images[tex.img]) {
       chaoComTextura(ctx, cam, images[tex.img], tex, r, x, y, wd, ht);
     } else {

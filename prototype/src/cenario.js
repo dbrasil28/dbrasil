@@ -324,7 +324,7 @@ function policia(w, map) {
   }
   let lajes = 0;
   w.path.forEach((k, idx) => {
-    if (idx < 2) return;
+    if (idx < 2 || k.principal === false) return; // nos becos (D92), sem polícia
     const len = k.y1 - k.y0;
     const sd = (i) => H(idx, i, 901);
     if (k.kind === 'laje' && !k.baile && k !== w.top && lajes < P.lajesComCamburao) { // nem no baile nem no topo (D91)
@@ -359,6 +359,52 @@ function policia(w, map) {
 }
 
 /** Subida do Morro: motos encostadas, entulho, gatos de luz, placas nas paredes; lajes com caixa d'água, sinuca, churrasqueira e varal. */
+/**
+ * Um pedaço de beco (D92): a placa com o nome na entrada (na parede do pedaço principal, ao lado da boca),
+ * coisas encostadas na beira sem fechar a passagem, lixo no chão e, na pracinha do fundo, o varal, a caixa
+ * d'água e as cadeiras. Ao sul de viela deitada e de pracinha, a mureta (o quintal fica atrás dela).
+ */
+function beco(w, k, idx, sd) {
+  const len = k.y1 - k.y0;
+  const wd = k.x1 - k.x0;
+  if (k.entrada) {
+    const pai = w.adj[idx].map((v) => w.path[v.to]).find((q) => q.principal);
+    if (pai) {
+      const esq = k.x0 < pai.x0;
+      const x = esq ? pai.x0 : pai.x1;
+      prop(w, 'placa_parede', x - 0.05, k.y1 + 0.7, x + 0.05, k.y1 + 0.8, 1.9, sd(1), { solid: false, extra: { text: k.nome, left: esq } });
+    }
+  }
+  if (k.pracinha) {
+    prop(w, 'caixa_dagua', k.x0 + 0.4, k.y0 + 0.4, k.x0 + 1.9, k.y0 + 1.9, 1.3, sd(2), { piece: k });
+    prop(w, 'varal', k.x0 + 1, k.y0 + len * 0.5, k.x1 - 1, k.y0 + len * 0.5 + 0.2, 1.9, sd(3), { solid: false });
+    prop(w, 'cadeiras', k.x1 - 1.2, k.y0 + 0.5, k.x1 - 0.6, k.y0 + 1.1, 1.4, sd(4), { piece: k });
+  } else if (k.deitada) {
+    if (sd(5) < 0.8) prop(w, 'vaso', k.x0 + 2 + sd(6) * (wd - 4), k.y0 + 0.1, k.x0 + 2.4 + sd(6) * (wd - 4), k.y0 + 0.5, 0.8, sd(7), { piece: k });
+    if (sd(8) < 0.6) prop(w, 'pneus', k.x0 + 3 + sd(9) * (wd - 6), k.y0 + 0.1, k.x0 + 3.85 + sd(9) * (wd - 6), k.y0 + 0.9, 0.6, sd(10), { piece: k });
+  } else {
+    if (sd(11) < 0.7) prop(w, 'entulho', k.x0 + 0.1, k.y0 + 2 + sd(12) * (len - 4), k.x0 + 1.0, k.y0 + 2.8 + sd(12) * (len - 4), 0.7, sd(13), { piece: k });
+    prop(w, 'fios', k.x0, k.y0 + len * 0.4 - 0.2, k.x1, k.y0 + len * 0.4, 5.2, sd(14), { solid: false, extra: { favela: true } });
+  }
+  // a mureta ao sul (viela deitada e pracinha), menos onde outra viela encosta por baixo
+  if (k.deitada || k.pracinha) {
+    let cortes = [[k.x0, k.x1]];
+    for (const v of w.adj[idx]) {
+      const q = w.path[v.to];
+      if (q.y1 <= k.y1 + 0.1) continue; // só o que desce para o sul dela
+      cortes = cortes.flatMap(([a, b]) => (q.x1 <= a || q.x0 >= b ? [[a, b]] : [[a, Math.max(a, q.x0)], [Math.min(b, q.x1), b]]));
+    }
+    for (const [a, b] of cortes) if (b - a > 0.6) (w.muretas || (w.muretas = [])).push({ x0: a, x1: b, y: k.y1, seed: H(idx, Math.round(a * 10), 811) });
+    // o quintal atrás da mureta: varal e vasos (de enfeite: ali não se anda)
+    if (wd > 6 && sd(15) < 0.7) prop(w, 'varal', k.x0 + 1.5, k.y1 + 1.6, k.x0 + Math.min(wd - 1.5, 5.5), k.y1 + 1.8, 1.9, sd(16), { solid: false });
+  }
+  const kinds = ['saco', 'mancha', 'latinha', 'papel', 'poca', 'garrafa', 'bituca'];
+  for (let i = 0; i < Math.round((wd * len) / 9); i++) {
+    const kind = kinds[Math.floor(sd(60 + i) * kinds.length)];
+    litter(w, kind, k.x0 + 0.3 + sd(80 + i) * (wd - 0.6), k.y0 + 0.3 + sd(100 + i) * (len - 0.6), sd(120 + i));
+  }
+}
+
 /** O palco do baile (D91): no fundo da esplanada, no meio do lado sem o portão. */
 export function palcoDoBaile(w) {
   const k = w.baile;
@@ -419,6 +465,10 @@ function morro(w) {
     const len = k.y1 - k.y0;
     const wd = k.x1 - k.x0;
     const sd = (i) => H(idx, i, 701);
+    if (k.principal === false) {
+      beco(w, k, idx, sd);
+      return;
+    }
     if (k.kind === 'viela') {
       for (let i = 0; i < M.motosPorViela; i++) {
         const left = (i + idx) % 2 === 0;
@@ -496,8 +546,13 @@ function fachadas(w, map) {
   w.fachadas = [];
   for (let i = 0; i < w.path.length; i++) {
     const k = w.path[i];
-    const up = w.path[i + 1];
-    let cuts = up ? [[k.x0, Math.max(k.x0, up.x0)], [Math.min(k.x1, up.x1), k.x1]] : [[k.x0, k.x1]];
+    // corta a passagem de tudo que encosta no alto dele (o pedaço de cima e, nos becos, a viela que sobe)
+    let cuts = [[k.x0, k.x1]];
+    for (const v of w.adj ? w.adj[i] : []) {
+      const q = w.path[v.to];
+      if (q.y0 >= k.y0 - 0.1) continue;
+      cuts = cuts.flatMap(([a, b]) => (q.x1 <= a || q.x0 >= b ? [[a, b]] : [[a, Math.max(a, q.x0)], [Math.min(b, q.x1), b]]));
+    }
     if (i === 0 && map.avenidaX0 !== undefined) {
       // a avenida da praia passa pelo muro do fim da Orla e segue (os carros saem por ela)
       const a0 = map.avenidaX0 - AVENIDA.meioFioM;

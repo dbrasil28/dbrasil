@@ -273,7 +273,7 @@ export function botGoal(game) {
     return null;
   }
   const d = deliveryPoint(w, {});
-  return { x: d.x, y: d.y, ri: w.path.length - 1 };
+  return { x: d.x, y: d.y, ri: w.topI };
 }
 
 export function resolveModal(game, eventPolicy = (i) => i % 2 === 0) {

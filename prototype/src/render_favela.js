@@ -114,3 +114,61 @@ function convexHull(pts) {
   }
   return lo.slice(0, -1).concat(up.slice(0, -1));
 }
+
+const m0 = { x: 0, y: 0 };
+const m1 = { x: 0, y: 0 };
+
+/**
+ * A mureta dos becos (D92): parede baixa de bloco, de reboco gasto, na beira de baixo da viela deitada e da
+ * pracinha. Mostra que ali não se passa (o quintal fica atrás). Desenho de código, como os outros remendos.
+ */
+export function drawMureta(ctx, m, cam, ppu) {
+  const H = FAVELA.mureta.altM * ppu;
+  cam.toScreen(m.x0, m.y, m0);
+  cam.toScreen(m.x1, m.y, m1);
+  const wd = m1.x - m0.x;
+  const dy = m1.y - m0.y;
+  // a frente
+  ctx.fillStyle = '#857b6e';
+  ctx.beginPath();
+  ctx.moveTo(m0.x, m0.y);
+  ctx.lineTo(m1.x, m1.y);
+  ctx.lineTo(m1.x, m1.y - H);
+  ctx.lineTo(m0.x, m0.y - H);
+  ctx.closePath();
+  ctx.fill();
+  // os blocos
+  ctx.strokeStyle = 'rgba(40,32,26,0.35)';
+  ctx.lineWidth = Math.max(1, ppu * 0.025);
+  ctx.beginPath();
+  for (let f = 1; f < 3; f++) {
+    ctx.moveTo(m0.x, m0.y - (H * f) / 3);
+    ctx.lineTo(m1.x, m1.y - (H * f) / 3);
+  }
+  const passo = ppu * 0.4;
+  for (let i = 0, x = 0; x < wd; i++, x += passo) {
+    for (let f = 0; f < 3; f++) {
+      const xx = x + (f % 2 ? passo / 2 : 0);
+      if (xx >= wd) continue;
+      const yb = m0.y + (dy * xx) / (wd || 1) - (H * f) / 3;
+      ctx.moveTo(m0.x + xx, yb);
+      ctx.lineTo(m0.x + xx, yb - H / 3);
+    }
+  }
+  ctx.stroke();
+  // manchas de umidade, a partir da semente
+  ctx.fillStyle = 'rgba(52,44,36,0.25)';
+  for (let i = 0; i < 3; i++) {
+    const f = ((m.seed * (i + 1) * 9.13) % 1 + 1) % 1;
+    ctx.fillRect(m0.x + f * wd * 0.85, m0.y + dy * f - H * 0.95, wd * 0.12, H * 0.6);
+  }
+  // o topo (a borda de cimento)
+  ctx.fillStyle = '#a49a8c';
+  ctx.beginPath();
+  ctx.moveTo(m0.x, m0.y - H);
+  ctx.lineTo(m1.x, m1.y - H);
+  ctx.lineTo(m1.x, m1.y - H - ppu * 0.12);
+  ctx.lineTo(m0.x, m0.y - H - ppu * 0.12);
+  ctx.closePath();
+  ctx.fill();
+}

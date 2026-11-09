@@ -337,6 +337,8 @@ export const FAVELA = {
   barracoDesde: 8, // índice do pedaço da rota a partir do qual entram barracos (vielas mais altas)
   barracoChance: 0.5,
   vaoMinM: 0.8, // vão menor que isso no alto do pedaço fica sem casa
+  becoQuintalM: 4, // D92: ao sul de uma viela deitada, a mureta e o quintal; casa (baixa) só depois disso
+  mureta: { altM: 0.9 },
   // fileiras de trás, para os lados ficarem cheios até a borda da tela: quantas e de quanto em quanto (m).
   // À esquerda, casas de qualquer altura (ficam atrás de tudo); à direita, só baixas (não escondem a viela).
   fileirasTras: 3,
@@ -443,6 +445,20 @@ export const ROUTE = {
       { kind: 'viela', x0: -14, x1: -1, len: 8 },
       { kind: 'escadaria', x0: -13, x1: -9, len: 12 },
       { kind: 'laje', x0: -22, x1: -2, len: 22 }, // laje do topo: arena do Chefe do Tráfico e lugar da entrega
+    ],
+    // Becos (D92, pedido do autor: a favela cheia de bifurcações, para se perder e achar tesouro). Cada beco sai
+    // de um pedaço da rota principal (de: índice em pieces; em: onde, 0 = pé e 1 = alto do pedaço; lado: 'esq' ou
+    // 'dir') e anda por trechos: 'esq'/'dir' (viela deitada, comp m) e 'sobe' (comp m, ou ate: índice do pedaço
+    // principal, até a altura do meio dele). larg: largura da viela. fim: a pracinha do fundo ([larg, fundo] m)
+    // com o achado (cofre, isopor ou a relíquia), ou liga: o pedaço principal onde ele volta (atalho, sem
+    // atalho por cima do portão do baile). nome: a placa na entrada (nomes inventados).
+    ramos: [
+      { nome: 'BECO DO CHORO', de: 0, em: 0.5, lado: 'esq', larg: 3, trechos: [{ vai: 'esq', comp: 14 }, { vai: 'sobe', comp: 10 }], fim: { pracinha: [7, 6], achado: 'cofre' } },
+      { nome: 'TRAVESSA DO GATO', de: 2, em: 0.35, lado: 'dir', larg: 3, trechos: [{ vai: 'dir', comp: 14 }, { vai: 'sobe', ate: 4 }, { vai: 'esq', ate: 4 }], fim: { liga: 4 } },
+      { nome: 'BECO DA SAUDADE', de: 5, em: 0.45, lado: 'esq', larg: 3, trechos: [{ vai: 'esq', comp: 16 }], fim: { pracinha: [6, 7], achado: 'isopor' } },
+      { nome: 'VIELA SEM VOLTA', de: 8, em: 0.4, lado: 'dir', larg: 3, trechos: [{ vai: 'dir', comp: 14 }, { vai: 'sobe', comp: 12 }, { vai: 'dir', comp: 9 }], fim: { pracinha: [7, 7], achado: 'cofre' } },
+      { nome: 'BECO DO PAREDÃO', de: 13, em: 0.5, lado: 'esq', larg: 3, trechos: [{ vai: 'esq', comp: 18 }, { vai: 'sobe', comp: 10 }], fim: { pracinha: [8, 7], achado: 'reliquia' } },
+      { nome: 'ATALHO DOS FUNDOS', de: 16, em: 0.45, lado: 'dir', larg: 3, trechos: [{ vai: 'dir', comp: 10 }, { vai: 'sobe', ate: 19 }, { vai: 'esq', ate: 19 }], fim: { liga: 19 } },
     ],
   },
 };

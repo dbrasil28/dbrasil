@@ -113,7 +113,7 @@ export function soltarChefao(game, C) {
   }
   const top = w.top;
   const e = game.spawnEnemy('chefe_trafico', (top.x0 + top.x1) / 2, top.y0 + (top.y1 - top.y0) * 0.4, { fase: 0 });
-  e.ri = w.path.length - 1;
+  e.ri = w.topI;
   e.fireT = 1.5;
   game.chefe = e;
   game.boss = e;

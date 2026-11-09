@@ -41,7 +41,7 @@ test('Morro maior (D91): a esplanada do baile e, depois dela, o portão fechado 
   const g = noMorro();
   const w = g.world;
   assert.ok(w.baile && w.portaoI === w.baileI + 1, 'sem esplanada ou portão');
-  assert.ok(w.path.length - 1 - w.portaoI >= 5, 'o morro não continua depois do portão');
+  assert.ok(w.topI - w.portaoI >= 5, 'o morro não continua depois do portão');
   const comprimento = w.path.slice(2).reduce((s, k) => s + (k.y1 - k.y0), 0);
   assert.ok(comprimento > 320, `o morro não cresceu: ${Math.round(comprimento)} m`);
   const p = g.player;

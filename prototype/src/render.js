@@ -5,7 +5,7 @@ import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walk
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto, drawEscuroPontas } from './mapa.js';
 import { drawMar } from './render_mar.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
-import { drawCasaFavela } from './render_favela.js';
+import { drawCasaFavela, drawMureta } from './render_favela.js';
 import {
   precarregarFx, drawFxChao, fxEmPeNaLista, drawFxEmPe, drawSobreInimigo, drawGiro, drawBoletoArte, drawBoletoVento, drawPoca,
   drawAura, drawCarimboQueda, drawFaixaMoto, drawRaio, drawNotasIsca, fxImg,
@@ -251,6 +251,8 @@ export class Renderer {
     const w = game.world;
     if (w) {
       // casas da favela a leste do caminho: entram na ordem pela frente delas
+      // a mureta ao sul das vielas deitadas e das pracinhas dos becos (D92)
+      for (const m of w.muretas || []) if (m.y > bounds.minY - 2 && m.y < bounds.maxY + 4) list.push({ d: cam.depth(m.x0, m.y), k: 'mureta', o: m, x: m.x0, y: m.y });
       if (w.casas) {
         for (const c of w.casas) {
           if (c.y1 < bounds.minY - 2 || c.y1 > bounds.maxY + 14) continue;
@@ -337,6 +339,9 @@ export class Renderer {
       switch (it.k) {
         case 'casa':
           drawCasaFavela(ctx, o, cam, ppu);
+          break;
+        case 'mureta':
+          drawMureta(ctx, o, cam, ppu);
           break;
         case 'plat':
           drawPlatform(ctx, o, cam, ppu);

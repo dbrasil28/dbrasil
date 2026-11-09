@@ -43,7 +43,7 @@ const data = {
   mapa: { minX: m.minX, avX0: m.avenidaX0, avX1: m.avenidaX1, sandX: m.sandX, maxX: m.maxX, seaX: m.seaX, blockLen: m.blockLen, streetLen: m.streetLen, blocks: ROUTE.orla.blocks },
   startX: ROUTE.orla.startX,
   orlaTop: r2(w.orlaTop), startY: ROUTE.orla.startY, morroTop: r2(w.morroTop),
-  path: w.path.map((k, i) => ({ i, kind: i === 0 ? 'orla' : i === 1 ? 'escadaria_pe' : k.baile ? 'baile' : k.portao ? 'portao' : k.kind, b: box(k) })),
+  path: w.path.map((k, i) => ({ i, kind: i === 0 ? 'orla' : i === 1 ? 'escadaria_pe' : k.baile ? 'baile' : k.portao ? 'portao' : k.kind, b: box(k), nome: k.nome || '', entrada: !!k.entrada, fundo: !!k.fundo, achado: k.achado || '' })),
   // o baile da esplanada (D91): palco, treliças, globo e néon (desenho de código no jogo)
   deco: (w.baileDeco || []).map((d) => ({ tipo: d.tipo, b: d.x0 !== undefined ? [r2(d.x0), r2(d.y0 ?? d.y - 0.4), r2(d.x1), r2(d.y1 ?? d.y + 0.4)] : [r2(d.x - 0.5), r2(d.y - 0.5), r2(d.x + 0.5), r2(d.y + 0.5)] })),
   gate: box(w.gate),
@@ -317,16 +317,23 @@ function draw(v, opts = {}) {
     for (let b = 0; b <= D.mapa.blocks; b++) { const y = -D.mapa.blockLen * b + 20; lbl(D.mapa.minX - 6, y, 'Q' + b, '#f1ece2'); }
     D.path.forEach((k) => {
       if (k.i < 2) return;
-      const nome = k === top ? 'TOPO · CHEFE DO TRÁFICO' : k.kind === 'baile' ? 'BAILE · DJ PLANTÃO' : k.kind === 'portao' ? 'PORTÃO (abre com o DJ no chão)' : k.kind.toUpperCase();
+      if (k.nome && !k.entrada && !k.fundo) return; // beco (D92): o nome na entrada e o achado no fundo
+      const nome = k === top ? 'TOPO · CHEFE DO TRÁFICO' : k.kind === 'baile' ? 'BAILE · DJ PLANTÃO' : k.kind === 'portao' ? 'PORTÃO (abre com o DJ no chão)'
+        : k.entrada ? k.nome : k.fundo ? (k.achado === 'reliquia' ? '★ RELÍQUIA' : k.achado === 'cofre' ? '◆ COFRE' : k.achado === 'isopor' ? '◆ ISOPOR' : 'SEM SAÍDA') : k.kind.toUpperCase();
       // os nomes compridos (baile, portão, topo) vão do lado direito do pedaço, onde há espaço na planta
-      const longo = k.kind === 'baile' || k.kind === 'portao' || k === top;
+      const longo = k.kind === 'baile' || k.kind === 'portao' || k === top || !!k.nome;
       g.textAlign = 'left';
       if (longo) {
         g.font = '800 ' + Math.max(11, Math.min(16, v.ppm * 1.4)) + 'px ' + getComputedStyle(document.body).fontFamily;
         g.lineWidth = 4; g.strokeStyle = '#141117';
         const yy = (k.b[1] + k.b[3]) / 2;
-        const cor = k.kind === 'baile' ? '#ff9ae8' : k.kind === 'portao' ? '#ffb46a' : '#ffd21f';
-        g.strokeText(nome, X(k.b[2] + 1.5), Y(yy)); g.fillStyle = cor; g.fillText(nome, X(k.b[2] + 1.5), Y(yy));
+        const cor = k.kind === 'baile' ? '#ff9ae8' : k.kind === 'portao' ? '#ffb46a' : k.fundo ? '#7fe08a' : k.nome ? '#9fd0ff' : '#ffd21f';
+        // o nome do beco à esquerda dele, se o beco vai para a esquerda (não cai em cima da rota)
+        const esq = k.nome && k.b[2] < -12;
+        if (esq) g.textAlign = 'right';
+        const xl = esq ? X(k.b[0] - 1) : X(k.b[2] + 1.5);
+        g.strokeText(nome, xl, Y(yy)); g.fillStyle = cor; g.fillText(nome, xl, Y(yy));
+        g.textAlign = 'left';
       } else lbl(k.b[0] - 3.5, (k.b[1] + k.b[3]) / 2, nome, '#f1ece2');
     });
   }
@@ -338,7 +345,7 @@ const pb = D.path.find((k) => k.kind === 'baile');
 const pp = D.path.find((k) => k.kind === 'portao');
 const vb = pb ? setup('zoomBaile', pb.b[0] - 3, pb.b[2] + 3, pp ? pp.b[1] + 4 : pb.b[1] - 4, pb.b[3] + 4, 11, 'escalaBaile') : null;
 const xs = D.path.flatMap((k) => [k.b[0], k.b[2]]);
-const vs = setup('strip', Math.min(D.mapa.minX - 9, ...xs) - 1, D.mapa.seaX + 3, D.morroTop - 4, D.startY + 2, 6.2);
+const vs = setup('strip', Math.min(D.mapa.minX - 9, ...xs) - 18, D.mapa.seaX + 3, D.morroTop - 4, D.startY + 2, 6.2); // folga à esquerda para o nome dos becos
 function drawAll() { draw(vo, { faixas: true }); draw(vm); if (vb) draw(vb); draw(vs, { quarteiroes: true }); }
 drawAll();
 // começa mostrando o pé da Orla (o começo da partida fica embaixo)
