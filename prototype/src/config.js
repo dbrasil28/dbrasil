@@ -340,10 +340,10 @@ export const FAVELA = {
   vaoMinM: 0.8, // vão menor que isso no alto do pedaço fica sem casa
   becoQuintalM: 4, // D92: ao sul de uma viela deitada, a mureta e o quintal; casa (baixa) só depois disso
   // tapa-buracos: o chão sem casa a até raioM da rota e dos becos ganha casa (grade de passoM; casa cortada até
-  // minD de fundo); nunca a até sombraM ao sul de um chão de andar (nesta câmera, esconderia quem anda)
-  // (livreMin: na segunda passada, a casa que encosta nas vizinhas tem de cobrir pelo menos isso de chão livre).
+  // minD de fundo), nunca em cima de outra casa; nunca a até sombraM ao sul de um chão de andar (nesta câmera,
+  // esconderia quem anda).
   // Ao sul de quem anda até sombraAltaM e a leste até lesteM, só casa baixa: casa de 9 m esconde uns 11 m atrás dela
-  buracos: { raioM: 16, passoM: 0.5, minD: 2, sombraM: 4, sombraAltaM: 11, lesteM: 3.5, livreMin: 0.3, pecas: ['fachada_a', 'fachada_b', 'fachada_c', 'barraco_a', 'barraco_b'] },
+  buracos: { raioM: 16, passoM: 0.5, minD: 2, sombraM: 4, sombraAltaM: 11, lesteM: 3.5, pecas: ['fachada_a', 'fachada_b', 'fachada_c', 'barraco_a', 'barraco_b'] },
   alturaBaixaM: 3.5, // casa baixa: até essa altura (a que pode ficar a leste da viela ou ao sul dela)
   mureta: { altM: 0.9 },
   // fileiras de trás, para os lados ficarem cheios até a borda da tela: quantas e de quanto em quanto (m).

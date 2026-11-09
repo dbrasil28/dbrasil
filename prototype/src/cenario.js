@@ -245,18 +245,36 @@ function calcadao(w, map, b) {
   litter(w, 'bueiro', map.avenidaX1 - 0.6, y0 + 8 + H(b, 2, 653) * 20, 0);
 }
 
-/** Prédios do quarteirão na borda esquerda, da rua de baixo para a de cima, encostados um no outro. */
+/**
+ * Prédios do quarteirão na borda esquerda, da rua de baixo para a de cima, encostados um no outro. Nenhum prédio
+ * sobe na tela além do pé do Morro (w.orlaTop): o prédio é desenhado por baixo de tudo, e a imagem de um prédio
+ * alto no alto da Orla entrava no beco atrás dele, com o Juninho andando por cima da fachada e as casas da favela
+ * coladas por cima. Se o sorteado não cabe, vai o próximo modelo que caiba; se nenhum cabe, a fileira acaba ali.
+ */
 function predios(w, map, b) {
   const y0 = -map.blockLen * b;
   const P = PREDIOS;
   const nomes = Object.keys(P.modelos);
-  let y = y0 + 40;
-  for (let i = 0; i < 6 && y > y0 + 4; i++) {
-    const nome = nomes[Math.floor(H(b, i, 1201) * nomes.length)];
+  const medidas = (nome) => {
     const M = P.modelos[nome];
     const mpp = M.alturaM / (M.canto[1] - M.topo); // metros por px da imagem
     const len = ((M.topo - M.fundo) * mpp) / P.k; // comprimento do prédio ao longo do calçadão
-    if (y - len < y0 - 1) break;
+    return { M, mpp, len, alto: (M.canto[1] * mpp) / P.k }; // alto: até onde a imagem sobe, em metros de chão
+  };
+  let y = y0 + 40;
+  for (let i = 0; i < 6 && y > y0 + 4; i++) {
+    const n0 = Math.floor(H(b, i, 1201) * nomes.length);
+    if (y - medidas(nomes[n0]).len < y0 - 1) break; // o sorteado não cabe no quarteirão: a fileira acaba (como sempre)
+    let achou = null;
+    for (let t = 0; t < nomes.length && !achou; t++) {
+      const nome = nomes[(n0 + t) % nomes.length];
+      const m = medidas(nome);
+      if (y - m.len < y0 - 1) continue;
+      if (w.orlaTop !== undefined && y - m.alto < w.orlaTop) continue;
+      achou = { nome, ...m };
+    }
+    if (!achou) break;
+    const { nome, M, mpp, len } = achou;
     w.predios.push({ x0: P.x1 - (M.canto[0] - M.esq) * mpp, x1: P.x1, y0: y - len, y1: y, img: nome, mpp });
     y -= len;
   }

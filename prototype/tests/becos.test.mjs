@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
 import { routeTarget, constrain, bloqueado } from '../src/mundo.js';
-import { PLAYER, ROUTE } from '../src/config.js';
+import { PLAYER, ROUTE, PREDIOS } from '../src/config.js';
 
 const jogo = () => new Game({ ...defaultSettings(), elenco: false, aberta: false }, { seed: 3 });
 
@@ -83,4 +83,43 @@ test('becos (D92): casas em volta dos becos sem entrar no chão, mureta ao sul d
     assert.equal(colada.length, 0, `casa colada ao sul do ${k.nome}`);
   }
   for (const rm of ROUTE.morro.ramos) assert.ok(w.props.some((p) => p.kind === 'placa_parede' && p.text === rm.nome), `sem a placa do ${rm.nome}`);
+});
+
+test('favela: uma casa só em cada chão, e nenhum prédio da Orla desenhado por cima do Morro', () => {
+  const w = jogo().world;
+  // duas casas no mesmo chão = uma imagem colada por cima da outra (relato do autor)
+  const C = w.casas;
+  for (let i = 0; i < C.length; i++) {
+    for (let j = i + 1; j < C.length; j++) {
+      const a = C[i];
+      const b = C[j];
+      const sob = Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
+      assert.ok(sob <= 0.05, `${a.peca} (${a.x0}, ${a.y1}) e ${b.peca} (${b.x0}, ${b.y1}) no mesmo chão: ${sob.toFixed(2)} m²`);
+    }
+  }
+  // o prédio é desenhado por baixo de tudo: a imagem dele não pode entrar no chão de andar do Morro (o Juninho
+  // andava por cima da fachada do prédio no Beco do Choro). Projeção do jogo: câmera de 55°, giro de 18°.
+  const k = Math.sin((55 * Math.PI) / 180);
+  const sh = Math.tan((18 * Math.PI) / 180);
+  const tela = (x, y) => ({ x: x - sh * k * y, y: k * y });
+  const rects = w.predios.map((pr) => {
+    const M = PREDIOS.modelos[pr.img];
+    const p = tela(pr.x0, pr.y1);
+    const sx = p.x + (PREDIOS.x1 - pr.x0);
+    const x0 = sx - M.canto[0] * pr.mpp;
+    const y0 = p.y - M.canto[1] * pr.mpp;
+    return { pr, x0, x1: x0 + M.w * pr.mpp, y0, y1: y0 + M.h * pr.mpp };
+  });
+  w.path.forEach((q, i) => {
+    if (i < 1) return;
+    for (let x = q.x0 + 0.25; x < q.x1; x += 0.5) {
+      for (let y = q.y0 + 0.25; y < q.y1; y += 0.5) {
+        const t = tela(x, y);
+        const r = rects.find((r) => t.x > r.x0 && t.x < r.x1 && t.y > r.y0 && t.y < r.y1);
+        assert.ok(!r, `o prédio ${r && r.pr.img} da Orla (y ${r && r.pr.y1.toFixed(1)}) cobre o chão do pedaço ${i} ${q.nome || q.kind} em (${x}, ${y})`);
+      }
+    }
+  });
+  // e nenhum sobe além do pé do Morro, onde ficam as casas da favela
+  for (const r of rects) assert.ok(r.y0 >= k * w.orlaTop - 1e-6, `o prédio ${r.pr.img} (y ${r.pr.y1.toFixed(1)}) sobe por cima do Morro`);
 });
