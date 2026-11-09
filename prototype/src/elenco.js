@@ -2,6 +2,8 @@
 // - Agiota: fica a uma distância e marca o Juninho; marcado, o Juninho perde XP por segundo, e os juros crescem
 //   enquanto o Agiota estiver de pé. Derrubado, a dívida volta ao chão como XP ("DÍVIDA PAGA!").
 // - Coach Picareta: chega perto, prepara (aviso no chão) e dá a palestra: quem está na roda fica lento.
+// - Pastor Picareta (D77): fica atrás da horda, cura quem está em volta e chama fiéis.
+// - Encostado (D77): manca enquanto o Juninho olha para ele; de costas, sai correndo.
 // Laranja e Rato de Academia (D73) estão em game.js. Sem DOM: os números estão em config.js (ENEMIES).
 import { ENEMIES } from './config.js';
 
@@ -83,4 +85,90 @@ export function updateCoach(game, e, dt, d, ux, uy) {
     return { x: 0, y: 0 };
   }
   return { x: ux, y: uy };
+}
+
+/** Um quadro do Pastor Picareta (D77): fica atrás da horda, cura quem está em volta e chama fiéis. */
+export function updatePastor(game, e, dt, d, ux, uy) {
+  const P = ENEMIES.pastor;
+  if (!game.over) {
+    e.curaT = (e.curaT ?? P.curaS * 0.5) - dt;
+    if (e.curaT <= 0) {
+      e.curaT = P.curaS;
+      const r2 = P.raioM * P.raioM;
+      let curou = 0;
+      for (const o of game.enemies) {
+        if (o === e || o.dead || o.boss || o.hp >= o.maxHp) continue;
+        if ((o.x - e.x) ** 2 + (o.y - e.y) ** 2 > r2) continue;
+        o.hp = Math.min(o.maxHp, o.hp + o.maxHp * P.cura);
+        o.curadoAte = game.t + 0.7; // a cruzinha verde em cima de quem foi curado
+        curou++;
+      }
+      if (curou) {
+        (game.curasFx || (game.curasFx = [])).push({ x: e.x, y: e.y, z: e.z || 0, r: P.raioM, t0: game.t });
+        e.atkT = 0.5; // a mão erguida
+      }
+    }
+    e.chamaT = (e.chamaT ?? P.chamaS * 0.6) - dt;
+    if (e.chamaT <= 0 && d < P.distM * 2.5) {
+      e.chamaT = P.chamaS;
+      e.raivaT = 0.8; // a Bíblia no alto
+      for (let i = 0; i < P.chama; i++) {
+        const a = game.rng() * Math.PI * 2;
+        const sp = game.fitSpawn({ x: e.x + Math.cos(a) * P.chamaRaioM, y: e.y + Math.sin(a) * P.chamaRaioM });
+        game.spawnEnemy('telespectador', sp.x, sp.y);
+      }
+      game.word(e.x, e.y - 1.6, 'VEM, IRMÃO!', '#ffd21f');
+      game.som('megafone', e.x, e.y);
+      game.tv('pastor', 30);
+    }
+    e.fraseT = (e.fraseT ?? game.fxRng() * P.fraseS) - dt;
+    if (e.fraseT <= 0 && d < 14) {
+      e.fraseT = P.fraseS * (0.8 + game.fxRng() * 0.6);
+      game.word(e.x, e.y - 1.6, P.frases[Math.floor(game.fxRng() * P.frases.length)], '#ffe27a');
+    }
+  }
+  if (game.curasFx && game.curasFx.length && game.t - game.curasFx[0].t0 > 1) game.curasFx = game.curasFx.filter((c) => game.t - c.t0 < 1);
+  if (e.raivaT > 0) return { x: 0, y: 0 };
+  // fica atrás da horda: chega se está longe, recua se está perto
+  if (d < P.distM - 1) return { x: -ux * 0.8, y: -uy * 0.8 };
+  if (d < P.distM + 1) return { x: 0, y: 0 };
+  return { x: ux, y: uy };
+}
+
+/** O Juninho está olhando para o Encostado? (o ângulo entre para onde ele olha e o Encostado) */
+export function juninhoOlha(p, e, cos) {
+  const dx = e.x - p.x;
+  const dy = e.y - p.y;
+  const l = Math.hypot(dx, dy) || 1;
+  const fl = Math.hypot(p.faceX || 0, p.faceY || 0) || 1;
+  return ((p.faceX || 0) * dx + (p.faceY || 0) * dy) / (l * fl) > cos;
+}
+
+/** Um quadro do Encostado (D77): manca enquanto o Juninho olha; de costas, sai correndo. Pego correndo, disfarça. */
+export function updateEncostado(game, e, dt, d, ux, uy) {
+  const E = ENEMIES.encostado;
+  const p = game.player;
+  if (e.flagradoT > 0) {
+    e.flagradoT -= dt;
+    return { x: 0, y: 0 };
+  }
+  const visto = juninhoOlha(p, e, E.vistoCos);
+  if (visto && e.correndo) {
+    // pego no flagra: congela com a muleta no alto e solta a desculpa (uma de cada vez, para não encher a tela)
+    e.correndo = false;
+    e.flagradoT = E.flagradoS;
+    e.raivaT = E.flagradoS;
+    if (game.t - (game.encostadoFalaT ?? -99) > 1.2 && game.t - (e.falouT ?? -99) > E.fraseS && d < 14) {
+      game.encostadoFalaT = game.t;
+      e.falouT = game.t;
+      game.word(e.x, e.y - 1.4, E.frases[Math.floor(game.fxRng() * E.frases.length)], '#9fd4ff');
+      game.som('gemido', e.x, e.y);
+      if (game.fxRng() < 0.3) game.tv('encostado', 40);
+    }
+    return { x: 0, y: 0 };
+  }
+  e.correndo = !visto && !game.over;
+  const mul = e.correndo ? E.correMul : E.lentoMul;
+  e.walk += dt * e.speed * 3 * (mul - 1); // as pernas no ritmo de quem corre (ou de quem manca)
+  return { x: ux * mul, y: uy * mul };
 }

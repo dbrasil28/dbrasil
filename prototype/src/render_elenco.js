@@ -69,3 +69,54 @@ export function drawMarcaAgiota(ctx, game, cam, ppu, playerPx, t) {
   ctx.fillText('%', b.x, y + 1);
   ctx.restore();
 }
+
+/** A cura do Pastor (D77): um anel dourado que se abre no chão a cada cura. */
+export function drawCurasPastor(ctx, game, cam, ppu) {
+  if (!game.curasFx || !game.curasFx.length) return;
+  for (const c of game.curasFx) {
+    const k = (game.t - c.t0) / 0.8;
+    if (k < 0 || k > 1) continue;
+    cam.toScreen(c.x, c.y, a);
+    a.y -= c.z * ppu;
+    const r = c.r * ppu * (0.35 + 0.65 * k);
+    ctx.save();
+    ctx.strokeStyle = `rgba(255,226,122,${(0.85 * (1 - k)).toFixed(3)})`;
+    ctx.lineWidth = Math.max(2, ppu * 0.12 * (1 - k * 0.6));
+    ctx.beginPath();
+    ctx.ellipse(a.x, a.y, r, r * cam.k, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = `rgba(120,230,140,${(0.12 * (1 - k)).toFixed(3)})`;
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+/** A cruzinha verde em cima de quem o Pastor acabou de curar. */
+export function drawCurados(ctx, game, cam, ppu, playerPx) {
+  let abriu = false;
+  for (const e of game.enemies) {
+    if (e.dead || !(e.curadoAte > game.t)) continue;
+    if (!abriu) {
+      ctx.save();
+      ctx.lineCap = 'round';
+      abriu = true;
+    }
+    const k = 1 - (e.curadoAte - game.t) / 0.7; // 0 → 1: sobe e some
+    cam.toScreen(e.x, e.y, a);
+    const y = a.y - (e.z || 0) * ppu - playerPx * 0.9 * (e.r > 0.5 ? 1.9 : 1.05) - k * 10;
+    const s = Math.max(4, playerPx * 0.06);
+    ctx.globalAlpha = 1 - k * k;
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    ctx.lineWidth = s * 0.9;
+    ctx.beginPath();
+    ctx.moveTo(a.x - s, y);
+    ctx.lineTo(a.x + s, y);
+    ctx.moveTo(a.x, y - s);
+    ctx.lineTo(a.x, y + s);
+    ctx.stroke();
+    ctx.strokeStyle = '#5fe07a';
+    ctx.lineWidth = s * 0.5;
+    ctx.stroke();
+  }
+  if (abriu) ctx.restore();
+}

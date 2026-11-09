@@ -120,6 +120,25 @@ export const ENEMIES = {
     comecaM: 5, raioM: 3.6, windupS: 0.9, duracaoS: 3, cadaS: 6, fraseS: 1.1,
     frases: ['ACORDA PRA VIDA, CAMPEÃO!', 'SAI DA ZONA DE CONFORTO!', 'MINDSET!', 'VOCÊ É O CEO DA SUA VIDA!', 'GRATIDÃO!'],
   },
+  // Pastor Picareta (D77): fica atrás da horda, a distM do Juninho. A cada curaS cura quem está a até raioM
+  // (cura: parte da vida cheia de cada um; ele mesmo e o chefão não); a cada chamaS chama `chama` fiéis da horda
+  pastor: {
+    name: 'Pastor Picareta',
+    hp: 150, speed: 1.45, dmg: 9, radius: 0.36, size: 1.05, xp: 14,
+    behavior: 'pastor',
+    distM: 6.5, raioM: 4.5, curaS: 2.5, cura: 0.25, chamaS: 11, chama: 3, chamaRaioM: 1.6, fraseS: 2.4,
+    frases: ['ALELUIA!', 'OFERTA NO PIX!', 'CARNÊ DA BÊNÇÃO!', 'TÁ AMARRADO!', 'DÍZIMO É INVESTIMENTO!', 'RECEBA!'],
+  },
+  // Encostado (D77): de colar cervical e muleta. Com o Juninho olhando para ele (o ângulo entre para onde o Juninho
+  // olha e o Encostado com cosseno acima de vistoCos), manca a lentoMul da velocidade; com o Juninho de costas,
+  // corre a correMul (passa do Juninho, que anda a 3,4 m/s). Pego correndo: congela flagradoS e solta uma desculpa.
+  encostado: {
+    name: 'Encostado',
+    hp: 55, speed: 1.0, dmg: 11, radius: 0.32, size: 1.0, xp: 5,
+    behavior: 'encostado',
+    vistoCos: -0.15, lentoMul: 0.45, correMul: 3.7, flagradoS: 0.7, fraseS: 4,
+    frases: ['AI, MINHA COLUNA!', 'TÔ DE ATESTADO!', 'É A HÉRNIA!', 'PERÍCIA SÓ EM 2031!', 'FOI SÓ UM ESPASMO!'],
+  },
   // Rato de Academia: investida em linha reta (como o Funkeiro), mais pesado; se pega o Juninho na corrida,
   // empurra (empurra: m/s, perde rápido). Na Orla com o Caos alto e na turma de reforço do Monstrão.
   // Pedido do autor (D74): o dobro da altura do Juninho, com o porte do Político (size é sobre a escala dos
@@ -695,6 +714,8 @@ export const DIRECTOR = {
     if (caos >= 30) list.push({ type: 'rato', w: 0.035 }); // Rato de Academia (D73; grandão desde o D74, mais raro)
     if (caos >= 25) list.push({ type: 'coach', w: 0.02 }); // Coach Picareta (D76)
     if (caos >= 40) list.push({ type: 'agiota', w: 0.012 }); // Agiota (D76)
+    if (caos >= 15) list.push({ type: 'encostado', w: 0.03 }); // Encostado (D77)
+    if (caos >= 35) list.push({ type: 'pastor', w: 0.01 }); // Pastor Picareta (D77)
     return list;
   },
   // ajuste "Elenco completo" (ligado por padrão enquanto a arte entra): todos os inimigos desde 00:00
@@ -706,6 +727,8 @@ export const DIRECTOR = {
     { type: 'rato', w: 0.12 },
     { type: 'coach', w: 0.08 },
     { type: 'agiota', w: 0.06 },
+    { type: 'encostado', w: 0.12 },
+    { type: 'pastor', w: 0.05 },
   ],
   castTestFirstElite: 12, // com o elenco completo, o primeiro Político chega aos 12 s
   castTestEliteEvery: 35,
@@ -1043,6 +1066,8 @@ export const TV = {
   cofre: ['ENTREGADOR ACHA COFRE NA ORLA. RECEITA DIZ QUE NÃO VIU NADA', 'COFRE ABERTO AO VIVO. DONO AINDA NÃO SE APRESENTOU'],
   cofre5: ['DEU BICHO! ENTREGADOR TIRA A SORTE GRANDE. BANCA PEDE RECONTAGEM'],
   agiota: ['AGIOTA COBRA O ENTREGADOR NO MEIO DA RUA: JUROS DE 30% AO DIA', 'DEVEDOR É MARCADO NO CALÇADÃO. ESPECIALISTA: "É SÓ NÃO PEGAR EMPRESTADO"'],
+  pastor: ['PASTOR DE TV FAZ CULTO NO CALÇADÃO: A CURA VEM DEPOIS DA OFERTA', 'HORDA LEVANTA CURADA NA ORLA. CHAVE PIX DO MINISTÉRIO NA TELA'],
+  encostado: ['HOMEM DE COLAR CERVICAL É VISTO CORRENDO NA ORLA. PERÍCIA FICA PARA 2031', 'ENCOSTADO DE MULETA APOSTA CORRIDA COM ENTREGADOR E GANHA'],
   coach: ['COACH DÁ PALESTRA GRÁTIS NO CALÇADÃO E A HORDA SAI MOTIVADA', 'PALESTRA MOTIVACIONAL PARA O TRÂNSITO NA ORLA. INGRESSO: SUA ALMA'],
   laranja: ['LARANJA CAI E ESPALHA O DINHEIRO DO CHEFE NA CALÇADA', 'O LARANJA APANHOU PELO POLÍTICO. A ASSESSORIA NEGA QUALQUER LIGAÇÃO'],
   reliquia_altinha: ['ENTREGADOR ACHA A BOLA DA ALTINHA. A PRAIA INTEIRA PARA PARA OLHAR'],

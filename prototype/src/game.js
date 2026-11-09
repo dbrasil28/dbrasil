@@ -18,7 +18,7 @@ import { updateCracudo, updateTrombadinha, trombada, devolveXp } from './morro_i
 import { updateFigurantes, ferirFigurantes } from './figurantes.js';
 import { arrancavelPerto, arrancar, updateArrancados } from './arrancar.js';
 import { updateCena, updateSuper, cargaPorAbate, usarSuper, superPronta } from './super.js';
-import { updateAgiota, updateCoach, agiotaCaiu } from './elenco.js';
+import { updateAgiota, updateCoach, agiotaCaiu, updatePastor, updateEncostado } from './elenco.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, stairOut, inside, routeRemaining } from './mundo.js';
@@ -1535,6 +1535,7 @@ export class Game {
       const ux = dtx / dl;
       const uy = dty / dl;
       if (e.atkT > 0) e.atkT -= dt;
+      if (e.raivaT > 0) e.raivaT -= dt; // a pose de raiva acaba sozinha (Coach, Pastor, Encostado, Traficante)
       if (e.frozenT > 0) {
         e.frozenT -= dt;
         if (e.frozenT <= 0) this.efeito('gelo_quebra', e.x, e.y, { alvo: e }); // o gelo do picolé estilhaça
@@ -1586,7 +1587,6 @@ export class Game {
           e.raivaT = def.raivaS; // grita e solta os fogos (pose de raiva), parado
           this.fogos(e);
         }
-        if (e.raivaT > 0) e.raivaT -= dt;
         if (d < def.keepM) {
           mx = -ux * 0.7;
           my = -uy * 0.7;
@@ -1715,6 +1715,14 @@ export class Game {
         my = r.y;
       } else if (e.behavior === 'coach') {
         const r = updateCoach(this, e, dt, d, ux, uy);
+        mx = r.x;
+        my = r.y;
+      } else if (e.behavior === 'pastor') {
+        const r = updatePastor(this, e, dt, d, ux, uy); // elenco v2 (D77)
+        mx = r.x;
+        my = r.y;
+      } else if (e.behavior === 'encostado') {
+        const r = updateEncostado(this, e, dt, d, ux, uy);
         mx = r.x;
         my = r.y;
       } else if (e.behavior === 'laranja') {

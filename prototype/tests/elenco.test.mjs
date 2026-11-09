@@ -156,3 +156,55 @@ test('Coach Picareta: prepara com aviso no chão e a palestra deixa lento quem e
   g.update(DT, parado);
   assert.ok(!(p.slowT > 0.3), 'fora da roda e ficou lento');
 });
+
+test('Pastor Picareta: cura quem está em volta (não ele, não o chefão, não quem está longe) e chama fiéis', () => {
+  const g = jogo();
+  const p = g.player;
+  const P = ENEMIES.pastor;
+  const pa = g.spawnEnemy('pastor', p.x + P.distM, p.y);
+  pa.speed = 0;
+  pa.curaT = 0.05;
+  pa.chamaT = 1e9;
+  const perto = g.spawnEnemy('telespectador', pa.x + 1, pa.y);
+  const longe = g.spawnEnemy('telespectador', pa.x + P.raioM + 4, pa.y);
+  for (const e of [perto, longe]) {
+    e.speed = 0;
+    e.hp = e.maxHp * 0.3;
+  }
+  pa.hp = pa.maxHp * 0.5;
+  for (let i = 0; i < 6; i++) g.update(DT, parado);
+  assert.ok(perto.hp > perto.maxHp * 0.3 + 1e-9, 'não curou quem estava perto');
+  assert.ok(Math.abs(longe.hp - longe.maxHp * 0.3) < 1e-9, 'curou quem estava longe');
+  assert.ok(pa.hp <= pa.maxHp * 0.5 + 1e-9, 'curou a si mesmo');
+  assert.ok(g.curasFx && g.curasFx.length, 'sem o anel da cura');
+  const antes = g.enemies.length;
+  pa.chamaT = 0;
+  g.update(DT, parado);
+  assert.equal(g.enemies.filter((e) => !e.dead).length, antes + P.chama, 'não chamou os fiéis');
+});
+
+test('Encostado: manca com o Juninho olhando, corre com ele de costas e congela quando é pego correndo', () => {
+  const g = jogo();
+  const p = g.player;
+  const E = ENEMIES.encostado;
+  const e = g.spawnEnemy('encostado', p.x + 9, p.y);
+  e.hp = e.maxHp = 1e9;
+  p.faceX = 1; // olhando para ele
+  p.faceY = 0;
+  let x0 = e.x;
+  for (let i = 0; i < 30; i++) g.update(DT, parado);
+  const lento = x0 - e.x;
+  p.faceX = -1; // de costas
+  x0 = e.x;
+  for (let i = 0; i < 30; i++) g.update(DT, parado);
+  const rapido = x0 - e.x;
+  assert.ok(lento > 0, 'parou em vez de mancar');
+  assert.ok(rapido > lento * 5, `não correu de costas (${lento.toFixed(2)} m → ${rapido.toFixed(2)} m)`);
+  assert.ok(e.correndo, 'não ficou marcado como correndo');
+  p.faceX = 1; // vira: pego no flagra
+  g.update(DT, parado);
+  assert.ok(e.flagradoT > 0, 'não congelou ao ser pego correndo');
+  x0 = e.x;
+  for (let i = 0; i < Math.floor((E.flagradoS * 0.8) / DT); i++) g.update(DT, parado);
+  assert.ok(Math.abs(x0 - e.x) < 0.05, 'andou enquanto disfarçava');
+});
