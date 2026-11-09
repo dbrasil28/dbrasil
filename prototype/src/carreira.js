@@ -126,13 +126,15 @@ export function checkFase(game, e) {
   const f = e.fase || 0;
   if (f >= CARREIRA.fases.length || e.hp / e.maxHp > CARREIRA.fases[f]) return;
   e.fase = f + 1;
+  const def = ENEMIES[e.type];
   const trecho = e.type === 'chefe_trafico' ? 'morro' : 'orla';
-  game.tv(`fase_${trecho}`);
+  game.tv(e.type === 'dj_plantao' ? 'fase_dj' : `fase_${trecho}`);
   game.shake(0.45);
   game.emit('flash', {});
   game.emit('fase', { fase: e.fase });
   // assessoria: um anel de horda em volta do chefão e os inimigos do trecho
-  const n = e.type === 'monstrao' ? CARREIRA.chefaoHorda.faseHorda : CARREIRA.reforcoHorda; // com o Monstrão, menos (D75)
+  // (com o Monstrão, menos: D75; o DJ Plantão tem a dele, D91)
+  const n = e.type === 'monstrao' ? CARREIRA.chefaoHorda.faseHorda : def.faseHorda ?? CARREIRA.reforcoHorda;
   const off = game.rng() * Math.PI * 2;
   for (let i = 0; i < n; i++) {
     const a = off + (i / n) * Math.PI * 2;
@@ -140,7 +142,6 @@ export function checkFase(game, e) {
     const sp = game.cerco ? pontoNoCerco(game) : game.fitSpawn({ x: e.x + Math.cos(a) * 7.5, y: e.y + Math.sin(a) * 7.5 });
     game.spawnEnemy('telespectador', sp.x, sp.y);
   }
-  const def = ENEMIES[e.type];
   const extra = def.fases.reforco[e.fase] || [];
   extra.forEach((type, i) => {
     const sp = game.cerco ? pontoNoCerco(game) : game.fitSpawn({ x: e.x + (i % 2 ? 3 : -3), y: e.y + 2 });
@@ -231,6 +232,7 @@ export function recomecar(game, trecho, { calado = false } = {}) {
   game.nextWaveAt = game.t + SESSION.firstWaveAt;
   game.covil = covilDe(game, trecho);
   game.cerco = null;
+  game.baile = null;
   game.crise = null;
   game.crisesFeitas = new Set();
   if (game.meta.melhorias && game.meta.melhorias.armaInicial) game.pendingInicial = true; // "Bolsa de ferramentas"

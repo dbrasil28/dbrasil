@@ -1,6 +1,6 @@
 // Desenho provisório (em código) do mundo da rota: lajes com escada, objetos de cena, boteco,
 // mira do traficante e balas. Sai quando a arte do guia chegar (o tapume e o holofote estão em render_carreira.js).
-import { OBJ_ALTURA, OBJ_ESCALA, PLACES } from './config.js';
+import { OBJ_ALTURA, OBJ_ESCALA, PLACES, ENEMIES } from './config.js';
 import { drawPecaFavela } from './render_favela.js';
 import { inside } from './mundo.js';
 import { images } from './sprites.js';
@@ -334,6 +334,31 @@ export function drawAim(ctx, e, cam, pt, h, ppu, t) {
   ctx.ellipse(a.x, a.y, ppu * 0.5, ppu * 0.5 * cam.k, 0, 0, Math.PI * 2);
   ctx.stroke();
 }
+
+/** As duas linhas de mira do Chefe do Tráfico gigante (D91): uma de cada arma, fechando no ponto travado. */
+export function drawAimDupla(ctx, e, cam, pt, h, ppu, t) {
+  const C = ENEMIES.chefe_trafico.canoM;
+  const dx = e.ax - e.x;
+  const dy = e.ay - e.y;
+  const l = Math.hypot(dx, dy) || 1;
+  const ux = dx / l;
+  const uy = dy / l;
+  cam.toScreen(e.ax, e.ay, a);
+  const al = 0.45 + 0.45 * Math.sin(t * 30);
+  ctx.strokeStyle = `rgba(255,40,40,${al})`;
+  ctx.lineWidth = 2;
+  for (const lado of [-1, 1]) {
+    cam.toScreen(e.x - uy * C * lado, e.y + ux * C * lado, b2);
+    ctx.beginPath();
+    ctx.moveTo(b2.x, b2.y - h * 0.5);
+    ctx.lineTo(a.x, a.y - ppu * 0.9);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.ellipse(a.x, a.y, ppu * 0.6, ppu * 0.6 * cam.k, 0, 0, Math.PI * 2);
+  ctx.stroke();
+}
+const b2 = { x: 0, y: 0 };
 
 /** Bala: risco amarelo no sentido do tiro, na altura do peito. */
 export function drawBullet(ctx, s, pt, ppu, playerPx) {

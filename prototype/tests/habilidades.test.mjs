@@ -224,14 +224,19 @@ test('Chefão na mira: o Capacete vai nele mesmo com a horda mais perto (D46)', 
   assert.ok(chefe.hp < hp0, 'o capacete acertou o chefe');
 });
 
-test('Hora de bater: o Chefe parado mirando leva o dobro de dano (D46)', () => {
+test('Hora de bater: o Chefe recarregando leva o dobro de dano; mirando, não (D46, D91)', () => {
   const g = arena('capacete', 1, 'morro');
   const chefe = g.spawnEnemy('chefe_trafico', g.player.x + 6, g.player.y);
   chefe.hp = chefe.maxHp = 1e6;
   g.damageEnemy(chefe, 10, 'teste');
   const andando = 1e6 - chefe.hp;
   chefe.aimT = 0.5;
-  const antes = chefe.hp;
+  let antes = chefe.hp;
+  g.damageEnemy(chefe, 10, 'teste');
+  assert.equal(antes - chefe.hp, andando, 'mirando levou o dobro');
+  chefe.aimT = 0;
+  chefe.janelaT = 1; // recarregando
+  antes = chefe.hp;
   g.damageEnemy(chefe, 10, 'teste');
   assert.equal(antes - chefe.hp, andando * 2);
 });

@@ -38,6 +38,23 @@ export function drawAvisosChao(ctx, game, cam, t) {
       ctx.fill();
       ctx.beginPath();
       ctx.rect(0, -a.larg / 2, a.len, a.larg);
+    } else if (a.tipo === 'leque') {
+      // a varredura do Chefe do Tráfico (D91): o leque que ele vai varrer, enchendo da ponta dele para fora
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, a.r, a.ang - a.ab / 2, a.ang + a.ab / 2);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(214,38,24,${(0.14 * pisca).toFixed(3)})`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, a.r * Math.max(0, Math.min(1, a.k)), a.ang - a.ab / 2, a.ang + a.ab / 2);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255,70,40,0.22)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, a.r, a.ang - a.ab / 2, a.ang + a.ab / 2);
+      ctx.closePath();
     } else {
       ctx.arc(0, 0, a.r, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(214,38,24,${(0.14 * pisca).toFixed(3)})`;

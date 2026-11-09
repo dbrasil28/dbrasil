@@ -15,7 +15,7 @@ Base no gênero: cada capítulo do Survivor.io termina num chefão e recomeça d
 | # | Trecho | Onde | Chefão e covil | Por onde sai |
 | --- | --- | --- | --- | --- |
 | 1 | Orla do Desespero | Rio, calçadão | Monstrão, o fisiculturista gigante, atrás do tapume no fim da praia (D47; era o Especulador Imobiliário) | O tapume do fundo da obra cai e revela a escadaria do morro |
-| 2 | Subida do Morro | Rio, favela | Chefe do Tráfico, na laje do topo | O caminho desce pelo outro lado do morro até a estrada |
+| 2 | Subida do Morro | Rio, favela | DJ Plantão, no baile da esplanada (chefe do meio, D91); Chefe do Tráfico gigante, na laje do topo | O caminho desce pelo outro lado do morro até a estrada |
 | 3 | São Paulo | Rodovia Rio–São Paulo e Centro do Desespero | O Rapa (a definir) | A definir |
 | 4 | Brasília | Rodovia até a capital e a Esplanada | O Barbudo e O Capitão, nos palanques (seção 7) | Fim da viagem |
 
@@ -32,7 +32,7 @@ Base no gênero: cada capítulo do Survivor.io termina num chefão e recomeça d
 
 | Faixa | Orla | Morro |
 | --- | --- | --- |
-| Crise (30%) | **Ressaca do mar:** o mar avança sobre a areia, a faixa molhada deixa todo mundo lento e as ondas derrubam a horda | **Baile na laje:** o batidão faz a horda parar para dançar, mas chega uma leva de Funkeiros com investida |
+| Crise (30%) | **Ressaca do mar:** o mar avança sobre a areia, a faixa molhada deixa todo mundo lento e as ondas derrubam a horda | **Temporal** (D91, no lugar do Baile, que virou o evento da esplanada): a escadaria vira cachoeira e quem está nela escorrega morro abaixo, a horda também |
 | Colapso (60%) | **Apagão:** a tela escurece e só a luz dos postes ilumina; os olhos da horda brilham no escuro | **Gato de luz em curto:** os postes soltam faíscas que dão choque em quem passa perto, inclusive no Juninho |
 
 4. **Calamidade (85%):** o covil começa a dar sinal (barulho, tremor perto dele), para quem estiver por perto.
@@ -227,7 +227,22 @@ Tirado da lista de estereótipos do autor (`ELENCO_v0.3_BRASIL.md`).
 | Laje ou pracinha | 10 a 14 m | Arena para respirar e lutar; aqui acontecem os eventos |
 | Beco fechado | — | O toque de recolher fecha com barricada; é preciso dar a volta |
 
-- **Altura:** a subida tem cerca de 250 m. O covil do Chefe do Tráfico é a laje do topo.
+- **Altura:** a subida tem cerca de 350 m (D91). No meio do caminho, a esplanada do baile e, no fundo dela, o portão fechado até o DJ Plantão cair. O covil do Chefe do Tráfico é a laje do topo.
+
+**O baile da esplanada (D91, pedido do autor).** Chegando na última esplanada antes do alto:
+1. **A festa.** A noite cai só ali, com néon girando na pista, treliças de iluminação com refletores, o globo espelhado, canhões de luz varrendo o céu (de longe, a claridade na beira de cima da tela mostra onde é o baile), TVs passando clipe, o palco do DJ entre dois paredões, dois bares, sinuca, sofá e o espetinho. O povo dança: cidadãos, mulheres de roupa curta, funkeiros e traficantes. A horda que vinha atrás entra na dança, e a de fora para de nascer.
+2. **O Plantão.** As TVs entram no Plantão com O Acordão, as duas cabeças de Brasília, só em silhueta (o risco de D21). Uma TV grande aparece na tela e o som corta.
+3. **O sinal.** O sinal pega na pista toda, um por um, como na abertura:
+   - o cidadão vira horda;
+   - a mulher de roupa curta vira a Mulher de Biquíni da horda;
+   - o funkeiro e o traficante viram o inimigo deles.
+4. **O DJ Plantão sobe no palco** (chefe do meio):
+   - **o grave:** braços para cima, com aviso no chão, e anéis que correm pelo chão. Cada anel tem uma brecha, e quem está nela passa; quem é pego voa para trás;
+   - **o drop:** sobe no som (a hora de bater, leva o dobro) e a batida cai: um anel forte e a horda em volta corre mais;
+   - **chama Funkeiros** pelos lados.
+5. **O DJ caiu.** O som cai, a pista acorda, o portão do fundo abre e a noite vai embora.
+
+A polícia não entra no baile: os policiais do grupo ficam de guarda embaixo da esplanada, só assistindo ("POLÍCIA ACOMPANHA O BAILE DE LONGE"). No Modo Horda, o morro fica todo aberto, sem baile.
 - **Horda:** os moradores, hipnotizados pelas TVs das janelas.
 
 **Ameaças:**
@@ -240,11 +255,11 @@ Tirado da lista de estereótipos do autor (`ELENCO_v0.3_BRASIL.md`).
 | Cracudo | Cata os itens do chão antes do Juninho |
 | Trombadinha | Encosta, rouba XP e foge |
 
-**Eventos:** o Baile na laje e o Gato de luz em curto são as crises do Caos (seção 2). Também: o toque de recolher (o Chefe fecha becos com barricadas e o caminho muda), o gatonet que cai (as TVs das janelas apagam e a horda acorda por um instante) e os fogos (aviso de que a próxima leva está chegando).
+**Eventos:** o Temporal e o Gato de luz em curto são as crises do Caos (seção 2); o baile é o evento fixo da esplanada. Também: o toque de recolher (o Chefe fecha becos com barricadas e o caminho muda), o gatonet que cai (as TVs das janelas apagam e a horda acorda por um instante) e os fogos (aviso de que a próxima leva está chegando).
 
-**Chefão: o Chefe do Tráfico**, armado, na laje do topo:
-- **Como o Juninho mata:** as armas de um alvo só miram nele primeiro quando ele está no alcance (D46). Ele leva o dobro de dano enquanto está parado mirando, atirando ou gritando no rádio: a hora de chegar perto e bater.
-- **Rajadas:** atira em rajadas, sempre com a linha de mira de aviso.
+**Chefão: o Chefe do Tráfico gigante**, com duas metralhadoras, na laje do topo (D91):
+- **Como o Juninho mata:** as armas de um alvo só miram nele primeiro quando ele está no alcance (D46). Ele leva o dobro de dano quando para para recarregar (a cada três golpes) ou grita no rádio: a hora de chegar perto e bater.
+- **Golpes, sempre com aviso:** a rajada dupla (as duas linhas de mira e os tiros alternando as duas armas), a varredura (o leque vermelho no chão e ele varre de um lado ao outro) e as duas juntas (a faixa no chão e o jato na linha).
 - **Reforço:** grita no rádio e chama traficantes com fogos.
 - **Toque de recolher:** decreta toque de recolher em volta da laje.
 
@@ -266,7 +281,8 @@ Feito, com testes (`prototype/tests/mundo.test.mjs`, `achados.test.mjs`, `crises
 | Sem setas, sem marcador de destino, sem objetivo escrito; mapa da favela só com o que foi andado | `render.js`, `minimapa.js` |
 | Achados (isopor, cofre com a abertura, relíquia Bola da Altinha, faro do Caramelo) | `achados.js`, `render_carreira.js`, `ui.js` |
 | Relíquia como super (D67): botão com anel de carga, Golaço e Solta o Batidão, cena de achar e o facho de luz | `super.js`, `render_super.js`, `RELIQUIAS`, `SUPER` |
-| Crises: Ressaca e Apagão na Orla, Baile e Curto no Morro | `crises.js`, `render_crises.js`, `CRISES` |
+| Crises: Ressaca e Apagão na Orla, Temporal e Curto no Morro | `crises.js`, `render_crises.js`, `CRISES` |
+| O baile da esplanada, o DJ Plantão e o Chefe do Tráfico gigante (D91) | `baile.js`, `dj.js`, `chefe_trafico.js`, `render_baile.js`, `BAILE` |
 | Abertura: gente passeando, o sinal pega, a horda nasce; dá para pular da 2ª vez | `abertura.js`, `ABERTURA` |
 | Melhorias pequenas e de opção; Mapa da Rota com ??? e as estrelas novas | `MELHORIAS`, `TRECHOS`, `progresso.js` |
 | Modo Horda, Desafio da Semana e ranking local | `horda.js`, `ranking.js` (ver `MODOS_E_RANKING.md`) |

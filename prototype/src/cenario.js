@@ -2,7 +2,7 @@
 // meio do calçadão, carrinhos, bancos, lixeiras, orelhões, postes, placas e a sujeira do chão; no morro,
 // motos, entulho, gatos de luz, caixas d'água, sinuca e varal nas lajes. Tudo determinístico por posição.
 // Os sólidos nunca fecham a rota: ficam longe das passagens, das escadas e do começo da partida.
-import { CENARIO, PLACES, ROUTE, CADEIRA_DIST, PREDIOS, AVENIDA, FIGURANTES } from './config.js';
+import { CENARIO, PLACES, ROUTE, CADEIRA_DIST, PREDIOS, AVENIDA, FIGURANTES, BAILE } from './config.js';
 import { hash2 } from './math.js';
 import { montarFavela } from './favela.js';
 import { novoFigurante } from './figurantes.js';
@@ -359,6 +359,59 @@ function policia(w, map) {
 }
 
 /** Subida do Morro: motos encostadas, entulho, gatos de luz, placas nas paredes; lajes com caixa d'água, sinuca, churrasqueira e varal. */
+/** O palco do baile (D91): no fundo da esplanada, no meio do lado sem o portão. */
+export function palcoDoBaile(w) {
+  const k = w.baile;
+  if (!k) return null;
+  const pt = w.path[w.portaoI];
+  const dir = pt ? Math.min(k.x1 - 2, pt.x0 - 1) : k.x1;
+  return { x: (k.x0 + dir) / 2, y: k.y0 + 2.4 };
+}
+
+/**
+ * A esplanada do baile (D91, pedido do autor: "bem rica"): o palco no fundo (dois paredões, a mesa do DJ no meio,
+ * o néon no muro e a treliça de iluminação por cima), a pista no meio com o globo espelhado e as duas treliças da
+ * frente, um bar de cada lado (engradados, mesas e cadeiras que dá para arremessar), sinuca, sofá, isopores, a
+ * churrasqueira do espetinho e os cordões de bandeirinha. A pista do meio fica livre para a dança e a luta.
+ */
+function baile(w, k, len, sd) {
+  const C = BAILE.cenario;
+  const pc = palcoDoBaile(w);
+  const cx = (k.x0 + k.x1) / 2;
+  // o palco
+  for (const dx of [-3.1, 3.1]) prop(w, 'paredao', pc.x + dx - 1.0, k.y0 + 0.4, pc.x + dx + 1.0, k.y0 + 1.2, 1.8, sd(7 + dx), { piece: k });
+  const M = C.mesaDj;
+  w.baileDeco = [
+    { tipo: 'mesaDj', x0: pc.x - M.larg / 2, y0: k.y0 + M.dy - M.prof / 2, x1: pc.x + M.larg / 2, y1: k.y0 + M.dy + M.prof / 2, h: M.alt, x: pc.x, y: k.y0 + M.dy + M.prof / 2 },
+    { tipo: 'neon', x: pc.x, y: k.y0 + 0.05, h: C.neonAltM, texto: C.neonTexto },
+    { tipo: 'trelica', x0: pc.x - C.trelicaPalcoM, x1: pc.x + C.trelicaPalcoM, x: pc.x, y: k.y0 + 2.0, h: C.trelicaAltM },
+    { tipo: 'trelica', x0: k.x0 + 0.6, x1: k.x1 - 0.6, x: cx, y: k.y0 + len * C.trelicaFrenteDy, h: C.trelicaAltM, frente: true },
+    { tipo: 'globo', x: cx, y: k.y0 + len * C.globoDy, h: C.globoAltM },
+  ];
+  // os bares: o da direita perto do fundo, o da esquerda na frente da pista
+  const bares = [
+    { x0: k.x1 - 3.8, y: k.y0 + 6.8, lado: -1 },
+    { x0: k.x0 + 0.4, y: k.y0 + len * 0.72, lado: 1 },
+  ];
+  for (const [i, b] of bares.entries()) {
+    if (!prop(w, 'barraca_boteco', b.x0, b.y - 1.3, b.x0 + 3.4, b.y, 1.1, sd(60 + i), { piece: k })) continue;
+    const mx = b.x0 + 1.7 + b.lado * 3.2;
+    slot(w, 'mesa', mx, b.y + 1.6);
+    slot(w, 'cadeira', mx - CADEIRA_DIST, b.y + 1.6, 'se');
+    slot(w, 'cadeira', mx + CADEIRA_DIST, b.y + 1.6, 'sw');
+    slot(w, 'engradado', b.x0 + (b.lado > 0 ? 3.9 : -0.5), b.y - 0.4);
+    slot(w, 'engradado', b.x0 + (b.lado > 0 ? 3.9 : -0.5), b.y + 0.5);
+    prop(w, 'isopor', b.x0 + 0.4, b.y + 0.3, b.x0 + 1.15, b.y + 0.8, 0.5, sd(64 + i), { piece: k });
+  }
+  // sinuca e sofá do lado esquerdo, a churrasqueira do espetinho do lado direito, cadeiras empilhadas
+  prop(w, 'sinuca', k.x0 + 0.8, k.y0 + len * 0.36, k.x0 + 3.2, k.y0 + len * 0.36 + 1.3, 0.85, sd(70), { piece: k });
+  prop(w, 'sofa', k.x0 + 0.5, k.y0 + 3.6, k.x0 + 2.3, k.y0 + 4.4, 0.8, sd(71), { piece: k });
+  prop(w, 'churrasqueira', k.x1 - 1.4, k.y0 + len * 0.5, k.x1 - 0.6, k.y0 + len * 0.5 + 0.8, 0.95, sd(72), { piece: k });
+  prop(w, 'cadeiras', k.x1 - 1.3, k.y1 - 2.2, k.x1 - 0.7, k.y1 - 1.6, 1.4, sd(73), { piece: k });
+  // os cordões de bandeirinha cruzando a pista
+  for (const f of [0.32, 0.58, 0.82]) prop(w, 'bandeirinhas', k.x0, k.y0 + len * f - 0.2, k.x1, k.y0 + len * f, 4.2, sd(12 + f * 10), { solid: false, extra: { favela: true } });
+}
+
 function morro(w) {
   const M = CENARIO.morro;
   w.path.forEach((k, idx) => {
@@ -402,6 +455,10 @@ function morro(w) {
         const x = left ? k.x0 : k.x1;
         prop(w, 'placa_parede', x - 0.05, y - 0.1, x + 0.05, y, 1.7, sd(44 + i), { solid: false, extra: { text, left } });
       }
+    } else if (k.kind === 'laje' && k.baile) {
+      // esplanada do baile (D91): o palco no fundo (dois paredões, o DJ no meio) e cordões de bandeirinha
+      // cruzando a pista; o resto fica livre para a dança e a luta
+      baile(w, k, len, sd);
     } else if (k.kind === 'laje') {
       const cx = (k.x0 + k.x1) / 2;
       const cy = (k.y0 + k.y1) / 2;

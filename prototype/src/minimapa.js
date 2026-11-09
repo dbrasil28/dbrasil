@@ -79,7 +79,7 @@ export function drawMinimap(ctx, game, cam, t, open) {
     const y0 = Math.max(B.y0, k.y0);
     const y1 = Math.min(B.y1, k.y1);
     if (x1 <= x0 || y1 <= y0) return;
-    ctx.fillStyle = i === 1 && !w.gateOpen ? '#e06a1b' : COLORS[k.kind] || COLORS.viela;
+    ctx.fillStyle = (i === 1 && !w.gateOpen) || (i === w.portaoI && !w.portaoAberto) ? '#e06a1b' : k.baile ? '#8a3fd0' : COLORS[k.kind] || COLORS.viela;
     ctx.fillRect(X(x0), Y(y0), (x1 - x0) * sx, (y1 - y0) * sy + 0.5);
     if (k.kind === 'escadaria') {
       ctx.fillStyle = 'rgba(0,0,0,0.25)';
@@ -129,7 +129,7 @@ export function drawMinimap(ctx, game, cam, t, open) {
     ctx.textAlign = 'left';
     w.path.forEach((k, i) => {
       if (i === 0 || k.y1 < B.y0 || !visto(i)) return;
-      const name = i === 1 ? 'ESCADARIA DO PÉ DO MORRO' : k === w.top ? 'LAJE DO TOPO' : k.kind.toUpperCase();
+      const name = i === 1 ? 'ESCADARIA DO PÉ DO MORRO' : k === w.top ? 'LAJE DO TOPO' : k.baile ? 'ESPLANADA DO BAILE' : k.portao && !w.portaoAberto ? 'PORTÃO FECHADO' : k.kind.toUpperCase();
       const ly = Y((k.y0 + k.y1) / 2) + 4;
       const lx = X(k.x1) + 4;
       ctx.fillStyle = 'rgba(0,0,0,0.6)';

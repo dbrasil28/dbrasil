@@ -14,6 +14,9 @@ import { explosaoPerto, updateReacoes, golpeNoCarro } from './reacoes.js';
 import { updateCrises, criseLentidao } from './crises.js';
 import { emHorda, iniciarHorda, updateHorda, durezaHorda } from './horda.js';
 import { updateMonstrao, limparMonstrao } from './monstrao.js';
+import { updateBaile, djCaiu, baileSegura, silencioDoBaile } from './baile.js';
+import { updateDJ, atualizarAneis } from './dj.js';
+import { updateChefeTrafico } from './chefe_trafico.js';
 import { updateCracudo, updateTrombadinha, trombada, devolveXp } from './morro_inimigos.js';
 import { updateFigurantes, ferirFigurantes } from './figurantes.js';
 import { arrancavelPerto, arrancar, updateArrancados } from './arrancar.js';
@@ -182,7 +185,10 @@ export class Game {
         h.emptyT = 0;
         this.pickups.push({ kind: h.kind, x: h.x, y: h.y, t: 0, plat: h.plat, src: h });
       }
-      if (this.settings.aberta) this.world.gateOpen = true; // versão aberta: a escadaria já começa aberta
+      if (this.settings.aberta) {
+        this.world.gateOpen = true; // versão aberta: a escadaria já começa aberta
+        this.world.portaoAberto = true; // e o portão do baile (D91)
+      }
       if (this.startTrecho === 'morro') {
         // começa no pé do morro, com a escadaria já aberta (ponto de controle); o trecho recomeça do nível 1
         const g = this.world.gate;
@@ -195,6 +201,9 @@ export class Game {
     this.achados = this.world ? sortearAchados(this) : []; // isopores, cofres e a relíquia (D40)
     this.abertura = null;
     this.atualizacao = null; // a cena da atualização do app na subida do Morro (D90)
+    this.baile = null; // o baile da esplanada do Morro (D91, baile.js)
+    this.noiteBaile = 0;
+    this.djAneis = [];
     this.avisoPorta = false; // a faixa do aviso perto da escadaria aberta
     // modo: 'carreira' (a viagem), 'horda' (um mapa, sobreviver) ou 'desafio' (a Horda da semana)
     this.modo = this.meta.modo || 'carreira';
@@ -202,7 +211,10 @@ export class Game {
     this.desafio = this.meta.desafio || null;
     this.spawnExtra = 1;
     this.horda = null;
-    if (emHorda(this) && this.world) iniciarHorda(this);
+    if (emHorda(this) && this.world) {
+      iniciarHorda(this);
+      this.world.portaoAberto = true; // no Modo Horda o morro inteiro fica aberto (sem o baile)
+    }
     if (this.meta.abertura && this.world && this.startTrecho === 'orla') iniciarAbertura(this); // o dia em que o sinal pegou
     if (this.meta.melhorias && this.meta.melhorias.armaInicial) this.pendingInicial = true;
 
@@ -640,7 +652,8 @@ export class Game {
     if (e.elite) dmg *= this.stats.eliteDmgMul;
     // hora de bater: o Chefe parado mirando, atirando ou gritando no rádio; o Monstrão fazendo pose ou tonto
     const J = ENEMIES[e.type].janela;
-    const naJanela = J && (e.aimT > 0 || e.burst > 0 || e.callT > 0 || e.janelaT > 0);
+    // (soJanela: só a janela marcada vale, como a recarga do Chefe do Tráfico gigante, D91)
+    const naJanela = J && (e.janelaT > 0 || e.callT > 0 || (!J.soJanela && (e.aimT > 0 || e.burst > 0)));
     if (naJanela) dmg *= J.danoMul;
     const dw = this.metrics.damageByWeapon;
     dw[source] = (dw[source] || 0) + Math.min(dmg, Math.max(0, e.hp));
@@ -777,6 +790,10 @@ export class Game {
   }
 
   bossDefeated(e) {
+    if (e && e.type === 'dj_plantao') {
+      djCaiu(this, e); // o chefe do meio do Morro (D91): o portão do fundo do baile abre
+      return;
+    }
     if (e && e.type === 'chefe_trafico' && !this.world) {
       // chefe do morro: cai, os traficantes debandam e a entrega fica livre (a partida segue até a entrega)
       this.chefe = null;
@@ -1131,7 +1148,10 @@ export class Game {
     this.updateEnemies(dt);
     updateBancas(this); // a aposta no bicho (D80)
     updateCerco(this, dt); // o cerco da chegada do Monstrão (D82)
-    this.silencio = silencioDoCovil(this); // a música e o ambiente somem perto do fim da Orla (main.js)
+    updateBaile(this, dt); // o baile da esplanada do Morro (D91)
+    atualizarAneis(this, dt); // os anéis do grave do DJ Plantão
+    // a música e o ambiente somem perto do fim da Orla e no Plantão do baile (main.js)
+    this.silencio = Math.max(silencioDoCovil(this), silencioDoBaile(this));
     this.updateTraffic(dt);
     updateReacoes(this);
     if (this.corpos && this.corpos.length) {
@@ -1373,6 +1393,7 @@ export class Game {
 
   updateDirector(dt) {
     if (this.cerco) return; // no cerco (D82) a horda não nasce: é toda torcida em volta da arena
+    if (baileSegura(this)) return; // no baile (D91), até o DJ cair, a horda é a festa (e quem o DJ chama)
     const s = this.settings;
     const cap = s.maxEnemies;
     const pz = this.pressao;
@@ -1563,7 +1584,8 @@ export class Game {
         if (e.frozenT <= 0) this.efeito('gelo_quebra', e.x, e.y, { alvo: e }); // o gelo do picolé estilhaça
       }
       const corre = e.boss && this.world && d > CARREIRA.chefaoAlcanceM ? CARREIRA.chefaoCorreMul : 1;
-      const spd = e.speed * corre * (e.slowT > 0 ? e.slowF : 1) * (this.over ? 0.2 : 1);
+      if (e.frenesiT > 0) e.frenesiT -= dt; // o drop do DJ Plantão (D91): a horda corre mais
+      const spd = e.speed * corre * (e.slowT > 0 ? e.slowF : 1) * (this.over ? 0.2 : 1) * (e.frenesiT > 0 ? e.frenesiMul || 1 : 1);
       let mx = ux;
       let my = uy;
 
@@ -1641,74 +1663,15 @@ export class Game {
           }
         }
       } else if (e.behavior === 'chefe') {
-        // Chefe do Tráfico: distância, rajada com mira travada e aviso; reforço pelo rádio
-        const def = ENEMIES.chefe_trafico;
-        const R = def.reforco;
-        if (e.throwT > 0) e.throwT -= dt;
-        if (d < def.keepM) {
-          mx = -ux * 0.6;
-          my = -uy * 0.6;
-        } else if (d < def.range) {
-          mx = -uy * 0.3;
-          my = ux * 0.3;
-        }
-        if (e.callT > 0) {
-          e.callT -= dt;
-          mx = 0;
-          my = 0;
-          if (e.callT <= 0 && !this.over) {
-            for (let i = 0; i < R.traficantes; i++) {
-              const sp = this.fitSpawn({ x: e.x + (i ? 2.5 : -2.5), y: e.y - 1.5 });
-              const t = this.spawnEnemy('traficante', sp.x, sp.y);
-              t.saw = true;
-            }
-            this.fogos(e);
-          }
-        } else if (e.burst > 0) {
-          // rajada: um tiro a cada intervalo, abrindo um pouco em volta do ponto travado
-          e.burstT -= dt;
-          mx = 0;
-          my = 0;
-          if (e.burstT <= 0) {
-            const b = def.bullet;
-            const tiros = def.rajada.tiros + (e.fase || 0) * def.fases.tirosMais;
-            const k = tiros - e.burst;
-            const a = Math.atan2(e.ay - e.y, e.ax - e.x) + (k - (tiros - 1) / 2) * def.rajada.abertura;
-            this.enemyShots.push({ kind: 'bala', x: e.x, y: e.y, vx: Math.cos(a) * b.speed, vy: Math.sin(a) * b.speed, life: b.life, r: b.radius, dmg: b.dmg, spin: 0 });
-            this.clarao(e, Math.cos(a), Math.sin(a));
-            e.burst--;
-            e.burstT = def.rajada.intervaloS;
-            e.throwT = 0.3;
-          }
-        } else if (e.aimT > 0) {
-          e.aimT -= dt;
-          mx *= 0.1;
-          my *= 0.1;
-          if (e.aimT <= 0) {
-            e.burst = def.rajada.tiros + (e.fase || 0) * def.fases.tirosMais;
-            e.burstT = 0;
-          }
-        } else if (!this.over) {
-          e.callCd = (e.callCd ?? R.cadaS * 0.6) - dt;
-          e.fireT -= dt;
-          const ritmo = def.fases.cadenciaMul ** (e.fase || 0); // cada fase, mais rápido
-          if (e.callCd <= 0) {
-            e.callCd = R.cadaS * ritmo;
-            e.callT = R.gritoS;
-            this.som('radio', e.x, e.y);
-            this.tv('chefeRadio', 30);
-          } else if (d < def.range && e.fireT <= 0) {
-            e.fireT = def.fireEvery * ritmo;
-            e.aimT = def.aimS;
-            this.som('mira', e.x, e.y);
-            e.ax = p.x;
-            e.ay = p.y;
-          }
-        }
-        if (e.raivaT > 0) {
-          mx = 0;
-          my = 0;
-        }
+        // Chefe do Tráfico gigante, com as duas metralhadoras (D91, chefe_trafico.js)
+        const r = updateChefeTrafico(this, e, dt, ux, uy, d);
+        mx = r.x;
+        my = r.y;
+      } else if (e.behavior === 'dj') {
+        // DJ Plantão, o chefe do meio do Morro (D91, dj.js)
+        const r = updateDJ(this, e, dt);
+        mx = r.x;
+        my = r.y;
       } else if (e.behavior === 'investida') {
         // Funkeiro e Rato de Academia: abre os braços (fúria) com a direção travada e parte reto; depois volta a andar
         const I = ENEMIES[e.type].investida;

@@ -161,16 +161,45 @@ export const ENEMIES = {
   },
   // Chefe do morro (laje do topo): rajadas de 3 tiros com a linha de aviso antes; de tempo em tempo para,
   // grita no rádio (pose de raiva) e chama traficantes. A entrega só sai com ele derrubado.
+  // D91 (pedido do autor): o chefão final do Rio é um traficante gigante com duas metralhadoras. Três golpes, com
+  // aviso: a rajada dupla (as duas armas, uma de cada lado, alternando: travou a mira em miraS e solta tiros de
+  // cada lado), a varredura (o leque de lequeGraus aparece no chão em avisoS e ele varre de um lado ao outro em
+  // varreS) e as duas juntas (a faixa no chão em avisoS e um jato de tiros por jatoS nessa linha). A cada golpes
+  // golpes, para recarregar por recargaS: a hora de bater (leva o dobro). canoM: a boca de cada arma, para o lado.
+  // A arte nova (16 direções com as duas armas) está pedida em docs/arte/PEDIDO_MORRO_BAILE.md; até chegar, a de hoje.
   chefe_trafico: {
     name: 'Chefe do Tráfico',
-    hp: 1400, speed: 1.3, dmg: 20, radius: 0.6, size: 1.5, xp: 0, // a vida cresce com o tempo no trecho (uns 6 mil aos 8 min)
+    hp: 1700, speed: 1.2, dmg: 22, radius: 0.85, size: 2.4, xp: 0, // a vida cresce com o tempo no trecho
     behavior: 'chefe', elite: true, boss: true,
-    range: 11, keepM: 6, aimS: 0.7, fireEvery: 2.8,
-    rajada: { tiros: 3, intervaloS: 0.12, abertura: 0.08 }, // abertura: desvio (rad) entre os tiros
-    bullet: { speed: 16, life: 1.0, radius: 0.2, dmg: 9 },
-    reforco: { cadaS: 12, gritoS: 1.0, traficantes: 2 },
+    range: 13, keepM: 6, aimS: 0.7, fireEvery: 2.8,
+    bullet: { speed: 16, life: 1.1, radius: 0.2, dmg: 8 },
+    canoM: 0.55,
+    pausaS: [0.9, 1.6], // entre um golpe e outro, anda (menos a cada fase)
+    dupla: { miraS: 0.75, tiros: 4, intervaloS: 0.09, abertura: 0.05 },
+    leque: { avisoS: 0.9, lequeGraus: 80, varreS: 1.1, cadaS: 0.06, alcanceM: 12 },
+    juntas: { avisoS: 1.0, jatoS: 0.9, cadaS: 0.05, alcanceM: 14, largM: 1.3 },
+    recarga: { golpes: 3, recargaS: 2.2 },
+    reforco: { cadaS: 13, gritoS: 1.0, traficantes: 2 },
     fases: { tirosMais: 1, cadenciaMul: 0.8, reforco: [[], ['traficante', 'funkeiro'], ['traficante', 'traficante', 'funkeiro']] },
-    janela: { danoMul: 2 }, // hora de bater: parado mirando, atirando ou gritando no rádio, leva o dobro de dano
+    janela: { danoMul: 2, soJanela: true }, // hora de bater: recarregando ou gritando no rádio, leva o dobro de dano
+  },
+  // D91: o chefe do meio do Morro, no baile da esplanada. O som dele carrega o sinal da TV. O grave: ergue os braços
+  // (avisoS, o aviso em volta dele) e solta anéis que correm pelo chão (velMS até raioM; quem está na linha do anel,
+  // fora da brecha, leva dano e voa para fora, derrubaM). O drop: a cada dropS sobe no som (subirS, a hora de bater) e a batida cai:
+  // um anel forte e a horda em volta corre mais (frenesiMul por frenesiS). Chama Funkeiros a cada chamaS.
+  // Fica no palco (palcoM do meio do fundo) e se afasta de quem chega perto (keepM). Arte provisória: a do Funkeiro.
+  dj_plantao: {
+    name: 'DJ Plantão',
+    hp: 500, speed: 1.3, dmg: 10, radius: 0.6, size: 1.5, xp: 0, // a vida cresce com o tempo no trecho (uns 1.100 no baile)
+    behavior: 'dj', elite: true, boss: true,
+    keepM: 4, palcoM: 6,
+    // cada anel tem uma brecha (brechaRad); o anel seguinte vem com a brecha girada (giroRad): quem está na brecha passa
+    grave: { cadaS: 4.2, avisoS: 0.75, velMS: 6, raioM: 12, largM: 0.8, dano: 9, derrubaM: 1.8, aneis: [1, 2, 2], entreS: 0.5, brechaRad: 1.0, giroRad: 1.9 },
+    drop: { cadaS: 15, subirS: 2.4, dano: 14, derrubaM: 2.6, frenesiMul: 1.5, frenesiS: 4, frenesiM: 20 },
+    chama: { cadaS: 11, funkeiros: [1, 2, 2] },
+    fases: { cadenciaMul: 0.82, reforco: [[], ['funkeiro'], ['funkeiro', 'funkeiro']] },
+    faseHorda: 10, // a cada fase, essa horda chega pelos lados da esplanada
+    janela: { danoMul: 2 }, // subindo no som para o drop, leva o dobro
   },
   // Morro (D37): o Cracudo vem em bando, cambaleando, e cata o XP do chão antes do Juninho; quando cai, solta o que
   // catou. catarM: até onde ele enxerga XP; catarS: agachado catando
@@ -403,7 +432,17 @@ export const ROUTE = {
       { kind: 'viela', x0: -18, x1: -13, len: 24 },
       { kind: 'laje', x0: -23, x1: -9, len: 16 },
       { kind: 'escadaria', x0: -17, x1: -13, len: 14 },
-      { kind: 'laje', x0: -24, x1: -4, len: 22 }, // laje do topo: arena e lugar da entrega
+      // D91 (pedido do autor): a última esplanada vira o baile (o chefe do meio, o DJ Plantão) e o morro continua
+      // pelo portão do fundo dela, fechado até o DJ cair, até a laje do topo do Chefe do Tráfico
+      { kind: 'laje', x0: -24, x1: -4, len: 26, baile: true }, // esplanada do baile
+      { kind: 'escadaria', x0: -10, x1: -6, len: 12, portao: true }, // o portão: fechado até o DJ cair
+      { kind: 'viela', x0: -9, x1: -4, len: 24 },
+      { kind: 'laje', x0: -13, x1: 1, len: 14 },
+      { kind: 'escadaria', x0: -3, x1: 1, len: 12 },
+      { kind: 'viela', x0: -5, x1: 0, len: 18 },
+      { kind: 'viela', x0: -14, x1: -1, len: 8 },
+      { kind: 'escadaria', x0: -13, x1: -9, len: 12 },
+      { kind: 'laje', x0: -22, x1: -2, len: 22 }, // laje do topo: arena do Chefe do Tráfico e lugar da entrega
     ],
   },
 };
@@ -653,7 +692,7 @@ export const CRISES = {
   corteS: 1.5,
   porTrecho: {
     orla: [{ id: 'ressaca', caos: 30, duracaoS: 35 }, { id: 'apagao', caos: 60, duracaoS: 35 }],
-    morro: [{ id: 'baile', caos: 30, duracaoS: 30 }, { id: 'curto', caos: 60, duracaoS: 35 }],
+    morro: [{ id: 'temporal', caos: 30, duracaoS: 30 }, { id: 'curto', caos: 60, duracaoS: 35 }], // D91: o Baile virou a esplanada
   },
   // Ressaca: o mar avança até perto da ciclovia, a areia molhada deixa lento e as ondas derrubam a horda
   ressaca: { avancaS: 5, aguaSobraM: 1.5, lentoMul: 0.6, ondaS: 5, ondaCorreS: 1.0, ondaDano: 18, ondaEmpurra: 7, ondaEmpurraJuninho: 1.2 },
@@ -661,7 +700,9 @@ export const CRISES = {
   // esfumaçada (D87): cheia até miolo da distância e some aos poucos até luz*M; os postes têm um brilho quente
   apagao: { luzPosteM: 5.5, luzJuninhoM: 4.2, miolo: 0.3, escuro: 0.8, brilhoPoste: 0.16, achadoLongeM: 14, rampaS: 2 },
   // Baile na laje: a horda em volta para para dançar, mas chega uma leva de Funkeiros
-  baile: { raioM: 22, funkeiros: 4 },
+  // Temporal (D91, no lugar do Baile): chuva forte; nas escadarias a água desce como cachoeira e quem está nela
+  // escorrega morro abaixo (escorregaMS, o Juninho um pouco menos); a horda escorrega junto
+  temporal: { escorregaMS: 1.6, juninhoMul: 0.55, rampaS: 2 },
   // Gato de luz em curto: faíscas perto do Juninho estalam (aviso) e dão o choque, nele também
   curto: { cadaS: 1.1, maxFaiscas: 5, pertoM: 7, avisoS: 0.8, choqueS: 0.35, raioM: 1.4, danoJuninho: 12, danoHorda: 30 },
 };
@@ -747,6 +788,43 @@ export const CHEGADA = {
 // pela hora da cena: [desde (s), quadro]. Sobe (1, 2), se encolhe (3 a 5), treme ('treme': 5 e 6 a cada tremeS),
 // se abre logo antes de a relíquia entrar (7 a 9), estica no estouro (10 a 12), o laço aberto ('laco': 13 a 18,
 // lacoFps), desce (19, 20) e pousa (21 a 24). Depois de pousar, se o jogador anda, volta a caminhada.
+// O baile da esplanada (D91, pedido do autor): o chefe do meio do Morro. Chegando a entraM da esplanada, a noite
+// cai ali (noiteDeM a noiteAteM da beira dela, em noiteS), o néon acende, as TVs passam clipe e o povo dança
+// (pessoas, longe palcoM do palco); a horda que vinha atrás para para dançar e a de fora não nasce. Em plantaoS
+// as TVs entram no Plantão com O Acordão (em silhueta, D21) e o som corta; em sinalS o sinal pega e cada um vira
+// horda, um por um (viraS, a transformação em transfS), o mais perto do Juninho por último. Em seguida o DJ
+// Plantão sobe no palco (chefeS) e a luta começa. Com o DJ no chão, o som cai, quem está na esplanada acorda
+// (acordaM), o portão do fundo abre e a noite vai embora em fimS. A polícia não entra no baile: quem está no grupo
+// fica de guarda postoM antes da beira da esplanada.
+export const BAILE = {
+  entraM: 2, noiteDeM: 14, noiteAteM: 2, noiteS: 1.5, noite: 0.62, pistaLuz: 0.45, // pistaLuz: a luz geral da pista (o povo aparece)
+  // o povo da festa (pedido do autor): cidadãos, mulheres de roupa curta, funkeiros e traficantes. No sinal, cada um
+  // vira horda: o cidadão com a transformação dele, a mulher vira a Mulher de Biquíni da horda e o funkeiro e o
+  // traficante viram o inimigo deles (a firma). A arte dos funkeiros loiros está pedida (PEDIDO_MORRO_BAILE.md).
+  povo: { cidadao: 12, garota: 9, funkeiro: 5, traficante: 2 },
+  palcoM: 3.6, beiraM: 1.0,
+  hordaMax: 24, // na chegada, a horda que vinha atrás fica em no máximo isso (os de fora da tela vão embora, D75)
+  plantaoS: 5, sinalS: 3.5, viraS: 3, transfS: 1.2, chefeS: 1.2, acordaM: 18, fimS: 3,
+  postoM: 2.5,
+  // luzes do baile: refletores de néon girando (cores, raio no chão), as TVs (largura e altura, m) e o brilho
+  luzes: { n: 7, raioM: 4.2, giroS: 5.5, cores: ['255,60,200', '60,220,255', '170,90,255', '60,255,140', '255,170,40'], brilho: 0.3 },
+  tv: { larg: 2.3, alt: 1.35, altura: 2.0 },
+  // o cenário da festa (pedido do autor): palco com a mesa do DJ entre os paredões e o néon no muro, treliças de
+  // iluminação (a do palco e duas na frente da pista, com refletores), o globo espelhado no meio da pista, dois
+  // bares (com engradados, mesas e cadeiras para arremessar), sinuca, sofá, isopor e a churrasqueira do espetinho.
+  // Treliça, globo, mesa do DJ e néon são desenho de código até a arte chegar (PEDIDO_MORRO_BAILE.md).
+  cenario: {
+    trelicaAltM: 4.4, trelicaPalcoM: 5.2, trelicaFrenteDy: 0.62, refletores: 5,
+    globoAltM: 4.9, globoDy: 0.45, globoRaioM: 0.42, reflexos: 46,
+    neonAltM: 4.5, neonTexto: 'BAILE DA ESPLANADA',
+    mesaDj: { larg: 2.4, prof: 0.9, alt: 1.05, dy: 1.5 },
+  },
+  pulsoBpm: 130, // o batidão: pulso das luzes e o passo da dança
+  // canhões de luz apontados para o céu (pedido do autor), nos pés das treliças: varrem ±varreRad e se veem de longe
+  // (de pertoM para cá; acima da tela, a claridade colorida na beira de cima avisa onde é o baile)
+  canhoes: { varreRad: 0.42, giroS: 3.2, forca: 0.3, pertoM: 70, cores: ['200,230,255', '255,80,210', '90,220,255', '200,140,255'] },
+};
+
 export const SUPER = {
   cargaS: 75, abateS: 0.04, eliteS: 3, chefeS: 15,
   cena: { durS: 3.35, sobeS: 0.55, voaS: 0.3, chegaS: 1.55, desceS: 2.45, pousaS: 2.85, alturaM: 1.3, raioM: 8, dano: 60, empurra: 18, zoom: 1.6, zoomS: 0.9, tranco: 0.14, trancoS: 0.25 },
@@ -1145,8 +1223,17 @@ export const TV = {
   crise_ressaca_fim: ['O MAR RECUA E DEIXA ALGUMA COISA NA AREIA MOLHADA'],
   crise_apagao_aviso: ['CONCESSIONÁRIA ANUNCIA "INSTABILIDADE" NA REDE. PREVISÃO: 20 SEGUNDOS'],
   crise_apagao: ['APAGÃO NA ORLA! SÓ OS POSTES COM GATO CONTINUAM ACESOS'],
-  crise_baile_aviso: ['DJ DA LAJE TESTA O SOM. EM 20 SEGUNDOS, O BAILE COMEÇA'],
-  crise_baile: ['BAILE NA LAJE! A HORDA PARA PARA DANÇAR. OS FUNKEIROS, NÃO'],
+  crise_temporal_aviso: ['DEFESA CIVIL AVISA: TEMPORAL CHEGANDO NO MORRO EM 20 SEGUNDOS'],
+  crise_temporal: ['TEMPORAL! A ESCADARIA VIROU CACHOEIRA. SEGURA NO CORRIMÃO (NÃO TEM CORRIMÃO)'],
+  // o baile da esplanada (D91)
+  baileComeca: ['BAILE NA ESPLANADA: O MORRO INTEIRO SUBIU PARA DANÇAR', 'BATIDÃO NA ESPLANADA. A FESTA NÃO TEM HORA PARA ACABAR'],
+  baileAcordao: ['PLANTÃO: O RESPONSÁVEL POR TUDO MANDA UM RECADO, AO VIVO DE BRASÍLIA', 'PLANTÃO URGENTE: DE BRASÍLIA, AS DUAS CABEÇAS DO PAÍS FALAM COM A NAÇÃO'],
+  baileSinal: ['O SINAL PEGOU NO BAILE. A PISTA INTEIRA VIROU PLATEIA'],
+  djPlantao: ['DJ PLANTÃO ASSUME O SOM: A BATIDA AGORA É DO SINAL', 'NO PALCO, DJ PLANTÃO. O PANCADÃO AGORA É AO VIVO E HIPNÓTICO'],
+  djDrop: ['DJ PLANTÃO VAI SOLTAR O DROP. A PISTA ENLOUQUECE', 'O GRAVE VAI CAIR. QUEM ESTIVER PERTO, VOA'],
+  fase_dj: ['DJ PLANTÃO AUMENTA O VOLUME. VIZINHO RECLAMA, NINGUÉM ESCUTA', 'DJ PLANTÃO TOCA A VERSÃO ESTENDIDA'],
+  djCaiu: ['O SOM CAIU. A PISTA ACORDOU, E O PORTÃO DO ALTO DO MORRO ABRIU', 'DJ PLANTÃO SAI DO AR. O PORTÃO DO FUNDO DA ESPLANADA ABRIU'],
+  policiaBaile: ['POLÍCIA ACOMPANHA O BAILE DE LONGE', 'POLÍCIA DECIDE QUE O BAILE NÃO É COM ELA'],
   crise_curto_aviso: ['GATONET SOBRECARREGADO. CHEIRO DE FIO QUEIMADO NO MORRO'],
   crise_curto: ['GATO DE LUZ EM CURTO! FAÍSCA PARA TODO LADO, OLHE ONDE PISA'],
   cofre: ['ENTREGADOR ACHA COFRE NA ORLA. RECEITA DIZ QUE NÃO VIU NADA', 'COFRE ABERTO AO VIVO. DONO AINDA NÃO SE APRESENTOU'],

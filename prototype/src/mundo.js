@@ -24,15 +24,24 @@ export function buildWorld(map) {
   let y = gate.y0 + 0.5;
   for (const p of R.morro.pieces) {
     const k = rect(p.x0, y - p.len, p.x1, y + 0.5, { kind: p.kind, slow: p.kind === 'escadaria' ? R.morro.stairSlow : 1 });
+    if (p.baile) k.baile = true;
+    if (p.portao) k.portao = true;
     path.push(k);
     y = k.y0 + 0.5;
   }
   const top = path[path.length - 1];
+  // D91: a esplanada do baile e o portão do fundo dela (o pedaço de cima, fechado até o DJ Plantão cair)
+  const baileI = path.findIndex((k) => k.baile);
+  const portaoI = path.findIndex((k) => k.portao);
   const w = {
     path,
     orla,
     gate,
     gateOpen: false,
+    baileI,
+    baile: baileI >= 0 ? path[baileI] : null,
+    portaoI,
+    portaoAberto: portaoI < 0,
     orlaTop,
     morroTop: top.y0,
     top,
@@ -52,7 +61,7 @@ export function buildWorld(map) {
     w.joints.push({ x: (Math.max(a.x0, b.x0) + Math.min(a.x1, b.x1)) / 2, y: (Math.max(a.y0, b.y0) + Math.min(a.y1, b.y1)) / 2 });
     // passagem entre dois pedaços (largura comum, 1 m para dentro de cada um): sem ela, quem tem raio
     // maior que metade da emenda ficava preso na fresta entre os dois retângulos
-    w.corridors.push(rect(Math.max(a.x0, b.x0), a.y0 - JOINT_M, Math.min(a.x1, b.x1), b.y1 + JOINT_M, { gate: i <= 1 }));
+    w.corridors.push(rect(Math.max(a.x0, b.x0), a.y0 - JOINT_M, Math.min(a.x1, b.x1), b.y1 + JOINT_M, { gate: i <= 1, portao: portaoI >= 0 && (i === portaoI - 1 || i === portaoI) }));
   }
   placeOrla(w, map);
   placeObra(w, map); // covil do Especulador: fechado por tapume até o Caos chamar o chefão (D39)
@@ -162,6 +171,7 @@ function placeMorro(w) {
       const cy = (k.y0 + k.y1) / 2;
       // casa com laje encostada no fundo da pracinha, do lado oposto à passagem para o pedaço de cima
       // (antes ficava sempre à direita e, em duas lajes, fechava a passagem)
+      if (k.baile) return; // a esplanada do baile fica livre para a pista (baile.js)
       let side = 0; // -1: casa à esquerda, 1: à direita, 0: sem casa
       if (k.x1 - k.x0 >= 13 && k !== w.top) side = houseSide(k, path[i + 1]);
       const m = side === -1 ? -1 : 1; // o boteco fica espelhado do lado livre
@@ -205,12 +215,16 @@ function houseSide(k, up) {
   return Math.max(right, left) >= 2.5 ? best : 0;
 }
 
+/** Pedaço da rota fechado agora: a escadaria do pé do morro (tapume) ou o portão do fundo do baile (D91). */
+export const bloqueado = (w, i) => (i === 1 && !w.gateOpen) || (i === w.portaoI && !w.portaoAberto);
+const corFechado = (w, k) => (k.gate && !w.gateOpen) || (k.portao && !w.portaoAberto);
+
 /** Retângulo da rota que contém o ponto (ou -1). Usa o índice guardado na entidade, se ainda vale. */
 export function pathIndex(w, x, y, hint = -1) {
   const path = w.path;
-  if (hint >= 0 && hint < path.length && inside(path[hint], x, y)) return hint;
+  if (hint >= 0 && hint < path.length && !bloqueado(w, hint) && inside(path[hint], x, y)) return hint;
   for (let i = 0; i < path.length; i++) {
-    if (i === 1 && !w.gateOpen) continue;
+    if (bloqueado(w, i)) continue;
     if (inside(path[i], x, y)) return i;
   }
   return -1;
@@ -229,7 +243,7 @@ export function constrain(w, e) {
   for (let i = 0; i < n + cor.length; i++) {
     const isCor = i >= n;
     const k = isCor ? cor[i - n] : path[i];
-    if (!w.gateOpen && (isCor ? k.gate : i === 1)) continue;
+    if (isCor ? corFechado(w, k) : bloqueado(w, i)) continue;
     const cx = clamp(e.x, k.x0 + r, k.x1 - r);
     const cy = clamp(e.y, k.y0 + r, k.y1 - r);
     const d = (cx - e.x) ** 2 + (cy - e.y) ** 2;
@@ -254,8 +268,8 @@ export function routeTarget(w, e, tx, ty, ti, out) {
   let ei = pathIndex(w, e.x, e.y, e.ri);
   // já na emenda (dentro do pedaço seguinte também): mira a próxima junta, senão fica parado na junta
   if (ei >= 0 && ti >= 0) {
-    while (ei < ti && (ei + 1 !== 1 || w.gateOpen) && inside(w.path[ei + 1], e.x, e.y)) ei++;
-    while (ei > ti && (ei - 1 !== 1 || w.gateOpen) && inside(w.path[ei - 1], e.x, e.y)) ei--;
+    while (ei < ti && !bloqueado(w, ei + 1) && inside(w.path[ei + 1], e.x, e.y)) ei++;
+    while (ei > ti && !bloqueado(w, ei - 1) && inside(w.path[ei - 1], e.x, e.y)) ei--;
   }
   if (ei >= 0) e.ri = ei;
   if (ei < 0 || ti < 0 || ei === ti) {

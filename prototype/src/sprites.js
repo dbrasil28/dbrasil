@@ -373,6 +373,8 @@ export const ENEMY_ART = {
   traficante: { img: 'traficante', walk: WALK_ATLAS.tf, poses: POSE_ATLAS.tfp, aim: 'ataque', fury: true },
   // chefe: ataque (rajada) enquanto mira e atira; raiva (grito no rádio) enquanto chama reforço
   chefe_trafico: { img: 'chefe_trafico', walk: WALK_ATLAS.ct, poses: POSE_ATLAS.ctp, aim: 'ataque', fury: true },
+  // D91: o DJ Plantão usa por enquanto a arte do Funkeiro (maior); a dele está pedida em docs/arte/PEDIDO_MORRO_BAILE.md
+  dj_plantao: { img: 'funkeiro', walk: WALK_ATLAS.fk, poses: POSE_ATLAS.fkp, estados: true, tint: [170, 60, 255, 0.3], furia: [170, 60, 255, 0.3] },
   // throwAnim: quadros 0–2 na preparação, 3 ao soltar a maleta
   politico: { img: 'politico', walk: WALK_ATLAS.pc, throwAnim: WALK_ATLAS.pa },
   // Rival: o Político tingido de laranja até chegar a arte dele; aparece pouco, então não é preparado antes

@@ -19,9 +19,10 @@ import { drawCenaFundo, drawCenaFrente, drawFaixaCena, drawGolaco, drawBatidao, 
 import { alturaNaCena, zoomNaCena, quadroDaAura } from './super.js';
 import { drawPalestras, drawMarcaAgiota, drawCurasPastor, drawCurados, drawBilhetes, drawAposta } from './render_elenco.js';
 import { posDoMembro } from './chegada.js';
+import { drawBaileChao, drawBaileCeu, drawPlantaoTela, drawTvBaile, drawBarricadaBaile, tvsDoBaile, drawDecoBaile } from './render_baile.js';
 import {
   entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace,
-  drawAim, drawBullet, drawHeal,
+  drawAim, drawAimDupla, drawBullet, drawHeal,
 } from './render_mundo.js';
 
 const pt = { x: 0, y: 0 };
@@ -217,7 +218,8 @@ export class Renderer {
       // carreira (D39): sem seta nem placa; o holofote da TV sobre o covil aberto
       drawHolofoteChao(ctx, game, cam, ppu, game.t);
       cam.visibleWorldBounds(3, bounds);
-      drawCriseChao(ctx, game, cam, ppu, game.t, bounds); // Baile, Curto (a Ressaca vem com o mar)
+      drawCriseChao(ctx, game, cam, ppu, game.t, bounds); // Temporal, Curto (a Ressaca vem com o mar)
+      drawBaileChao(ctx, game, cam, ppu, game.t, bounds); // o baile da esplanada (D91): néon, TVs, portão, anéis do DJ
     }
 
     // lista de desenho com ordenação por profundidade
@@ -232,6 +234,18 @@ export class Renderer {
     for (const c of game.corpos || []) list.push({ d: cam.depth(c.x, c.y), k: 'corpo', o: c }); // o Monstrão caído (D65)
     if (game.abertura && game.abertura.fase !== 'feito') {
       for (const c of game.abertura.civis) if (!c.virou) list.push({ d: cam.depth(c.x, c.y), k: 'civil', o: c });
+    }
+    if (game.baile) for (const c of game.baile.pessoas) if (!c.virou) list.push({ d: cam.depth(c.x, c.y), k: 'civil', o: c }); // o povo do baile (D91)
+    if (game.world && game.world.baile && game.segment === 'morro') {
+      // as TVs no muro do fundo da esplanada e a barricada do portão (na frente das casas do fundo)
+      const w = game.world;
+      const k = w.baile;
+      if (k.y1 > bounds.minY - 6 && k.y0 < bounds.maxY + 6) {
+        for (const tv of tvsDoBaile(w)) list.push({ d: cam.depth(tv.x, tv.y), k: 'baileTv', o: tv, x: tv.x, y: tv.y });
+        for (const d of w.baileDeco || []) list.push({ d: cam.depth(d.x, d.y), k: 'baileDeco', o: d, x: d.x, y: d.y });
+        const pt = w.path[w.portaoI];
+        if (pt) list.push({ d: cam.depth(pt.x0, k.y0 + 0.3), k: 'baileBarr', o: w, x: pt.x0, y: k.y0 + 0.3 });
+      }
     }
     list.push({ d: entityDepth(cam, game.player), k: 'player', o: game.player });
     const w = game.world;
@@ -451,29 +465,48 @@ export class Renderer {
         case 'pickup':
           drawPickup(ctx, o, pt, ppu, t);
           break;
+        case 'baileDeco':
+          drawDecoBaile(ctx, game, cam, ppu, t, o);
+          break;
+        case 'baileTv':
+          drawTvBaile(ctx, game, cam, ppu, t, o);
+          break;
+        case 'baileBarr':
+          drawBarricadaBaile(ctx, game, cam, ppu);
+          break;
         case 'civil': {
           // abertura: o cidadão passeando de braços abaixados; quando o sinal pega nele, a transformação
           // (6 quadros: trava, o olho acende, os braços sobem) e depois ele vira horda
-          const anim = crowdAnim(o.tint);
-          if (!anim) break;
-          const h = playerPx * ENEMIES.telespectador.size * enemyMul;
+          // (no baile, D91, também garotas, funkeiros e traficantes, com a caminhada deles)
+          const arte = o.arte ? walkReady(WALK_ATLAS[o.arte]) : null;
+          const anim = arte ? null : crowdAnim(o.tint);
+          if (!arte && !anim) break;
+          const h = playerPx * (o.tam || ENEMIES.telespectador.size) * enemyMul;
           const mv = Math.hypot(o.vx, o.vy) > 0.01;
           if (mv || o.row === undefined) {
             cam.toScreen(o.x + (mv ? o.vx : 0), o.y + (mv ? o.vy : 1), pt2);
             o.row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
           }
-          const tr = walkReady(anim.transf);
+          const tr = anim ? walkReady(anim.transf) : null;
           const S = ABERTURA.transfS;
-          let A = walkReady(anim.civil) || anim.walk;
+          let A = arte || walkReady(anim.civil) || anim.walk;
           let frame = mv ? Math.floor((o.walk / (Math.PI * 2)) * 6) % 6 : 0;
           let opts = CIVIL_OPTS;
+          let pula = 0;
+          if (o.danca) {
+            // dançando no baile (D91): o passo no lugar, virando de um lado para o outro, e o pulo na batida
+            frame = Math.floor(o.walk) % 6;
+            o.row = DANCA_ROWS[(Math.floor(t * 1.3 + o.ritmo * 7) + (o.id % 5)) % DANCA_ROWS.length];
+            pula = Math.abs(Math.sin(t * Math.PI * 2.17 + o.ritmo * 6)) * h * 0.06;
+          }
           if (o.viraT >= 0 && o.viraT <= S) {
             frame = Math.min(5, Math.floor((1 - o.viraT / S) * 6));
             if (tr) A = tr;
-            if (frame >= 2) opts = CROWD_WALK_OPTS; // o brilho da TV a partir do 3º quadro
+            else frame = 0; // sem a arte da transformação: trava parado e o brilho da TV acende
+            if (frame >= 2 || (!tr && o.viraT < S * 0.6)) opts = CROWD_WALK_OPTS; // o brilho da TV a partir do 3º quadro
           }
           const spr = this.cache.get(`${A.prefix}_${o.row}_${frame}`, h * (ATLAS.ch / A.figureH), opts);
-          if (spr) blit(ctx, spr, pt.x, pt.y, false);
+          if (spr) blit(ctx, spr, pt.x, pt.y - pula, false);
           break;
         }
         case 'mobj':
@@ -711,7 +744,8 @@ export class Renderer {
           if ((o.elite || ENEMIES[o.type].barra) && !o.boss) drawHpPip(ctx, pt, h, o.hp / o.maxHp); // a barra de força (elites e Rato, D79)
           if (o.bailaT > 0) drawNotaDanca(ctx, o, pt, h, t); // notinha em cima de quem dança o Batidão
           if (o.segura === 'carro') drawCarroErguido(ctx, o, pt, h, ppu);
-          if ((o.type === 'traficante' || o.type === 'chefe_trafico') && o.aimT > 0) drawAim(ctx, o, cam, pt, h, ppu, t); // aviso antes do tiro
+          if (o.type === 'traficante' && o.aimT > 0) drawAim(ctx, o, cam, pt, h, ppu, t); // aviso antes do tiro
+          if (o.type === 'chefe_trafico' && o.aimT > 0) drawAimDupla(ctx, o, cam, pt, h, ppu, t); // as duas armas (D91)
           break;
         }
         case 'player': {
@@ -774,6 +808,7 @@ export class Renderer {
     if (game.map.bounded) this.drawAtmosfera(ctx, cam);
     if (game.world) {
       if (game.crise) drawCriseCeu(ctx, game, cam, ppu, game.t, playerPx, cenarioInRange(game.world, bounds.minY - 3, bounds.maxY + 7, criseTmp));
+      drawBaileCeu(ctx, game, cam, ppu, game.t); // a noite do baile, com a luz do néon e das TVs (D91)
       drawHolofoteCeu(ctx, game, cam, ppu, game.t); // facho do helicóptero, ou a claridade na beira da tela
       drawFachoReliquia(ctx, game, cam, ppu, game.t); // pista da relíquia (D67)
       // mapa da favela no canto (no morro); aberto grande quando tocado
@@ -807,6 +842,11 @@ export class Renderer {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // fora do zoom: a faixa e o resto fixos na tela
       ctx.translate(sx, sy);
       drawFaixaCena(ctx, game, cam);
+    }
+    if (game.baile) {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // fora do zoom: a TV grande do Plantão (D91)
+      ctx.translate(sx, sy);
+      drawPlantaoTela(ctx, game, cam, game.t);
     }
     if (this.flashT > 0) {
       this.flashT -= perf.dt;
@@ -2181,6 +2221,8 @@ function drawBoletoGirando(ctx, z, q, pt, playerPx, t) {
 const dogPt = { x: 0, y: 0 };
 const criseTmp = [];
 const CIVIL_OPTS = { shadowScale: 0.6 };
+// para onde o povo do baile vira dançando (D91): de frente e meio de lado, para a câmera
+const DANCA_ROWS = [0, 1, 15, 2, 14, 0, 3, 13];
 const CIVIL_FLASH = { ...CIVIL_OPTS, flash: true }; // figurante levando dano
 const POSE_FLASH = { ...POSE_OPTS, flash: true };
 

@@ -6,6 +6,7 @@
 // lugar, fora da tela. Na abertura, antes de a horda atacar, ninguém entra no grupo. Sem DOM.
 import { FIGURANTES } from './config.js';
 import { emAbertura } from './abertura.js';
+import { postoDaPolicia, policiaDeFora } from './baile.js';
 
 const tmp = [];
 const sorteio = (game, [a, b]) => a + game.fxRng() * (b - a);
@@ -152,11 +153,12 @@ export function updateFigurantes(game, dt) {
       game.metrics.parceirosEntraram = (game.metrics.parceirosEntraram || 0) + 1;
     }
     // luta com quem está no alcance; com a horda chegando, fica com raiva (o policial já mira)
+    // (no baile, D91, o policial de guarda só assiste: acompanha de longe)
     const A = F.arma[f.tipo];
-    const alvoLuta = maisPerto(game, f, A.alcanceM);
+    const alvoLuta = f.grupo && policiaDeFora(game, f) ? null : maisPerto(game, f, A.alcanceM);
     if (alvoLuta && f.cd <= 0) luta(game, f, alvoLuta);
     else if (!f.pose) {
-      const e = alvoLuta || maisPerto(game, f, F.reageM[f.tipo]);
+      const e = alvoLuta || (f.grupo && policiaDeFora(game, f) ? null : maisPerto(game, f, F.reageM[f.tipo]));
       if (e) {
         vira(f, e.x, e.y);
         f.pose = f.tipo === 'pm' || f.tipo === 'tropa' ? 'ataque' : 'raiva';
@@ -180,8 +182,10 @@ function segue(game, f, dt, tras, vaga) {
   const F = FIGURANTES;
   const p = game.player;
   const a = tras + (vaga - (F.grupoMax - 1) / 2) * 0.85;
-  const tx = p.x + Math.cos(a) * F.segueM;
-  const ty = p.y + Math.sin(a) * F.segueM;
+  // a polícia não entra no baile (D91): fica de guarda embaixo da esplanada
+  const posto = postoDaPolicia(game, f, vaga);
+  const tx = posto ? posto.x : p.x + Math.cos(a) * F.segueM;
+  const ty = posto ? posto.y : p.y + Math.sin(a) * F.segueM;
   const dx = tx - f.x;
   const dy = ty - f.y;
   const l = Math.hypot(dx, dy);

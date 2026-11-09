@@ -1,14 +1,15 @@
 // Crises da cidade (D39, docs/design/CARREIRA_E_ROTA.md seção 2): quando o Caos do trecho cruza 30%
 // (Crise) e 60% (Colapso), a TV avisa uns 20 s antes e o trecho muda por um tempo, sempre com aviso e
-// sem fechar a passagem. Orla: Ressaca do mar e Apagão. Morro: Baile na laje e Gato de luz em curto.
-// Sem DOM: roda igual no navegador e nos testes.
+// sem fechar a passagem. Orla: Ressaca do mar e Apagão. Morro: Temporal (D91, no lugar do Baile, que virou o
+// evento da esplanada em baile.js) e Gato de luz em curto. Sem DOM: roda igual no navegador e nos testes.
 import { CRISES } from './config.js';
 import { proximaCriseHorda, criseAcabouNaHorda } from './horda.js';
+import { pathIndex } from './mundo.js';
 
 const tmp = [];
 
 /** O chefão está em campo (ou chegando, no cerco da Orla): hora de luta, não de crise (D87). */
-const lutaDeChefe = (game) => (game.boss && !game.boss.dead) || !!game.cerco;
+const lutaDeChefe = (game) => (game.boss && !game.boss.dead) || !!game.cerco || !!(game.baile && game.baile.fase !== 'fim');
 
 /** Liga, avisa, roda e desliga as crises do trecho. */
 export function updateCrises(game, dt) {
@@ -90,19 +91,6 @@ const INICIO = {
     const x = Math.max(game.map.minX + 1, Math.min(game.map.maxX - 1, p.x + (game.rng() < 0.5 ? -1 : 1) * A.achadoLongeM * 0.6));
     game.achados.push({ kind: 'cofre', x, y: p.y - A.achadoLongeM, plat: null, onde: 'escuro', cavar: false, prog: 0, aberto: false, soNoEscuro: true });
   },
-  baile(game, c) {
-    // o batidão: a horda em volta para para dançar, mas chega uma leva de Funkeiros
-    const B = CRISES.baile;
-    const p = game.player;
-    for (const e of game.enemies) {
-      if (e.dead || e.type !== 'telespectador') continue;
-      if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 < B.raioM ** 2) e.dancaT = c.def.duracaoS;
-    }
-    for (let i = 0; i < B.funkeiros; i++) {
-      const sp = game.fitSpawn(game.edgePoint(-Math.PI / 2 + (i - (B.funkeiros - 1) / 2) * 0.5, 30));
-      game.spawnEnemy('funkeiro', sp.x, sp.y);
-    }
-  },
   curto(game, c) {
     c.faiscas = [];
     c.prox = 0;
@@ -134,11 +122,19 @@ const ATIVA = {
       game.som('onda');
     }
   },
-  baile(game, c) {
-    if (Math.floor(c.t * 2) !== Math.floor((c.t - 1 / 30) * 2)) {
-      const p = game.player;
-      game.word(p.x + (game.fxRng() - 0.5) * 8, p.y - 2 - game.fxRng() * 4, game.fxRng() < 0.5 ? 'TUM TSS' : 'POC POC', '#ff5fd2');
-    }
+  temporal(game, c, dt) {
+    // nas escadarias a água desce: quem está nelas escorrega morro abaixo (y maior), o Juninho um pouco menos
+    const T = CRISES.temporal;
+    const w = game.world;
+    const k = forcaDoTemporal(c);
+    if (k <= 0) return;
+    const desce = (e, mul) => {
+      if (e.plat && e.lvl) return; // em cima da laje, não
+      const i = pathIndex(w, e.x, e.y, e.ri);
+      if (i > 1 && w.path[i].kind === 'escadaria') e.y += T.escorregaMS * mul * k * dt;
+    };
+    desce(game.player, T.juninhoMul);
+    for (const e of game.enemies) if (!e.dead && !e.boss) desce(e, 1);
   },
   curto(game, c, dt) {
     // faíscas nos postes perto do Juninho: estala (aviso) e depois dá o choque, nele também
@@ -180,7 +176,11 @@ const FIM = {
     game.achados.push({ kind: 'cofre', x: game.map.maxX - 1, y: p.y - 6, plat: null, onde: 'ressaca', cavar: false, prog: 0, aberto: false });
     game.tv('crise_ressaca_fim');
   },
-  baile(game) {
-    for (const e of game.enemies) if (e.dancaT > 0) e.dancaT = 0;
-  },
 };
+
+/** Força do Temporal agora (0 a 1): a chuva engrossa e afina em rampaS. */
+export function forcaDoTemporal(c) {
+  if (!c || c.id !== 'temporal' || c.fase !== 'ativa') return 0;
+  const R = CRISES.temporal.rampaS;
+  return Math.max(0, Math.min(1, c.t / R, (c.def.duracaoS - c.t) / R));
+}

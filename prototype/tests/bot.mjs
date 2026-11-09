@@ -75,6 +75,18 @@ export function botInput(game) {
       cx -= -a.dy * sgn * 8;
       cy -= a.dx * sgn * 8;
       n += 3;
+    } else if (a.tipo === 'leque') {
+      // a varredura do Chefe do Tráfico (D91): sai do leque pelo lado mais perto
+      const qx = p.x - a.x;
+      const qy = p.y - a.y;
+      const d = Math.hypot(qx, qy) || 1;
+      let da = Math.atan2(qy, qx) - a.ang;
+      da = Math.atan2(Math.sin(da), Math.cos(da));
+      if (d > a.r + 1 || Math.abs(da) > a.ab / 2 + 0.15) continue;
+      const sgn = da >= 0 ? 1 : -1;
+      cx -= -Math.sin(a.ang) * sgn * 8;
+      cy -= Math.cos(a.ang) * sgn * 8;
+      n += 3;
     } else {
       const qx = p.x - a.x;
       const qy = p.y - a.y;
@@ -85,8 +97,8 @@ export function botInput(game) {
       n += 3;
     }
   }
-  for (const o of BOT.dodge ? game.monstraoObjs || [] : []) {
-    if (o.tipo !== 'anel') continue;
+  const aneis = BOT.dodge ? [...(game.monstraoObjs || []).filter((o) => o.tipo === 'anel'), ...(game.djAneis || [])] : [];
+  for (const o of aneis) {
     const qx = p.x - o.x;
     const qy = p.y - o.y;
     const d = Math.hypot(qx, qy) || 1;

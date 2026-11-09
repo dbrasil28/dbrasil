@@ -58,7 +58,7 @@ test('Apagão: aparece um cofre que só brilha no escuro', () => {
   assert.ok(g.achados.some((a) => a.soNoEscuro), 'sem o cofre do escuro');
 });
 
-test('Morro: no Baile a horda em volta para para dançar e chegam Funkeiros; no curto, a faísca dá choque', () => {
+test('Morro: no Temporal quem está na escadaria escorrega morro abaixo (D91); no curto, a faísca dá choque', () => {
   const g = jogo();
   g.world.gateOpen = true;
   g.player.x = (g.world.gate.x0 + g.world.gate.x1) / 2;
@@ -68,14 +68,24 @@ test('Morro: no Baile a horda em volta para para dançar e chegam Funkeiros; no 
   g.player.hp = 1e6;
   g.stats.maxHp = 1e6;
   assert.equal(g.segment, 'morro');
-  const e = g.spawnEnemy('telespectador', g.player.x + 3, g.player.y);
-  forcar(g, 'baile');
-  rodar(g, 0.2);
-  assert.ok(e.dancaT > 0, 'não parou para dançar');
-  const x0 = e.x;
+  // numa escadaria do morro, parado: o Temporal puxa ele e a horda para baixo
+  const w = g.world;
+  const esc = w.path.find((k, i) => i > 2 && k.kind === 'escadaria');
+  const p = g.player;
+  p.x = (esc.x0 + esc.x1) / 2;
+  p.y = (esc.y0 + esc.y1) / 2;
+  p.ri = w.path.indexOf(esc);
+  const e = g.spawnEnemy('telespectador', p.x + 0.8, esc.y0 + 2);
+  e.speed = 0;
+  e.hp = e.maxHp = 1e6; // o Capacete não derruba ele no meio do teste
+  forcar(g, 'temporal');
+  rodar(g, CRISES.temporal.rampaS + 0.2);
+  const y0 = p.y;
+  const ey0 = e.y;
   rodar(g, 1);
-  assert.ok(Math.abs(e.x - x0) < 0.3, 'andou dançando');
-  assert.ok(g.enemies.some((o) => !o.dead && o.type === 'funkeiro'), 'sem Funkeiros');
+  assert.ok(p.y > y0 + 0.3, `o Juninho não escorregou (${(p.y - y0).toFixed(2)} m)`);
+  assert.ok(e.y > ey0 + 0.5, 'a horda não escorregou');
+  assert.ok(p.y - y0 < e.y - ey0, 'o Juninho escorregou tanto quanto a horda');
   g.crise = null;
   forcar(g, 'curto');
   rodar(g, 0.2);

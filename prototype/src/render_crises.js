@@ -1,8 +1,9 @@
 // Desenho das crises da cidade (crises.js): o Apagão (escuro, só a luz dos postes e do Juninho, os olhos da
-// horda brilhando), o Baile (luzes coloridas no chão) e o Gato de luz em curto (faísca estalando antes do
-// choque). A água da Ressaca vem com o mar (render_mar.js).
+// horda brilhando), o Temporal (chuva e a água descendo as escadarias) e o Gato de luz em curto (faísca
+// estalando antes do choque). A água da Ressaca vem com o mar (render_mar.js).
 import { CRISES } from './config.js';
 import { fxImg } from './render_fx.js';
+import { forcaDoTemporal } from './crises.js';
 
 const a = { x: 0, y: 0 };
 const b = { x: 0, y: 0 };
@@ -14,24 +15,33 @@ export function drawCriseChao(ctx, game, cam, ppu, t, bounds) {
   const c = game.crise;
   if (!c || c.fase !== 'ativa') return;
   // a água da Ressaca é desenhada com o mar (render_mar.js), por baixo dos coqueiros e da gente
-  if (c.id === 'baile') {
-    // luzes de festa girando em volta do Juninho
-    const p = game.player;
-    const cores = ['255,60,200', '60,220,255', '255,210,31'];
+  if (c.id === 'temporal') {
+    // a água descendo as escadarias: faixas claras correndo morro abaixo
+    const k = forcaDoTemporal(c);
+    const w = game.world;
+    if (!w || k <= 0) return;
     ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    cores.forEach((cor, i) => {
-      const ang = t * (1.3 + i * 0.4) + i * 2.1;
-      cam.toScreen(p.x + Math.cos(ang) * 4.5, p.y + Math.sin(ang) * 3, a);
-      const R = 2.4 * ppu;
-      const g = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, R);
-      g.addColorStop(0, `rgba(${cor},0.38)`);
-      g.addColorStop(1, `rgba(${cor},0)`);
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.ellipse(a.x, a.y, R, R * cam.k, 0, 0, Math.PI * 2);
-      ctx.fill();
-    });
+    for (let i = 2; i < w.path.length; i++) {
+      const s = w.path[i];
+      if (s.kind !== 'escadaria' || s.y1 < bounds.minY - 2 || s.y0 > bounds.maxY + 2) continue;
+      cam.toScreen(s.x0, s.y0, a);
+      cam.toScreen(s.x1, s.y1, b);
+      ctx.fillStyle = `rgba(120,170,210,${(0.22 * k).toFixed(3)})`;
+      ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
+      ctx.strokeStyle = `rgba(220,240,255,${(0.45 * k).toFixed(3)})`;
+      ctx.lineWidth = Math.max(1, ppu * 0.05);
+      const n = Math.max(3, Math.round((s.x1 - s.x0) * 1.6));
+      for (let j = 0; j < n; j++) {
+        const x = s.x0 + ((j + 0.5) / n) * (s.x1 - s.x0);
+        const fase = ((t * 1.8 + j * 0.37) % 1) * (s.y1 - s.y0);
+        cam.toScreen(x, s.y0 + fase, a);
+        cam.toScreen(x, Math.min(s.y1, s.y0 + fase + 1.4), b);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      }
+    }
     ctx.restore();
   } else if (c.id === 'curto') {
     const K = CRISES.curto;
@@ -94,6 +104,10 @@ const OLHO_LADO = (100 * Math.PI) / 180;
 /** Por cima de tudo: o escuro do Apagão (com a luz dos postes e do Juninho) e os olhos da horda. */
 export function drawCriseCeu(ctx, game, cam, ppu, t, playerPx, propsVisiveis) {
   const c = game.crise;
+  if (c && c.id === 'temporal') {
+    drawChuva(ctx, cam, t, forcaDoTemporal(c));
+    return;
+  }
   if (!c || c.fase !== 'ativa' || c.id !== 'apagao') return;
   const A = CRISES.apagao;
   const k = Math.min(1, c.t / A.rampaS, (c.def.duracaoS - c.t) / A.rampaS);
@@ -195,3 +209,28 @@ export function drawCriseCeu(ctx, game, cam, ppu, t, playerPx, propsVisiveis) {
 
 /** O cofre que só aparece no escuro não se desenha de dia. */
 export const escondidoDeDia = (game, q) => q.soNoEscuro && !ativa(game, 'apagao');
+
+/** Temporal: o céu escurece um pouco e a chuva cai inclinada pela tela inteira (riscos claros). */
+function drawChuva(ctx, cam, t, k) {
+  if (k <= 0) return;
+  const W = cam.viewW;
+  const H = cam.viewH;
+  ctx.save();
+  ctx.fillStyle = `rgba(20,30,48,${(0.28 * k).toFixed(3)})`;
+  ctx.fillRect(-20, -20, W + 40, H + 40);
+  ctx.strokeStyle = `rgba(200,220,245,${(0.42 * k).toFixed(3)})`;
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  const n = Math.round(90 * k);
+  for (let i = 0; i < n; i++) {
+    // posição fixa por gota, caindo com o tempo (sem sorteio a cada quadro)
+    const sx = ((i * 0.6180339) % 1) * (W + 120) - 60;
+    const vy = 900 + ((i * 0.7548777) % 1) * 500;
+    const y = ((t * vy + i * 53.9) % (H + 80)) - 40;
+    const x = sx + y * 0.18;
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - 5, y - 22);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
