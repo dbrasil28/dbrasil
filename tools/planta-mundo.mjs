@@ -36,7 +36,7 @@ const NOME = {
   cadeira_praia: 'Cadeira de praia', engradado: 'Engradado', botijao: 'Botijão', banquinho: 'Banquinho', pneu: 'Pneu solto',
   coco: 'Coco', marmita: 'Marmita', pastel: 'Pastel', milho_cura: 'Milho', acai_cura: 'Açaí',
   paredao: 'Paredão de som', sofa: 'Sofá velho', cadeiras: 'Cadeiras empilhadas', barraca_boteco: 'Bar',
-  mesaDj: 'Mesa do DJ (palco)', trelica: 'Treliça de iluminação, com refletores e canhões de luz', globo: 'Globo espelhado', neon: 'Néon "BAILE DA ESPLANADA"',
+  mesaDj: 'Mesa do DJ (palco)', trelica: 'Treliça de iluminação, com refletores', canhao: 'Canhão de luz para o céu', globo: 'Globo espelhado', neon: 'Néon "BAILE DA ESPLANADA"',
 };
 
 const data = {
@@ -44,7 +44,7 @@ const data = {
   startX: ROUTE.orla.startX,
   orlaTop: r2(w.orlaTop), startY: ROUTE.orla.startY, morroTop: r2(w.morroTop),
   path: w.path.map((k, i) => ({ i, kind: i === 0 ? 'orla' : i === 1 ? 'escadaria_pe' : k.baile ? 'baile' : k.portao ? 'portao' : k.kind, b: box(k), nome: k.nome || '', entrada: !!k.entrada, fundo: !!k.fundo, achado: k.achado || '' })),
-  // o baile da esplanada (D91): palco, treliças, globo e néon (desenho de código no jogo)
+  // o baile da esplanada (D91): palco, treliças, canhões, globo e néon (D93: treliça, canhão e globo com arte)
   deco: (w.baileDeco || []).map((d) => ({ tipo: d.tipo, b: d.x0 !== undefined ? [r2(d.x0), r2(d.y0 ?? d.y - 0.4), r2(d.x1), r2(d.y1 ?? d.y + 0.4)] : [r2(d.x - 0.5), r2(d.y - 0.5), r2(d.x + 0.5), r2(d.y + 0.5)] })),
   gate: box(w.gate),
   joints: w.joints.map((j) => [r2(j.x), r2(j.y)]),

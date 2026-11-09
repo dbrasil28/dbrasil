@@ -5,7 +5,9 @@ Pedido do autor (09/11/2026). O Morro cresceu. A última esplanada antes do alto
 O jogo já roda tudo isso. Enquanto a arte nova não chega:
 - o DJ usa a arte do Funkeiro, pintada de roxo;
 - o Chefe usa a arte de hoje, aumentada (mesma escala nas duas direções, nada espremido);
-- a treliça, o globo, a mesa do DJ, o néon, os canhões e a tela do Plantão são desenho de código.
+- a mesa do DJ, o néon, o bar e a tela do Plantão são desenho de código.
+
+**Já chegou (D93, Figma, conta pessoal do autor):** a treliça (27), o globo (28), o canhão (30) e a TV de tela plana (31) estão no jogo, em `prototype/assets/cenario/favela/baile_*.webp`. As folhas originais estão em `docs/arte/objetos_figma/` (`baile_frontal_figma.webp` e `baile_pecas_figma.webp`), recortadas com `tools/recortar-pecas.py`. A mesa do DJ (29), o bar (32) e a TV de tubo vieram girados de 7 a 15° e ficaram de fora (regra do ângulo). O que deu certo no pedido: **vista de frente, como uma planta de fachada**, os dois pés na mesma linha e nada de três-quartos (o texto em inglês está na seção 27–33, abaixo).
 
 ## Como pedir
 
@@ -35,11 +37,11 @@ O jogo já roda tudo isso. Enquanto a arte nova não chega:
 | 16–19 | `funkeiro_loiro_caminhada_1..4.png` | Funkeiro de cabelo loiro platinado, 16 direções, 6 quadros | O povo do baile e a horda que ele vira |
 | 20 | `funkeiro_loiro_poses.png` | Ataque e fúria do Funkeiro loiro (16 direções, 2 colunas) | Igual ao Funkeiro de hoje |
 | 21–26 | `danca_<pessoa>.png` | Dançando no lugar, 6 quadros, 4 direções (0, 22,5, 337,5 e 45) | O povo da festa antes do sinal |
-| 27 | `baile_trelica.png` | Torre de treliça de alumínio e um pedaço de viga com refletores | As estruturas de iluminação |
-| 28 | `baile_globo.png` | Globo espelhado pendurado, 6 quadros girando | O globo do meio da pista |
+| 27 | `baile_trelica.png` | Torre de treliça de alumínio e um pedaço de viga com refletores | As estruturas de iluminação (**feito, D93**) |
+| 28 | `baile_globo.png` | Globo espelhado pendurado, 6 quadros girando | O globo do meio da pista (**feito, D93**, um quadro; o giro é do jogo) |
 | 29 | `baile_mesa_dj.png` | Case preto com dois toca-discos e notebook | O palco do DJ |
-| 30 | `baile_canhao.png` | Canhão de luz no chão, apontado para cima (o facho é do jogo) | Os canhões para o céu |
-| 31 | `baile_tvs.png` | TV de tubo e TV de tela plana, cada uma num pé de ferro, tela apagada | As TVs (o jogo põe o clipe e o Plantão na tela) |
+| 30 | `baile_canhao.png` | Canhão de luz no chão, apontado para cima (o facho é do jogo) | Os canhões para o céu (**feito, D93**) |
+| 31 | `baile_tvs.png` | TV de tubo e TV de tela plana, cada uma num pé de ferro, tela apagada | As TVs (o jogo põe o clipe e o Plantão na tela; **a de tela plana está feita, D93**) |
 | 32 | `baile_bar.png` | Bar do baile: balcão com isopor, freezer e engradados | Os dois bares da esplanada |
 | 33 | `baile_neon.png` | Moldura de néon rosa vazia, para pendurar no muro | O letreiro (o texto é do jogo) |
 
@@ -121,6 +123,14 @@ Descrições (`OBJECT:`):
 - 30, canhão: `a stage searchlight on a heavy base on the ground, pointing straight up.`
 - 31, TVs: `an old CRT television and a flat screen TV, each on a welded iron stand, screens dark.`
 - 32, bar: `an improvised baile bar counter made of plywood with a white chest freezer, a styrofoam cooler and stacked beer crates (no brands).`
+
+O pedido acima, de três-quartos, saiu girado de 7 a 15° no Figma (GPT Image) e isométrico no Gemini. O que acertou o ângulo (D93) foi trocar a câmera por esta, que serve para as peças que faltam (mesa do DJ, bar, TV de tubo):
+
+```
+CAMERA, critical: perfectly straight-on front view at eye level, the camera exactly centered in front of each object, zero rotation, zero yaw. The object faces the camera flat: its bottom edge is one horizontal line, its sides perfectly vertical. We see only the front of each object, like a flat elevation drawing. No three-quarter view, no corner view, no isometric, no perspective convergence.
+```
+
+Antes de pôr no jogo, medir: os dois pés na mesma altura e a beirada de cima reta (0°, como as casas da favela).
 - 33, néon: `an empty neon sign frame, pink neon tube border only, to hang on a wall.`
 
 ## Quando chegar

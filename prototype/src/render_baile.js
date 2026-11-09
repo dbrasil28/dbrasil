@@ -2,16 +2,32 @@
 // em silhueta), o palco, a barricada do portão, as luzes de néon girando no chão, os anéis do grave do DJ e,
 // por cima de tudo, a noite que cai só ali, com os buracos de luz. E a TV grande na tela durante o Plantão.
 import { BAILE } from './config.js';
-import { images } from './sprites.js';
+import { images, ARTE_BAILE } from './sprites.js';
 import { palcoDoBaile } from './cenario.js';
 
 const a = { x: 0, y: 0 };
 const b = { x: 0, y: 0 };
+const pos = { x: 0, y: 0, w: 0, h: 0, s: 1 };
 let escuro = null;
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 /** O pulso do batidão (0 a 1, forte na batida). */
 const pulso = (t) => Math.pow(1 - ((t * BAILE.pulsoBpm) / 60) % 1, 3);
+
+/**
+ * Onde a arte de uma peça cai na tela: o pé dela (art.base) no ponto (x, y) do chão, com mPorPx metros por pixel da
+ * arte, a mesma escala nos dois eixos (a arte vem de frente, no ângulo do jogo: nada se espreme nem se gira).
+ */
+function arteNoChao(cam, im, art, x, y, mPorPx, ppu, out) {
+  cam.toScreen(x, y, out);
+  const s = mPorPx * ppu;
+  out.s = s;
+  out.x -= art.base[0] * s;
+  out.y -= art.base[1] * s;
+  out.w = im.width * s;
+  out.h = im.height * s;
+  return out;
+}
 
 /** As TVs do fundo da esplanada: (x, y) no chão do fundo; o desenho sobe BAILE.tv.altura. */
 export function tvsDoBaile(w) {
@@ -165,6 +181,16 @@ export function drawBaileChao(ctx, game, cam, ppu, t, bounds) {
 /** Uma TV no muro do fundo (entra na ordem de profundidade, na frente das casas do fundo). */
 export function drawTvBaile(ctx, game, cam, ppu, t, tv) {
   const T = BAILE.tv;
+  const im = images.baile_tv;
+  if (im) {
+    // a TV do Figma no pé de ferro; o que passa nela vai no retângulo da tela da arte
+    const A = ARTE_BAILE.tv;
+    const [x0, y0, x1, y1] = A.tela;
+    const r = arteNoChao(cam, im, A, tv.x, tv.y, T.larg / (x1 - x0), ppu, pos);
+    ctx.drawImage(im, r.x, r.y, r.w, r.h);
+    telaDaTv(ctx, r.x + x0 * r.s, r.y + y0 * r.s, (x1 - x0) * r.s, (y1 - y0) * r.s, game, t);
+    return;
+  }
   cam.toScreen(tv.x - T.larg / 2, tv.y, a);
   cam.toScreen(tv.x + T.larg / 2, tv.y, b);
   const wd = b.x - a.x;
@@ -264,6 +290,7 @@ export function drawBaileCeu(ctx, game, cam, ppu, t) {
   buraco(p.x, p.y, 4.2, 0.85);
   for (const l of luzes(w, t, luzTmp)) buraco(l.x, l.y, BAILE.luzes.raioM, 0.7);
   for (const tv of tvsDoBaile(w)) buraco(tv.x, tv.y, 2.6, 0.95, BAILE.tv.altura);
+  for (const d of w.baileDeco || []) if (d.tipo === 'globo') buraco(d.x, d.y, 1.3, 0.6, d.h);
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.drawImage(escuro, 0, 0);
@@ -285,6 +312,7 @@ export function drawBaileCeu(ctx, game, cam, ppu, t) {
     ctx.fillRect(a.x - R, a.y - BAILE.tv.altura * ppu - R, R * 2, R * 2);
   }
   reflexosDoGlobo(ctx, game, cam, ppu, t, noite);
+  refletoresAcesos(ctx, game, cam, ppu, t, noite);
   canhoes(ctx, game, cam, ppu, t);
   if (!plant || (S && S.fase === 'luta')) {
     for (const l of luzes(w, t, luzTmp)) {
@@ -330,20 +358,67 @@ export function drawPlantaoTela(ctx, game, cam, t) {
   ctx.restore();
 }
 
-// ---------- o cenário da festa desenhado em código (até a arte chegar: PEDIDO_MORRO_BAILE.md) ----------
+// ---------- o cenário da festa: treliça, globo e canhões com a arte do Figma (D93); o resto em código ----------
 
 const c0 = { x: 0, y: 0 };
 const c1 = { x: 0, y: 0 };
 const c2 = { x: 0, y: 0 };
 const c3 = { x: 0, y: 0 };
 
-/** Uma peça do cenário da festa (entra na ordem de profundidade): mesa do DJ, néon, treliça ou globo. */
+/** Uma peça do cenário da festa (entra na ordem de profundidade): mesa do DJ, néon, treliça, canhão ou globo. */
 export function drawDecoBaile(ctx, game, cam, ppu, t, o) {
   const noite = game.noiteBaile || 0;
   if (o.tipo === 'mesaDj') mesaDj(ctx, cam, ppu, t, o, noite);
   else if (o.tipo === 'neon') neon(ctx, cam, ppu, t, o, noite);
   else if (o.tipo === 'trelica') trelica(ctx, cam, ppu, t, o, noite);
+  else if (o.tipo === 'canhao') canhao(ctx, cam, ppu, o);
   else if (o.tipo === 'globo') globo(ctx, cam, ppu, t, o, noite);
+}
+
+/** A treliça na tela (arte do Figma): a arte inteira ocupa de x0 a x1, com o pé no meio de o.y. */
+function trelicaNaTela(cam, ppu, o, out) {
+  const im = images.baile_trelica;
+  return im ? arteNoChao(cam, im, ARTE_BAILE.trelica, o.x, o.y, (o.x1 - o.x0) / im.width, ppu, out) : null;
+}
+
+/** O canhão de luz na tela (arte do Figma, altura o.h do pé ao topo). */
+function canhaoNaTela(cam, ppu, o, out) {
+  const im = images.baile_canhao;
+  const A = ARTE_BAILE.canhao;
+  return im ? arteNoChao(cam, im, A, o.x, o.y, o.h / (A.base[1] - A.topo), ppu, out) : null;
+}
+
+/** Onde sai o facho do canhão (a lente, na tela). */
+function lenteDoCanhao(cam, ppu, o, out) {
+  const r = canhaoNaTela(cam, ppu, o, pos);
+  if (r) {
+    out.x = r.x + ARTE_BAILE.canhao.lente[0] * r.s;
+    out.y = r.y + ARTE_BAILE.canhao.lente[1] * r.s;
+  } else {
+    cam.toScreen(o.x, o.y, out);
+    out.y -= o.h * ppu * 0.92;
+  }
+  return out;
+}
+
+/** O canhão de luz no chão, com a lente para o céu (o facho vem em canhoes, por cima da noite). */
+function canhao(ctx, cam, ppu, o) {
+  const r = canhaoNaTela(cam, ppu, o, pos);
+  if (r) {
+    ctx.drawImage(images.baile_canhao, r.x, r.y, r.w, r.h);
+    return;
+  }
+  // sem a arte: o tambor preto e a lente
+  cam.toScreen(o.x, o.y, c0);
+  const L = ppu * 0.3;
+  const H = o.h * ppu;
+  ctx.fillStyle = '#17151a';
+  ctx.fillRect(c0.x - L, c0.y - H * 0.45, L * 2, H * 0.45);
+  ctx.fillRect(c0.x - L * 0.8, c0.y - H, L * 1.6, H * 0.5);
+  ctx.fillStyle = '#d9dde6';
+  ctx.beginPath();
+  ctx.ellipse(c0.x, c0.y - H * 0.92, L * 0.7, L * 0.35, 0, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 /** A mesa do DJ: o case preto, os dois toca-discos girando e a luz do notebook. */
@@ -410,8 +485,15 @@ function neon(ctx, cam, ppu, t, o, noite) {
   ctx.restore();
 }
 
-/** Treliça de iluminação: duas torres de ferro e a viga por cima, com os refletores coloridos. */
+/** Treliça de iluminação (arte do Figma): duas torres e a viga, com os refletores; o brilho deles vem de noite. */
 function trelica(ctx, cam, ppu, t, o, noite) {
+  const r = trelicaNaTela(cam, ppu, o, pos);
+  if (r) ctx.drawImage(images.baile_trelica, r.x, r.y, r.w, r.h);
+  else trelicaDeCodigo(ctx, cam, ppu, t, o, noite);
+}
+
+/** Sem a arte: duas torres de ferro e a viga por cima, com os refletores coloridos. */
+function trelicaDeCodigo(ctx, cam, ppu, t, o, noite) {
   const H = o.h * ppu;
   cam.toScreen(o.x0, o.y, c0);
   cam.toScreen(o.x1, o.y, c1);
@@ -463,11 +545,27 @@ function trelica(ctx, cam, ppu, t, o, noite) {
   }
 }
 
-/** O globo espelhado pendurado no meio da pista, girando (os reflexos no chão vêm em drawBaileCeu). */
+/** O globo espelhado pendurado no meio da pista (arte do Figma); os brilhos girando e os reflexos vêm de noite. */
 function globo(ctx, cam, ppu, t, o, noite) {
   cam.toScreen(o.x, o.y, c0);
   const R = BAILE.cenario.globoRaioM * ppu;
   const y = c0.y - o.h * ppu;
+  const im = images.baile_globo;
+  if (im) {
+    // a bola da arte com o centro em o.h e o raio do config; o cabo sobe da ponta da corrente
+    const A = ARTE_BAILE.globo;
+    const s = R / A.bola[2];
+    const x0 = c0.x - A.bola[0] * s;
+    const y0 = y - A.bola[1] * s;
+    ctx.strokeStyle = 'rgba(40,38,44,0.9)';
+    ctx.lineWidth = Math.max(1, ppu * 0.03);
+    ctx.beginPath();
+    ctx.moveTo(x0 + A.corrente[0] * s, y0 + A.corrente[1] * s);
+    ctx.lineTo(x0 + A.corrente[0] * s, y0 + A.corrente[1] * s - ppu * 2.6);
+    ctx.stroke();
+    ctx.drawImage(im, x0, y0, im.width * s, im.height * s);
+    return;
+  }
   ctx.strokeStyle = 'rgba(40,38,44,0.9)';
   ctx.lineWidth = Math.max(1, ppu * 0.03);
   ctx.beginPath();
@@ -498,13 +596,72 @@ function globo(ctx, cam, ppu, t, o, noite) {
   ctx.stroke();
 }
 
-/** Os reflexos do globo correndo pelo chão da pista (de noite). */
+/** De noite, os refletores das treliças acesos: o brilho na lente, na cor dela, e o cone fraco até o chão. */
+function refletoresAcesos(ctx, game, cam, ppu, t, noite) {
+  const A = ARTE_BAILE.trelica;
+  for (const o of game.world.baileDeco || []) {
+    if (o.tipo !== 'trelica') continue;
+    const r = trelicaNaTela(cam, ppu, o, pos);
+    if (!r) return;
+    const chao = r.y + A.base[1] * r.s;
+    A.lentes.forEach(([lx, ly], i) => {
+      const x = r.x + lx * r.s;
+      const y = r.y + ly * r.s;
+      const cor = A.cores[i];
+      const al = noite * (0.5 + 0.4 * pulso(t + i * 0.13));
+      const R = A.raioLente * r.s * 3.4;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, R);
+      g.addColorStop(0, `rgba(255,255,255,${(al * 0.9).toFixed(3)})`);
+      g.addColorStop(0.28, `rgba(${cor},${(al * 0.75).toFixed(3)})`);
+      g.addColorStop(1, `rgba(${cor},0)`);
+      ctx.fillStyle = g;
+      ctx.fillRect(x - R, y - R, R * 2, R * 2);
+      // o cone de luz descendo (balança um pouco, cada um no seu tempo)
+      const lado = Math.sin(t * 1.1 + i * 1.7) * ppu * 0.6;
+      const L0 = A.raioLente * r.s;
+      const L1 = ppu * 0.9;
+      const c = ctx.createLinearGradient(x, y, x, chao);
+      c.addColorStop(0, `rgba(${cor},${(al * 0.22).toFixed(3)})`);
+      c.addColorStop(1, `rgba(${cor},0)`);
+      ctx.fillStyle = c;
+      ctx.beginPath();
+      ctx.moveTo(x - L0, y);
+      ctx.lineTo(x + L0, y);
+      ctx.lineTo(x + lado + L1, chao);
+      ctx.lineTo(x + lado - L1, chao);
+      ctx.closePath();
+      ctx.fill();
+    });
+  }
+}
+
+/** Os reflexos do globo correndo pelo chão da pista e os brilhos na bola girando (de noite). */
 function reflexosDoGlobo(ctx, game, cam, ppu, t, noite) {
   const w = game.world;
   const g = (w.baileDeco || []).find((d) => d.tipo === 'globo');
   if (!g || noite <= 0.05) return;
   const k = w.baile;
-  const n = BAILE.cenario.reflexos;
+  const C = BAILE.cenario;
+  // os brilhos: estrelinhas que passam pela frente da bola, como se ela girasse
+  cam.toScreen(g.x, g.y, c1);
+  const R = C.globoRaioM * ppu;
+  const gy = c1.y - g.h * ppu;
+  ctx.fillStyle = '#fff';
+  for (let i = 0; i < C.brilhosGlobo; i++) {
+    const fase = i * 2.39 + t * 1.2;
+    const frente = Math.cos(fase);
+    if (frente < 0.25) continue;
+    const bx = c1.x + Math.sin(fase) * R * 0.85;
+    const by = gy + (((i * 0.618) % 1) - 0.5) * R * 1.5;
+    const al = noite * frente * (0.55 + 0.45 * pulso(t + i * 0.21));
+    const L = R * 0.42 * frente;
+    const e = Math.max(1, ppu * 0.035);
+    ctx.globalAlpha = al;
+    ctx.fillRect(bx - L, by - e / 2, L * 2, e);
+    ctx.fillRect(bx - e / 2, by - L, e, L * 2);
+  }
+  ctx.globalAlpha = 1;
+  const n = C.reflexos;
   ctx.fillStyle = `rgba(255,255,255,${(0.55 * noite).toFixed(3)})`;
   for (let i = 0; i < n; i++) {
     const r = 2 + ((i * 0.6180339) % 1) * Math.min(k.x1 - k.x0, k.y1 - k.y0) * 0.5;
@@ -515,7 +672,7 @@ function reflexosDoGlobo(ctx, game, cam, ppu, t, noite) {
   }
 }
 
-/** Os canhões de luz apontados para o céu, nos pés das treliças, varrendo; acima da tela, a claridade na beira. */
+/** Os fachos dos canhões de luz para o céu, saindo da lente e varrendo; acima da tela, a claridade na beira. */
 function canhoes(ctx, game, cam, ppu, t) {
   const w = game.world;
   const S = game.baile;
@@ -527,13 +684,12 @@ function canhoes(ctx, game, cam, ppu, t) {
   if (longe > K.pertoM) return;
   const perto = 1 - longe / K.pertoM;
   const forca = K.forca * (0.45 + 0.55 * Math.max(perto, game.noiteBaile || 0)) * (S && S.fase === 'fim' ? 1 - clamp01(S.faseT / BAILE.fimS) : 1);
-  const bases = [];
-  for (const d of w.baileDeco) if (d.tipo === 'trelica') bases.push([d.x0, d.y], [d.x1, d.y]);
+  const bases = w.baileDeco.filter((d) => d.tipo === 'canhao');
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   let algumNaTela = false;
-  bases.forEach(([x, y], i) => {
-    cam.toScreen(x, y, c0);
+  bases.forEach((d, i) => {
+    lenteDoCanhao(cam, ppu, d, c0);
     if (c0.y > -40) algumNaTela = true;
     const ang = -Math.PI / 2 + Math.sin(t * ((Math.PI * 2) / K.giroS) + i * 1.3) * K.varreRad + (i % 2 ? 0.12 : -0.12);
     const L = cam.viewH * 1.6;
@@ -556,14 +712,22 @@ function canhoes(ctx, game, cam, ppu, t) {
     ctx.lineTo(c0.x - px * larg0, c0.y - py * larg0);
     ctx.closePath();
     ctx.fill();
+    // a lente acesa
+    const R = ppu * 0.45;
+    const gl = ctx.createRadialGradient(c0.x, c0.y, 0, c0.x, c0.y, R);
+    gl.addColorStop(0, `rgba(255,255,255,${Math.min(1, forca * 2.6).toFixed(3)})`);
+    gl.addColorStop(0.35, `rgba(${cor},${Math.min(1, forca * 1.6).toFixed(3)})`);
+    gl.addColorStop(1, `rgba(${cor},0)`);
+    ctx.fillStyle = gl;
+    ctx.fillRect(c0.x - R, c0.y - R, R * 2, R * 2);
   });
   if (!algumNaTela) {
     // o baile está acima da tela: a claridade colorida na beira de cima mostra onde é
     // (as faixas mais fortes andam de um lado para o outro, como os pés dos canhões varrendo)
     const top = cam.playTop || 0;
     const alt = cam.viewH * 0.3;
-    bases.forEach(([x], i) => {
-      cam.toScreen(x, game.player.y, c1);
+    bases.forEach((d, i) => {
+      cam.toScreen(d.x, game.player.y, c1);
       const bx = c1.x + Math.sin(t * ((Math.PI * 2) / K.giroS) + i * 1.3) * cam.viewW * 0.18;
       const cor = K.cores[i % K.cores.length];
       const g = ctx.createRadialGradient(bx, top, 0, bx, top, alt);

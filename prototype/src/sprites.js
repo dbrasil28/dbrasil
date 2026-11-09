@@ -393,6 +393,22 @@ export const ENEMY_ART = {
   },
 };
 
+/**
+ * Onde fica cada parte nas peças do baile (px da própria arte, medidos no recorte): base = o pé no chão (meio de
+ * baixo); a treliça tem as lentes dos refletores (com a cor de cada uma); a TV, o retângulo da tela; o canhão, a lente
+ * e o topo; o globo, o centro e o raio da bola e o topo da corrente. O jogo desenha na escala da arte, sem espremer.
+ */
+export const ARTE_BAILE = {
+  trelica: {
+    base: [342, 746], raioLente: 18,
+    lentes: [[159, 138], [252, 139], [344, 139], [434, 139], [526, 138]],
+    cores: ['255,170,40', '255,60,170', '60,150,255', '240,60,230', '255,170,40'],
+  },
+  tv: { base: [204, 622], tela: [17, 17, 390, 228] },
+  canhao: { base: [114, 503], topo: 7, lente: [115, 64] },
+  globo: { base: [115, 332], bola: [115.5, 224, 109], corrente: [116, 6] },
+};
+
 /** Atlas do Morro: carregados quando a passagem para o morro abre (carregarMorro), não no começo do jogo. */
 export const IMAGES_MORRO = {
   // casas da favela e os inimigos só do Morro (D81): fora da memória enquanto o Juninho está na Orla
@@ -407,6 +423,11 @@ export const IMAGES_MORRO = {
   fav_telhado_viela_dir: 'assets/cenario/favela/telhado_viela_dir.webp',
   fav_fios: 'assets/cenario/favela/fios_gatonet.webp',
   fav_bandeirinhas: 'assets/cenario/favela/bandeirinhas.webp',
+  // peças do baile (Figma, de frente, ângulo 0° conferido; tools/recortar-pecas.py; geometria em ARTE_BAILE)
+  baile_trelica: 'assets/cenario/favela/baile_trelica.webp',
+  baile_globo: 'assets/cenario/favela/baile_globo.webp',
+  baile_tv: 'assets/cenario/favela/baile_tv.webp',
+  baile_canhao: 'assets/cenario/favela/baile_canhao.webp',
   funkeiro_walk_atlas: 'assets/personagens/funkeiro/caminhada_atlas.webp', // Funkeiro Raivoso (Morro)
   traficante_walk_atlas: 'assets/personagens/traficante/caminhada_atlas.webp', // Traficante do Morro (Figma)
   chefe_trafico_walk_atlas: 'assets/personagens/chefe_trafico/caminhada_atlas.webp', // Chefe do Tráfico (Figma)

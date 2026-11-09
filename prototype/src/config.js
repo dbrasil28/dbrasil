@@ -824,19 +824,25 @@ export const BAILE = {
   postoM: 2.5,
   // luzes do baile: refletores de néon girando (cores, raio no chão), as TVs (largura e altura, m) e o brilho
   luzes: { n: 7, raioM: 4.2, giroS: 5.5, cores: ['255,60,200', '60,220,255', '170,90,255', '60,255,140', '255,170,40'], brilho: 0.3 },
-  tv: { larg: 2.3, alt: 1.35, altura: 2.0 },
+  tv: { larg: 2.3, alt: 1.3, altura: 2.43 }, // a tela (m) e a altura da beirada de baixo dela: as da arte do Figma
   // o cenário da festa (pedido do autor): palco com a mesa do DJ entre os paredões e o néon no muro, treliças de
-  // iluminação (a do palco e duas na frente da pista, com refletores), o globo espelhado no meio da pista, dois
-  // bares (com engradados, mesas e cadeiras para arremessar), sinuca, sofá, isopor e a churrasqueira do espetinho.
-  // Treliça, globo, mesa do DJ e néon são desenho de código até a arte chegar (PEDIDO_MORRO_BAILE.md).
+  // iluminação (a do palco emoldura a mesa do DJ; duas nos cantos da frente da pista), canhões de luz no chão, o
+  // globo espelhado no meio da pista, dois bares (com engradados, mesas e cadeiras para arremessar), sinuca, sofá,
+  // isopor e a churrasqueira do espetinho. Treliça, globo, TVs e canhões têm arte do Figma (D93), desenhada na escala
+  // dela: a largura (ou a altura) daqui decide o tamanho. Mesa do DJ e néon ainda são desenho de código.
   cenario: {
-    trelicaAltM: 4.4, trelicaPalcoM: 5.2, trelicaFrenteDy: 0.62, refletores: 5,
-    globoAltM: 4.9, globoDy: 0.45, globoRaioM: 0.42, reflexos: 46,
+    // treliças: largura da arte inteira (m) e onde ficam (dy: m a partir do fundo; frenteDy: fração da esplanada);
+    // altM só vale para o desenho de código, se a arte não carregar
+    trelica: { palcoLargM: 4.6, palcoDy: 1.0, cantoLargM: 4.0, frenteDy: 0.62, beiraM: 1.5, altM: 4.4 },
+    refletores: 5,
+    // canhões de luz no chão (altura da arte, m): dois por fora dos paredões e dois por dentro das treliças da frente
+    canhao: { altM: 1.3, palcoDx: 4.8, palcoDy: 1.4, frenteDx: 6.2, frenteDy: 0.3 },
+    globoAltM: 4.9, globoDy: 0.45, globoRaioM: 0.6, reflexos: 46, brilhosGlobo: 7,
     neonAltM: 4.5, neonTexto: 'BAILE DA ESPLANADA',
     mesaDj: { larg: 2.4, prof: 0.9, alt: 1.05, dy: 1.5 },
   },
   pulsoBpm: 130, // o batidão: pulso das luzes e o passo da dança
-  // canhões de luz apontados para o céu (pedido do autor), nos pés das treliças: varrem ±varreRad e se veem de longe
+  // canhões de luz apontados para o céu (pedido do autor), saindo da lente de cada canhão: varrem ±varreRad e se veem de longe
   // (de pertoM para cá; acima da tela, a claridade colorida na beira de cima avisa onde é o baile)
   canhoes: { varreRad: 0.42, giroS: 3.2, forca: 0.3, pertoM: 70, cores: ['200,230,255', '255,80,210', '90,220,255', '200,140,255'] },
 };

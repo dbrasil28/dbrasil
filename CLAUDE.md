@@ -38,6 +38,8 @@ python3 -I tools/montar-aura.py docs/arte/juninho_aura/folha_1_recebida.webp pro
                                            # Juninho recebendo a aura (folha 6×4 de frente) no atlas da cena da relíquia
 python3 -I tools/render-bola.py docs/arte/objetos_figma/bola_texturas_figma.webp <saida>
                                            # Bola da Altinha em 3D (girando e rolando em 8 direções); numpy, Pillow
+python3 -I tools/recortar-pecas.py docs/arte/objetos_figma/baile_frontal_figma.webp <saida> baile trelica canhao tv
+                                           # recorta uma folha de objetos (fundo verde) em peças soltas; numpy, Pillow, opencv
 ```
 
 Rode `npm test` antes de qualquer commit.
