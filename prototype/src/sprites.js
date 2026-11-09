@@ -512,6 +512,8 @@ export const ICON_ART = {
 
 export const images = {};
 let pending = 0;
+/** As imagens que não chegaram (o jogo segue com o desenho de reserva): quantas e o endereço da primeira. */
+export const falhasDeArquivo = { n: 0, primeira: null };
 
 // No Android, voltar do segundo plano pode apagar todo canvas (o sistema solta a memória de imagem e devolve
 // em branco). Os personagens vivem em canvas (as células recortadas das folhas, que saem da memória depois
@@ -685,6 +687,8 @@ function carregar(id, src, onEach) {
       resolve();
     };
     im.onerror = () => {
+      falhasDeArquivo.n++;
+      if (!falhasDeArquivo.primeira) falhasDeArquivo.primeira = im.src || src;
       pending--;
       resolve();
     };
