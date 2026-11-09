@@ -614,16 +614,20 @@ export const ABERTURA = {
 };
 
 // Crises da cidade (D39): em 30% e 60% do Caos do trecho; a TV avisa antes e nada fecha a passagem.
+// D87: nenhuma crise começa com o covil aberto ou com o chefão em campo; a que estiver no ar quando ele chega
+// acaba em corteS (com o escuro e o mar voltando ao normal), e a que só estava avisada não acontece.
 export const CRISES = {
   avisoS: 20, // a TV avisa esse tempo antes
+  corteS: 1.5,
   porTrecho: {
     orla: [{ id: 'ressaca', caos: 30, duracaoS: 35 }, { id: 'apagao', caos: 60, duracaoS: 35 }],
     morro: [{ id: 'baile', caos: 30, duracaoS: 30 }, { id: 'curto', caos: 60, duracaoS: 35 }],
   },
   // Ressaca: o mar avança até perto da ciclovia, a areia molhada deixa lento e as ondas derrubam a horda
   ressaca: { avancaS: 5, aguaSobraM: 1.5, lentoMul: 0.6, ondaS: 5, ondaCorreS: 1.0, ondaDano: 18, ondaEmpurra: 7, ondaEmpurraJuninho: 1.2 },
-  // Apagão: a tela escurece; só a luz dos postes e em volta do Juninho; os olhos da horda brilham
-  apagao: { luzPosteM: 4.5, luzJuninhoM: 3.4, escuro: 0.8, achadoLongeM: 14, rampaS: 2 },
+  // Apagão: a tela escurece; só a luz dos postes e em volta do Juninho; os olhos da horda brilham. A luz é
+  // esfumaçada (D87): cheia até miolo da distância e some aos poucos até luz*M; os postes têm um brilho quente
+  apagao: { luzPosteM: 5.5, luzJuninhoM: 4.2, miolo: 0.3, escuro: 0.8, brilhoPoste: 0.16, achadoLongeM: 14, rampaS: 2 },
   // Baile na laje: a horda em volta para para dançar, mas chega uma leva de Funkeiros
   baile: { raioM: 22, funkeiros: 4 },
   // Gato de luz em curto: faíscas perto do Juninho estalam (aviso) e dão o choque, nele também

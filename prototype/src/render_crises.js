@@ -111,24 +111,50 @@ export function drawCriseCeu(ctx, game, cam, ppu, t, playerPx, propsVisiveis) {
   g.fillStyle = `rgba(6,7,16,${A.escuro * k})`;
   g.fillRect(-50, -50, cam.viewW + 100, cam.viewH + 100);
   g.globalCompositeOperation = 'destination-out';
+  // a luz (D87): o degradê já no formato da poça de luz no chão (achatado como o chão na câmera), cheio no
+  // miolo e sumindo aos poucos até a beira, sem linha nenhuma
+  const M = A.miolo;
   const luz = (x, y, r) => {
     cam.toScreen(x, y, a);
     const R = r * ppu;
-    const gr = g.createRadialGradient(a.x, a.y, 0, a.x, a.y, R);
+    g.save();
+    g.translate(a.x, a.y);
+    g.scale(1, 0.8);
+    const gr = g.createRadialGradient(0, 0, 0, 0, 0, R);
     gr.addColorStop(0, 'rgba(0,0,0,1)');
-    gr.addColorStop(0.55, 'rgba(0,0,0,0.75)');
+    gr.addColorStop(M, 'rgba(0,0,0,0.95)');
+    gr.addColorStop(M + (1 - M) * 0.35, 'rgba(0,0,0,0.6)');
+    gr.addColorStop(M + (1 - M) * 0.7, 'rgba(0,0,0,0.22)');
     gr.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = gr;
-    g.beginPath();
-    g.ellipse(a.x, a.y, R, R * 0.8, 0, 0, Math.PI * 2);
-    g.fill();
+    g.fillRect(-R, -R, R * 2, R * 2);
+    g.restore();
   };
-  for (const pr of propsVisiveis || []) if (pr.kind === 'poste') luz(pr.x, pr.y, A.luzPosteM);
+  const postes = (propsVisiveis || []).filter((pr) => pr.kind === 'poste');
+  for (const pr of postes) luz(pr.x, pr.y, A.luzPosteM);
   const p = game.player;
   luz(p.x, p.y, A.luzJuninhoM);
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.drawImage(escuroCanvas, 0, 0);
+  ctx.restore();
+  // o brilho quente da lâmpada do poste no chão (luz de verdade, não só um buraco no escuro)
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const pr of postes) {
+    cam.toScreen(pr.x, pr.y, a);
+    const R = A.luzPosteM * ppu * 0.8;
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.scale(1, 0.8);
+    const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+    gr.addColorStop(0, `rgba(255,196,110,${(A.brilhoPoste * k).toFixed(3)})`);
+    gr.addColorStop(0.5, `rgba(255,170,80,${(A.brilhoPoste * 0.45 * k).toFixed(3)})`);
+    gr.addColorStop(1, 'rgba(255,160,70,0)');
+    ctx.fillStyle = gr;
+    ctx.fillRect(-R, -R, R * 2, R * 2);
+    ctx.restore();
+  }
   ctx.restore();
   // os olhos da horda brilhando no escuro
   ctx.save();

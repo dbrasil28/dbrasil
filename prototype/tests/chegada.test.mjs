@@ -118,3 +118,22 @@ test('atalho "Testar o Monstrão": fim da Orla com build, covil aberto e o Junin
   g.update(DT, parado);
   assert.ok(g.cerco && g.boss && g.boss.type === 'monstrao', 'o Monstrão não chegou');
 });
+
+test('nenhuma crise na luta com o chefão (D87): não começa com o covil aberto e a que está no ar acaba logo', async () => {
+  const { CRISES } = await import('../src/config.js');
+  const g = fimDaOrla();
+  const p = g.player;
+  // covil aberto, Caos lá em cima: o Apagão (60%) não começa
+  g.caosBonus = 100; // o Caos no máximo sem passar o tempo (o tempo traria as propostas, que pausam)
+  for (let i = 0; i < 30; i++) g.update(DT, parado);
+  assert.ok(!g.crise, 'uma crise começou com o covil aberto');
+  // um Apagão no ar quando o Monstrão chega: acaba em corteS
+  g.crise = { id: 'apagao', def: CRISES.porTrecho.orla[1], fase: 'ativa', t: 1 };
+  const a = centroDaArena(g);
+  p.x = a.x;
+  p.y = a.y + 2;
+  g.update(DT, parado);
+  assert.ok(g.boss && g.cerco, 'o Monstrão não chegou');
+  for (let i = 0; i < Math.ceil((CRISES.corteS + 0.2) * 30); i++) g.update(DT, parado);
+  assert.ok(!g.crise, 'o Apagão continuou na luta com o chefão');
+});

@@ -7,13 +7,31 @@ import { proximaCriseHorda, criseAcabouNaHorda } from './horda.js';
 
 const tmp = [];
 
+/** O chefão está em campo (ou chegando, no cerco da Orla): hora de luta, não de crise (D87). */
+const lutaDeChefe = (game) => (game.boss && !game.boss.dead) || !!game.cerco;
+
 /** Liga, avisa, roda e desliga as crises do trecho. */
 export function updateCrises(game, dt) {
   const lista = CRISES.porTrecho[game.segment];
   if (!lista || !game.world || game.over) return;
   if (!game.crisesFeitas) game.crisesFeitas = new Set();
   let c = game.crise;
-  if (!c && !game.caosParado) {
+  const chefe = lutaDeChefe(game);
+  if (c && chefe) {
+    if (c.fase === 'aviso') {
+      // só estava avisada: não acontece
+      game.crisesFeitas.add(c.id);
+      game.crise = null;
+      criseAcabouNaHorda(game);
+      return;
+    }
+    if (!c.cortada) {
+      c.cortada = true; // no ar: acaba logo, com o escuro e o mar voltando
+      c.t = Math.max(c.t, c.def.duracaoS - CRISES.corteS);
+    }
+  }
+  const covilAberto = !game.horda && game.covil && game.covil.aberto;
+  if (!c && !game.caosParado && !chefe && !covilAberto) {
     // na Horda, as crises são sorteadas e voltam (horda.js); na Carreira, cada uma acontece uma vez
     const def = game.horda ? proximaCriseHorda(game) : lista.find((d) => !game.crisesFeitas.has(d.id) && game.caos >= d.caos);
     if (def) {
