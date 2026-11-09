@@ -191,7 +191,7 @@ export const ENEMIES = {
   // Fica no palco (palcoM do meio do fundo) e se afasta de quem chega perto (keepM). Arte provisória: a do Funkeiro.
   dj_plantao: {
     name: 'DJ Plantão',
-    hp: 500, speed: 1.3, dmg: 10, radius: 0.6, size: 1.5, xp: 0, // a vida cresce com o tempo no trecho (uns 1.100 no baile)
+    hp: 1100, speed: 1.3, dmg: 10, radius: 0.6, size: 1.5, xp: 0, // a vida cresce com o tempo no trecho (uns 2.400 no baile)
     behavior: 'dj', elite: true, boss: true,
     keepM: 2.5, palcoM: 6, // keepM: só foge de quem chega mais perto que isso (era 4: com arma de perto, não dava)
     // cada anel tem uma brecha (brechaRad); o anel seguinte vem com a brecha girada (giroRad): quem está na brecha passa
@@ -202,13 +202,18 @@ export const ENEMIES = {
     fases: { cadenciaMul: 0.82, reforco: [[], ['funkeiro'], ['funkeiro', 'funkeiro']] },
     faseHorda: 10, // a cada fase, essa horda chega pelos lados da esplanada
     janela: { danoMul: 2 }, // subindo no som para o drop, leva o dobro
+    // pedido do autor ("matei o DJ em 2 toques"): fora da janela, o paredão segura o dano, no palco (palco) e na
+    // roda (pista); ofuscado pelo canhão ou subindo para o drop, leva o dobro (janela)
+    resiste: { palco: 0.3, pista: 0.55 },
     // ideia do autor (o Juninho não conseguia nem chegar perto): no palco, quem encosta (ativaM) num dos canhões de luz
     // vira o facho para o DJ, que fica ofuscado por ofuscaS (não solta anel, não foge, não faz o drop, e leva o dobro
     // da janela); cada canhão
     // volta a servir em cdS. Com a vida em vidaFrac, ele desce para a pista e a briga é na roda (rodaM de raio, como
     // na Orla): ele vem para cima (velMul), a torcida empurra quem encosta (dano a cada cdS, empurra)
     canhao: { ativaM: 1.8, ofuscaS: 4, cdS: 9 },
-    pista: { vidaFrac: 0.7, rodaM: 7, velMul: 1.5, linhaM: 0.85, dano: 2, cdS: 0.6, empurra: 6 },
+    // a roda (pedido do autor: em volta do Juninho e do DJ, e vai fechando como na Orla): duas linhas (linhaM) de gente
+    // a espacoM, que dá um passo para dentro (passoM) a cada fechaS, até minM; quem falta chega andando (andaMS)
+    pista: { vidaFrac: 0.7, rodaM: 7, minM: 4.5, fechaS: 5, passoM: 0.35, velMul: 1.5, linhaM: 0.85, espacoM: 0.85, andaMS: 5, dano: 2, cdS: 0.6, empurra: 6 },
   },
   // Morro (D37): o Cracudo vem em bando, cambaleando, e cata o XP do chão antes do Juninho; quando cai, solta o que
   // catou. catarM: até onde ele enxerga XP; catarS: agachado catando
@@ -833,11 +838,13 @@ export const CHEGADA = {
 // portão do fundo abre e a noite vai embora em fimS. A música do baile é "Ela Não Vale Nada" (do autor, 130 BPM;
 // musica.faseS é a primeira batida, para a dança e as luzes baterem com ela).
 export const BAILE = {
-  entraM: 2, chegaM: 40, noiteS: 4, noite: 0.62, pistaLuz: 0.45, // pistaLuz: a luz geral da pista (o povo aparece)
+  entraM: 2, chegaM: 40, noiteS: 3, noite: 0.62, pistaLuz: 0.45, // pistaLuz: a luz geral da pista (o povo aparece)
   // pedido do autor: a chegaM do baile (o último corredor) o caminho fica vazio de uma vez (a horda vai embora), a música
   // do jogo para e começa a anoitecer (noiteVazio, mais escuro conforme chega); a do baile começa de longe (musica.longe)
   // e sobe até a entrada. Quem volta para trás mais que soltaM depois da chegaM desfaz isso.
-  noiteVazio: 0.4, soltaM: 25,
+  noiteVazio: 0.75, soltaM: 25,
+  debanda: { velMul: 2.4, someS: 2.5 }, // a horda indo embora: corre (velMul) para longe do baile e some em someS
+  luzJuninho: { festaM: 4.2, festa: 0.85, corredorM: 2.6, corredor: 0.45 }, // a luz em volta dele: na festa e no corredor escuro
   musica: { faseS: 0.265, plantaoMul: 0.35, voltaS: 0.6, longe: 0.12 },
   // o povo da festa (pedido do autor: lotado, quase sem espaço): moradores do Morro, mulheres de roupa curta,
   // funkeiros e traficantes, um a cada passoM (com folgaM de sobra para não ficar em fila), até max; povo é o peso
@@ -856,7 +863,9 @@ export const BAILE = {
   // depois o vagabundo aparece nas TVs do palco e o povo muda)
   plantaoS: 20, olhosS: 2.6, encaraS: 1.2, viraS: 1.8, transfS: 1.2, acordaM: 18, fimS: 3,
   telaGrandeS: 0, // a TV grande do Plantão no meio da tela (pedido do autor: não; só as TVs do palco). 0 = sem ela
-  caos: { sobe: 20, max: 95, porAbate: 0.2 },
+  // o DJ entra quando o Caos chega na marca: sobe pontos acima do de quando a pancadaria começa, e pelo menos min
+  // (pedido do autor: chegava rápido demais no DJ e o Caos mal subia); cada um da festa que cai soma porAbate
+  caos: { sobe: 40, min: 70, max: 95, porAbate: 0.25 },
   // na pancadaria, a pista toda encara o Juninho, mas parte para cima aos poucos: no máximo max da festa brigando
   // de uma vez, o mais perto primeiro (viraS entre o primeiro e o último de cada leva); cada um que cai, outro da
   // pista vem. Acabando a pista, o resto do baile chega pelas beiradas (ritmo por segundo, longe longeM do Juninho;
@@ -887,7 +896,7 @@ export const BAILE = {
     trelicaLado: { altM: 4.3, compM: 4.2, beiraM: 1.3, frenteM: 1.6, luzes: 3 },
     // canhões de luz no chão (altura da arte, m): dois por fora dos paredões e dois nos cantos da frente, junto das
     // treliças de lado (frenteDx: do muro; frenteM: da beirada da frente)
-    canhao: { altM: 1.3, palcoDx: 4.8, palcoDy: 1.4, frenteDx: 2.0, frenteM: 1.0 },
+    canhao: { altM: 1.3, palcoDx: 4.5, palcoDy: 2.6, frenteDx: 4.5, frenteM: 4.0 }, // pedido do autor: mais para dentro (eram 4.8, 1.4, 2.0, 1.0)
     globoAltM: 4.9, globoDy: 0.45, globoRaioM: 0.6, reflexos: 46, brilhosGlobo: 7,
     neonAltM: 4.5, neonTexto: 'BAILE DA ESPLANADA',
     mesaDj: { larg: 2.4, prof: 0.9, alt: 1.05, dy: 1.5 },

@@ -335,7 +335,9 @@ export function drawBaileCeu(ctx, game, cam, ppu, t, playerPx) {
   const k = w.baile;
   // a luz geral da pista: o povo aparece, mais escuro na beira
   buraco((k.x0 + k.x1) / 2, (k.y0 + k.y1) / 2, Math.max(k.x1 - k.x0, k.y1 - k.y0) * 0.55, BAILE.pistaLuz);
-  buraco(p.x, p.y, 4.2, 0.85);
+  const LJ = BAILE.luzJuninho;
+  if (game.baile) buraco(p.x, p.y, LJ.festaM, LJ.festa);
+  else buraco(p.x, p.y, LJ.corredorM, LJ.corredor); // no corredor, a noite cai de verdade (pedido do autor)
   for (const l of luzes(w, t, luzTmp)) buraco(l.x, l.y, BAILE.luzes.raioM, 0.7);
   for (const tv of tvsDoBaile(w)) buraco(tv.x, tv.y, 2.6, 0.95, BAILE.tv.altura);
   for (const d of w.baileDeco || []) if (d.tipo === 'globo') buraco(d.x, d.y, 1.3, 0.6, d.h);

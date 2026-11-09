@@ -9,6 +9,7 @@
 // briga é na roda, com o povo da festa em volta (como na Orla). Números em config.js (ENEMIES.dj_plantao). Sem DOM.
 import { ENEMIES } from './config.js';
 import { palcoDoBaile } from './cenario.js';
+import { formarRoda, atualizarRoda } from './baile.js';
 
 const mov = { x: 0, y: 0 };
 
@@ -86,43 +87,25 @@ function usarCanhoes(game, e, dt) {
   }
 }
 
-/** A roda da pista (fase 2): o povo da festa em volta, de olho aceso; ninguém sai, e quem encosta apanha. */
+/** O DJ desce para a pista: a roda se forma em volta do Juninho (baile.js) e ele cai do lado dele. */
 function abrirRodaNaPista(game, e) {
   const P = ENEMIES.dj_plantao.pista;
   const k = game.world.baile;
-  const S = game.baile;
-  const cx = (k.x0 + k.x1) / 2;
-  const cy = (k.y0 + k.y1) / 2 + 1;
-  const R = { x: cx, y: cy, r: P.rodaM, toqueT: 0 };
-  game.rodaDJ = R;
-  // o DJ pula do palco para o meio; o Juninho, se estava fora, vai para dentro
+  const p = game.player;
+  const m = P.rodaM + 0.6;
+  const cx = Math.min(k.x1 - m, Math.max(k.x0 + m, p.x));
+  const cy = Math.min(k.y1 - m, Math.max(k.y0 + m, p.y));
+  formarRoda(game, cx, cy);
+  // o DJ pula do palco e cai na roda, do lado do Juninho que dá para o palco
   e.x = cx;
-  e.y = cy - P.rodaM * 0.4;
+  e.y = cy - P.rodaM * 0.45;
   game.burst(e.x, e.y, 10, 'poeira');
   game.shake(0.5);
-  const p = game.player;
   const dp = Math.hypot(p.x - cx, p.y - cy) || 1;
   if (dp > P.rodaM - 1) {
     p.x = cx + ((p.x - cx) / dp) * (P.rodaM - 1.6);
     p.y = cy + ((p.y - cy) / dp) * (P.rodaM - 1.6);
   }
-  // quem está na pista abre a roda: quem estava dentro vai para a beira, no ângulo em que estava
-  if (S) {
-    let n = 0;
-    for (const c of S.pessoas) {
-      if (c.virou || c.acorda) continue;
-      const dx = c.x - cx;
-      const dy = c.y - cy;
-      const d = Math.hypot(dx, dy) || 0.01;
-      if (d > P.rodaM + P.linhaM * 2) continue;
-      const r = P.rodaM + 0.3 + (n++ % 2) * P.linhaM + game.fxRng() * 0.3;
-      c.x = cx + (dx / d) * r;
-      c.y = cy + (dy / d) * r;
-      c.olho = 1;
-      c.danca = true;
-    }
-  }
-  // a horda que sobrou de fora fica fora; a de dentro, dentro
   game.word(cx, cy - P.rodaM - 1, 'ABRE A RODA!', '#ff5fd2');
   game.tv('fase_dj');
 }
@@ -197,7 +180,10 @@ export function updateDJ(game, e, dt) {
     e.dropT = 0;
     abrirRodaNaPista(game, e);
   }
-  if (e.naPista) segurarNaRoda(game, dt);
+  if (e.naPista) {
+    atualizarRoda(game, dt);
+    segurarNaRoda(game, dt);
+  }
   else usarCanhoes(game, e, dt);
   const pc = palcoDoBaile(game.world) || { x: e.x, y: e.y };
   const dx = p.x - e.x;

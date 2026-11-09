@@ -6,7 +6,7 @@ import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, WEAPONS, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
   ROUTE, INTERACT, THROWABLES, FIGURANTES, DERRUBADO, NIVEL_MAXIMO, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO, HORDA_ORLA,
-  SOM_GOLPE, SOM_ARMA, CHEGADA,
+  SOM_GOLPE, SOM_ARMA, CHEGADA, BAILE,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
 import { FX, IMPACTO } from './efeitos_arte.js';
@@ -660,6 +660,8 @@ export class Game {
     // (soJanela: só a janela marcada vale, como a recarga do Chefe do Tráfico gigante, D91)
     const naJanela = J && (e.janelaT > 0 || e.callT > 0 || (!J.soJanela && (e.aimT > 0 || e.burst > 0)));
     if (naJanela) dmg *= J.danoMul;
+    const Rs = ENEMIES[e.type].resiste; // fora da janela, o chefe segura parte do dano (DJ Plantão, D95)
+    if (Rs && !naJanela) dmg *= e.naPista ? Rs.pista : Rs.palco;
     const dw = this.metrics.damageByWeapon;
     dw[source] = (dw[source] || 0) + Math.min(dmg, Math.max(0, e.hp));
     e.hp -= dmg;
@@ -1454,6 +1456,8 @@ export class Game {
   }
 
   updateWeapons(dt) {
+    // no baile, antes da pancadaria (pedido do autor): o Juninho entra em paz, sem atacar ninguém
+    if (this.baile && (this.baile.fase === 'festa' || this.baile.fase === 'plantao')) return;
     for (const w of this.player.weapons) {
       w.cd -= dt;
       if (w.cd <= 0) {
@@ -1824,10 +1828,18 @@ export class Game {
         my = 0;
       }
       if (e.debanda) {
-        // chegando no baile (D94): a horda dá as costas e vai embora; fora da tela, some (sem contar abate)
-        mx = -dpx / d;
-        my = -dpy / d;
-        if (!this.onScreen(e.x, e.y)) {
+        // chegando no baile (D94): a horda vai embora correndo, morro abaixo (para longe do baile, nunca para dentro
+        // dele); fora da tela, ou passado debanda.someS, some (sem contar abate)
+        const Db = BAILE.debanda;
+        const k = this.world && this.world.baile;
+        const fx = k ? e.x - (k.x0 + k.x1) / 2 : -dpx;
+        const fy = k ? e.y - (k.y0 + k.y1) / 2 : -dpy;
+        const fl = Math.hypot(fx, fy) || 1;
+        mx = (fx / fl) * Db.velMul;
+        my = (fy / fl) * Db.velMul;
+        e.debandaT = (e.debandaT || 0) + dt;
+        if (!this.onScreen(e.x, e.y) || e.debandaT > Db.someS) {
+          if (this.onScreen(e.x, e.y)) this.burst(e.x, e.y, 3, 'poeira');
           e.dead = true;
           continue;
         }

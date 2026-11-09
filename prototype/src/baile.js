@@ -184,6 +184,26 @@ function atualizarPessoa(game, S, c, dt) {
     return;
   }
   c.walk += dt * 9; // o passo no batidão (o desenho também pula no pulso)
+  if (c.alvo) {
+    // andando até o lugar dele na roda (dj.js): anda, chega, para e fica olhando
+    const dx = c.alvo.x - c.x;
+    const dy = c.alvo.y - c.y;
+    const d = Math.hypot(dx, dy);
+    const v = ENEMIES.dj_plantao.pista.andaMS;
+    if (d <= v * dt) {
+      c.x = c.alvo.x;
+      c.y = c.alvo.y;
+      c.vx = c.vy = 0;
+      c.alvo = null;
+      c.danca = true;
+    } else {
+      c.vx = (dx / d) * v * 0.2;
+      c.vy = (dy / d) * v * 0.2;
+      c.x += (dx / d) * v * dt;
+      c.y += (dy / d) * v * dt;
+      c.danca = false;
+    }
+  }
   if (c.olhoEm >= 0 && S.fase === 'plantao') c.olho = clamp01((S.faseT - c.olhoEm) / 0.4);
   if (c.viraT < 0) return;
   c.viraT -= dt;
@@ -211,7 +231,7 @@ function briga(game, S) {
   const B = BAILE;
   S.fase = 'briga';
   S.faseT = 0;
-  S.caosDJ = Math.round(Math.min(B.caos.max, game.caos + B.caos.sobe));
+  S.caosDJ = Math.round(Math.min(B.caos.max, Math.max(B.caos.min, game.caos + B.caos.sobe)));
   game.tv('baileSinal');
   game.emit('flash', {});
   game.shake(0.25);
@@ -298,6 +318,103 @@ export function abateNoBaile(game, e) {
   const S = game.baile;
   if (!e.doBaile || !S || (S.fase !== 'briga' && S.fase !== 'luta')) return;
   game.caosBonus += BAILE.caos.porAbate;
+}
+
+/** O lugar de um da roda agora: na linha dele, no ângulo dele, no raio de agora. */
+function lugarNaRoda(R, c) {
+  const P = ENEMIES.dj_plantao.pista;
+  const r = R.r + 0.3 + c.rodaLinha * P.linhaM + c.rodaJit;
+  return { x: R.x + Math.cos(c.rodaAng) * r, y: R.y + Math.sin(c.rodaAng) * r };
+}
+
+/**
+ * A roda da pista (pedido do autor: em volta do Juninho e do DJ, como na Orla): duas linhas do povo da festa, de olho
+ * aceso, encarando. Quem sobrou na pista vai andando até um lugar; se falta gente, chega mais pelas beiradas da
+ * esplanada; quem não cabe fica de fora, olhando. Depois ela fecha aos poucos (atualizarRoda).
+ */
+export function formarRoda(game, cx, cy) {
+  const P = ENEMIES.dj_plantao.pista;
+  const S = game.baile;
+  const k = game.world.baile;
+  const R = { x: cx, y: cy, r: P.rodaM, toqueT: 0, passoT: P.fechaS, heT: 0 };
+  game.rodaDJ = R;
+  if (!S) return R;
+  const lugares = [];
+  for (let l = 0; l < 2; l++) {
+    const n = Math.floor((Math.PI * 2 * (P.rodaM + l * P.linhaM)) / P.espacoM);
+    for (let i = 0; i < n; i++) lugares.push({ ang: ((i + l * 0.5) / n) * Math.PI * 2, linha: l });
+  }
+  const livres = S.pessoas.filter((c) => !c.virou && !c.acorda);
+  const ang = (c) => Math.atan2(c.y - cy, c.x - cx);
+  const dist = (c) => Math.hypot(c.x - cx, c.y - cy);
+  livres.sort((a, b) => dist(a) - dist(b));
+  const vao = new Set(lugares.keys());
+  const pesos = Object.entries(BAILE.povo);
+  const total = pesos.reduce((a, [, n]) => a + n, 0);
+  const rng = game.fxRng;
+  for (const lu of lugares) {
+    // o mais perto que ainda não tem lugar, no lado dele; se não tem mais ninguém, chega gente da beira
+    let c = null;
+    let melhor = 1e9;
+    for (const o of livres) {
+      if (o.rodaAng !== undefined) continue;
+      const da = Math.abs(Math.atan2(Math.sin(ang(o) - lu.ang), Math.cos(ang(o) - lu.ang)));
+      const custo = da * 4 + dist(o) * 0.1;
+      if (custo < melhor) {
+        melhor = custo;
+        c = o;
+      }
+    }
+    if (!c) {
+      let r = rng() * total;
+      let tipo = pesos[0][0];
+      for (const [t, n] of pesos) if ((r -= n) < 0) { tipo = t; break; }
+      const bx = Math.min(k.x1 - 0.5, Math.max(k.x0 + 0.5, cx + Math.cos(lu.ang) * 30));
+      const by = Math.min(k.y1 - 0.5, Math.max(k.y0 + 0.5, cy + Math.sin(lu.ang) * 30));
+      c = {
+        x: bx, y: by, vx: 0, vy: 0, tipo, arte: ARTE_DO_POVO[tipo], tam: TAM_DO_POVO[tipo], tint: tipo === 'morador' ? tintMorador(rng) : 0,
+        walk: rng() * 10, ritmo: rng(), danca: false, viraT: -1, virou: false, id: 970000 + S.pessoas.length, olho: 1, olhoEm: -1,
+      };
+      S.pessoas.push(c);
+    }
+    c.rodaAng = lu.ang;
+    c.rodaLinha = lu.linha;
+    c.rodaJit = (rng() - 0.5) * 0.25;
+    c.olho = 1;
+    c.alvo = lugarNaRoda(R, c);
+    vao.delete(lu);
+  }
+  // quem não coube e está dentro da roda vai para fora dela, olhando
+  for (const c of livres) {
+    if (c.rodaAng !== undefined) continue;
+    const d = dist(c) || 0.01;
+    if (d > P.rodaM + P.linhaM * 2.5) continue;
+    const r = P.rodaM + P.linhaM * 2.5 + rng() * 0.6;
+    c.alvo = { x: cx + ((c.x - cx) / d) * r, y: cy + ((c.y - cy) / d) * r };
+    c.olho = 1;
+  }
+  return R;
+}
+
+/** A roda fecha: um passo para dentro, todos juntos ("HU!"), até minM. */
+export function atualizarRoda(game, dt) {
+  const R = game.rodaDJ;
+  const S = game.baile;
+  if (!R || !S) return;
+  const P = ENEMIES.dj_plantao.pista;
+  if (R.heT > 0) R.heT -= dt;
+  R.passoT -= dt;
+  if (R.passoT > 0 || R.r <= P.minM) return;
+  R.passoT = P.fechaS;
+  R.r = Math.max(P.minM, R.r - P.passoM);
+  R.heT = 0.45;
+  game.shake(0.12);
+  game.som('baque', R.x, R.y - R.r);
+  for (let i = 0; i < 3; i++) {
+    const a = game.fxRng() * Math.PI * 2;
+    game.word(R.x + Math.cos(a) * R.r, R.y + Math.sin(a) * R.r - 1.2, 'HU!', '#e9e3d4');
+  }
+  for (const c of S.pessoas) if (c.rodaAng !== undefined && !c.virou && !c.acorda) c.alvo = lugarNaRoda(R, c);
 }
 
 /** A pessoa da festa que a horda era, pelo inimigo dela (quem não é da festa segue brigando: null). */
