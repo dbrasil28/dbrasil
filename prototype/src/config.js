@@ -45,7 +45,7 @@ export const ENEMIES = {
   burocrata: {
     name: 'Burocrata-Monstro',
     hp: 24, speed: 1.4, dmg: 7, radius: 0.32, size: 1.25, xp: 3, // maior que a horda, menor que os elites
-    behavior: 'ranged', range: 5.5, fireEvery: 3.2,
+    behavior: 'ranged', range: 5.5, fireEvery: 3.2, trecho: 'saopaulo', // D80: elenco de São Paulo; saiu da Orla
     windupS: 0.45, // mira parado, com a pose de ataque e o "!", antes de soltar
     throwPoseS: 0.25, // a pose de ataque continua este tempo depois de soltar
     // papelada: voa reto até o Juninho; se acertar, machuca e deixa lento (com papel grudado nele)
@@ -138,6 +138,16 @@ export const ENEMIES = {
     behavior: 'encostado', trecho: 'brasilia', // D78: elenco de Brasília
     vistoCos: -0.15, lentoMul: 0.45, correMul: 3.7, flagradoS: 0.7, fraseS: 4,
     frases: ['AI, MINHA COLUNA!', 'TÔ DE ATESTADO!', 'É A HÉRNIA!', 'PERÍCIA SÓ EM 2031!', 'FOI SÓ UM ESPASMO!'],
+  },
+  // Bicheiro (D80): elite da Orla no lugar do Burocrata; reveza com o Político. Chega e abre a banca: espalha
+  // `bilhetes` bilhetes no chão em volta do Juninho (entre bilheteM), cada um com um bicho, e solta `apontadores` da
+  // horda que correm para recolher os bilhetes. O Juninho aposta pegando um (os outros somem). Derrubado o Bicheiro,
+  // sai o bicho, um dos bilhetes: quem acertou ganha um cofre. Os bilhetes somem em bilheteS.
+  bicheiro: {
+    name: 'Bicheiro',
+    hp: 230, speed: 1.45, dmg: 14, radius: 0.45, size: 1.15 / 0.75, xp: 18,
+    behavior: 'bicheiro', elite: true, trecho: 'orla',
+    bilhetes: 3, bilheteM: [4.5, 7], pegaM: 0.9, apontadores: 3, apontadorMul: 1.45, recolheM: 0.8, bilheteS: 25,
   },
   // Rato de Academia: investida em linha reta (como o Funkeiro), mais pesado; se pega o Juninho na corrida,
   // empurra (empurra: m/s, perde rápido). Na Orla com o Caos alto e na turma de reforço do Monstrão.
@@ -709,7 +719,7 @@ export const DIRECTOR = {
   composition(caos) {
     const list = [{ type: 'telespectador', w: 1 }];
     if (caos >= 8) list.push({ type: 'golpista', w: 0.16 });
-    if (caos >= 28) list.push({ type: 'burocrata', w: 0.14 });
+    // o Burocrata-Monstro é de São Paulo (D80): na Orla, o lugar dele é do Bicheiro, que vem como elite
     if (caos >= 45) list.push({ type: 'fiscal', w: 0.1 });
     if (caos >= 30) list.push({ type: 'rato', w: 0.035 }); // Rato de Academia (D73; do tamanho do Político, D79)
     // Coach e Agiota (D76) são de São Paulo e o Encostado (D77) de Brasília: entram quando os trechos deles existirem (D78)
@@ -720,7 +730,6 @@ export const DIRECTOR = {
   castTestComposition: [
     { type: 'telespectador', w: 1 },
     { type: 'golpista', w: 0.3 },
-    { type: 'burocrata', w: 0.25 },
     { type: 'fiscal', w: 0.25 },
     { type: 'rato', w: 0.12 },
     { type: 'pastor', w: 0.05 },
@@ -737,6 +746,7 @@ export const DIRECTOR = {
   ],
   maxBurocratas: 22,
   eliteEvery: (caos) => (caos >= 60 ? 40 : 60),
+  elitesOrla: ['politico', 'bicheiro'], // revezam (D80): o primeiro é sempre o Político
 };
 
 // Horda do Morro (D37): moradores hipnotizados com roupa de favela (listrado, moça, moleque, senhor, senhora,
@@ -1033,6 +1043,8 @@ export const TV = {
   burocrata: ['NOVA EXIGÊNCIA: FORMULÁRIO EM TRÊS VIAS'],
   fiscal: ['ENTREGADOR MULTADO POR EXCESSO DE ESFORÇO', 'FISCAL APLICA MULTA. MOTIVO: "SIM"'],
   elite: ['POLÍTICO APARECE PARA FOTO. TRAZ MALETA'],
+  bicheiro: ['BICHEIRO ABRE A BANCA NO CALÇADÃO. POLÍCIA DIZ QUE NÃO VIU', 'APONTADORES CORREM NA ORLA. A BANCA ACEITA PIX E FIADO'],
+  bicheiroPaga: ['ENTREGADOR ACERTA NO BICHO E LEVA O COFRE. BANCA PEDE RECONTAGEM'],
   unlock: ['O TAPUME CAIU. ATRÁS DA OBRA, UMA ESCADARIA QUE NINGUÉM TINHA VISTO', 'A OBRA ABRIU UMA PASSAGEM. GPS NÃO RECONHECE O CAMINHO'],
   morro: ['ENTREGADOR COMEÇA A SUBIDA. APP CALCULA 3 MINUTOS (MENTIRA)'],
   recomeco: ['ATUALIZAÇÃO OBRIGATÓRIA DO APLICATIVO: SEUS ITENS EXPIRARAM', 'APP ATUALIZOU: NOVO TURNO, NOVA ENTREGA, ZERO BENEFÍCIOS'],

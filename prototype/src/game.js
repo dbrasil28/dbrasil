@@ -18,7 +18,7 @@ import { updateCracudo, updateTrombadinha, trombada, devolveXp } from './morro_i
 import { updateFigurantes, ferirFigurantes } from './figurantes.js';
 import { arrancavelPerto, arrancar, updateArrancados } from './arrancar.js';
 import { updateCena, updateSuper, cargaPorAbate, usarSuper, superPronta } from './super.js';
-import { updateAgiota, updateCoach, agiotaCaiu, updatePastor, updateEncostado } from './elenco.js';
+import { updateAgiota, updateCoach, agiotaCaiu, updatePastor, updateEncostado, abrirBanca, updateApontador, updateBancas, bicheiroCaiu } from './elenco.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, stairOut, inside, routeRemaining } from './mundo.js';
@@ -579,7 +579,8 @@ export class Game {
         el.laranjas.push(l);
       }
     }
-    this.tv(type === 'rival' ? 'rival' : 'elite', type === 'rival' ? 0 : 25);
+    if (type === 'bicheiro') abrirBanca(this, el); // bilhetes no chão e apontadores (D80)
+    this.tv(type === 'rival' ? 'rival' : type === 'bicheiro' ? 'bicheiro' : 'elite', type === 'rival' ? 0 : 25);
     this.emit('elite', { type });
   }
 
@@ -707,6 +708,7 @@ export class Game {
 
     if (def.xp) this.dropGem(e.x, e.y, def.xp);
     if (e.type === 'agiota') agiotaCaiu(this, e); // a dívida volta ao chão como XP (D76)
+    if (e.type === 'bicheiro') bicheiroCaiu(this, e); // sai o bicho (D80)
     if (e.type === 'laranja') {
       // cai e espalha o dinheiro do chefe: uma Propina no chão (pegar continua sendo escolha do jogador)
       this.pickups.push({ kind: 'propina', x: e.x, y: e.y, t: 0 });
@@ -1117,6 +1119,7 @@ export class Game {
     }
     if (this.avisosChao) this.avisosChao.length = 0; // avisos de golpe no chão: refeitos a cada quadro
     this.updateEnemies(dt);
+    updateBancas(this); // a aposta no bicho (D80)
     this.updateTraffic(dt);
     updateReacoes(this);
     if (this.corpos && this.corpos.length) {
@@ -1385,7 +1388,10 @@ export class Game {
     const covilAberto = this.world ? this.covil && this.covil.aberto : this.t >= SESSION.bossAt;
     if (this.t >= this.nextEliteAt && !covilAberto && this.segment === 'orla') { // elites da Orla
       this.nextEliteAt += this.settings.elenco ? DIRECTOR.castTestEliteEvery : DIRECTOR.eliteEvery(this.pressao);
-      this.spawnElite('politico');
+      const R = DIRECTOR.elitesOrla; // Político e Bicheiro revezam (D80)
+      const n = this.elitesOrla || 0;
+      this.elitesOrla = n + 1;
+      this.spawnElite(R[n % R.length]);
     }
     if (this.rivalAt > 0 && this.t >= this.rivalAt && this.segment === 'orla') {
       this.rivalAt = -1;
@@ -1716,6 +1722,10 @@ export class Game {
         my = r.y;
       } else if (e.behavior === 'coach') {
         const r = updateCoach(this, e, dt, d, ux, uy);
+        mx = r.x;
+        my = r.y;
+      } else if (e.behavior === 'apontador') {
+        const r = updateApontador(this, e, ux, uy); // corre para recolher o bilhete do Bicheiro (D80)
         mx = r.x;
         my = r.y;
       } else if (e.behavior === 'pastor') {

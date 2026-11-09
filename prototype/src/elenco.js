@@ -4,8 +4,10 @@
 // - Coach Picareta: chega perto, prepara (aviso no chão) e dá a palestra: quem está na roda fica lento.
 // - Pastor Picareta (D77): fica atrás da horda, cura quem está em volta e chama fiéis.
 // - Encostado (D77): manca enquanto o Juninho olha para ele; de costas, sai correndo.
+// - Bicheiro (D80): elite da Orla; abre a banca (bilhetes no chão, apontadores) e, derrubado, sai o bicho.
 // Laranja e Rato de Academia (D73) estão em game.js. Sem DOM: os números estão em config.js (ENEMIES).
-import { ENEMIES } from './config.js';
+import { ENEMIES, ACHADOS } from './config.js';
+import { abrirCofre } from './achados.js';
 
 /** Um quadro do Agiota. d: distância até o Juninho; (ux, uy): rota até ele. Devolve para onde anda. */
 export function updateAgiota(game, e, dt, d, ux, uy) {
@@ -171,4 +173,107 @@ export function updateEncostado(game, e, dt, d, ux, uy) {
   const mul = e.correndo ? E.correMul : E.lentoMul;
   e.walk += dt * e.speed * 3 * (mul - 1); // as pernas no ritmo de quem corre (ou de quem manca)
   return { x: ux * mul, y: uy * mul };
+}
+
+/** O Bicheiro chega e abre a banca (D80): bilhetes no chão em volta do Juninho e apontadores correndo para recolher. */
+export function abrirBanca(game, e) {
+  const B = ENEMIES.bicheiro;
+  const p = game.player;
+  const banca = { dono: e, bilhetes: [], aposta: null, t0: game.t };
+  const nomes = ACHADOS.bichos;
+  const usados = new Set();
+  const off = game.rng() * Math.PI * 2;
+  for (let i = 0; i < B.bilhetes; i++) {
+    let k;
+    do k = Math.floor(game.rng() * nomes.length);
+    while (usados.has(k) || nomes[k] === 'VEADO');
+    usados.add(k);
+    const a = off + (i / B.bilhetes) * Math.PI * 2;
+    const dist = B.bilheteM[0] + game.rng() * (B.bilheteM[1] - B.bilheteM[0]);
+    const pos = game.fitSpawn({ x: p.x + Math.cos(a) * dist, y: p.y + Math.sin(a) * dist }, 0.6);
+    banca.bilhetes.push({ x: pos.x, y: pos.y, bicho: nomes[k], grupo: k + 1, vivo: true });
+  }
+  for (let i = 0; i < B.apontadores; i++) {
+    const a = game.rng() * Math.PI * 2;
+    const sp = game.fitSpawn({ x: e.x + Math.cos(a) * 1.2, y: e.y + Math.sin(a) * 1.2 });
+    const ap = game.spawnEnemy('telespectador', sp.x, sp.y);
+    ap.behavior = 'apontador';
+    ap.bilhete = banca.bilhetes[i % banca.bilhetes.length];
+    ap.banca = banca;
+    ap.speed *= B.apontadorMul;
+  }
+  (game.bancas || (game.bancas = [])).push(banca);
+  game.word(e.x, e.y - 1.6, 'FAZ UMA FEZINHA!', '#ffd21f');
+}
+
+/** Um quadro de apontador: corre para o bilhete e recolhe; sem bilhete, volta a ser horda. */
+export function updateApontador(game, e, ux, uy) {
+  const B = ENEMIES.bicheiro;
+  const b = e.bilhete;
+  if (!b || !b.vivo || e.banca.aposta) {
+    e.behavior = ENEMIES[e.type].behavior;
+    e.bilhete = null;
+    return { x: ux, y: uy };
+  }
+  const dx = b.x - e.x;
+  const dy = b.y - e.y;
+  const l = Math.hypot(dx, dy);
+  if (l < B.recolheM) {
+    b.vivo = false;
+    game.word(b.x, b.y - 0.8, 'RECOLHIDO!', '#c9c9c9');
+    e.behavior = ENEMIES[e.type].behavior;
+    e.bilhete = null;
+    return { x: ux, y: uy };
+  }
+  return { x: dx / l, y: dy / l };
+}
+
+/** A banca a cada quadro: o Juninho aposta pegando um bilhete; os bilhetes somem com o tempo. */
+export function updateBancas(game) {
+  if (!game.bancas || !game.bancas.length) return;
+  const B = ENEMIES.bicheiro;
+  // o Bicheiro sumiu sem cair (o trecho recomeçou): a banca fecha
+  if (game.bancas.some((b) => !game.enemies.includes(b.dono))) game.bancas = game.bancas.filter((b) => game.enemies.includes(b.dono));
+  const p = game.player;
+  for (const banca of game.bancas) {
+    if (banca.aposta) continue;
+    const velho = game.t - banca.t0 > B.bilheteS;
+    for (const b of banca.bilhetes) {
+      if (!b.vivo) continue;
+      if (velho) {
+        b.vivo = false;
+        continue;
+      }
+      if ((b.x - p.x) ** 2 + (b.y - p.y) ** 2 < B.pegaM * B.pegaM && !game.over) {
+        banca.aposta = b;
+        b.vivo = false;
+        for (const o of banca.bilhetes) o.vivo = false; // uma aposta por banca: os outros somem
+        game.word(p.x, p.y - 1.2, `APOSTA: ${b.bicho}!`, '#ffd21f');
+        game.som('carta', p.x, p.y);
+        break;
+      }
+    }
+  }
+}
+
+/** O Bicheiro caiu: sai o bicho. Quem apostou certo ganha um cofre (a roleta do bicho, D80). */
+export function bicheiroCaiu(game, e) {
+  if (!game.bancas) return;
+  const i = game.bancas.findIndex((b) => b.dono === e);
+  if (i < 0) return;
+  const banca = game.bancas[i];
+  game.bancas.splice(i, 1);
+  for (const b of banca.bilhetes) b.vivo = false;
+  const deu = banca.bilhetes[Math.floor(game.rng() * banca.bilhetes.length)];
+  game.word(e.x, e.y - 1.8, `DEU ${deu.bicho}!`, '#ffd21f');
+  if (banca.aposta && banca.aposta.bicho === deu.bicho) {
+    game.word(game.player.x, game.player.y - 1.6, 'GANHOU NO BICHO!', '#7fe08a');
+    game.moneyBurst(e.x, e.y, 16);
+    game.metrics.bichoGanho = (game.metrics.bichoGanho || 0) + 1;
+    game.metrics.achadosGorjeta = (game.metrics.achadosGorjeta || 0) + ACHADOS.cofreGorjeta;
+    game.tv('bicheiroPaga');
+    abrirCofre(game, { x: game.player.x, y: game.player.y });
+  } else if (banca.aposta) {
+    game.word(game.player.x, game.player.y - 1.6, 'A BANCA SEMPRE GANHA', '#bdbdbd');
+  }
 }

@@ -53,3 +53,20 @@ test('Monstrão: a investida que bate num carro deixa ele tonto, com a hora de b
   assert.ok(b.janelaT > 0, 'tonto sem a hora de bater');
   assert.ok(b.y < y, 'atravessou o carro');
 });
+
+test('Monstrão: a investida que corre a distância inteira sem bater termina na pose, com a hora de bater', () => {
+  const g = luta();
+  const b = g.boss;
+  const w = g.world;
+  w.solids.length = 0; // chão livre: nada no caminho
+  const p = g.player;
+  p.x = b.x + 30; // longe, de lado: a investida não pega o Juninho
+  Object.assign(b, { golpe: 'preparo', golpeT: 0.05, dirX: 0, dirY: 1, poseX: 0, poseY: 1, corridas: 1, quiques: 0 });
+  let vistos = new Set();
+  for (let i = 0; i < 150 && b.golpe !== 'pose'; i++) {
+    g.update(1 / 30, { x: 0, y: 0 });
+    vistos.add(b.golpe);
+  }
+  assert.equal(b.golpe, 'pose', `esperava a pose, passou por ${[...vistos]}`);
+  assert.ok(b.janelaT > 0, 'pose sem a hora de bater');
+});

@@ -22,7 +22,7 @@ export const SETTINGS_SCHEMA = [
   { id: 'reduceFlashes', label: 'Reduzir flashes', type: 'toggle', def: false },
   { id: 'showFps', label: 'Mostrar FPS e contagem', type: 'toggle', def: false },
   { id: 'resolution', label: 'Resolução', type: 'select', options: [['auto', 'Automática (até 2x)'], ['1', '1x (mais leve)']], def: 'auto' },
-  { id: 'elenco', label: 'Elenco completo desde o início', type: 'toggle', def: true, hint: 'Golpista, Burocrata e Fiscal desde 00:00 e o Político aos 12 s, para ver a arte. Desligado: ritmo normal (Golpista ~1:30, Político 1:30, Burocrata ~5:00, Fiscal ~6:00)' },
+  { id: 'elenco', label: 'Elenco completo desde o início', type: 'toggle', def: true, hint: 'Golpista, Fiscal, Rato e Pastor desde 00:00, o Político aos 12 s e o Bicheiro em seguida, para ver a arte. Desligado: ritmo normal (Golpista ~1:30, Político 1:30, Bicheiro ~2:30, Fiscal ~6:00)' },
   { id: 'aberta', label: 'Versão aberta: tudo liberado', type: 'toggle', def: false, novo: true, hint: 'Para testar: Mapa da Rota todo liberado, escadaria do morro aberta desde o começo e entrega no topo sem derrubar o chefe. Desligada, é a carreira de verdade (D39)' },
   { id: 'musica', label: 'Volume da música', type: 'range', min: 0, max: 100, step: 5, def: 60, hint: '0 = sem música' },
   { id: 'efeitos', label: 'Volume dos efeitos sonoros', type: 'range', min: 0, max: 100, step: 5, def: 70, novo: true, hint: 'Sons provisórios feitos em código até chegarem os gravados. 0 = sem efeitos' },

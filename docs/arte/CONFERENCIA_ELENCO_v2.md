@@ -21,6 +21,7 @@ Pacote do autor em 33 partes: 35 personagens do elenco (cada um com caminhada em
 
 ## No jogo
 
+- **Bicheiro (D80):** elite da Orla, revezando com o Político, no lugar do Burocrata (que é de São Paulo). Atlas em `prototype/assets/personagens/bicheiro/`.
 - **Cada trecho com o seu elenco (D78):** na Orla ficam o Rato de Academia, o Pastor Picareta e as roupas de Biquíni, Sunga, Pochete e Controle Remoto. Agiota, Coach, Telemarketing e Peão (São Paulo) e Laranja e Encostado (Brasília) estão prontos, à espera do trecho deles.
 
 - **Parte 2 (D73):** Laranja e Rato de Academia como inimigos. Atlas em `prototype/assets/personagens/laranja/` e `rato_academia/`.

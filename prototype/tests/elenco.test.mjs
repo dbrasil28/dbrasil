@@ -227,3 +227,63 @@ test('cada trecho com o seu elenco (D78): a Orla não sorteia nem traz inimigo d
   assert.equal(g.enemies.filter((e) => e.type === 'laranja').length, 0, 'Laranja na Orla');
   assert.equal(HORDA_ORLA.roupasNovas, 4, 'a horda da Orla com roupa de outro trecho');
 });
+
+test('Bicheiro: abre a banca, os apontadores recolhem, o Juninho aposta e, se acertar o bicho, ganha o cofre', () => {
+  const g = jogo();
+  const p = g.player;
+  const B = ENEMIES.bicheiro;
+  g.spawnElite('bicheiro');
+  const bi = g.enemies.find((e) => e.type === 'bicheiro');
+  assert.ok(bi && bi.elite, 'o Bicheiro não veio como elite');
+  const banca = g.bancas && g.bancas[0];
+  assert.ok(banca && banca.bilhetes.length === B.bilhetes, 'sem os bilhetes no chão');
+  assert.equal(new Set(banca.bilhetes.map((b) => b.bicho)).size, B.bilhetes, 'bicho repetido');
+  const aps = g.enemies.filter((e) => e.behavior === 'apontador');
+  assert.equal(aps.length, B.apontadores, 'sem os apontadores');
+  // um apontador chega no bilhete dele e recolhe
+  const ap = aps[0];
+  const alvo = ap.bilhete;
+  ap.x = alvo.x + 0.3;
+  ap.y = alvo.y;
+  g.update(DT, parado);
+  assert.ok(!alvo.vivo, 'o apontador não recolheu');
+  // o Juninho pega outro bilhete: é a aposta, e os outros somem
+  const meu = banca.bilhetes.find((b) => b.vivo);
+  p.x = meu.x;
+  p.y = meu.y;
+  g.update(DT, parado);
+  assert.equal(banca.aposta, meu, 'não apostou');
+  assert.ok(banca.bilhetes.every((b) => !b.vivo), 'os outros bilhetes ficaram');
+  // derrubado: sai o bicho; com o sorteio caindo no bilhete dele, ganha o cofre
+  const idx = banca.bilhetes.indexOf(meu);
+  g.rng = () => (idx + 0.5) / banca.bilhetes.length;
+  bi.hp = 1;
+  g.damageEnemy(bi, 10, 'teste');
+  assert.ok(g.modal && g.modal.kind === 'cofre', 'acertou e não ganhou o cofre');
+  assert.equal(g.bancas.length, 0, 'a banca não fechou');
+});
+
+test('Bicheiro: aposta errada não ganha nada; e as elites da Orla revezam Político e Bicheiro', () => {
+  const g = jogo();
+  const p = g.player;
+  g.spawnElite('bicheiro');
+  const bi = g.enemies.find((e) => e.type === 'bicheiro');
+  const banca = g.bancas[0];
+  const meu = banca.bilhetes[0];
+  p.x = meu.x;
+  p.y = meu.y;
+  g.update(DT, parado);
+  g.rng = () => 0.99; // o último bilhete
+  bi.hp = 1;
+  g.damageEnemy(bi, 10, 'teste');
+  assert.ok(!g.modal, 'errou e ganhou');
+  const h = jogo();
+  const tipos = [];
+  for (let i = 0; i < 4; i++) {
+    h.nextEliteAt = h.t;
+    const antes = h.enemies.length;
+    h.updateDirector(DT);
+    tipos.push(...h.enemies.slice(antes).filter((e) => e.elite).map((e) => e.type));
+  }
+  assert.deepEqual(tipos, ['politico', 'bicheiro', 'politico', 'bicheiro']);
+});

@@ -250,6 +250,7 @@ export const WALK_ATLAS = {
   ag: { atlas: 'agiota_walk_atlas', prefix: 'ag', figureH: 157, escala: 0.8 }, // D76
   co: { atlas: 'coach_walk_atlas', prefix: 'co', figureH: 157, escala: 0.8 }, // linha = (direção ÷ 2) × 4 + (direção % 2) × 2 + (quadro ≥ 6)
   ps: { atlas: 'pastor_walk_atlas', prefix: 'ps', figureH: 157, escala: 0.8 }, // D77
+  bi: { atlas: 'bicheiro_walk_atlas', prefix: 'bi', figureH: 157 }, // D80: elite, do tamanho do Político (ENEMIES.bicheiro.size)
   en: { atlas: 'encostado_walk_atlas', prefix: 'en', figureH: 157, escala: 0.8 }, // D77
   mo: { atlas: 'monstrao_walk_atlas', prefix: 'mo', figureH: 157 },
   mo12a: { atlas: 'monstrao_cam12a_atlas', prefix: 'moa', figureH: 157 },
@@ -309,6 +310,7 @@ export const POSE_ATLAS = {
   rap: { atlas: 'rato_poses_atlas', prefix: 'rap', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
   agp: { atlas: 'agiota_poses_atlas', prefix: 'agp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
   cop: { atlas: 'coach_poses_atlas', prefix: 'cop', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
+  bip: { atlas: 'bicheiro_poses_atlas', prefix: 'bip', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
   psp: { atlas: 'pastor_poses_atlas', prefix: 'psp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
   enp: { atlas: 'encostado_poses_atlas', prefix: 'enp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
   hpop: { atlas: 'horda_peao_poses_atlas', prefix: 'hpop', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
@@ -380,6 +382,7 @@ export const ENEMY_ART = {
   rato: { walk: WALK_ATLAS.ra, poses: POSE_ATLAS.rap, fury: true, dash: 'ataque' },
   agiota: { walk: WALK_ATLAS.ag, poses: POSE_ATLAS.agp }, // D76: aponta (ataque) quando marca e cobra
   coach: { walk: WALK_ATLAS.co, poses: POSE_ATLAS.cop, fury: true }, // a palestra: pose de quem prega (raiva)
+  bicheiro: { walk: WALK_ATLAS.bi, poses: POSE_ATLAS.bip }, // D80
   pastor: { walk: WALK_ATLAS.ps, poses: POSE_ATLAS.psp, fury: true }, // D77: cura de mão erguida (ataque), chama fiéis de Bíblia no alto (raiva)
   encostado: { walk: WALK_ATLAS.en, poses: POSE_ATLAS.enp, fury: true }, // D77: pego correndo, congela de muleta no alto (raiva)
   // aim: pose de mira (fuzil no ombro) virada para o ponto travado, enquanto mira e logo depois do tiro
@@ -530,6 +533,8 @@ export const IMAGES_ORLA_HORDA = {
   rato_walk_atlas: 'assets/personagens/rato_academia/caminhada_atlas.webp',
   rato_poses_atlas: 'assets/personagens/rato_academia/poses_atlas.webp',
   pastor_walk_atlas: 'assets/personagens/pastor/caminhada_atlas.webp',
+  bicheiro_walk_atlas: 'assets/personagens/bicheiro/caminhada_atlas.webp',
+  bicheiro_poses_atlas: 'assets/personagens/bicheiro/poses_atlas.webp',
   pastor_poses_atlas: 'assets/personagens/pastor/poses_atlas.webp',
 };
 // Elenco v2 de outros trechos (D78), pronto e à espera do trecho: São Paulo (Telemarketing e Peão na horda, Agiota,

@@ -17,7 +17,7 @@ import { drawAvisosChao, monstraoNaLista, drawMonstraoObj, drawCarroErguido } fr
 import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado } from './render_carreira.js';
 import { drawCenaFundo, drawCenaFrente, drawFaixaCena, drawGolaco, drawBatidao, drawOndasBatidao, drawNotaDanca, drawFachoReliquia } from './render_super.js';
 import { alturaNaCena, zoomNaCena } from './super.js';
-import { drawPalestras, drawMarcaAgiota, drawCurasPastor, drawCurados } from './render_elenco.js';
+import { drawPalestras, drawMarcaAgiota, drawCurasPastor, drawCurados, drawBilhetes, drawAposta } from './render_elenco.js';
 import {
   entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace,
   drawAim, drawBullet, drawHeal,
@@ -211,6 +211,7 @@ export class Renderer {
     drawAvisosChao(ctx, game, cam, game.t); // golpes do Monstrão: aviso no chão e o anel de choque
     drawPalestras(ctx, game, cam, ppu, game.t); // a roda da palestra do Coach (D76)
     drawCurasPastor(ctx, game, cam, ppu); // a cura do Pastor (D77)
+    drawBilhetes(ctx, game, cam, ppu, game.t); // a banca do Bicheiro (D80)
     if (game.world) {
       // carreira (D39): sem seta nem placa; a obra do Especulador e o holofote da TV sobre o covil aberto
       drawObraChao(ctx, game.world, cam, ppu);
@@ -745,6 +746,7 @@ export class Renderer {
     this.drawFx(ctx, game, ppu, playerPx);
     drawMarcaAgiota(ctx, game, cam, ppu, playerPx, game.t); // a cobrança do Agiota (D76)
     drawCurados(ctx, game, cam, ppu, playerPx); // quem o Pastor curou (D77)
+    drawAposta(ctx, game, cam, ppu, playerPx); // o bilhete apostado (D80)
     if (game.map.bounded) this.drawAtmosfera(ctx, cam);
     if (game.world) {
       if (game.crise) drawCriseCeu(ctx, game, cam, ppu, game.t, playerPx, cenarioInRange(game.world, bounds.minY - 3, bounds.maxY + 7, criseTmp));

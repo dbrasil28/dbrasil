@@ -197,9 +197,9 @@ Tirado da lista de estereótipos do autor (`ELENCO_v0.3_BRASIL.md`).
 
 | Trecho | Horda | Inimigos | Elite e chefão | Aliados e eventos |
 | --- | --- | --- | --- | --- |
-| Orla do Desespero | Banhistas: Mulher de Biquíni Minúsculo, Tiozão de Sunga, Rato de Academia, telespectadores A, B e C (até decidir: Tiozão de Pochete, Senhora do Controle Remoto) | Golpista do Pix, Fiscal do Impossível, Pastor Picareta (D78) | Político Corrupto, Bicheiro; chefão: Monstrão | Vendedor de Picolé; desfile com a Rainha de Escola de Samba |
+| Orla do Desespero | Banhistas: Mulher de Biquíni Minúsculo, Tiozão de Sunga, Rato de Academia, telespectadores A, B e C (até decidir: Tiozão de Pochete, Senhora do Controle Remoto) | Golpista do Pix, Fiscal do Impossível, Pastor Picareta (D78) | Político Corrupto e Bicheiro, revezando (D80); chefão: Monstrão | Vendedor de Picolé; desfile com a Rainha de Escola de Samba |
 | Subida do Morro | Moradores | Traficante do PCC do Morro (armado), Funkeiro Raivoso, Cracudo, Trombadinha, Mototáxi | Chefe do Tráfico (armado) | Funkeiro e o baile na laje; o gatonet que cai |
-| São Paulo (com a rodovia) | Gente do engarrafamento e do centro: telemarketing, peão de obra | 2 Caras numa Moto, Playboy, Faria Limer, Coach Picareta, Influencer da Bet, Agiota, Burocrata-Monstro | Fiscal do pedágio; chefão: O Rapa | Vendedor de água e de milho; Jogador de Futebol, na várzea |
+| São Paulo (com a rodovia) | Gente do engarrafamento e do centro: telemarketing, peão de obra | 2 Caras numa Moto, Playboy, Faria Limer, Coach Picareta, Influencer da Bet, Agiota, Burocrata-Monstro (saiu da Orla, D80) | Fiscal do pedágio; chefão: O Rapa | Vendedor de água e de milho; Jogador de Futebol, na várzea |
 | Brasília (com a rodovia) | Torcida do Barbudo e torcida do Capitão | Laranja, Assessor Aspone, Candidato a Político, Encostado do INSS | O Barbudo e O Capitão; O Acordão | Márcia, a Servidora |
 
 ## 11. Dificuldade e progresso
