@@ -162,21 +162,52 @@ export function botInput(game) {
     if (gd > 1.5) {
       let ux = (rtBot.x - p.x) / gd;
       let uy = (rtBot.y - p.y) / gd;
-      // preso numa quina (não andou em 2 s): contorna pelo lado do meio do calçadão por um tempo
-      const st = game._bot || (game._bot = { x: p.x, y: p.y, t: game.t, desvioT: 0, lado: 1 });
+      // preso numa quina (não chegou mais perto do objetivo em 2 s): contorna de lado por um tempo; se continua
+      // preso, alterna o lado e vai cada vez mais longe (o mesmo desvio curto sempre podia travar)
+      // preso = não chegou mais perto do objetivo (andar de um lado para o outro debaixo de um ônibus não conta)
+      const dObj = Math.hypot(goal.x - p.x, goal.y - p.y);
+      const st = game._bot || (game._bot = { x: p.x, y: p.y, t: game.t, desvioT: 0, lado: 1, volta: 0, falhas: 0, dObj });
       if (game.segment === 'orla' && game.t - st.t > 2) {
-        if (Math.hypot(p.x - st.x, p.y - st.y) < 1.2) {
-          st.desvioT = 1.6;
-          st.lado = p.x < -6 ? 1 : -1;
-        }
+        if (st.dObj - dObj < 1.2) {
+          const meio = p.x < -6 ? 1 : -1;
+          const k = st.falhas;
+          st.desvioT = 1.6 + 0.8 * Math.min(4, st.falhas++); // cada tentativa seguida vai mais longe (um ônibus tem 11 m)
+          st.lado = k % 2 === 0 ? meio : -meio; // um lado, depois o outro
+          st.volta = 0;
+          st.alvoX = null;
+          // o que está na frente (carro, ônibus, banca): vai até a ponta livre mais perto dele
+          const m = game.map;
+          const frente = goal.y < p.y ? -1 : 1;
+          for (const k2 of game.world.solids || []) {
+            if (p.x < k2.x0 - 1 || p.x > k2.x1 + 1) continue;
+            const dy = frente < 0 ? p.y - k2.y1 : k2.y0 - p.y;
+            if (dy < -0.2 || dy > 2.5) continue;
+            const esq = k2.x0 - p.r - 0.6;
+            const dir = k2.x1 + p.r + 0.6;
+            const esqOk = esq > m.minX + p.r + 0.2;
+            const dirOk = dir < m.maxX - p.r - 0.2;
+            st.alvoX = esqOk && (!dirOk || p.x - esq < dir - p.x) ? esq : dir;
+            st.desvioT = 6;
+            break;
+          }
+        } else st.falhas = 0;
         st.x = p.x;
         st.y = p.y;
+        st.dObj = dObj;
         st.t = game.t;
       }
       if (st.desvioT > 0) {
         st.desvioT -= 1 / 30;
-        ux = st.lado;
-        uy = 0;
+        if (st.alvoX != null) {
+          // contornando o obstáculo: de lado até passar da ponta dele
+          const dx = st.alvoX - p.x;
+          if (Math.abs(dx) < 0.3) st.desvioT = 0;
+          ux = Math.sign(dx);
+          uy = 0;
+        } else {
+          ux = st.lado;
+          uy = -uy * st.volta;
+        }
       }
       wx += ux * BOT.goalPull;
       wy += uy * BOT.goalPull;
