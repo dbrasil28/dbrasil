@@ -63,7 +63,7 @@ function transform(id, code) {
     const list = names.split(',').map((n) => n.trim()).filter(Boolean).map((n) => n.replace(/\s+as\s+/, ': '));
     return `const { ${list.join(', ')} } = __m[${JSON.stringify(dep)}];`;
   });
-  body = body.replace(/^export\s+(async\s+function|function|class|const|let)\s+([A-Za-z0-9_$]+)/gm, (_, kind, name) => {
+  body = body.replace(/^export\s+(async\s+function|function\*?|class|const|let)\s+([A-Za-z0-9_$]+)/gm, (_, kind, name) => {
     exportsList.push(name);
     return `${kind} ${name}`;
   });
