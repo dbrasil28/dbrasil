@@ -169,7 +169,7 @@ test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acord
   assert.equal(S.noPalco, null);
 });
 
-test('DJ Plantão: o anel do grave derruba quem está na linha, o drop dá a hora de bater e a horda corre; caído, o portão abre', () => {
+test('DJ Plantão: o anel do grave empurra quem está na linha (quem derruba é o do drop), o drop dá a hora de bater e a horda corre; caído, o portão abre', () => {
   const g = noMorro();
   const w = g.world;
   ateABriga(g);
@@ -179,7 +179,8 @@ test('DJ Plantão: o anel do grave derruba quem está na linha, o drop dá a hor
   assert.ok(dj && dj.type === 'dj_plantao');
   dj.hp = dj.maxHp = 1e7;
   const p = g.player;
-  // o grave: o Juninho parado a 4 m, o anel passa por ele
+  // o grave: o Juninho parado a 4 m, o anel passa por ele (os canhões de luz desligados: ali perto tem um)
+  for (const d of w.baileDeco) if (d.tipo === 'canhao') d.cdT = 1e9;
   p.x = dj.x + 4;
   p.y = dj.y + 0.5;
   dj.graveCd = 0;
@@ -192,7 +193,7 @@ test('DJ Plantão: o anel do grave derruba quem está na linha, o drop dá a hor
     if (p.derrubado) derrubou = true;
   }
   assert.ok(p.hp < hp, 'o anel não machucou');
-  assert.ok(derrubou, 'o anel não derrubou');
+  assert.ok(!derrubou, 'o anel comum derrubou (pedido do autor: só empurra)');
   // o drop: subindo no som leva o dobro; depois a horda em volta corre
   p.invulnT = 0;
   dj.dropCd = 0;
@@ -205,8 +206,16 @@ test('DJ Plantão: o anel do grave derruba quem está na linha, o drop dá a hor
   dj.janelaT = 0;
   const e = g.enemies.find((o) => !o.dead && o.type === 'telespectador');
   assert.ok(naJanela >= 19, `o drop não deu a hora de bater (${naJanela})`);
-  rodar(g, ENEMIES.dj_plantao.drop.subirS + 0.2);
-  assert.ok(!e || e.dead || e.frenesiT > 0, 'a horda não entrou no frenesi do drop');
+  p.x = dj.x + 4;
+  p.y = dj.y + 0.5;
+  p.invulnT = 0;
+  let caiu = false;
+  for (let i = 0; i < 30 * (ENEMIES.dj_plantao.drop.subirS + 1.5); i++) {
+    g.update(DT, parado);
+    if (p.derrubado) caiu = true;
+  }
+  assert.ok(!e || e.dead || e.frenesiT > 0 || e.frenesiMul, 'a horda não entrou no frenesi do drop');
+  assert.ok(caiu, 'o anel do drop não derrubou');
   // caiu: o portão abre, a pista acorda e a noite vai embora
   assert.equal(w.portaoAberto, false);
   g.outbox.length = 0;
@@ -247,4 +256,47 @@ test('Modo Horda no Morro: sem baile e com o portão aberto', () => {
   chegar(g);
   g.update(DT, parado);
   assert.equal(g.baile, null, 'o baile começou na Horda');
+});
+
+test('DJ Plantão (ideia do autor): encostar no canhão de luz ofusca o DJ; com 70% da vida ele desce para a roda na pista', () => {
+  const g = noMorro();
+  const w = g.world;
+  ateABriga(g);
+  g.caosBonus += 100;
+  g.update(DT, parado);
+  const dj = g.boss;
+  assert.ok(dj && dj.type === 'dj_plantao');
+  const D = ENEMIES.dj_plantao;
+  dj.hp = dj.maxHp = 1000;
+  const p = g.player;
+  // o canhão: o Juninho encosta nele com o grave armando; o facho vira para o DJ e o grave se perde
+  const c = w.baileDeco.find((d) => d.tipo === 'canhao');
+  assert.ok(c, 'sem canhão de luz');
+  dj.graveCd = 0;
+  dj.dropCd = 99;
+  dj.chamaCd = 99;
+  g.update(DT, parado);
+  p.x = c.x;
+  p.y = c.y;
+  g.djAneis = [];
+  g.update(DT, parado);
+  assert.ok(dj.ofuscadoT > 0, 'o DJ não ficou ofuscado');
+  assert.ok(c.miraT > 0 && c.cdT > 0, 'o canhão não virou para o DJ');
+  rodar(g, D.canhao.ofuscaS * 0.8);
+  assert.equal((g.djAneis || []).length, 0, 'ofuscado, o DJ soltou anel');
+  // com 70% da vida, desce para a pista: a roda abre e ninguém sai
+  dj.hp = dj.maxHp * D.pista.vidaFrac - 1;
+  g.update(DT, parado);
+  assert.ok(dj.naPista && g.rodaDJ, 'o DJ não desceu para a roda');
+  const R = g.rodaDJ;
+  assert.ok(Math.hypot(dj.x - R.x, dj.y - R.y) < R.r, 'o DJ fora da roda');
+  p.x = R.x + R.r + 2;
+  p.y = R.y;
+  p.invulnT = 0;
+  const hp = p.hp;
+  g.update(DT, parado);
+  assert.ok(Math.hypot(p.x - R.x, p.y - R.y) < R.r, 'o Juninho saiu da roda');
+  assert.ok(p.hp < hp, 'encostar na torcida não machucou');
+  g.damageEnemy(dj, 1e9, 'teste');
+  assert.equal(g.rodaDJ, null, 'a roda não se desfez com o DJ no chão');
 });

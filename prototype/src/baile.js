@@ -290,6 +290,40 @@ export function abateNoBaile(game, e) {
   game.caosBonus += BAILE.caos.porAbate;
 }
 
+/** A pessoa da festa que a horda era, pelo inimigo dela (quem não é da festa segue brigando: null). */
+function pessoaDoInimigo(o) {
+  if (o.type === 'funkeiro' || o.type === 'traficante') return { tipo: o.type, arte: ARTE_DO_POVO[o.type], tint: 0 };
+  if (o.type !== 'telespectador') return null;
+  if (o.tint === 200) return { tipo: 'garota', arte: ARTE_DO_POVO.garota, tint: 0 };
+  if (o.tint >= 100 && o.tint < 200) return { tipo: 'morador', arte: null, tint: o.tint };
+  return null;
+}
+
+/**
+ * A roda abre: quem estava brigando para, se afasta do Juninho (roda.raioM) e fica olhando de olho aceso. Sai da
+ * luta sem contar como abate (não sobe o Caos nem solta XP); com o DJ no chão, vai embora com o resto da pista.
+ */
+function abrirRoda(game, S) {
+  const B = BAILE;
+  const p = game.player;
+  for (const o of game.enemies) {
+    if (o.dead || o.boss || !o.doBaile) continue;
+    const quem = pessoaDoInimigo(o);
+    if (!quem) continue;
+    const dx = o.x - p.x;
+    const dy = o.y - p.y;
+    const d = Math.hypot(dx, dy) || 0.01;
+    const longe = Math.max(d, B.roda.raioM);
+    const s = game.fitSpawn({ x: p.x + (dx / d) * longe, y: p.y + (dy / d) * longe });
+    o.dead = true;
+    S.pessoas.push({
+      x: s.x, y: s.y, vx: 0, vy: 0, ...quem, tam: TAM_DO_POVO[quem.tipo], walk: o.walk || 0, ritmo: game.fxRng(),
+      danca: true, viraT: -1, virou: false, id: 960000 + S.pessoas.length, olho: 1, olhoEm: -1, roda: true,
+    });
+  }
+  game.word(p.x, p.y - 2.4, 'ABRIU A RODA!', '#ff5fd2');
+}
+
 /** O DJ Plantão para de só olhar: sai de trás da mesa e entra na luta. */
 function soltarDJ(game, S) {
   const w = game.world;
@@ -301,11 +335,14 @@ function soltarDJ(game, S) {
   S.dj = e;
   S.fase = 'luta';
   S.faseT = 0;
+  abrirRoda(game, S);
   game.boss = e;
   game.bossName = ENEMIES.dj_plantao.name;
   game.emit('boss', {});
   game.shake(0.45);
   game.tv('djPlantao');
+  // os canhões de luz ofuscam o DJ (ideia do autor): a dica aparece em cima de cada um
+  for (const d of w.baileDeco || []) if (d.tipo === 'canhao') game.word(d.x, d.y - 2.2, 'ENCOSTA NO CANHÃO!', '#ffe85a');
   game.metrics.djSaiuS = Math.round(game.t);
 }
 
@@ -321,6 +358,7 @@ export function djCaiu(game, e) {
     for (const c of S.pessoas) if (!c.virou) c.acorda = true; // quem só olhava (ou ia virando) acorda e vai embora
   }
   if (game.boss === e) game.boss = null;
+  game.rodaDJ = null; // a roda da pista (dj.js) se desfaz
   w.portaoAberto = true;
   w.portaoT = game.t;
   game.metrics.djCaiuS = Math.round(game.t);

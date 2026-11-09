@@ -4,7 +4,9 @@
 //   linha do anel leva dano e voa para fora (como nos atropelamentos);
 // - o drop: sobe no som (a hora de bater: leva o dobro) e a batida cai: um anel forte e a horda corre mais;
 // - chama Funkeiros pelos lados da esplanada.
-// Fica no palco e se afasta de quem chega perto. Números em config.js (ENEMIES.dj_plantao). Sem DOM.
+// Fica no palco e se afasta de quem chega perto. Ideia do autor: encostando num canhão de luz, o facho vira para
+// o DJ e ele fica ofuscado (para os golpes e deixa chegar perto); com a vida em 70%, ele desce para a pista e a
+// briga é na roda, com o povo da festa em volta (como na Orla). Números em config.js (ENEMIES.dj_plantao). Sem DOM.
 import { ENEMIES } from './config.js';
 import { palcoDoBaile } from './cenario.js';
 
@@ -20,7 +22,7 @@ function soltarAnel(game, e, G, forte = false) {
   e.anelSerie = true;
   (game.djAneis || (game.djAneis = [])).push({
     x: e.x, y: e.y, r: 0.6, v: forte ? G.velMS * 1.25 : G.velMS, max: G.raioM * (forte ? 1.2 : 1),
-    larg: G.largM * (forte ? 1.3 : 1), dano: A.dano, derrubaM: A.derrubaM, hit: false, forte,
+    larg: G.largM * (forte ? 1.3 : 1), dano: A.dano, derrubaM: A.derrubaM, empurraM: G.empurraM, hit: false, forte,
     brecha: e.brecha, brechaRad: G.brechaRad * (forte ? 0.8 : 1),
   });
   game.som('paredao', e.x, e.y);
@@ -44,13 +46,136 @@ export function atualizarAneis(game, dt) {
     if (Math.abs(da) < a.brechaRad / 2) continue; // na brecha: o anel passa por ele
     a.hit = true;
     game.hurtPlayer(a.dano, 'dj_plantao');
-    game.derrubar(dx / d, dy / d, a.derrubaM);
-    game.som('atropelo', p.x, p.y);
+    if (a.derrubaM > 0) {
+      game.derrubar(dx / d, dy / d, a.derrubaM);
+      game.som('atropelo', p.x, p.y);
+    } else {
+      // o anel comum só empurra para fora (o do drop derruba)
+      p.x += (dx / d) * a.empurraM;
+      p.y += (dy / d) * a.empurraM;
+      game.som('golpe', p.x, p.y);
+    }
   }
   game.djAneis = L.filter((a) => a.r < a.max);
 }
 
-/** O DJ no palco: anda devagar pelo palco, se afasta de quem chega perto e solta os golpes. */
+/** Os canhões de luz (o desenho lê d.miraT para virar o facho para o DJ e d.cdT para a marca no chão). */
+function canhoesDoBaile(game) {
+  return (game.world.baileDeco || []).filter((d) => d.tipo === 'canhao');
+}
+
+/** O Juninho encostou num canhão pronto: o facho vira para o DJ e ele fica ofuscado (ideia do autor). */
+function usarCanhoes(game, e, dt) {
+  const C = ENEMIES.dj_plantao.canhao;
+  const p = game.player;
+  for (const d of canhoesDoBaile(game)) {
+    if (d.cdT > 0) d.cdT -= dt;
+    if (d.miraT > 0) d.miraT -= dt;
+    if (d.cdT > 0 || Math.hypot(p.x - d.x, p.y - d.y) > C.ativaM) continue;
+    d.cdT = C.cdS;
+    d.miraT = C.ofuscaS;
+    e.ofuscadoT = C.ofuscaS;
+    game.metrics.ofuscaDJ = (game.metrics.ofuscaDJ || 0) + 1;
+    // o que ele estava armando se perde: o grave, os anéis da série e o drop
+    e.graveT = 0;
+    e.aneisFila = 0;
+    e.dropT = 0;
+    game.word(e.x, e.y - 2.6, 'OFUSCADO!', '#fff3a0');
+    game.som('aviso_chao', d.x, d.y);
+    game.emit('flash', {});
+  }
+}
+
+/** A roda da pista (fase 2): o povo da festa em volta, de olho aceso; ninguém sai, e quem encosta apanha. */
+function abrirRodaNaPista(game, e) {
+  const P = ENEMIES.dj_plantao.pista;
+  const k = game.world.baile;
+  const S = game.baile;
+  const cx = (k.x0 + k.x1) / 2;
+  const cy = (k.y0 + k.y1) / 2 + 1;
+  const R = { x: cx, y: cy, r: P.rodaM, toqueT: 0 };
+  game.rodaDJ = R;
+  // o DJ pula do palco para o meio; o Juninho, se estava fora, vai para dentro
+  e.x = cx;
+  e.y = cy - P.rodaM * 0.4;
+  game.burst(e.x, e.y, 10, 'poeira');
+  game.shake(0.5);
+  const p = game.player;
+  const dp = Math.hypot(p.x - cx, p.y - cy) || 1;
+  if (dp > P.rodaM - 1) {
+    p.x = cx + ((p.x - cx) / dp) * (P.rodaM - 1.6);
+    p.y = cy + ((p.y - cy) / dp) * (P.rodaM - 1.6);
+  }
+  // quem está na pista abre a roda: quem estava dentro vai para a beira, no ângulo em que estava
+  if (S) {
+    let n = 0;
+    for (const c of S.pessoas) {
+      if (c.virou || c.acorda) continue;
+      const dx = c.x - cx;
+      const dy = c.y - cy;
+      const d = Math.hypot(dx, dy) || 0.01;
+      if (d > P.rodaM + P.linhaM * 2) continue;
+      const r = P.rodaM + 0.3 + (n++ % 2) * P.linhaM + game.fxRng() * 0.3;
+      c.x = cx + (dx / d) * r;
+      c.y = cy + (dy / d) * r;
+      c.olho = 1;
+      c.danca = true;
+    }
+  }
+  // a horda que sobrou de fora fica fora; a de dentro, dentro
+  game.word(cx, cy - P.rodaM - 1, 'ABRE A RODA!', '#ff5fd2');
+  game.tv('fase_dj');
+}
+
+/** Ninguém sai da roda: o DJ e a firma ficam dentro; o Juninho que encosta na torcida apanha e volta. */
+function segurarNaRoda(game, dt) {
+  const R = game.rodaDJ;
+  if (!R) return;
+  const P = ENEMIES.dj_plantao.pista;
+  for (const o of game.enemies) {
+    if (o.dead) continue;
+    const dx = o.x - R.x;
+    const dy = o.y - R.y;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d > R.r + 4) continue; // quem está longe (fora do baile) não entra
+    const lim = R.r - (o.r || 0.3) - 0.15;
+    if (d > lim) {
+      o.x = R.x + (dx / d) * lim;
+      o.y = R.y + (dy / d) * lim;
+    }
+  }
+  if (R.toqueT > 0) R.toqueT -= dt;
+  const p = game.player;
+  const dx = p.x - R.x;
+  const dy = p.y - R.y;
+  const d = Math.hypot(dx, dy) || 1;
+  const lim = R.r - (p.r || 0.3) - 0.1;
+  if (d > lim) {
+    p.x = R.x + (dx / d) * lim;
+    p.y = R.y + (dy / d) * lim;
+    if (R.toqueT <= 0 && !game.over) {
+      R.toqueT = P.cdS;
+      game.hurtPlayer(P.dano, 'cerco');
+      game.empurrarJuninho(-dx, -dy, P.empurra);
+    }
+  }
+}
+
+/** Onde nasce a firma que o DJ chama: na beira da esplanada no palco; na pista, na beira de dentro da roda. */
+function pontoDaFirma(game, i) {
+  const R = game.rodaDJ;
+  if (R) {
+    const a = game.rng() * Math.PI * 2;
+    return { x: R.x + Math.cos(a) * (R.r - 1.2), y: R.y + Math.sin(a) * (R.r - 1.2) };
+  }
+  const k = game.world.baile;
+  return game.fitSpawn({ x: i % 2 ? k.x1 - 1 : k.x0 + 1, y: k.y0 + (k.y1 - k.y0) * (0.35 + 0.2 * i) });
+}
+
+/**
+ * O DJ: no palco, anda devagar, se afasta de quem chega perto e solta os golpes; ofuscado pelo canhão de luz, para.
+ * Com a vida em pista.vidaFrac, desce para a pista e vem para cima do Juninho na roda.
+ */
 export function updateDJ(game, e, dt) {
   const D = ENEMIES.dj_plantao;
   const f = Math.min(2, e.fase || 0);
@@ -64,14 +189,31 @@ export function updateDJ(game, e, dt) {
     e.pose = null;
     return mov;
   }
+  if (!e.naPista && e.hp <= e.maxHp * D.pista.vidaFrac) {
+    e.naPista = true;
+    e.ofuscadoT = 0;
+    e.graveT = 0;
+    e.aneisFila = 0;
+    e.dropT = 0;
+    abrirRodaNaPista(game, e);
+  }
+  if (e.naPista) segurarNaRoda(game, dt);
+  else usarCanhoes(game, e, dt);
   const pc = palcoDoBaile(game.world) || { x: e.x, y: e.y };
   const dx = p.x - e.x;
   const dy = p.y - e.y;
   const d = Math.hypot(dx, dy) || 0.01;
   e.poseX = dx / d;
   e.poseY = dy / d;
+  if (e.ofuscadoT > 0) {
+    // ofuscado pelo canhão: parado, sem atacar nem fugir, levando o dobro (o Juninho chega perto e bate)
+    e.ofuscadoT -= dt;
+    e.pose = null;
+    e.janelaT = Math.max(e.janelaT || 0, 0.15);
+    return mov;
+  }
   if (e.dropT > 0) {
-    // subindo no som: braços para cima, parado no meio do palco (a hora de bater)
+    // subindo no som: braços para cima, parado no meio do palco (leva o dobro, mas o drop vem aí)
     e.dropT -= dt;
     e.pose = 'furia';
     e.janelaT = Math.max(e.janelaT || 0, 0.15);
@@ -112,8 +254,14 @@ export function updateDJ(game, e, dt) {
     return mov;
   }
   e.pose = null;
-  // anda pelo palco, de um lado para o outro; quem chega perto, ele se afasta (sem sair da esplanada)
-  if (d < D.keepM) {
+  if (e.naPista) {
+    // na roda: vem para cima do Juninho
+    if (d > (e.r || 0.6) + 0.5) {
+      mov.x = (dx / d) * D.pista.velMul;
+      mov.y = (dy / d) * D.pista.velMul;
+    }
+  } else if (d < D.keepM) {
+    // anda pelo palco, de um lado para o outro; quem chega perto, ele se afasta (sem sair da esplanada)
     mov.x = -dx / d;
     mov.y = -dy / d;
   } else {
@@ -142,12 +290,9 @@ export function updateDJ(game, e, dt) {
     game.som('aviso_chao', e.x, e.y);
   } else if (e.chamaCd <= 0) {
     e.chamaCd = D.chama.cadaS * ritmo;
-    const w = game.world;
-    const k = w.baile;
     const n = D.chama.funkeiros[f];
     for (let i = 0; i < n; i++) {
-      const x = i % 2 ? k.x1 - 1 : k.x0 + 1;
-      const sp = game.fitSpawn({ x, y: k.y0 + (k.y1 - k.y0) * (0.35 + 0.2 * i) });
+      const sp = pontoDaFirma(game, i);
       game.spawnEnemy('funkeiro', sp.x, sp.y);
     }
     game.word(e.x, e.y - 2.6, 'CHAMA A FIRMA!', '#ff9a3a');

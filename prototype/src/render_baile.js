@@ -181,7 +181,45 @@ export function drawBaileChao(ctx, game, cam, ppu, t, bounds) {
     }
     ctx.restore();
   }
+  marcasDaLutaDoDJ(ctx, game, cam, ppu, t);
   drawAneis(ctx, game, cam, ppu, t);
+}
+
+/**
+ * A luta do DJ no chão (ideia do autor): no palco, a marca pulsando em cada canhão de luz pronto (encostar nele
+ * ofusca o DJ); na pista, a beira da roda.
+ */
+function marcasDaLutaDoDJ(ctx, game, cam, ppu, t) {
+  const S = game.baile;
+  const dj = S && S.dj;
+  if (!dj || dj.dead) return;
+  const C = ENEMIES.dj_plantao.canhao;
+  const elipse = (x, y, r, cor, larg) => {
+    cam.toScreen(x, y, a);
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.scale(1, cam.k);
+    ctx.strokeStyle = cor;
+    ctx.lineWidth = larg;
+    ctx.beginPath();
+    ctx.arc(0, 0, r * ppu, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  };
+  if (!dj.naPista) {
+    for (const d of game.world.baileDeco || []) {
+      if (d.tipo !== 'canhao') continue;
+      if (d.cdT > 0) {
+        elipse(d.x, d.y, C.ativaM, 'rgba(255,255,255,0.18)', Math.max(1, ppu * 0.05));
+        continue;
+      }
+      const pu = 0.5 + 0.5 * Math.sin(t * 6);
+      elipse(d.x, d.y, C.ativaM * (0.85 + 0.15 * pu), `rgba(255,232,90,${(0.55 + 0.4 * pu).toFixed(3)})`, Math.max(2, ppu * 0.12));
+    }
+  } else if (game.rodaDJ) {
+    const Rd = game.rodaDJ;
+    elipse(Rd.x, Rd.y, Rd.r, 'rgba(255,95,210,0.35)', Math.max(2, ppu * 0.1));
+  }
 }
 
 /** Uma TV no muro do fundo (entra na ordem de profundidade, na frente das casas do fundo). */
@@ -854,13 +892,28 @@ function canhoes(ctx, game, cam, ppu, t) {
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   let algumNaTela = false;
+  const dj = S && S.dj && !S.dj.dead ? S.dj : null;
   bases.forEach((d, i) => {
     lenteDoCanhao(cam, ppu, d, c0);
     if (c0.y > -40) algumNaTela = true;
-    const ang = -Math.PI / 2 + Math.sin(t * ((Math.PI * 2) / K.giroS) + i * 1.3) * K.varreRad + (i % 2 ? 0.12 : -0.12);
-    const L = cam.viewH * 1.6;
+    let ang = -Math.PI / 2 + Math.sin(t * ((Math.PI * 2) / K.giroS) + i * 1.3) * K.varreRad + (i % 2 ? 0.12 : -0.12);
+    let L = cam.viewH * 1.6;
+    let larg1 = ppu * 4.5;
     const larg0 = ppu * 0.3;
-    const larg1 = ppu * 4.5;
+    if (dj && d.miraT > 0) {
+      // o Juninho encostou: o facho vira para o DJ (na cara dele) e ofusca
+      cam.toScreen(dj.x, dj.y, c1);
+      const ay = c1.y - ppu * 1.7;
+      ang = Math.atan2(ay - c0.y, c1.x - c0.x);
+      L = Math.hypot(c1.x - c0.x, ay - c0.y) * 1.15;
+      larg1 = ppu * 1.4;
+      const gl = ctx.createRadialGradient(c1.x, ay, 0, c1.x, ay, ppu * 1.6);
+      gl.addColorStop(0, 'rgba(255,255,240,0.95)');
+      gl.addColorStop(0.4, 'rgba(255,250,200,0.5)');
+      gl.addColorStop(1, 'rgba(255,250,200,0)');
+      ctx.fillStyle = gl;
+      ctx.fillRect(c1.x - ppu * 1.6, ay - ppu * 1.6, ppu * 3.2, ppu * 3.2);
+    }
     const ux = Math.cos(ang);
     const uy = Math.sin(ang);
     const px = -uy;

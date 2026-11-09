@@ -193,14 +193,22 @@ export const ENEMIES = {
     name: 'DJ Plantão',
     hp: 500, speed: 1.3, dmg: 10, radius: 0.6, size: 1.5, xp: 0, // a vida cresce com o tempo no trecho (uns 1.100 no baile)
     behavior: 'dj', elite: true, boss: true,
-    keepM: 4, palcoM: 6,
+    keepM: 2.5, palcoM: 6, // keepM: só foge de quem chega mais perto que isso (era 4: com arma de perto, não dava)
     // cada anel tem uma brecha (brechaRad); o anel seguinte vem com a brecha girada (giroRad): quem está na brecha passa
-    grave: { cadaS: 4.2, avisoS: 0.75, velMS: 6, raioM: 12, largM: 0.8, dano: 9, derrubaM: 1.8, aneis: [1, 2, 2], entreS: 0.5, brechaRad: 1.0, giroRad: 1.9 },
+    // o anel comum só empurra (empurraM); quem derruba é o do drop (pedido do autor: não dava nem para chegar perto)
+    grave: { cadaS: 4.2, avisoS: 0.75, velMS: 6, raioM: 12, largM: 0.8, dano: 9, derrubaM: 0, empurraM: 1.2, aneis: [1, 2, 2], entreS: 0.5, brechaRad: 1.0, giroRad: 1.9 },
     drop: { cadaS: 15, subirS: 2.4, dano: 14, derrubaM: 2.6, frenesiMul: 1.5, frenesiS: 4, frenesiM: 20 },
     chama: { cadaS: 11, funkeiros: [1, 2, 2] },
     fases: { cadenciaMul: 0.82, reforco: [[], ['funkeiro'], ['funkeiro', 'funkeiro']] },
     faseHorda: 10, // a cada fase, essa horda chega pelos lados da esplanada
     janela: { danoMul: 2 }, // subindo no som para o drop, leva o dobro
+    // ideia do autor (o Juninho não conseguia nem chegar perto): no palco, quem encosta (ativaM) num dos canhões de luz
+    // vira o facho para o DJ, que fica ofuscado por ofuscaS (não solta anel, não foge, não faz o drop, e leva o dobro
+    // da janela); cada canhão
+    // volta a servir em cdS. Com a vida em vidaFrac, ele desce para a pista e a briga é na roda (rodaM de raio, como
+    // na Orla): ele vem para cima (velMul), a torcida empurra quem encosta (dano a cada cdS, empurra)
+    canhao: { ativaM: 1.8, ofuscaS: 4, cdS: 9 },
+    pista: { vidaFrac: 0.7, rodaM: 7, velMul: 1.5, linhaM: 0.85, dano: 2, cdS: 0.6, empurra: 6 },
   },
   // Morro (D37): o Cracudo vem em bando, cambaleando, e cata o XP do chão antes do Juninho; quando cai, solta o que
   // catou. catarM: até onde ele enxerga XP; catarS: agachado catando
@@ -849,6 +857,9 @@ export const BAILE = {
   // povo: o peso de cada um), até o DJ entrar. Com o DJ na luta, quem não brigou fica olhando; com ele no chão, vai
   // embora.
   briga: { max: 36, ritmo: 2.5, longeM: 7, povo: { morador: 6, garota: 4, funkeiro: 2 } },
+  // quando o DJ entra na luta, a roda abre: quem estava brigando para, se afasta raioM do Juninho e fica olhando
+  // de olho aceso (a luta é o Juninho contra o DJ e a firma que ele chama)
+  roda: { raioM: 5 },
   postoM: 2.5,
   // luzes do baile: refletores de néon girando (cores, raio no chão), as TVs (largura e altura, m) e o brilho
   luzes: { n: 7, raioM: 4.2, giroS: 5.5, cores: ['255,60,200', '60,220,255', '170,90,255', '60,255,140', '255,170,40'], brilho: 0.3 },
