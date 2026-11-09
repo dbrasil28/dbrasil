@@ -14,8 +14,8 @@ const clamp01 = (v) => Math.max(0, Math.min(1, v));
 // a arte de cada um do povo (WALK_ATLAS; o morador usa a da horda do Morro, pelo tint) e o tamanho
 const ARTE_DO_POVO = { morador: null, garota: 'gp', funkeiro: 'fk', traficante: 'tf' };
 const TAM_DO_POVO = { morador: null, garota: 1.0, funkeiro: ENEMIES.funkeiro.size, traficante: ENEMIES.traficante.size };
-/** O tint de um morador do Morro sorteado entre os que vão ao baile (BAILE.moradores): a roupa n da horda do Morro. */
-const tintMorador = (rng) => 100 + HORDA_MORRO.nomes.indexOf(BAILE.moradores[Math.floor(rng() * BAILE.moradores.length)]);
+/** O tint de um morador do Morro sorteado da lista (BAILE.moradores na pista): a roupa n da horda do Morro. */
+const tintMorador = (rng, lista = BAILE.moradores) => 100 + HORDA_MORRO.nomes.indexOf(lista[Math.floor(rng() * lista.length)]);
 
 /** Distância de (x, y) até a esplanada (0 dentro dela). */
 export function distEsplanada(w, x, y) {
@@ -275,7 +275,7 @@ function chegaMaisGente(game, S, dt) {
     let r = rng() * total;
     let tipo = pesos[0][0];
     for (const [t, n] of pesos) if ((r -= n) < 0) { tipo = t; break; }
-    const e = tipo === 'funkeiro' ? game.spawnEnemy('funkeiro', s.x, s.y) : game.spawnEnemy('telespectador', s.x, s.y, { tint: tipo === 'garota' ? 200 : tintMorador(rng) });
+    const e = tipo === 'funkeiro' ? game.spawnEnemy('funkeiro', s.x, s.y) : game.spawnEnemy('telespectador', s.x, s.y, { tint: tipo === 'garota' ? 200 : tintMorador(rng, BAILE.moradoresReforco) });
     e.doBaile = true;
     game.burst(s.x, s.y, 4, 'static');
     S.chegaAcc -= 1;

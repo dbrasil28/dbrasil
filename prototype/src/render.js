@@ -515,13 +515,14 @@ export class Renderer {
             else o.row = DANCA_ROWS[(Math.floor(t * 1.3 + o.ritmo * 7) + (o.id % 5)) % DANCA_ROWS.length];
             const batida = ((((tb * BAILE.pulsoBpm) / 60 + o.ritmo * 0.12) % 1) + 1) % 1;
             pula = Math.sin(Math.PI * batida) * h * (o.dj ? 0.03 : 0.06);
-            // com a arte da dança (a garota): os 6 quadros dela na batida, virando só entre 0 e 67,5° (as direções
-            // da folha; a arte não se espelha), sem o pulo, que a dança já tem. De olho aceso, volta para a
-            // caminhada, encarando o Juninho de qualquer lado.
-            const DA = !o.dj && !(o.olho > 0) && o.arte ? walkReady(DANCA_ATLAS[o.arte]) : null;
+            // com a arte da dança (DANCA_ATLAS: a garota, o morador listrado): os 6 quadros na batida, virando só
+            // entre as direções certas da folha (a arte não se espelha), sem o pulo, que a dança já tem. De olho
+            // aceso, volta para a caminhada, encarando o Juninho de qualquer lado.
+            const DA = !o.dj && !(o.olho > 0) && A ? walkReady(DANCA_ATLAS[A.prefix]) : null;
             if (DA) {
               A = DA;
-              o.row = DANCA_ROWS_ARTE[(Math.floor(t * 1.3 + o.ritmo * 7) + (o.id % 5)) % DANCA_ROWS_ARTE.length];
+              const lin = DA.linhas || DANCA_ROWS_ARTE;
+              o.row = lin[(Math.floor(t * 1.3 + o.ritmo * 7) + (o.id % 5)) % lin.length];
               frame = Math.floor(((tb * BAILE.pulsoBpm) / 60 / BAILE.danca.batidasPorVolta + o.ritmo) * 6) % 6;
               pula = 0;
             }

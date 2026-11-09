@@ -255,6 +255,8 @@ export const WALK_ATLAS = {
   // a dança da garota no baile: só as 4 primeiras direções (0 a 67,5°); figureH acerta o corpo com a caminhada
   // (o short tem a mesma largura; de joelho dobrado ela fica mais baixa que andando)
   gpd: { atlas: 'garota_danca_atlas', prefix: 'gpd', figureH: 144, escala: 0.6, rows: 4 },
+  // a do morador listrado: só 3 direções (a 4ª do modelo veio de costas); o brilho dos olhos da horda foi apagado
+  mlid: { atlas: 'morador_listrado_danca_atlas', prefix: 'mlid', figureH: 132, escala: 0.7, rows: 3, linhas: [0, 1, 2, 1, 0, 2, 1, 0] },
   pm: { atlas: 'policial_militar_walk_atlas', prefix: 'pm', figureH: 157, escala: 0.6 },
   pt: { atlas: 'policial_tropa_walk_atlas', prefix: 'pt', figureH: 158, escala: 0.6 },
   vp: { atlas: 'vendedor_picole_walk_atlas', prefix: 'vp', figureH: 157, escala: 0.6 },
@@ -311,8 +313,11 @@ export const POSE_ATLAS = {
 export const POSE_OPTS = { shadowScale: 0.4 };
 
 /** O atlas, se já carregou; senão null (o jogo usa o recorte de pose única). */
-/** A dança de cada um do povo do baile, pela arte da caminhada dele (quem não tem segue no passo no lugar). */
-export const DANCA_ATLAS = { gp: WALK_ATLAS.gpd };
+/**
+ * A dança de cada um do povo do baile, pelo prefixo da arte da caminhada dele (quem não tem segue no passo no
+ * lugar). linhas: a ordem das direções em que ele vira dançando, só as que a folha tem certas.
+ */
+export const DANCA_ATLAS = { gp: WALK_ATLAS.gpd, mli: WALK_ATLAS.mlid };
 
 export const walkReady = (w) => (w && images[`${w.prefix}_0_0`] ? w : null);
 
@@ -446,6 +451,7 @@ export const IMAGES_MORRO = {
   baile_canhao: 'assets/cenario/favela/baile_canhao.webp',
   // a dança do povo do baile (folhas 6×4 de frente a 67,5°, tools/montar-danca.py; DANCA_ATLAS)
   garota_danca_atlas: 'assets/personagens/garota_programa/danca_atlas.webp', // Canva, com o braço a mais tirado à mão
+  morador_listrado_danca_atlas: 'assets/personagens/morador_listrado/danca_atlas.webp', // Canva (pessoa trocada numa dança pronta)
   funkeiro_walk_atlas: 'assets/personagens/funkeiro/caminhada_atlas.webp', // Funkeiro Raivoso (Morro)
   traficante_walk_atlas: 'assets/personagens/traficante/caminhada_atlas.webp', // Traficante do Morro (Figma)
   chefe_trafico_walk_atlas: 'assets/personagens/chefe_trafico/caminhada_atlas.webp', // Chefe do Tráfico (Figma)

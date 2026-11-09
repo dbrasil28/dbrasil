@@ -834,8 +834,9 @@ export const BAILE = {
   // inimigo deles (a firma). A arte dos funkeiros loiros está pedida (PEDIDO_MORRO_BAILE.md).
   // moradores: quais moradores do Morro vão ao baile (pedido do autor: os cidadãos da Orla não têm nada a ver com
   // a favela), pelo nome da roupa da horda do Morro (HORDA_MORRO)
-  povo: { garota: 50, funkeiro: 30, traficante: 4 }, // morador: entra quando tiver a arte da dança (hoje só a horda)
-  moradores: ['listrado', 'moca', 'moleque', 'tiozinho'],
+  povo: { morador: 35, garota: 38, funkeiro: 23, traficante: 4 },
+  moradores: ['listrado'], // na pista, só quem tem a dança (DANCA_ATLAS): a arte dos outros é só a da horda
+  moradoresReforco: ['listrado', 'moca', 'moleque', 'tiozinho'], // nos reforços da pancadaria (já horda), todos
   lotacao: { passoM: 1.2, folgaM: 0.35, max: 210, entradaM: 2.6 },
   palcoM: 3.6, beiraM: 0.8, djAtrasM: 0.75,
   hordaMax: 6, hordaLonge: 40,
