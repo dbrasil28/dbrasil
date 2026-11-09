@@ -124,6 +124,8 @@ export function montarFavela(w) {
   }
   casasDosBecos(path, casas, add, becos, sorteio, reservas); // antes das fileiras de trás: o beco fica fechado de casa
   fileirasDeTras(path, casas, add, topI, reservas);
+  frenteDasParedes(casas, add); // a parede da viela sem ninguém na frente ganha um barraco na frente
+  tapaBuracos(path, casas, add, topI, reservas, w.corridors || []); // o que sobrou sem casa perto da rota e dos becos
   casas.sort((a, b) => a.y1 - b.y1 || a.x0 - b.x0);
   w.casas = casas;
   return casas;
@@ -139,6 +141,135 @@ const ocupaEm = (path, casas, reservas = []) => (x0, y0, x1, y1) =>
   path.some((r, i) => i > 0 && x0 < r.x1 - 0.05 && x1 > r.x0 + 0.05 && y0 < r.y1 - 0.05 && y1 > r.y0 + 0.05) ||
   reservas.some((r) => x0 < r.x1 - 0.05 && x1 > r.x0 + 0.05 && y0 < r.y1 - 0.05 && y1 > r.y0 + 0.05) ||
   casas.some((c) => x0 < c.x1 - 0.05 && x1 > c.x0 + 0.05 && y0 < c.y1 - 0.05 && y1 > c.y0 + 0.05);
+
+/**
+ * Tapa-buracos (pedido do autor: "partes do mapa faltando"): os becos (D92) andam para os lados além das fileiras
+ * de trás, e sobrava chão sem casa (aparecia o fundo chapado). Numa grade de FAVELA.buracos.passoM, todo ponto a
+ * até raioM de um pedaço (da rota ou de beco) que não é chão de andar, quintal, passagem nem casa ganha uma casa
+ * que caiba ali (ou cortada, até minD), sem entrar em nada. Nesta câmera, casa ao sul ou a leste de um chão de
+ * andar esconde quem anda atrás dela: logo ao sul (sombraM) não entra casa; mais ao sul (até sombraAltaM) e a leste
+ * (até lesteM), só casa baixa (até FAVELA.alturaBaixaM), e a de leste entra pela frente, como as do lado da viela.
+ */
+function tapaBuracos(path, casas, add, topI, reservas, corridors) {
+  const B = FAVELA.buracos;
+  const P = FAVELA.pecas;
+  const pecas = path.filter((k, i) => i >= 1 && (i <= topI || k.principal === false));
+  if (!pecas.length) return;
+  const passo = B.passoM;
+  const gx0 = Math.min(...pecas.map((k) => k.x0)) - B.raioM;
+  const gx1 = Math.max(...pecas.map((k) => k.x1)) + B.raioM;
+  const gy0 = Math.min(...pecas.map((k) => k.y0)) - 1;
+  const gy1 = path[1].y1; // a Orla fica de fora
+  const nx = Math.ceil((gx1 - gx0) / passo);
+  const ny = Math.ceil((gy1 - gy0) / passo);
+  // 0 livre longe da rota, 1 livre perto (ganha casa), 2 casa, 3 proibido (sombra de quem anda), 4 chão de andar,
+  // quintal ou passagem
+  const grade = new Uint8Array(nx * ny);
+  // bit 1: só casa baixa (ao sul de quem anda); bit 2: a leste de quem anda (só baixa, entra pela frente); bit 4:
+  // colada no lado oeste de quem anda (fica no fundo, mesmo que também esteja a leste de outra viela)
+  const baixa = new Uint8Array(nx * ny);
+  const marca = (r, v, so = -1) => {
+    const i0 = Math.max(0, Math.floor((r.x0 - gx0) / passo));
+    const i1 = Math.min(nx - 1, Math.ceil((r.x1 - gx0) / passo) - 1);
+    const j0 = Math.max(0, Math.floor((r.y0 - gy0) / passo));
+    const j1 = Math.min(ny - 1, Math.ceil((r.y1 - gy0) / passo) - 1);
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) if (so < 0 || grade[j * nx + i] === so) grade[j * nx + i] = v;
+  };
+  for (const k of pecas) marca({ x0: k.x0 - B.raioM, x1: k.x1 + B.raioM, y0: k.y0 - B.raioM, y1: k.y1 + B.raioM }, 1, 0);
+  for (const k of pecas) marca({ x0: k.x0, x1: k.x1, y0: k.y1, y1: k.y1 + B.sombraM }, 3);
+  const zona = (r, v) => {
+    const i0 = Math.max(0, Math.floor((r.x0 - gx0) / passo));
+    const i1 = Math.min(nx - 1, Math.ceil((r.x1 - gx0) / passo) - 1);
+    const j0 = Math.max(0, Math.floor((r.y0 - gy0) / passo));
+    const j1 = Math.min(ny - 1, Math.ceil((r.y1 - gy0) / passo) - 1);
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) baixa[j * nx + i] |= v;
+  };
+  for (const k of pecas) {
+    zona({ x0: k.x0 - 1, x1: k.x1 + 1, y0: k.y1, y1: k.y1 + B.sombraAltaM }, 1);
+    zona({ x0: k.x1, x1: k.x1 + B.lesteM, y0: k.y0 - B.lesteM, y1: k.y1 }, 2);
+    zona({ x0: k.x0 - 0.6, x1: k.x0, y0: k.y0, y1: k.y1 }, 4);
+  }
+  for (const r of casas) marca(r, 2);
+  for (const r of [...path.slice(1), ...reservas, ...corridors]) marca(r, 4);
+  // a casa cabe? Na primeira passada, só em chão livre; na segunda (as frestas mais estreitas que qualquer casa),
+  // pode encostar nas casas vizinhas, desde que cubra parte da fresta (livreMin) e não entre em chão, quintal ou sombra
+  // devolve 0 (não cabe), 1 (cabe, no fundo) ou 2 (cabe, pela frente: a leste de quem anda e não colada a oeste)
+  const cabe = (x0, y0, x1, y1, encosta, alta) => {
+    const i0 = Math.floor((x0 - gx0) / passo + 1e-6);
+    const i1 = Math.ceil((x1 - gx0) / passo - 1e-6) - 1;
+    const j0 = Math.floor((y0 - gy0) / passo + 1e-6);
+    const j1 = Math.ceil((y1 - gy0) / passo - 1e-6) - 1;
+    if (i0 < 0 || j0 < 0 || i1 >= nx || j1 >= ny) return 0;
+    let livres = 0;
+    let z = 0;
+    for (let j = j0; j <= j1; j++) {
+      for (let i = i0; i <= i1; i++) {
+        const v = grade[j * nx + i];
+        if (v >= 3 || (v === 2 && !encosta)) return 0;
+        if (v === 1) livres++;
+        z |= baixa[j * nx + i];
+      }
+    }
+    if ((z & 3) && alta) return 0;
+    if (encosta && livres < B.livreMin * (i1 - i0 + 1) * (j1 - j0 + 1)) return 0;
+    return z & 2 && !(z & 4) ? 2 : 1;
+  };
+  // do pé do morro para o alto (a casa da frente primeiro), da esquerda para a direita
+  for (const encosta of [false, true]) {
+    for (let j = ny - 1; j >= 0; j--) {
+      for (let i = 0; i < nx; i++) {
+        if (grade[j * nx + i] !== 1) continue;
+        const x = gx0 + i * passo;
+        const y1 = gy0 + (j + 1) * passo;
+        let feita = false;
+        for (let t = 0; t < B.pecas.length && !feita; t++) {
+          const peca = B.pecas[Math.floor(hash2(i, j, 917 + t) * B.pecas.length)];
+          const A = P[peca];
+          // a casa começa no ponto, termina nele, ou (encostando) fica centrada na fresta
+          for (const x0 of encosta ? [x, x + passo - A.w, x + passo / 2 - A.w / 2] : [x, x + passo - A.w]) {
+            for (let d = A.d; d >= B.minD - 1e-6 && !feita; d -= passo) {
+              const lugar = cabe(x0, y1 - d, x0 + A.w, y1, encosta, A.h > FAVELA.alturaBaixaM);
+              if (!lugar) continue;
+              const c = add(peca, x0, y1, lugar === 2 ? 'frente' : 'fundo', d);
+              marca(c, 2, 1);
+              marca(c, 2, 0);
+              feita = true;
+            }
+            if (feita) break;
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * A parede da viela (o módulo da esquerda) não tem frente: ela foi feita para ficar em fila, com outra na frente.
+ * Onde ninguém fica na frente dela (a boca de um beco, o pé de uma viela), aparecia o oco escuro debaixo do
+ * telhado. Ali, um barraco (que tem frente) ocupa os primeiros metros e a parede recua para trás dele.
+ */
+function frenteDasParedes(casas, add) {
+  const P = FAVELA.pecas;
+  const B = P.barraco_a;
+  for (const c of [...casas]) {
+    if (c.peca !== 'parede_viela_esq') continue;
+    const naFrente = casas.some((o) => o !== c && Math.abs(o.y0 - c.y1) < 0.35 && Math.min(o.x1, c.x1) - Math.max(o.x0, c.x0) > 1);
+    if (naFrente) continue;
+    const y1 = c.y1;
+    const peca = hash2(Math.round(c.x0 * 10), Math.round(y1 * 10), 923) < 0.5 ? 'barraco_a' : 'barraco_b';
+    const d = Math.min(B.d, c.d);
+    if (c.d - d < FAVELA.vaoMinM) {
+      // a parede inteira vira o barraco
+      Object.assign(c, { peca, x1: c.x0 + P[peca].w, y0: y1 - d, d, h: P[peca].h, corte: d < P[peca].d - 1e-6 });
+      c.arte = variante(peca, c.x0, y1);
+      continue;
+    }
+    c.y1 = y1 - d;
+    c.d -= d;
+    c.corte = true;
+    add(peca, c.x0, y1, c.lado, d);
+  }
+}
 
 /** Os quintais dos becos (D92): ao sul de cada viela deitada e pracinha, FAVELA.becoQuintalM sem casa. */
 function quintais(becos) {

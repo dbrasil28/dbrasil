@@ -259,7 +259,7 @@ export class Renderer {
       for (const m of w.muretas || []) if (m.y > bounds.minY - 2 && m.y < bounds.maxY + 4) list.push({ d: cam.depth(m.x0, m.y), k: 'mureta', o: m, x: m.x0, y: m.y });
       if (w.casas) {
         for (const c of w.casas) {
-          if (c.y1 < bounds.minY - 2 || c.y1 > bounds.maxY + 14) continue;
+          if (c.y1 < bounds.minY - 2 || c.y1 > bounds.maxY + 14 || c.x1 < bounds.minX - 6 || c.x0 > bounds.maxX + 6) continue;
           // a leste do caminho, pela frente da casa. A oeste, pela beira de trás: quem anda ao lado dela (a
           // leste, na viela) passa por cima da parede, e quem está atrás (na pracinha mais larga que a viela)
           // fica escondido pela casa, em vez de aparecer em pé no telhado

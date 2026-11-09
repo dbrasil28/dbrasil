@@ -651,11 +651,16 @@ export function collideSolids(w, e, slide = 0) {
         e.y += dir * slide;
       }
     } else if (side === 2) {
-      // quina: encostou perto da ponta, escorrega para fora (não enrosca no canto do carro)
-      if (e.x < k.x0 + CORNER_M) e.x -= CORNER_SLIDE;
-      else if (e.x > k.x1 - CORNER_M) e.x += CORNER_SLIDE;
-    } else if (e.y < k.y0 + CORNER_M) e.y -= CORNER_SLIDE;
-    else if (e.y > k.y1 - CORNER_M) e.y += CORNER_SLIDE;
+      // quina: encostou perto da ponta, escorrega para fora (não enrosca no canto do carro). Se ali não cabe (a
+      // moto encostada na parede da viela), escorrega para a outra ponta: antes o Juninho ficava preso no canto
+      let dir = e.x < k.x0 + CORNER_M ? -1 : e.x > k.x1 - CORNER_M ? 1 : 0;
+      if (dir && !cabe(w, dir < 0 ? k.x0 - 2 * r : k.x1 + 2 * r, e.y, e.ri)) dir = -dir;
+      e.x += dir * CORNER_SLIDE;
+    } else {
+      let dir = e.y < k.y0 + CORNER_M ? -1 : e.y > k.y1 - CORNER_M ? 1 : 0;
+      if (dir && !cabe(w, e.x, dir < 0 ? k.y0 - 2 * r : k.y1 + 2 * r, e.ri)) dir = -dir;
+      e.y += dir * CORNER_SLIDE;
+    }
   }
 }
 

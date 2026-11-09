@@ -17,6 +17,7 @@ export const PLAYER = {
   heightM: 1.8, // altura visual usada para calcular a escala da câmera
   radius: 0.35,
   speed: 3.4, // m/s
+  contornaM: 0.04, // empurrando um sólido (moto, tambor, carro), escorrega isso por quadro para a ponta que tem espaço
   hp: 120,
   magnet: 2.2, // m
   slowMul: 0.6, // velocidade enquanto lento (papelada do Burocrata, multa do Fiscal)
@@ -338,6 +339,12 @@ export const FAVELA = {
   barracoChance: 0.5,
   vaoMinM: 0.8, // vão menor que isso no alto do pedaço fica sem casa
   becoQuintalM: 4, // D92: ao sul de uma viela deitada, a mureta e o quintal; casa (baixa) só depois disso
+  // tapa-buracos: o chão sem casa a até raioM da rota e dos becos ganha casa (grade de passoM; casa cortada até
+  // minD de fundo); nunca a até sombraM ao sul de um chão de andar (nesta câmera, esconderia quem anda)
+  // (livreMin: na segunda passada, a casa que encosta nas vizinhas tem de cobrir pelo menos isso de chão livre).
+  // Ao sul de quem anda até sombraAltaM e a leste até lesteM, só casa baixa: casa de 9 m esconde uns 11 m atrás dela
+  buracos: { raioM: 16, passoM: 0.5, minD: 2, sombraM: 4, sombraAltaM: 11, lesteM: 3.5, livreMin: 0.3, pecas: ['fachada_a', 'fachada_b', 'fachada_c', 'barraco_a', 'barraco_b'] },
+  alturaBaixaM: 3.5, // casa baixa: até essa altura (a que pode ficar a leste da viela ou ao sul dela)
   mureta: { altM: 0.9 },
   // fileiras de trás, para os lados ficarem cheios até a borda da tela: quantas e de quanto em quanto (m).
   // À esquerda, casas de qualquer altura (ficam atrás de tudo); à direita, só baixas (não escondem a viela).
@@ -453,12 +460,12 @@ export const ROUTE = {
     // com o achado (cofre, isopor ou a relíquia), ou liga: o pedaço principal onde ele volta (atalho, sem
     // atalho por cima do portão do baile). nome: a placa na entrada (nomes inventados).
     ramos: [
-      { nome: 'BECO DO CHORO', de: 0, em: 0.5, lado: 'esq', larg: 3, trechos: [{ vai: 'esq', comp: 14 }, { vai: 'sobe', comp: 10 }], fim: { pracinha: [7, 6], achado: 'cofre' } },
-      { nome: 'TRAVESSA DO GATO', de: 2, em: 0.35, lado: 'dir', larg: 3, trechos: [{ vai: 'dir', comp: 14 }, { vai: 'sobe', ate: 4 }, { vai: 'esq', ate: 4 }], fim: { liga: 4 } },
-      { nome: 'BECO DA SAUDADE', de: 5, em: 0.45, lado: 'esq', larg: 3, trechos: [{ vai: 'esq', comp: 16 }], fim: { pracinha: [6, 7], achado: 'isopor' } },
-      { nome: 'VIELA SEM VOLTA', de: 8, em: 0.4, lado: 'dir', larg: 3, trechos: [{ vai: 'dir', comp: 14 }, { vai: 'sobe', comp: 12 }, { vai: 'dir', comp: 9 }], fim: { pracinha: [7, 7], achado: 'cofre' } },
-      { nome: 'BECO DO PAREDÃO', de: 13, em: 0.5, lado: 'esq', larg: 3, trechos: [{ vai: 'esq', comp: 18 }, { vai: 'sobe', comp: 10 }], fim: { pracinha: [8, 7], achado: 'reliquia' } },
-      { nome: 'ATALHO DOS FUNDOS', de: 16, em: 0.45, lado: 'dir', larg: 3, trechos: [{ vai: 'dir', comp: 10 }, { vai: 'sobe', ate: 19 }, { vai: 'esq', ate: 19 }], fim: { liga: 19 } },
+      { nome: 'BECO DO CHORO', de: 0, em: 0.5, lado: 'esq', larg: 4, trechos: [{ vai: 'esq', comp: 14 }, { vai: 'sobe', comp: 10 }], fim: { pracinha: [7, 6], achado: 'cofre' } },
+      { nome: 'TRAVESSA DO GATO', de: 2, em: 0.35, lado: 'dir', larg: 4, trechos: [{ vai: 'dir', comp: 14 }, { vai: 'sobe', ate: 4 }, { vai: 'esq', ate: 4 }], fim: { liga: 4 } },
+      { nome: 'BECO DA SAUDADE', de: 5, em: 0.45, lado: 'esq', larg: 4, trechos: [{ vai: 'esq', comp: 16 }], fim: { pracinha: [6, 7], achado: 'isopor' } },
+      { nome: 'VIELA SEM VOLTA', de: 8, em: 0.4, lado: 'dir', larg: 4, trechos: [{ vai: 'dir', comp: 14 }, { vai: 'sobe', comp: 12 }, { vai: 'dir', comp: 9 }], fim: { pracinha: [7, 7], achado: 'cofre' } },
+      { nome: 'BECO DO PAREDÃO', de: 13, em: 0.5, lado: 'esq', larg: 4, trechos: [{ vai: 'esq', comp: 18 }, { vai: 'sobe', comp: 10 }], fim: { pracinha: [8, 7], achado: 'reliquia' } },
+      { nome: 'ATALHO DOS FUNDOS', de: 16, em: 0.45, lado: 'dir', larg: 4, trechos: [{ vai: 'dir', comp: 10 }, { vai: 'sobe', ate: 19 }, { vai: 'esq', ate: 19 }], fim: { liga: 19 } },
     ],
   },
 };

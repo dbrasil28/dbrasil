@@ -73,7 +73,7 @@ export function drawCasaFavela(ctx, c, cam, ppu) {
 export function drawCasasFundo(ctx, w, cam, ppu, b) {
   if (!w.casas) return;
   for (const c of w.casas) {
-    if (c.lado !== 'fundo' || c.y1 < b.minY - 2 || c.y1 > b.maxY + 14) continue;
+    if (c.lado !== 'fundo' || c.y1 < b.minY - 2 || c.y1 > b.maxY + 14 || c.x1 < b.minX - 6 || c.x0 > b.maxX + 6) continue;
     drawCasaFavela(ctx, c, cam, ppu);
   }
 }

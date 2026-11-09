@@ -470,7 +470,9 @@ export class Game {
         }
       }
     }
-    if (this.world) collideSolids(this.world, ent, ent === this.player ? 0 : 0.05); // inimigo contorna o carro
+    // quem empurra um sólido contorna pelo lado mais perto que caiba: o inimigo e, mais de leve, o Juninho (antes ele
+    // empacava na moto estacionada no meio da viela, pedido do autor: "para de caminhar de repente")
+    if (this.world) collideSolids(this.world, ent, ent === this.player ? PLAYER.contornaM : 0.05);
   }
 
   // ---------- spawn ----------
