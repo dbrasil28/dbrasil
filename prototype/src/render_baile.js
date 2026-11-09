@@ -903,7 +903,7 @@ function canhoes(ctx, game, cam, ppu, t) {
     let L = cam.viewH * 1.6;
     let larg1 = ppu * 4.5;
     const larg0 = ppu * 0.3;
-    if (dj && d.miraT > 0) {
+    if (dj && !dj.naPista && dj.ofuscadoT > 0 && d.miraT > 0) {
       // o Juninho encostou: o facho vira para o DJ (na cara dele) e ofusca
       cam.toScreen(dj.x, dj.y, c1);
       const ay = c1.y - ppu * 1.7;

@@ -182,6 +182,186 @@ export function sintetizar(id, taxa = TAXA) {
   return out;
 }
 
+// ---------- o povo do baile (pedido do autor: "som de pessoas" junto com a música) ----------
+// Enquanto não chega um gravado, o povo é feito em código: cada pessoa fala em sílabas (a voz passa por três
+// formantes, que vão de uma vogal a outra), com consoantes chiadas, pausas entre as frases, alguns gritos ("uhuu",
+// "êêê") e assobios. Tudo somado num laço estéreo que emenda sem estalo. Sem navegador: os testes conferem.
+
+const VOGAIS = [ // formantes F1, F2, F3 (Hz) de uma voz grave; a voz aguda multiplica por 1,17
+  [730, 1090, 2440], [530, 1840, 2480], [270, 2290, 3010], [570, 840, 2410], [300, 870, 2240], [400, 2000, 2550], [600, 900, 2400],
+];
+
+/** Um passa-faixa (biquad) com os coeficientes trocados de tempos em tempos (a vogal muda). */
+function faixa() {
+  return { b0: 0, b2: 0, a1: 0, a2: 0, x1: 0, x2: 0, y1: 0, y2: 0 };
+}
+function afinar(f, hz, q, taxa) {
+  const w = (2 * Math.PI * Math.min(hz, taxa * 0.45)) / taxa;
+  const al = Math.sin(w) / (2 * q);
+  const a0 = 1 + al;
+  f.b0 = al / a0;
+  f.b2 = -al / a0;
+  f.a1 = (-2 * Math.cos(w)) / a0;
+  f.a2 = (1 - al) / a0;
+}
+function passar(f, x) {
+  const y = f.b0 * x + f.b2 * f.x2 - f.a1 * f.y1 - f.a2 * f.y2;
+  f.x2 = f.x1;
+  f.x1 = x;
+  f.y2 = f.y1;
+  f.y1 = y;
+  return y;
+}
+
+/** O roteiro de uma pessoa: sílabas (início, duração, vogal, tom, força, chiado) com pausas entre as frases. */
+function roteiroDeFala(rnd, total) {
+  const sil = [];
+  let t = rnd() * 1.2;
+  while (t < total) {
+    const n = 3 + Math.floor(rnd() * 7);
+    const tom0 = 1.08 + rnd() * 0.1; // a frase começa mais alta e cai
+    for (let i = 0; i < n && t < total; i++) {
+      const grito = rnd() < 0.035;
+      const d = grito ? 0.45 + rnd() * 0.6 : 0.1 + rnd() * 0.16;
+      const u = i / Math.max(1, n - 1);
+      sil.push({
+        t, d, v: grito ? (rnd() < 0.5 ? 4 : 5) : Math.floor(rnd() * VOGAIS.length), grito,
+        tom: grito ? 1.45 + rnd() * 0.25 : tom0 - 0.16 * u + (rnd() - 0.5) * 0.12,
+        forca: grito ? 1.7 : 0.65 + rnd() * 0.45, chia: !grito && rnd() < 0.22,
+      });
+      t += d + rnd() * 0.035;
+    }
+    t += 0.25 + rnd() * 1.4;
+  }
+  return sil;
+}
+
+/**
+ * O povo do baile: um laço estéreo de `segundos` com `vozes` pessoas. Gerador: devolve o progresso a cada pessoa
+ * (o jogo faz um pouco por quadro, sem travar) e, no fim, { L, R } (Float32Array, pico em 0,8).
+ */
+export function* gerarPovo(taxa = TAXA, segundos = 9, vozes = 18, semente = 7) {
+  const cauda = 1; // o fim emenda no começo com esse tanto de mistura
+  const n = Math.round((segundos + cauda) * taxa);
+  const L = new Float32Array(n);
+  const R = new Float32Array(n);
+  let x = semente >>> 0;
+  const rnd = () => {
+    x = (x * 1664525 + 1013904223) >>> 0;
+    return x / 4294967296;
+  };
+  const BLOCO = 32;
+  for (let v = 0; v < vozes; v++) {
+    const aguda = rnd() < 0.5;
+    const f0 = aguda ? 185 + rnd() * 70 : 98 + rnd() * 45;
+    const fm = aguda ? 1.17 : 1;
+    const longe = v >= vozes * 0.6; // as do fundo: mais baixas e abafadas
+    const ganho = longe ? 0.18 + rnd() * 0.18 : 0.45 + rnd() * 0.55;
+    const pan = (rnd() * 2 - 1) * 0.85;
+    const gl = Math.cos(((pan + 1) * Math.PI) / 4) * ganho;
+    const gr = Math.sin(((pan + 1) * Math.PI) / 4) * ganho;
+    const sil = roteiroDeFala(rnd, segundos + cauda);
+    const fs = [faixa(), faixa(), faixa()];
+    const chiado = faixa();
+    afinar(chiado, 5200, 2.4, taxa);
+    let fase = 0;
+    let suave = 0;
+    let abafa = 0;
+    const corteLonge = 1 - Math.exp((-2 * Math.PI * 900) / taxa);
+    let k = 0;
+    let F = VOGAIS[0].slice();
+    for (const s of sil) {
+      const i0 = Math.round(s.t * taxa);
+      const i1 = Math.min(n, Math.round((s.t + s.d) * taxa));
+      if (i0 >= n) break;
+      for (; k < i0; k++) {
+        // entre as sílabas: o filtro segue soando (sem estalo) e a voz cala
+        const y = passar(fs[0], 0) + 0.6 * passar(fs[1], 0) + 0.25 * passar(fs[2], 0);
+        L[k] += y * gl;
+        R[k] += y * gr;
+      }
+      const alvo = VOGAIS[s.v];
+      const ataque = 0.022 * taxa;
+      const queda = (s.grito ? 0.18 : 0.05) * taxa;
+      for (let i = i0; i < i1; i++) {
+        const j = i - i0;
+        if (j % BLOCO === 0) {
+          const m = Math.min(1, j / (0.06 * taxa)); // a vogal chega aos poucos
+          for (let q = 0; q < 3; q++) {
+            F[q] += (alvo[q] * fm - F[q]) * m * 0.5;
+            afinar(fs[q], F[q], q === 0 ? 7 : q === 1 ? 11 : 16, taxa);
+          }
+        }
+        const u = j / (i1 - i0);
+        const vib = s.grito ? 0.025 * Math.sin((2 * Math.PI * 5.5 * i) / taxa) : 0.004 * Math.sin(i * 0.0021 + v);
+        const tom = f0 * s.tom * (s.grito ? 1 + 0.12 * u : 1 + 0.03 * Math.sin(u * Math.PI)) * (1 + vib);
+        fase += tom / taxa;
+        if (fase >= 1) fase -= 1;
+        const pulso = 1 - 2 * fase; // a prega vocal: dente de serra, amaciado
+        suave += 0.35 * (pulso - suave);
+        const ex = suave + (rnd() * 2 - 1) * (s.grito ? 0.35 : 0.12); // e o sopro (o grito sai rasgado)
+        const env = Math.min(1, j / ataque, (i1 - i) / queda) * s.forca;
+        let y = passar(fs[0], ex) + 0.6 * passar(fs[1], ex) + 0.25 * passar(fs[2], ex);
+        if (s.chia && j < 0.045 * taxa) y += passar(chiado, rnd() * 2 - 1) * 0.28 * (1 - j / (0.045 * taxa)); // "s", "x"
+        y *= env;
+        if (longe) {
+          abafa += corteLonge * (y - abafa);
+          y = abafa;
+        }
+        L[i] += y * gl;
+        R[i] += y * gr;
+      }
+      k = i1;
+    }
+    yield (v + 1) / (vozes + 1);
+  }
+  // os assobios (fiu-fiu) e um "uhuu" geral de vez em quando
+  const assobios = Math.max(1, Math.round(segundos / 4));
+  for (let a = 0; a < assobios; a++) {
+    const t0 = rnd() * segundos;
+    const pan = (rnd() * 2 - 1) * 0.7;
+    const gl = Math.cos(((pan + 1) * Math.PI) / 4) * 0.22;
+    const gr = Math.sin(((pan + 1) * Math.PI) / 4) * 0.22;
+    let fase = 0;
+    for (const [ini, d, f0, f1] of [[0, 0.13, 2100, 2900], [0.2, 0.3, 2000, 2800]]) {
+      const i0 = Math.round((t0 + ini) * taxa);
+      const len = Math.round(d * taxa);
+      for (let j = 0; j < len && i0 + j < n; j++) {
+        const u = j / len;
+        const f = ini ? (u < 0.5 ? f0 + (f1 - f0) * u * 2 : f1 - (f1 - f0) * (u - 0.5) * 1.2) : f0 + (f1 - f0) * u;
+        fase += f / taxa;
+        const y = Math.sin(2 * Math.PI * fase) * Math.min(1, j / (0.015 * taxa), (len - j) / (0.03 * taxa));
+        L[i0 + j] += y * gl;
+        R[i0 + j] += y * gr;
+      }
+    }
+  }
+  // o laço: o pedaço depois do fim volta misturado no começo
+  const m = Math.round(cauda * taxa);
+  const len = n - m;
+  const outL = new Float32Array(len);
+  const outR = new Float32Array(len);
+  for (let i = 0; i < len; i++) {
+    outL[i] = L[i];
+    outR[i] = R[i];
+  }
+  for (let i = 0; i < m; i++) {
+    const u = i / m;
+    outL[i] = L[i] * u + L[len + i] * (1 - u);
+    outR[i] = R[i] * u + R[len + i] * (1 - u);
+  }
+  let pico = 0;
+  for (let i = 0; i < len; i++) pico = Math.max(pico, Math.abs(outL[i]), Math.abs(outR[i]));
+  if (pico > 0) {
+    const g = 0.8 / pico;
+    for (let i = 0; i < len; i++) {
+      outL[i] *= g;
+      outR[i] *= g;
+    }
+  }
+  return { L: outL, R: outR };
+}
+
 export class Sons {
   constructor() {
     this.ctx = null;
@@ -194,6 +374,61 @@ export class Sons {
     this.amb = { id: null, src: null, g: null };
     this.gemidoT = 1;
     this.gravados = {};
+    this.povoSom = null; // o povo do baile: { gerando, buf, src, filtro, g }
+  }
+
+  /**
+   * O povo do baile (pedido do autor): k de 0 a 1 (o volume, que o baile.js dá: game.povoBaile) e perto (0 longe:
+   * abafado; 1 na festa). Na primeira vez, o laço é feito aos poucos (uma pessoa por vez, sem travar o jogo).
+   */
+  povo(k, perto) {
+    if (!this.ctx) return;
+    const P = SOM.povo;
+    let o = this.povoSom;
+    if (!o) {
+      if (!(k > 0)) return;
+      o = this.povoSom = { gerando: gerarPovo(this.ctx.sampleRate > 30000 ? TAXA : this.ctx.sampleRate, P.segundos, P.vozes), buf: null };
+      const passo = () => {
+        const r = o.gerando.next();
+        if (!r.done) {
+          setTimeout(passo, 0);
+          return;
+        }
+        const { L, R } = r.value;
+        const taxa = this.ctx.sampleRate > 30000 ? TAXA : this.ctx.sampleRate;
+        const b = this.ctx.createBuffer(2, L.length, taxa);
+        b.getChannelData(0).set(L);
+        b.getChannelData(1).set(R);
+        o.buf = b;
+      };
+      setTimeout(passo, 0);
+      return;
+    }
+    if (!o.buf) return;
+    const t = this.ctx.currentTime;
+    if (!o.src) {
+      if (!(k > 0)) return;
+      o.src = this.ctx.createBufferSource();
+      o.src.buffer = o.buf;
+      o.src.loop = true;
+      o.filtro = this.ctx.createBiquadFilter();
+      o.filtro.type = 'lowpass';
+      o.filtro.frequency.value = P.fechadoHz;
+      o.g = this.ctx.createGain();
+      o.g.gain.value = 0;
+      o.src.connect(o.filtro);
+      o.filtro.connect(o.g);
+      o.g.connect(this.mestre);
+      o.src.start(t, Math.random() * o.buf.duration);
+      o.k = -1;
+    }
+    const kk = this.abafado || this.calado ? 0 : Math.max(0, Math.min(1, k || 0));
+    if (Math.abs(kk - o.k) > 0.01 || (kk === 0 && o.k !== 0)) {
+      o.k = kk;
+      o.g.gain.setTargetAtTime(kk * P.vol, t, 0.25);
+      const q = Math.max(0, Math.min(1, perto || 0)) ** 1.5;
+      o.filtro.frequency.setTargetAtTime(P.fechadoHz * (P.abertoHz / P.fechadoHz) ** q, t, 0.25);
+    }
   }
 
   /** Carrega os sons gravados que existem (os provisórios seguem tocando até eles chegarem). */

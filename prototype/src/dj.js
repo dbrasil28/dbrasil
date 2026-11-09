@@ -23,7 +23,7 @@ function soltarAnel(game, e, G, forte = false) {
   e.anelSerie = true;
   (game.djAneis || (game.djAneis = [])).push({
     x: e.x, y: e.y, r: 0.6, v: forte ? G.velMS * 1.25 : G.velMS, max: G.raioM * (forte ? 1.2 : 1),
-    larg: G.largM * (forte ? 1.3 : 1), dano: A.dano, derrubaM: A.derrubaM, empurraM: G.empurraM, hit: false, forte,
+    larg: G.largM * (forte ? 1.3 : 1), dano: A.dano, derrubaM: A.derrubaM, hit: false, forte, palco: !e.naPista,
     brecha: e.brecha, brechaRad: G.brechaRad * (forte ? 0.8 : 1),
   });
   game.som('paredao', e.x, e.y);
@@ -47,15 +47,21 @@ export function atualizarAneis(game, dt) {
     if (Math.abs(da) < a.brechaRad / 2) continue; // na brecha: o anel passa por ele
     a.hit = true;
     game.hurtPlayer(a.dano, 'dj_plantao');
-    if (a.derrubaM > 0) {
-      game.derrubar(dx / d, dy / d, a.derrubaM);
+    const G = ENEMIES.dj_plantao.grave;
+    // o do drop derruba; o comum, no palco, derruba quem está colado no paredão sem o canhão (na roda, só empurra
+    // para a torcida: ali o DJ vem para cima e não tem para onde fugir)
+    const derruba = a.derrubaM > 0 ? a.derrubaM : a.palco && d < G.pertoM ? G.pertoDerrubaM : 0;
+    if (derruba > 0) {
+      game.derrubar(dx / d, dy / d, derruba);
       game.som('atropelo', p.x, p.y);
+      game.shake(0.35);
     } else {
-      // o anel comum só empurra para fora (o do drop derruba)
-      p.x += (dx / d) * a.empurraM;
-      p.y += (dy / d) * a.empurraM;
-      game.som('golpe', p.x, p.y);
+      // o anel comum joga o Juninho para trás, para fora do anel
+      game.empurrarJuninho(dx, dy, G.empurra);
+      game.som('baque', p.x, p.y);
+      game.shake(0.22);
     }
+    game.word(p.x, p.y - 1.5, 'TUM!', '#ff5fd2');
   }
   game.djAneis = L.filter((a) => a.r < a.max);
 }
@@ -175,6 +181,8 @@ export function updateDJ(game, e, dt) {
   if (!e.naPista && e.hp <= e.maxHp * D.pista.vidaFrac) {
     e.naPista = true;
     e.ofuscadoT = 0;
+    // os canhões voltam a varrer a pista (antes o facho ficava preso na cara dele: o DJ brilhava até o fim)
+    for (const d of canhoesDoBaile(game)) d.miraT = 0;
     e.graveT = 0;
     e.aneisFila = 0;
     e.dropT = 0;

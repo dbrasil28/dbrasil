@@ -123,3 +123,4 @@ O Isopor de Picolé não tem som, a pedido do autor (08/11/2026): o gelo fica o 
 | --- | --- | --- |
 | `amb_orla` | Orla | Rio de Janeiro beach promenade ambience, waves, seagulls, distant traffic and street vendors, late afternoon, loop |
 | `amb_morro` | Subida do Morro | Brazilian favela ambience, distant funk music, dogs barking far away, motorcycles, people talking indistinctly, loop |
+| `povo_baile` | Baile da esplanada (pedido do autor, 09/11/2026: "som de pessoas" junto com a música). Hoje é feito em código (`gerarPovo` em `sons.js`); um gravado toma o lugar | Large crowd at a Brazilian favela street party at night, people talking and laughing in Portuguese, occasional cheers, shouts and whistles, no music, outdoors, loop |

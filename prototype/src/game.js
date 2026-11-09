@@ -1455,9 +1455,18 @@ export class Game {
     }
   }
 
+  /**
+   * A chegada do baile (D94, pedido do autor): do corredor vazio até a pancadaria (festa e Plantão), o Juninho
+   * entra em paz: sem atacar ninguém e sem nada na mão.
+   */
+  emPaz() {
+    const S = this.baile;
+    if (S) return S.fase === 'festa' || S.fase === 'plantao';
+    return !!this.baileVazio;
+  }
+
   updateWeapons(dt) {
-    // no baile, antes da pancadaria (pedido do autor): o Juninho entra em paz, sem atacar ninguém
-    if (this.baile && (this.baile.fase === 'festa' || this.baile.fase === 'plantao')) return;
+    if (this.emPaz()) return; // no baile, antes da pancadaria: o Juninho entra em paz
     for (const w of this.player.weapons) {
       w.cd -= dt;
       if (w.cd <= 0) {
@@ -1995,7 +2004,7 @@ export class Game {
     const p = this.player;
     const I = INTERACT;
     for (const s of w.slots) {
-      if (s.obj) continue;
+      if (s.obj || s.solto) continue; // o que o Juninho largou no chão não volta a nascer ali
       s.emptyT += dt;
       if (s.emptyT >= I.respawnS && (s.x - p.x) ** 2 + (s.y - p.y) ** 2 > I.respawnMinDistM ** 2 && !this.onScreen(s.x, s.y)) {
         s.obj = { kind: s.kind, x: s.x, y: s.y, plat: s.plat, dir: s.dir };
@@ -2014,6 +2023,21 @@ export class Game {
     }
     updateArrancados(this, dt); // lixeiras, guarda-sóis e isopores arrancados voltam fora da tela
     const myPlat = p.plat && p.lvl === 1 ? p.plat : null;
+    if (this.emPaz()) {
+      // chegando no baile (pedido do autor: "não é para entrar armado"): larga no chão o que carregava e não pega nada
+      if (p.carry) {
+        if (p.carry.v === undefined) {
+          // a cadeira, a mesa, o botijão: fica ali no chão (e não volta a nascer quando alguém pega)
+          const ob = { kind: p.carry.kind, x: p.x, y: p.y + 0.4, plat: myPlat, dir: 's' };
+          w.slots.push({ kind: ob.kind, x: ob.x, y: ob.y, plat: myPlat, place: null, dir: 's', obj: ob, emptyT: 0, solto: true });
+        }
+        // a lixeira, o guarda-sol e o isopor arrancados voltam sozinhos para o lugar deles (arrancar.js)
+        p.carry = null;
+        this.burst(p.x, p.y + 0.4, 5, 'poeira');
+        this.som('baque');
+      }
+      return;
+    }
     if (!p.carry) {
       if (emAbertura(this) || p.derrubado) return; // na abertura ninguém ataca ainda: pegar cadeira ou mesa só deixaria o Juninho andando com ela na cabeça
       if (p.plat && p.lvl === 0 && p.z > 0.5) return; // no meio da escada

@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { SONS, SOM, SOM_ARMA, SOM_GOLPE, THROWABLES } from '../src/config.js';
-import { ARQUIVOS, RECEITAS, sintetizar } from '../src/sons.js';
+import { ARQUIVOS, RECEITAS, sintetizar, gerarPovo } from '../src/sons.js';
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
 
@@ -60,4 +60,27 @@ test('todo som gravado listado existe, é de um som da tabela e não pesa demais
       assert.ok(kb > 1 && kb < (id.startsWith('amb_') ? 600 : 80), `${src}: ${kb.toFixed(0)} KB`);
     }
   }
+});
+
+test('o povo do baile (pedido do autor: "som de pessoas"): um laço estéreo que soa, não estoura e emenda sem estalo', () => {
+  const ger = gerarPovo(22050, SOM.povo.segundos, SOM.povo.vozes);
+  let r;
+  let passos = 0;
+  while (!(r = ger.next()).done) passos++;
+  assert.equal(passos, SOM.povo.vozes, 'devia ir uma pessoa por vez (sem travar o jogo)');
+  const { L, R } = r.value;
+  assert.equal(L.length, Math.round(SOM.povo.segundos * 22050));
+  let pico = 0;
+  let soma = 0;
+  for (let i = 0; i < L.length; i++) {
+    assert.ok(Number.isFinite(L[i]) && Number.isFinite(R[i]), `amostra ruim em ${i}`);
+    pico = Math.max(pico, Math.abs(L[i]), Math.abs(R[i]));
+    soma += L[i] * L[i];
+  }
+  assert.ok(pico <= 0.81 && pico > 0.5, `pico ${pico}`);
+  assert.ok(Math.sqrt(soma / L.length) > 0.03, 'o povo quase não soa');
+  assert.ok(Math.abs(L[0] - L[L.length - 1]) < 0.06 && Math.abs(R[0] - R[R.length - 1]) < 0.06, 'a emenda do laço estala');
+  let dif = 0;
+  for (let i = 0; i < L.length; i += 50) dif += Math.abs(L[i] - R[i]);
+  assert.ok(dif > 1, 'o povo saiu mono (devia estar espalhado dos lados)');
 });

@@ -108,6 +108,28 @@ test('a chegada no baile (D94, pedido do autor): no último corredor o caminho f
   assert.equal(g.baile, null, 'a festa começou antes da entrada');
 });
 
+test('o baile ao vivo (pedido do autor): de longe o som abafado e o povo baixinho; chegando, abre; no Plantão o povo cala', () => {
+  const g = noMorro();
+  aDistancia(g, BAILE.chegaM + 8);
+  g.update(DT, parado);
+  assert.ok(!(g.pertoBaile > 0) && !(g.povoBaile > 0), 'o baile já soava antes do último corredor');
+  aDistancia(g, 30);
+  g.update(DT, parado);
+  const longe = { perto: g.pertoBaile, povo: g.povoBaile };
+  assert.ok(longe.perto > 0 && longe.perto < 0.5 && longe.povo > 0 && longe.povo < 0.3, `de longe: ${JSON.stringify(longe)}`);
+  aDistancia(g, 4);
+  g.update(DT, parado);
+  assert.ok(g.pertoBaile > 0.85 && g.povoBaile > longe.povo * 3, `chegando, não abriu: ${g.pertoBaile} ${g.povoBaile}`);
+  chegar(g);
+  g.update(DT, parado);
+  assert.equal(g.baile.fase, 'festa');
+  assert.equal(g.pertoBaile, 1);
+  assert.equal(g.povoBaile, 1, 'na festa, o povo não está cheio');
+  rodar(g, BAILE.plantaoS + BAILE.povoSom.plantaoS + 0.1);
+  assert.equal(g.baile.fase, 'plantao');
+  assert.equal(g.povoBaile, 0, 'no Plantão, o povo não calou');
+});
+
 test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acordão, a pancadaria e o DJ entra pelo Caos', () => {
   const g = noMorro();
   const w = g.world;
@@ -177,7 +199,7 @@ test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acord
   assert.equal(S.noPalco, null);
 });
 
-test('DJ Plantão: o anel do grave empurra quem está na linha (quem derruba é o do drop), o drop dá a hora de bater e a horda corre; caído, o portão abre', () => {
+test('DJ Plantão: o anel do grave joga para trás quem está na linha e derruba quem está colado nele (e o do drop), o drop dá a hora de bater e a horda corre; caído, o portão abre', () => {
   const g = noMorro();
   const w = g.world;
   ateABriga(g);
@@ -201,7 +223,21 @@ test('DJ Plantão: o anel do grave empurra quem está na linha (quem derruba é 
     if (p.derrubado) derrubou = true;
   }
   assert.ok(p.hp < hp, 'o anel não machucou');
-  assert.ok(!derrubou, 'o anel comum derrubou (pedido do autor: só empurra)');
+  assert.ok(!derrubou, 'o anel comum derrubou de longe (pedido do autor: não dava para chegar perto)');
+  const longe = Math.hypot(p.x - dj.x, p.y - dj.y);
+  assert.ok(longe > 4 + 2, `o anel quase não empurrou (${longe.toFixed(1)} m do DJ; pedido do autor: "não tem efeito")`);
+  // colado no DJ (sem o canhão), o anel derruba
+  p.x = dj.x + 1.8;
+  p.y = dj.y + 0.5;
+  p.invulnT = 0;
+  dj.graveCd = 0;
+  derrubou = false;
+  for (let i = 0; i < 30 * 2; i++) {
+    g.update(DT, parado);
+    if (p.derrubado) derrubou = true;
+  }
+  assert.ok(derrubou, 'colado no DJ, o anel não derrubou');
+  for (let i = 0; i < 30 * 3; i++) g.update(DT, parado); // levanta
   // o drop: subindo no som leva o dobro; depois a horda em volta corre
   p.invulnT = 0;
   dj.dropCd = 0;
@@ -236,6 +272,31 @@ test('DJ Plantão: o anel do grave empurra quem está na linha (quem derruba é 
   rodar(g, BAILE.fimS + 0.3);
   assert.ok(g.noiteBaile < 0.05, 'a noite não foi embora');
   assert.ok(g.somDoBaile < 0.05, 'a música do baile não parou');
+});
+
+test('chegando no baile (pedido do autor: "não é para entrar armado"): o Juninho larga a cadeira no chão e não pega nada até a pancadaria', () => {
+  const g = noMorro();
+  const w = g.world;
+  const p = g.player;
+  aDistancia(g, BAILE.chegaM + 8);
+  p.carry = { kind: 'cadeira', t: 99 };
+  g.update(DT, parado);
+  assert.ok(p.carry, 'largou a cadeira antes do último corredor');
+  aDistancia(g, 30); // o corredor esvazia
+  rodar(g, 0.5);
+  assert.ok(g.baileVazio, 'o corredor não esvaziou');
+  assert.equal(p.carry, null, 'entrou no corredor vazio com a cadeira na mão');
+  const solta = w.slots.find((s) => s.solto && s.obj && s.obj.kind === 'cadeira');
+  assert.ok(solta && Math.hypot(solta.x - p.x, solta.y - p.y) < 2, 'a cadeira não ficou no chão do lado dele');
+  // na festa e no Plantão, passando por cima dela, não pega
+  chegar(g);
+  rodar(g, 0.5);
+  assert.equal(g.baile && g.baile.fase, 'festa');
+  p.x = solta.x;
+  p.y = solta.y;
+  rodar(g, 1);
+  assert.equal(p.carry, null, 'pegou a cadeira na festa');
+  assert.ok(solta.obj, 'a cadeira sumiu do chão');
 });
 
 test('a polícia no baile (D94): na festa, fica de guarda na entrada; na pancadaria, entra para ajudar', () => {
@@ -296,6 +357,8 @@ test('DJ Plantão (ideia do autor): encostar no canhão de luz ofusca o DJ; com 
   dj.hp = dj.maxHp * D.pista.vidaFrac - 1;
   g.update(DT, parado);
   assert.ok(dj.naPista && g.rodaDJ, 'o DJ não desceu para a roda');
+  // desceu ofuscado: o facho solta dele (antes ficava preso na cara dele, e o DJ brilhava a luta toda)
+  assert.ok(w.baileDeco.every((d) => d.tipo !== 'canhao' || !(d.miraT > 0)), 'o facho do canhão ficou preso no DJ na pista');
   const R = g.rodaDJ;
   assert.ok(Math.hypot(dj.x - R.x, dj.y - R.y) < R.r, 'o DJ fora da roda');
   p.x = R.x + R.r + 2;

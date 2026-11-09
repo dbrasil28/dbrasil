@@ -38,6 +38,8 @@ export function updateBaile(game, dt) {
     game.noiteBaile = 0;
     game.chegadaBaile = 0;
     game.somDoBaile = 0;
+    game.pertoBaile = 0;
+    game.povoBaile = 0;
     game.caosMarca = null;
     return;
   }
@@ -62,6 +64,8 @@ export function updateBaile(game, dt) {
   const n = game.noiteBaile || 0;
   game.noiteBaile = alvo > n ? Math.min(alvo, n + passo) : Math.max(alvo, n - passo);
   game.somDoBaile = somDoBaile(S, vazio ? perto : 0);
+  game.pertoBaile = S ? 1 : vazio ? perto : 0; // o filtro do som ao vivo: de longe, só o grave (musica.js)
+  game.povoBaile = povoDoBaile(S, vazio ? perto : 0);
   game.caosMarca = S && S.fase === 'briga' ? { v: S.caosDJ, nome: 'DJ' } : null;
   if (!S) return;
   S.t += dt;
@@ -82,6 +86,17 @@ export function updateBaile(game, dt) {
     default:
       break;
   }
+}
+
+/** O povo da festa (0 a 1, sons.js): de longe, baixinho; cheio na festa; cala no Plantão; grita na briga e na roda. */
+function povoDoBaile(S, perto) {
+  const P = BAILE.povoSom;
+  if (!S) return perto > 0 ? P.longe + (1 - P.longe) * perto * perto : 0;
+  if (S.fase === 'festa') return 1;
+  if (S.fase === 'plantao') return 1 - clamp01(S.faseT / P.plantaoS);
+  if (S.fase === 'briga') return P.briga * clamp01(S.faseT / BAILE.musica.voltaS);
+  if (S.fase === 'luta') return P.luta;
+  return P.luta * (1 - clamp01(S.faseT / BAILE.fimS)); // fim
 }
 
 /** O som do baile (0 a 1): sobe na chegada, cheio na festa, baixa no Plantão (a TV fala), some no fim. */

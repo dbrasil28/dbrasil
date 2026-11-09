@@ -322,6 +322,9 @@ function quadro(now) {
   musica.abafar(state !== 'playing' || !!game.modal);
   musica.silenciar(Math.max(game.silencio || 0, game.semMusicaJogo || 0)); // perto do Monstrão (D82) e no último corredor antes do baile (D94), sem a música do jogo
   musica.misturar('baile', state === 'title' ? 0 : game.somDoBaile); // chegando no baile, a música dele sobe (D94)
+  if (sons.ctx) musica.conectar(sons.ctx); // o baile ao vivo usa o Web Audio do motor de som
+  musica.aoVivo(game.pertoBaile || 0); // de longe só o grave; chegando, o som abre (pedido do autor)
+  sons.povo(state === 'title' ? 0 : game.povoBaile || 0, game.pertoBaile || 0); // e o povo falando e gritando
   sons.silenciar(Math.max(game.silencio, game.somDoBaile || 0)); // e o ambiente da favela some
   musica.update(dtReal);
   const tb = musica.tempoDe('baile'); // a dança e as luzes do baile na batida da música

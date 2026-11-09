@@ -195,8 +195,10 @@ export const ENEMIES = {
     behavior: 'dj', elite: true, boss: true,
     keepM: 2.5, palcoM: 6, // keepM: só foge de quem chega mais perto que isso (era 4: com arma de perto, não dava)
     // cada anel tem uma brecha (brechaRad); o anel seguinte vem com a brecha girada (giroRad): quem está na brecha passa
-    // o anel comum só empurra (empurraM); quem derruba é o do drop (pedido do autor: não dava nem para chegar perto)
-    grave: { cadaS: 4.2, avisoS: 0.75, velMS: 6, raioM: 12, largM: 0.8, dano: 9, derrubaM: 0, empurraM: 1.2, aneis: [1, 2, 2], entreS: 0.5, brechaRad: 1.0, giroRad: 1.9 },
+    // o anel comum joga o Juninho para trás (empurra, m/s: uns 3 m); no palco, colado no DJ (pertoM), derruba (pertoDerrubaM).
+    // Pedidos do autor: de longe não dava nem para chegar perto (derrubava sempre); de perto, o anel "não tinha
+    // efeito nenhum" (empurrava 1,2 m). O jeito de chegar perto é o canhão de luz: ofuscado, ele não solta anel
+    grave: { cadaS: 4.2, avisoS: 0.75, velMS: 6, raioM: 12, largM: 0.8, dano: 13, derrubaM: 0, empurra: 26, pertoM: 3.2, pertoDerrubaM: 2.2, aneis: [1, 2, 2], entreS: 0.5, brechaRad: 1.0, giroRad: 1.9 },
     drop: { cadaS: 15, subirS: 2.4, dano: 14, derrubaM: 2.6, frenesiMul: 1.5, frenesiS: 4, frenesiM: 20 },
     chama: { cadaS: 11, funkeiros: [1, 2, 2] },
     fases: { cadenciaMul: 0.82, reforco: [[], ['funkeiro'], ['funkeiro', 'funkeiro']] },
@@ -849,6 +851,10 @@ export const BAILE = {
   debanda: { velMul: 2.4, someS: 2.5 }, // a horda indo embora: corre (velMul) para longe do baile e some em someS
   luzJuninho: { festaM: 4.2, festa: 0.85, corredorM: 2.6, corredor: 0.45 }, // a luz em volta dele: na festa e no corredor escuro
   musica: { faseS: 0.265, plantaoMul: 0.35, voltaS: 0.6, longe: 0.12 },
+  // o povo falando, gritando e assobiando (pedido do autor: "som de pessoas", junto com a música): de longe, baixinho
+  // (longe); cheio na festa; cala no Plantão (em plantaoS: todo mundo encarando a TV); na pancadaria (briga) e na
+  // roda do DJ (luta), a fração de volume de cada uma
+  povoSom: { longe: 0.08, plantaoS: 0.6, briga: 0.45, luta: 0.85 },
   // o povo da festa (pedido do autor: lotado, quase sem espaço): moradores do Morro, mulheres de roupa curta,
   // funkeiros e traficantes, um a cada passoM (com folgaM de sobra para não ficar em fila), até max; povo é o peso
   // de cada um. Ninguém nasce em cima do Juninho (entradaM) nem no palco (palcoM). Na pancadaria, cada um vira horda:
@@ -1385,6 +1391,14 @@ export const SOM = {
   amb: { orla: 'amb_orla', morro: 'amb_morro' }, // ambiente de cada trecho, em laço
   ambVol: 0.12, // o ambiente fica bem baixo, por baixo de tudo (era 0,5: o mar cobria a música)
   musica: 0.5, // a música toca a essa fração do volume escolhido nas configurações (fica por baixo dos efeitos)
+  // o baile ao vivo (pedido do autor: "um baixo proeminente quando está longe e depois vai chegando perto"): a faixa
+  // do baile passa por um filtro que de longe deixa só o grave (fechadoHz) e abre até abertoHz chegando (curva: o
+  // quanto ele segura fechado antes de abrir); o grave sobe graveDb (longe → perto) e o eco da rua (ecoS de cauda)
+  // vai de eco.longe a eco.perto
+  aoVivo: { fechadoHz: 260, abertoHz: 17000, curva: 1.7, graveHz: 120, graveDb: [10, 4], ecoS: 1.6, eco: [0.45, 0.12], suaveS: 0.25 },
+  // o povo do baile (feito em código, enquanto não chega um gravado): vozes (quantas pessoas), segundos do laço,
+  // volume e o filtro de longe (fechadoHz) a perto (abertoHz)
+  povo: { vozes: 18, segundos: 9, vol: 0.38, fechadoHz: 550, abertoHz: 7500 },
 };
 export const SONS = {
   // Juninho
