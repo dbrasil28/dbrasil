@@ -103,7 +103,7 @@ export function drawCurados(ctx, game, cam, ppu, playerPx) {
     }
     const k = 1 - (e.curadoAte - game.t) / 0.7; // 0 → 1: sobe e some
     cam.toScreen(e.x, e.y, a);
-    const y = a.y - (e.z || 0) * ppu - playerPx * 0.9 * (e.r > 0.5 ? 1.9 : 1.05) - k * 10;
+    const y = a.y - (e.z || 0) * ppu - playerPx * 0.9 * (ENEMIES[e.type]?.size || 1) * 1.05 - k * 10;
     const s = Math.max(4, playerPx * 0.06);
     ctx.globalAlpha = 1 - k * k;
     ctx.strokeStyle = 'rgba(0,0,0,0.6)';

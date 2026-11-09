@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
-import { ENEMIES } from '../src/config.js';
+import { ENEMIES, DIRECTOR, HORDA_ORLA } from '../src/config.js';
 
 const DT = 1 / 30;
 const parado = { x: 0, y: 0 };
@@ -25,7 +25,13 @@ function jogo() {
 
 test('o Político chega com os Laranjas, que ficam na frente dele e apanham no lugar dele', () => {
   const g = jogo();
-  g.spawnElite('politico');
+  const trecho = ENEMIES.laranja.trecho;
+  ENEMIES.laranja.trecho = g.segment; // os Laranjas são de Brasília (D78): aqui, como se fosse lá
+  try {
+    g.spawnElite('politico');
+  } finally {
+    ENEMIES.laranja.trecho = trecho;
+  }
   const pol = g.enemies.find((e) => e.type === 'politico');
   const lj = g.enemies.filter((e) => e.type === 'laranja');
   assert.equal(lj.length, ENEMIES.politico.laranjas);
@@ -207,4 +213,17 @@ test('Encostado: manca com o Juninho olhando, corre com ele de costas e congela 
   x0 = e.x;
   for (let i = 0; i < Math.floor((E.flagradoS * 0.8) / DT); i++) g.update(DT, parado);
   assert.ok(Math.abs(x0 - e.x) < 0.05, 'andou enquanto disfarçava');
+});
+
+test('cada trecho com o seu elenco (D78): a Orla não sorteia nem traz inimigo de São Paulo ou de Brasília', () => {
+  const daOrla = (type) => !ENEMIES[type].trecho || ENEMIES[type].trecho === 'orla';
+  for (let caos = 0; caos <= 100; caos += 5) {
+    for (const { type } of DIRECTOR.composition(caos)) assert.ok(daOrla(type), `${type} na Orla com Caos ${caos}`);
+  }
+  for (const { type } of DIRECTOR.castTestComposition) assert.ok(daOrla(type), `${type} no elenco completo da Orla`);
+  for (const { type } of DIRECTOR.morroComposition) assert.ok(!ENEMIES[type].trecho || ENEMIES[type].trecho === 'morro', `${type} no Morro`);
+  const g = jogo();
+  g.spawnElite('politico');
+  assert.equal(g.enemies.filter((e) => e.type === 'laranja').length, 0, 'Laranja na Orla');
+  assert.equal(HORDA_ORLA.roupasNovas, 4, 'a horda da Orla com roupa de outro trecho');
 });

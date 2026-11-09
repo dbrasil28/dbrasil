@@ -63,7 +63,7 @@ export const ENEMIES = {
     // arremessa a maleta de dinheiro em arco: machuca se acertar em cheio; onde cai, abre e vira
     // Propina no chão (pegar continua sendo escolha do jogador: cura e aumenta a Corrupção)
     throw: { range: 7, every: 4.5, windupS: 0.42, releaseS: 0.16, flightS: 0.8, arcM: 1.8, dmg: 10, hitR: 0.5, dropGapM: 1.3, maxOnGround: 6 },
-    laranjas: 2, // chegam com ele (D73)
+    laranjas: 2, // chegam com ele (D73), só no trecho do Laranja (Brasília, D78)
     // quando a maleta cai aberta, quem está perto (horda e inimigos comuns) corre atrás do dinheiro por um instante
     lure: { radiusM: 7, durS: 2.5, speedMul: 1.35, reachM: 0.7 },
     // a maleta abre no ar (fases do pacote): fechada até 35% do voo, meio aberta até 65%, depois aberta
@@ -99,7 +99,7 @@ export const ENEMIES = {
   laranja: {
     name: 'Laranja',
     hp: 70, speed: 1.75, dmg: 9, radius: 0.32, size: 1.0, xp: 5,
-    behavior: 'laranja',
+    behavior: 'laranja', trecho: 'brasilia', // D78: elenco de Brasília (CARREIRA_E_ROTA.md, seção 10)
     guarda: { frenteM: 1.3, ladoM: 0.9, bateM: 1.6 },
     escudo: { raioM: 3.2, parte: 0.7 },
   },
@@ -108,7 +108,7 @@ export const ENEMIES = {
   agiota: {
     name: 'Agiota',
     hp: 110, speed: 1.55, dmg: 10, radius: 0.36, size: 1.05, xp: 10,
-    behavior: 'agiota',
+    behavior: 'agiota', trecho: 'saopaulo', // D78: elenco de São Paulo
     distM: 5, marcaM: 7, soltaM: 13, taxa: 1.0, juros: 0.12, cobraS: 1.5,
   },
   // Coach Picareta (D76): chega a comecaM, prepara windupS (aviso no chão) e dá a palestra por duracaoS: quem está
@@ -116,7 +116,7 @@ export const ENEMIES = {
   coach: {
     name: 'Coach Picareta',
     hp: 90, speed: 1.7, dmg: 8, radius: 0.34, size: 1.0, xp: 8,
-    behavior: 'coach',
+    behavior: 'coach', trecho: 'saopaulo', // D78: elenco de São Paulo
     comecaM: 5, raioM: 3.6, windupS: 0.9, duracaoS: 3, cadaS: 6, fraseS: 1.1,
     frases: ['ACORDA PRA VIDA, CAMPEÃO!', 'SAI DA ZONA DE CONFORTO!', 'MINDSET!', 'VOCÊ É O CEO DA SUA VIDA!', 'GRATIDÃO!'],
   },
@@ -125,7 +125,7 @@ export const ENEMIES = {
   pastor: {
     name: 'Pastor Picareta',
     hp: 150, speed: 1.45, dmg: 9, radius: 0.36, size: 1.05, xp: 14,
-    behavior: 'pastor',
+    behavior: 'pastor', trecho: 'orla', // D78: o autor quis o Pastor na Orla
     distM: 6.5, raioM: 4.5, curaS: 2.5, cura: 0.25, chamaS: 11, chama: 3, chamaRaioM: 1.6, fraseS: 2.4,
     frases: ['ALELUIA!', 'OFERTA NO PIX!', 'CARNÊ DA BÊNÇÃO!', 'TÁ AMARRADO!', 'DÍZIMO É INVESTIMENTO!', 'RECEBA!'],
   },
@@ -135,18 +135,18 @@ export const ENEMIES = {
   encostado: {
     name: 'Encostado',
     hp: 55, speed: 1.0, dmg: 11, radius: 0.32, size: 1.0, xp: 5,
-    behavior: 'encostado',
+    behavior: 'encostado', trecho: 'brasilia', // D78: elenco de Brasília
     vistoCos: -0.15, lentoMul: 0.45, correMul: 3.7, flagradoS: 0.7, fraseS: 4,
     frases: ['AI, MINHA COLUNA!', 'TÔ DE ATESTADO!', 'É A HÉRNIA!', 'PERÍCIA SÓ EM 2031!', 'FOI SÓ UM ESPASMO!'],
   },
   // Rato de Academia: investida em linha reta (como o Funkeiro), mais pesado; se pega o Juninho na corrida,
   // empurra (empurra: m/s, perde rápido). Na Orla com o Caos alto e na turma de reforço do Monstrão.
-  // Pedido do autor (D74): o dobro da altura do Juninho, com o porte do Político (size é sobre a escala dos
-  // inimigos, que vem a 90% do Juninho: 2 / 0.9); por isso mais largo, mais vida e mais lento.
+  // Pedido do autor (D79, corrige o D74): do tamanho do Político (mesmo size e raio) e com a barra de força em
+  // cima, como ele (barra: true).
   rato: {
     name: 'Rato de Academia',
-    hp: 220, speed: 1.5, dmg: 16, radius: 0.6, size: 2 / 0.9, xp: 12,
-    behavior: 'investida',
+    hp: 190, speed: 1.5, dmg: 16, radius: 0.45, size: 1.15 / 0.75, xp: 12, barra: true,
+    behavior: 'investida', trecho: 'orla',
     investida: { rangeM: 7, windupS: 0.65, dashS: 0.55, dashMul: 3.6, every: 3.2, som: 'investida', empurra: 11 },
   },
   // Chefe do morro (laje do topo): rajadas de 3 tiros com a linha de aviso antes; de tempo em tempo para,
@@ -711,10 +711,8 @@ export const DIRECTOR = {
     if (caos >= 8) list.push({ type: 'golpista', w: 0.16 });
     if (caos >= 28) list.push({ type: 'burocrata', w: 0.14 });
     if (caos >= 45) list.push({ type: 'fiscal', w: 0.1 });
-    if (caos >= 30) list.push({ type: 'rato', w: 0.035 }); // Rato de Academia (D73; grandão desde o D74, mais raro)
-    if (caos >= 25) list.push({ type: 'coach', w: 0.02 }); // Coach Picareta (D76)
-    if (caos >= 40) list.push({ type: 'agiota', w: 0.012 }); // Agiota (D76)
-    if (caos >= 15) list.push({ type: 'encostado', w: 0.03 }); // Encostado (D77)
+    if (caos >= 30) list.push({ type: 'rato', w: 0.035 }); // Rato de Academia (D73; do tamanho do Político, D79)
+    // Coach e Agiota (D76) são de São Paulo e o Encostado (D77) de Brasília: entram quando os trechos deles existirem (D78)
     if (caos >= 35) list.push({ type: 'pastor', w: 0.01 }); // Pastor Picareta (D77)
     return list;
   },
@@ -725,9 +723,6 @@ export const DIRECTOR = {
     { type: 'burocrata', w: 0.25 },
     { type: 'fiscal', w: 0.25 },
     { type: 'rato', w: 0.12 },
-    { type: 'coach', w: 0.08 },
-    { type: 'agiota', w: 0.06 },
-    { type: 'encostado', w: 0.12 },
     { type: 'pastor', w: 0.05 },
   ],
   castTestFirstElite: 12, // com o elenco completo, o primeiro Político chega aos 12 s
@@ -749,7 +744,7 @@ export const DIRECTOR = {
 export const HORDA_MORRO = { roupas: 6 };
 // horda da Orla: além dos três telespectadores, as roupas novas do elenco v2 (biquíni, sunga, pochete, controle
 // remoto, telemarketing, peão); `novas`: a parte da horda que sai com elas
-export const HORDA_ORLA = { roupasNovas: 6, novas: 0.5 };
+export const HORDA_ORLA = { roupasNovas: 4, novas: 0.5 }; // D78: Telemarketing e Peão de Obra são da horda de São Paulo
 
 // Armas: `levels[0]` é a base; os demais são incrementos. Nível máximo = levels.length.
 export const WEAPONS = {

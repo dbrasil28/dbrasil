@@ -246,7 +246,7 @@ export const WALK_ATLAS = {
   hpo: { atlas: 'horda_peao_walk_atlas', prefix: 'hpo', figureH: 157, escala: 0.7 },
   // inimigos do elenco v2 (D73): Laranja e Rato de Academia (carregam com as roupas novas da Orla)
   lj: { atlas: 'laranja_walk_atlas', prefix: 'lj', figureH: 157, escala: 0.8 },
-  ra: { atlas: 'rato_walk_atlas', prefix: 'ra', figureH: 157 }, // o dobro do Juninho (D74): célula inteira
+  ra: { atlas: 'rato_walk_atlas', prefix: 'ra', figureH: 157 }, // o tamanho vem de ENEMIES.rato.size (do Político, D79)
   ag: { atlas: 'agiota_walk_atlas', prefix: 'ag', figureH: 157, escala: 0.8 }, // D76
   co: { atlas: 'coach_walk_atlas', prefix: 'co', figureH: 157, escala: 0.8 }, // linha = (direção ÷ 2) × 4 + (direção % 2) × 2 + (quadro ≥ 6)
   ps: { atlas: 'pastor_walk_atlas', prefix: 'ps', figureH: 157, escala: 0.8 }, // D77
@@ -347,7 +347,8 @@ export const CROWD_ANIM_MORRO = ['mli', 'mmc', 'mmq', 'msr', 'msa', 'mtz'].map((
  * Senhora do Controle Remoto, Atendente de Telemarketing e Peão de Obra. Hipnotizados pela TV como os telespectadores;
  * acordados, vão embora andando com a própria caminhada.
  */
-export const CROWD_ANIM_ORLA = ['hbq', 'hts', 'htp', 'hsc', 'hat', 'hpo'].map((k) => ({ walk: WALK_ATLAS[k], poses: POSE_ATLAS[`${k}p`], acordaAndando: true }));
+// a horda da Orla (D78): Biquíni, Sunga, Pochete e Controle Remoto; Telemarketing (hat) e Peão (hpo) são de São Paulo
+export const CROWD_ANIM_ORLA = ['hbq', 'hts', 'htp', 'hsc'].map((k) => ({ walk: WALK_ATLAS[k], poses: POSE_ATLAS[`${k}p`], acordaAndando: true }));
 
 /** Atlas animado da roupa (tint), quando ela tem um e ele já carregou; senão null (usa o recorte). */
 export function crowdAnim(tint) {
@@ -526,20 +527,24 @@ export const IMAGES_ORLA_HORDA = {
   horda_pochete_poses_atlas: 'assets/personagens/horda_pochete/poses_atlas.webp',
   horda_controle_walk_atlas: 'assets/personagens/horda_controle/caminhada_atlas.webp',
   horda_controle_poses_atlas: 'assets/personagens/horda_controle/poses_atlas.webp',
+  rato_walk_atlas: 'assets/personagens/rato_academia/caminhada_atlas.webp',
+  rato_poses_atlas: 'assets/personagens/rato_academia/poses_atlas.webp',
+  pastor_walk_atlas: 'assets/personagens/pastor/caminhada_atlas.webp',
+  pastor_poses_atlas: 'assets/personagens/pastor/poses_atlas.webp',
+};
+// Elenco v2 de outros trechos (D78), pronto e à espera do trecho: São Paulo (Telemarketing e Peão na horda, Agiota,
+// Coach) e Brasília (Laranja, Encostado). Não carrega na Orla nem no Morro.
+export const IMAGES_OUTROS_TRECHOS = {
   horda_telemarketing_walk_atlas: 'assets/personagens/horda_telemarketing/caminhada_atlas.webp',
   horda_telemarketing_poses_atlas: 'assets/personagens/horda_telemarketing/poses_atlas.webp',
   horda_peao_walk_atlas: 'assets/personagens/horda_peao/caminhada_atlas.webp',
   horda_peao_poses_atlas: 'assets/personagens/horda_peao/poses_atlas.webp',
   laranja_walk_atlas: 'assets/personagens/laranja/caminhada_atlas.webp',
   laranja_poses_atlas: 'assets/personagens/laranja/poses_atlas.webp',
-  rato_walk_atlas: 'assets/personagens/rato_academia/caminhada_atlas.webp',
-  rato_poses_atlas: 'assets/personagens/rato_academia/poses_atlas.webp',
   agiota_walk_atlas: 'assets/personagens/agiota/caminhada_atlas.webp',
   agiota_poses_atlas: 'assets/personagens/agiota/poses_atlas.webp',
   coach_walk_atlas: 'assets/personagens/coach/caminhada_atlas.webp',
   coach_poses_atlas: 'assets/personagens/coach/poses_atlas.webp',
-  pastor_walk_atlas: 'assets/personagens/pastor/caminhada_atlas.webp',
-  pastor_poses_atlas: 'assets/personagens/pastor/poses_atlas.webp',
   encostado_walk_atlas: 'assets/personagens/encostado/caminhada_atlas.webp',
   encostado_poses_atlas: 'assets/personagens/encostado/poses_atlas.webp',
 };

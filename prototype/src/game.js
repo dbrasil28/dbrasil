@@ -568,9 +568,10 @@ export class Game {
     const p = this.fitSpawn(this.edgePoint(this.rng() * Math.PI * 2, 50));
     const el = this.spawnEnemy(type, p.x, p.y);
     if (type === 'politico') {
-      // os Laranjas chegam com ele (D73)
+      // os Laranjas chegam com ele (D73), no trecho deles (Brasília, D78)
       el.laranjas = [];
-      for (let i = 0; i < ENEMIES.politico.laranjas; i++) {
+      const nLaranjas = ENEMIES.laranja.trecho === this.segment ? ENEMIES.politico.laranjas : 0;
+      for (let i = 0; i < nLaranjas; i++) {
         const lado = i % 2 ? 1 : -1;
         const l = this.spawnEnemy('laranja', p.x + lado * 0.9, p.y + 0.6);
         l.dono = el;

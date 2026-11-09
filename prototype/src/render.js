@@ -683,7 +683,7 @@ export class Renderer {
             ctx.fill();
             ctx.stroke();
           }
-          if (o.elite && !o.boss) drawHpPip(ctx, pt, h, o.hp / o.maxHp);
+          if ((o.elite || ENEMIES[o.type].barra) && !o.boss) drawHpPip(ctx, pt, h, o.hp / o.maxHp); // a barra de força (elites e Rato, D79)
           if (o.bailaT > 0) drawNotaDanca(ctx, o, pt, h, t); // notinha em cima de quem dança o Batidão
           if (o.segura === 'carro') drawCarroErguido(ctx, o, pt, h, ppu);
           if ((o.type === 'traficante' || o.type === 'chefe_trafico') && o.aimT > 0) drawAim(ctx, o, cam, pt, h, ppu, t); // aviso antes do tiro

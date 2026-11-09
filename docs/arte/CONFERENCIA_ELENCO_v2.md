@@ -21,6 +21,8 @@ Pacote do autor em 33 partes: 35 personagens do elenco (cada um com caminhada em
 
 ## No jogo
 
+- **Cada trecho com o seu elenco (D78):** na Orla ficam o Rato de Academia, o Pastor Picareta e as roupas de Biquíni, Sunga, Pochete e Controle Remoto. Agiota, Coach, Telemarketing e Peão (São Paulo) e Laranja e Encostado (Brasília) estão prontos, à espera do trecho deles.
+
 - **Parte 2 (D73):** Laranja e Rato de Academia como inimigos. Atlas em `prototype/assets/personagens/laranja/` e `rato_academia/`.
 - **Parte 2b (D76):** Agiota e Coach Picareta como inimigos. Atlas em `prototype/assets/personagens/agiota/` e `coach/`.
 - **Parte 2c (D77):** Pastor Picareta e Encostado como inimigos. Atlas em `prototype/assets/personagens/pastor/` e `encostado/`.
