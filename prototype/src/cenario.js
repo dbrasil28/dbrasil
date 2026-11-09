@@ -327,7 +327,7 @@ function policia(w, map) {
     if (idx < 2) return;
     const len = k.y1 - k.y0;
     const sd = (i) => H(idx, i, 901);
-    if (k.kind === 'laje' && lajes < P.lajesComCamburao) {
+    if (k.kind === 'laje' && !k.baile && k !== w.top && lajes < P.lajesComCamburao) { // nem no baile nem no topo (D91)
       const x0 = k.x0 + 0.3;
       const E = CENARIO.carros.escala;
       const len = P.len * E;

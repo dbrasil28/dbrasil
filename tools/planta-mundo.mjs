@@ -22,6 +22,7 @@ const CAT = {
   coqueiro: 'praia', guarda_sol: 'praia', toalha: 'praia', isopor: 'praia', rede: 'praia', poste_rede: 'praia',
   caixa_dagua: 'morro', sinuca: 'morro', churrasqueira: 'morro', barricada: 'morro', tambor: 'morro', entulho: 'morro', pneus: 'morro', varal: 'morro', bandeira: 'morro',
   garota: 'gente', policial: 'gente',
+  paredao: 'festa', sofa: 'festa', cadeiras: 'festa', barraca_boteco: 'lugar',
 };
 const NOME = {
   carro: 'Carro parado', onibus: 'Ônibus parado', camburao: 'Camburão', moto: 'Moto', banca: 'Banca de jornal', milho: 'Carrinho de milho',
@@ -34,13 +35,17 @@ const NOME = {
   predio: 'Prédio (terraço)', salva_vidas: 'Posto de salva-vidas', laje_casa: 'Casa com laje', terraco: 'Terraço', mesa: 'Mesa', cadeira: 'Cadeira',
   cadeira_praia: 'Cadeira de praia', engradado: 'Engradado', botijao: 'Botijão', banquinho: 'Banquinho', pneu: 'Pneu solto',
   coco: 'Coco', marmita: 'Marmita', pastel: 'Pastel', milho_cura: 'Milho', acai_cura: 'Açaí',
+  paredao: 'Paredão de som', sofa: 'Sofá velho', cadeiras: 'Cadeiras empilhadas', barraca_boteco: 'Bar',
+  mesaDj: 'Mesa do DJ (palco)', trelica: 'Treliça de iluminação, com refletores e canhões de luz', globo: 'Globo espelhado', neon: 'Néon "BAILE DA ESPLANADA"',
 };
 
 const data = {
   mapa: { minX: m.minX, avX0: m.avenidaX0, avX1: m.avenidaX1, sandX: m.sandX, maxX: m.maxX, seaX: m.seaX, blockLen: m.blockLen, streetLen: m.streetLen, blocks: ROUTE.orla.blocks },
   startX: ROUTE.orla.startX,
   orlaTop: r2(w.orlaTop), startY: ROUTE.orla.startY, morroTop: r2(w.morroTop),
-  path: w.path.map((k, i) => ({ i, kind: i === 0 ? 'orla' : i === 1 ? 'escadaria_pe' : k.kind, b: box(k) })),
+  path: w.path.map((k, i) => ({ i, kind: i === 0 ? 'orla' : i === 1 ? 'escadaria_pe' : k.baile ? 'baile' : k.portao ? 'portao' : k.kind, b: box(k) })),
+  // o baile da esplanada (D91): palco, treliças, globo e néon (desenho de código no jogo)
+  deco: (w.baileDeco || []).map((d) => ({ tipo: d.tipo, b: d.x0 !== undefined ? [r2(d.x0), r2(d.y0 ?? d.y - 0.4), r2(d.x1), r2(d.y1 ?? d.y + 0.4)] : [r2(d.x - 0.5), r2(d.y - 0.5), r2(d.x + 0.5), r2(d.y + 0.5)] })),
   gate: box(w.gate),
   joints: w.joints.map((j) => [r2(j.x), r2(j.y)]),
   plats: w.platforms.map((P) => ({ kind: P.kind, b: box(P), s: box(P.stair) })),
@@ -105,6 +110,7 @@ canvas { display: block; max-width: none; touch-action: pan-x pan-y; }
   <div class="legend" id="legend"></div>
   <section class="grid2">
     <div class="card"><h2>Um quarteirão da Orla</h2><p class="sub">Quarteirão 2 entre as duas ruas de carro que o cercam, do calçadão à areia. As faixas mostram como o cenário está organizado hoje.</p><div class="scroll"><canvas id="zoomOrla" aria-label="Planta de um quarteirão da Orla"></canvas></div><span class="scale" id="escalaOrla"></span></div>
+    <div class="card"><h2>O baile da esplanada</h2><p class="sub">A última esplanada antes do alto (D91): o palco no fundo com a mesa do DJ entre os paredões, as duas treliças de iluminação, o globo no meio da pista, os bares, a sinuca e, no fundo, o portão que abre o resto do morro.</p><div class="scroll"><canvas id="zoomBaile" aria-label="Planta do baile da esplanada"></canvas></div><span class="scale" id="escalaBaile"></span></div>
     <div class="card"><h2>Um trecho do morro</h2><p class="sub">A primeira viela, a primeira laje e a viela de cima, com a passagem entre elas.</p><div class="scroll"><canvas id="zoomMorro" aria-label="Planta de um trecho do morro"></canvas></div><span class="scale" id="escalaMorro"></span></div>
   </section>
   <section class="strip">
@@ -138,6 +144,7 @@ const CATS = {
   muro: { nome: 'Muros e tapumes', cor: '#a0603a' },
   praia: { nome: 'Praia', cor: '#e8d35a' },
   morro: { nome: 'Coisas do morro', cor: '#b07ad8' },
+  festa: { nome: 'O baile (palco, luzes, globo)', cor: '#ff5fd2' },
   gente: { nome: 'Gente parada', cor: '#ff5fa2' },
   objeto: { nome: 'Pega e arremessa', cor: '#ffffff' },
   cura: { nome: 'Curas', cor: '#3fdc6a' },
@@ -167,7 +174,7 @@ const linhas = [
 ];
 for (const l of linhas) { const li = document.createElement('li'); li.textContent = l; resumo.appendChild(li); }
 
-const GROUND = { orla: '#c9bca6', escadaria_pe: '#9c9488', viela: '#a39a8e', escadaria: '#bdb4a6', laje: '#cdb48a' };
+const GROUND = { orla: '#c9bca6', escadaria_pe: '#9c9488', viela: '#a39a8e', escadaria: '#bdb4a6', laje: '#cdb48a', baile: '#8a6fb4', portao: '#d9893a' };
 const dpr = Math.min(window.devicePixelRatio || 1, 2);
 const views = [];
 function setup(id, x0, x1, y0, y1, ppm, escalaId) {
@@ -239,7 +246,7 @@ function draw(v, opts = {}) {
     if (k.i === 0) continue;
     const [x, y, ww, hh] = R(k.b);
     g.fillStyle = GROUND[k.kind] || '#a39a8e'; g.fillRect(x, y, ww, hh);
-    if (k.kind === 'escadaria' || k.kind === 'escadaria_pe') { g.strokeStyle = 'rgba(0,0,0,0.25)'; g.lineWidth = 1; for (let yy = k.b[1]; yy < k.b[3]; yy += 0.6) { g.beginPath(); g.moveTo(x, Y(yy)); g.lineTo(x + ww, Y(yy)); g.stroke(); } }
+    if (k.kind === 'escadaria' || k.kind === 'escadaria_pe' || k.kind === 'portao') { g.strokeStyle = 'rgba(0,0,0,0.25)'; g.lineWidth = 1; for (let yy = k.b[1]; yy < k.b[3]; yy += 0.6) { g.beginPath(); g.moveTo(x, Y(yy)); g.lineTo(x + ww, Y(yy)); g.stroke(); } }
   }
   // grade de 2 m
   g.strokeStyle = 'rgba(0,0,0,0.07)'; g.lineWidth = 1;
@@ -274,6 +281,7 @@ function draw(v, opts = {}) {
     v.hits.push({ x, y, w: ww, h: hh, t: (D.nome[p.kind] || p.kind) + (p.sign ? ' · ' + p.sign : '') });
   }
   for (const p of D.props) if (on[p.cat]) shape(p.b, p.cat, p.solid, p.kind, D.nome[p.kind] + (p.t ? ' · ' + p.t : ''));
+  if (on.festa) for (const d of D.deco) shape(d.b, 'festa', false, d.tipo);
   if (on.objeto) for (const s of D.slots) {
     if (s.x < v.x0 || s.x > v.x1 || s.y < v.y0 || s.y > v.y1) continue;
     g.fillStyle = '#ffffff'; g.strokeStyle = '#141117'; g.lineWidth = 1.5;
@@ -307,15 +315,31 @@ function draw(v, opts = {}) {
   }
   if (opts.quarteiroes) {
     for (let b = 0; b <= D.mapa.blocks; b++) { const y = -D.mapa.blockLen * b + 20; lbl(D.mapa.minX - 6, y, 'Q' + b, '#f1ece2'); }
-    D.path.forEach((k) => { if (k.i < 2) return; lbl(k.b[0] - 3.5, (k.b[1] + k.b[3]) / 2, k === top ? 'TOPO' : k.kind.toUpperCase(), '#f1ece2'); });
+    D.path.forEach((k) => {
+      if (k.i < 2) return;
+      const nome = k === top ? 'TOPO · CHEFE DO TRÁFICO' : k.kind === 'baile' ? 'BAILE · DJ PLANTÃO' : k.kind === 'portao' ? 'PORTÃO (abre com o DJ no chão)' : k.kind.toUpperCase();
+      // os nomes compridos (baile, portão, topo) vão do lado direito do pedaço, onde há espaço na planta
+      const longo = k.kind === 'baile' || k.kind === 'portao' || k === top;
+      g.textAlign = 'left';
+      if (longo) {
+        g.font = '800 ' + Math.max(11, Math.min(16, v.ppm * 1.4)) + 'px ' + getComputedStyle(document.body).fontFamily;
+        g.lineWidth = 4; g.strokeStyle = '#141117';
+        const yy = (k.b[1] + k.b[3]) / 2;
+        const cor = k.kind === 'baile' ? '#ff9ae8' : k.kind === 'portao' ? '#ffb46a' : '#ffd21f';
+        g.strokeText(nome, X(k.b[2] + 1.5), Y(yy)); g.fillStyle = cor; g.fillText(nome, X(k.b[2] + 1.5), Y(yy));
+      } else lbl(k.b[0] - 3.5, (k.b[1] + k.b[3]) / 2, nome, '#f1ece2');
+    });
   }
 }
 const vo = setup('zoomOrla', D.mapa.minX - 3, D.mapa.seaX + 1, -2 * D.mapa.blockLen - 8.5, -2 * D.mapa.blockLen + 48.5, 11, 'escalaOrla');
 const p2 = D.path[2], p3 = D.path[3], p4 = D.path[4];
 const vm = setup('zoomMorro', Math.min(p2.b[0], p3.b[0], p4.b[0]) - 3, Math.max(p2.b[2], p3.b[2], p4.b[2]) + 3, p4.b[3] - 14, p2.b[1] + 12, 11, 'escalaMorro');
+const pb = D.path.find((k) => k.kind === 'baile');
+const pp = D.path.find((k) => k.kind === 'portao');
+const vb = pb ? setup('zoomBaile', pb.b[0] - 3, pb.b[2] + 3, pp ? pp.b[1] + 4 : pb.b[1] - 4, pb.b[3] + 4, 11, 'escalaBaile') : null;
 const xs = D.path.flatMap((k) => [k.b[0], k.b[2]]);
 const vs = setup('strip', Math.min(D.mapa.minX - 9, ...xs) - 1, D.mapa.seaX + 3, D.morroTop - 4, D.startY + 2, 6.2);
-function drawAll() { draw(vo, { faixas: true }); draw(vm); draw(vs, { quarteiroes: true }); }
+function drawAll() { draw(vo, { faixas: true }); draw(vm); if (vb) draw(vb); draw(vs, { quarteiroes: true }); }
 drawAll();
 // começa mostrando o pé da Orla (o começo da partida fica embaixo)
 const box = document.getElementById('stripBox');
