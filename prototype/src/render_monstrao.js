@@ -88,14 +88,18 @@ export function monstraoNaLista(game, cam, list) {
 
 export function drawMonstraoObj(ctx, o, pt, ppu, k) {
   if (o.tipo === 'anilha') {
+    // do tamanho da que ele segura (D85); caindo das mãos, a sombra no chão cresce e ela desce até rolar
+    const N = ENEMIES.monstrao.anilha;
     const im = images.monstrao_anilha;
-    const r = ENEMIES.monstrao.anilha.raioM * ppu * 1.15;
-    ctx.fillStyle = 'rgba(20,12,8,0.35)';
+    const r = N.arteRaioM * ppu;
+    const q = o.queda > 0 ? o.queda / N.quedaS : 0;
+    const z = N.alturaM * q * q * ppu;
+    ctx.fillStyle = `rgba(20,12,8,${(0.35 * (1 - 0.5 * q)).toFixed(3)})`;
     ctx.beginPath();
-    ctx.ellipse(pt.x, pt.y, r * 0.9, r * 0.3 * k, 0, 0, Math.PI * 2);
+    ctx.ellipse(pt.x, pt.y, r * 0.9 * (1 - 0.4 * q), r * 0.3 * k * (1 - 0.4 * q), 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.save();
-    ctx.translate(pt.x, pt.y - r);
+    ctx.translate(pt.x, pt.y - r - z);
     ctx.rotate(o.giro);
     if (im) ctx.drawImage(im, -r, -r * (im.height / im.width), r * 2, r * 2 * (im.height / im.width));
     else {

@@ -1,4 +1,4 @@
-// Desenho da regra da carreira (D39): a obra do Especulador, o tapume da escadaria (arte de tapume
+// Desenho da regra da carreira (D39): o tapume da escadaria (arte de tapume
 // inteira, só na escala) e o holofote do helicóptero da TV sobre o covil aberto, que é a pista no lugar
 // da seta. Quando o covil está fora da tela, só a claridade do holofote aparece na beira, sem seta nem texto.
 import { CARREIRA, ACHADOS } from './config.js';
@@ -28,58 +28,6 @@ function tapumes(ctx, cam, ppu, x0, x1, y, alpha = 1, drop = 0) {
   ctx.fillRect(sx, a.y - 2 + drop, tot, 4);
   for (let i = 0; i < n; i++) ctx.drawImage(im, sx + i * w, a.y - h + drop, w, h);
   ctx.globalAlpha = 1;
-}
-
-/** Chão da obra (terra batida) e o entulho: antes dos personagens. */
-export function drawObraChao(ctx, w, cam, ppu) {
-  const o = w.obra;
-  if (!o) return;
-  ctx.beginPath();
-  for (const [x, y] of [[o.x0, o.y0], [o.x1, o.y0], [o.x1, o.y1], [o.x0, o.y1]]) {
-    cam.toScreen(x, y, a);
-    if (x === o.x0 && y === o.y0) ctx.moveTo(a.x, a.y);
-    else ctx.lineTo(a.x, a.y);
-  }
-  ctx.closePath();
-  ctx.fillStyle = '#6a5a47';
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-}
-
-/** Tapume do fundo (cai com o chefão) e entulho dentro da obra (atrás de quem estiver dentro). */
-export function drawObraFundo(ctx, w, cam, ppu, t) {
-  const o = w.obra;
-  let alpha = 1;
-  let drop = 0;
-  if (w.obraFundoT !== undefined) {
-    const k = (t - w.obraFundoT) / CARREIRA.portaCaiS;
-    alpha = Math.max(0, 1 - k);
-    drop = Math.min(1, k) ** 2 * 0.9 * ppu;
-  }
-  if (alpha > 0) tapumes(ctx, cam, ppu, o.x0, o.x1, o.y0 + 0.2, alpha, drop);
-  const im = images.cen_entulho_a;
-  if (!im) return;
-  for (const [fx, fy, s] of [[0.22, 0.35, 1.5], [0.7, 0.5, 1.9], [0.45, 0.78, 1.2]]) {
-    cam.toScreen(o.x0 + (o.x1 - o.x0) * fx, o.y0 + (o.y1 - o.y0) * fy, a);
-    const h = s * ppu;
-    ctx.drawImage(im, a.x - h / 2, a.y - h * 0.8, h, h);
-  }
-}
-
-/** Tapume da frente da obra; cai (desce e some na poeira) quando o chefão sai. */
-export function drawObraFrente(ctx, w, cam, ppu, t) {
-  const o = w.obra;
-  let alpha = 1;
-  let drop = 0;
-  if (w.obraAbertaT !== undefined) {
-    const k = (t - w.obraAbertaT) / CARREIRA.portaCaiS;
-    if (k >= 1) return;
-    alpha = 1 - k;
-    drop = k * k * 0.9 * ppu;
-  }
-  tapumes(ctx, cam, ppu, o.x0, o.x1, o.y1, alpha, drop);
 }
 
 /** Tapume que fecha a escadaria do pé do morro: sem texto (o jogador não sabe o que tem atrás). */

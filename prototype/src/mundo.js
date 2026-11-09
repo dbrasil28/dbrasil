@@ -114,8 +114,8 @@ function placeOrla(w, map) {
 }
 
 /**
- * Obra do Especulador no último quarteirão, encostada nos prédios, do outro lado da rua da escadaria.
- * Fechada (sólida) até o covil abrir; o cenário não ocupa o terreno (entra em `places`).
+ * Terreno do covil no último quarteirão, encostado nos prédios, do outro lado da rua da escadaria (era a obra do
+ * Especulador, D39; sem tapume desde o D84): o cenário não ocupa o terreno (entra em `places`).
  */
 function placeObra(w, map) {
   const O = CARREIRA.obra;
@@ -123,10 +123,8 @@ function placeObra(w, map) {
   const obra = rect(O.x0, y0, O.x1, y0 + O.fundoM, { kind: 'obra' });
   w.places.push(obra);
   w.obra = obra;
-  w.obraSolid = rect(obra.x0, obra.y0, obra.x1, obra.y1, { kind: 'obra', h: 2.2 });
-  w.solids.push(w.obraSolid);
-  // aberta a obra, sobra o tapume do fundo, que cai com o chefão e revela a escadaria do outro lado da rua
-  w.obraFundoSolid = rect(obra.x0, obra.y0, obra.x1, obra.y0 + 0.35, { kind: 'obra', h: 2.2 });
+  // D84 (pedido do autor): a obra saiu do mapa (chão de terra, tapumes e entulho) para a arena do Monstrão ficar
+  // livre; o terreno fica só como o lugar do covil (pistas, helicóptero, arena) e o cenário não ocupa ele
   // boca da escadaria: nenhum carro ou barraca parado na frente dela
   const g = w.gate;
   w.bocaEscadaria = rect(g.x0 - 1.4, w.orlaTop, g.x1 + 1.4, obra.y0);

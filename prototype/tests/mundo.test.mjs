@@ -25,7 +25,7 @@ test('a escadaria do morro fica fechada até o Monstrão cair; ele mora na obra 
   g.player.level = 30; // nível não abre mais nada (D39)
   g.update(1 / 30, parado);
   assert.equal(w.gateOpen, false);
-  assert.ok(w.solids.includes(w.obraSolid), 'a obra começa fechada');
+  assert.ok(!w.solids.some((k) => k.kind === 'obra'), 'a obra saiu do mapa (D84): nada de tapume no terreno do covil');
   // o Caos chega a 100%: o covil abre, mas o chefão só sai com o Juninho perto
   g.trechoT0 = g.t - CARREIRA.caosTempoS;
   g.update(1 / 30, parado);
@@ -38,7 +38,6 @@ test('a escadaria do morro fica fechada até o Monstrão cair; ele mora na obra 
   g.player.y = arena.y + 3;
   g.update(1 / 30, parado);
   assert.ok(g.boss && g.boss.type === 'monstrao', 'o Monstrão não chegou com o Juninho na arena');
-  assert.ok(!w.solids.includes(w.obraSolid), 'o tapume da obra não caiu');
   // fases: com 60% da vida, muda de fase e chama a assessoria
   const antes = g.enemies.filter((e) => !e.dead).length;
   g.damageEnemy(g.boss, g.boss.maxHp * 0.4, 'teste');

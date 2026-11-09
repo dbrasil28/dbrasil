@@ -65,7 +65,7 @@ test('chegada do Monstrão: a horda vira o cerco, ele entra pela avenida, a roda
   assert.ok(Math.hypot(K.x - w.gate.x1, K.y - w.gate.y1) < CHEGADA.cerco.raioM + 4, 'a arena ficou longe da entrada da favela');
   const sobrou = w.props.filter((k) => Math.hypot(k.x - a.x, k.y - a.y) < CHEGADA.cerco.raioM - 1).length;
   assert.equal(sobrou, 0, `a arena não ficou vazia (${coisas} → ${sobrou})`);
-  assert.ok(!w.solids.includes(w.obraSolid), 'o tapume da frente da obra não caiu');
+  assert.ok(!w.solids.some((k) => Math.hypot(Math.max(k.x0, Math.min(a.x, k.x1)) - a.x, Math.max(k.y0, Math.min(a.y, k.y1)) - a.y) < CHEGADA.cerco.raioM - 0.5), 'sobrou coisa sólida na arena');
   boss.reforcoT = 1e9; // sem a assessoria, para contar só a horda
   assert.ok(Math.hypot(p.x - K.x, p.y - K.y) < K.r, 'o Juninho ficou fora da roda');
   // ele anda até a arena, urra e a luta começa

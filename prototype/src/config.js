@@ -208,7 +208,9 @@ export const ENEMIES = {
       pertoM: 3.5, avisoS: 0.8, raioM: 3.2, dano: 16, empurraM: 2.5, hordaDano: 60, voo: 8, poseS: 0.5,
       anel: { velM: 9, alcanceM: 12, largM: 0.9, brecha: 1.0, dano: 14 },
     },
-    anilha: { avisoS: 0.6, lead: 0.5, vel: 9, distM: 16, raioM: 0.45, dano: 15, hordaDano: 40 },
+    // anilha (D85): do tamanho da que ele segura na arte (arteRaioM, ~2 m de diâmetro); sai das mãos (alturaM) e
+    // cai no chão em quedaS antes de rolar; raioM é a área que machuca (só depois de cair)
+    anilha: { avisoS: 0.6, lead: 0.5, vel: 9, distM: 16, raioM: 0.8, arteRaioM: 1.0, alturaM: 4.0, quedaS: 0.24, dano: 15, hordaDano: 40 },
     carro: { chance: 0.3, avisoS: 0.9, lead: 0.9, vooS: 0.9, alturaM: 3.4, arcoM: 3, raioM: 3.0, dano: 30, hordaDano: 120, arte: ['cen_carro_fusca', 'cen_carro_brasilia', 'cen_carro_uno', 'cen_carro_taxi'] },
     // derrubado (D65): uma das 3 mortes, sorteada, na direção mais perto de onde ele olhava; fica no chão e some
     corpo: { quadroS: 0.12, noChaoS: 4, someS: 1 },
@@ -1073,13 +1075,13 @@ export const TV = {
   cercoEmpurra: ['A TORCIDA NÃO DEIXA NINGUÉM SAIR DA RODA. E ELA ESTÁ FECHANDO'],
   bicheiro: ['BICHEIRO ABRE A BANCA NO CALÇADÃO. POLÍCIA DIZ QUE NÃO VIU', 'APONTADORES CORREM NA ORLA. A BANCA ACEITA PIX E FIADO'],
   bicheiroPaga: ['ENTREGADOR ACERTA NO BICHO E LEVA O COFRE. BANCA PEDE RECONTAGEM'],
-  unlock: ['O TAPUME CAIU. ATRÁS DA OBRA, UMA ESCADARIA QUE NINGUÉM TINHA VISTO', 'A OBRA ABRIU UMA PASSAGEM. GPS NÃO RECONHECE O CAMINHO'],
+  unlock: ['O TAPUME CAIU. NO FIM DA PRAIA, UMA ESCADARIA QUE NINGUÉM TINHA VISTO', 'O FIM DA PRAIA ABRIU UMA PASSAGEM. GPS NÃO RECONHECE O CAMINHO'],
   morro: ['ENTREGADOR COMEÇA A SUBIDA. APP CALCULA 3 MINUTOS (MENTIRA)'],
   recomeco: ['ATUALIZAÇÃO OBRIGATÓRIA DO APLICATIVO: SEUS ITENS EXPIRARAM', 'APP ATUALIZOU: NOVO TURNO, NOVA ENTREGA, ZERO BENEFÍCIOS'],
   // o Caos do trecho chama o chefão (D39): sinal na Calamidade e o chamado em 100%, sem dizer o nome
-  covilSinal_orla: ['MORADORES RECLAMAM DE BARULHO DE FERRO BATENDO ATRÁS DO TAPUME DO FIM DA PRAIA'],
+  covilSinal_orla: ['MORADORES RECLAMAM DE BARULHO DE FERRO BATENDO NO FIM DA PRAIA'],
   covilSinal_morro: ['RÁDIO COMUNITÁRIA: MOVIMENTAÇÃO NO ALTO DO MORRO. MORADORES FECHAM AS JANELAS'],
-  covilAberto_orla: ['PLANTÃO: ALGO ENORME SE MEXE ATRÁS DO TAPUME DO FIM DA PRAIA. HELICÓPTERO DA TV JÁ ESTÁ NO LOCAL'],
+  covilAberto_orla: ['PLANTÃO: ALGO ENORME SE MEXE NO FIM DA AVENIDA. HELICÓPTERO DA TV JÁ ESTÁ NO LOCAL'],
   covilAberto_morro: ['PLANTÃO: TIROS E FOGOS NO ALTO DO MORRO. HELICÓPTERO DA TV SOBREVOA A LAJE'],
   covilDemora: ['A PLATEIA INTEIRA ESTÁ INDO PARA LÁ. A EMISSORA AGRADECE A AUDIÊNCIA'],
   fase_orla: ['MONSTRÃO PERDE A PACIÊNCIA: AGORA ARREMESSA CARROS', 'MONSTRÃO ENTRA NO MODO "SÉRIE ATÉ A FALHA"'],

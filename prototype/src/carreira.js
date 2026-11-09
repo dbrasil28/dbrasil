@@ -3,7 +3,7 @@
 // Sem DOM: roda igual no navegador e nos testes.
 import { CARREIRA, ENEMIES, SESSION, HORDA, xpToNext } from './config.js';
 import { clamp } from './math.js';
-import { removeSolid, addSolid, deliveryPoint, inside } from './mundo.js';
+import { deliveryPoint, inside } from './mundo.js';
 import { playerStats } from './upgrades.js';
 import { cofreDoChefao } from './achados.js';
 import { limparMonstrao } from './monstrao.js';
@@ -94,10 +94,6 @@ export function soltarChefao(game, C) {
   game.shake(0.5);
   game.emit('boss', {});
   if (C.trecho === 'orla') {
-    removeSolid(w, w.obraSolid);
-    if (!w.solids.includes(w.obraFundoSolid) && !w.gateOpen) addSolid(w, w.obraFundoSolid); // a frente cai; o fundo fica até o chefão cair
-    w.obraAbertaT = game.t;
-    for (let i = 0; i < 4; i++) game.burst(w.obra.x0 + ((i + 0.5) / 4) * (w.obra.x1 - w.obra.x0), w.obra.y1, 8, 'poeira');
     let e;
     if (!game.horda) {
       // carreira (D82): ele vem a pé pela avenida, do fim da Orla, e a horda vira o cerco em volta do Juninho
@@ -190,8 +186,6 @@ export function chefaoCaiu(game, e) {
     game.tv('chefaoCaiu');
     w.gateOpen = true;
     w.portaT = game.t; // o tapume da escadaria cai
-    removeSolid(w, w.obraFundoSolid); // e o do fundo da obra: atrás dela, a escadaria
-    w.obraFundoT = game.t;
     game.metrics.portaoAberto = Math.round(game.t);
     game.emit('unlock', {});
     game.tv('unlock');

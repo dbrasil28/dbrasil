@@ -75,3 +75,33 @@ test('Monstrão: a investida que corre a distância inteira sem bater termina na
   assert.equal(b.golpe, 'pose', `esperava a pose, passou por ${[...vistos]}`);
   assert.ok(b.janelaT > 0, 'pose sem a hora de bater');
 });
+
+test('Monstrão: a anilha sai das mãos, cai na frente dele e só machuca depois de cair; então rola', async () => {
+  const { ENEMIES } = await import('../src/config.js');
+  const N = ENEMIES.monstrao.anilha;
+  const g = luta();
+  const b = g.boss;
+  const p = g.player;
+  g.world.solids.length = 0;
+  p.x = b.x;
+  p.y = b.y + 6; // na linha do arremesso, longe o bastante para a anilha cair antes de chegar nele
+  p.vx = p.vy = 0;
+  Object.assign(b, { golpe: 'arremesso', golpeT: 0.02, pausaT: 1e9 });
+  g.update(1 / 30, { x: 0, y: 0 });
+  g.update(1 / 30, { x: 0, y: 0 });
+  const an = () => (g.monstraoObjs || []).find((o) => o.tipo === 'anilha');
+  const a = an();
+  assert.ok(a, 'não soltou a anilha');
+  assert.ok(a.queda > 0, 'a anilha não caiu das mãos (já começou rolando)');
+  const hp = p.hp;
+  let caiu = false;
+  let rolou = 0;
+  for (let i = 0; i < 60 && an(); i++) {
+    g.update(1 / 30, { x: 0, y: 0 });
+    if (an() && an().queda <= 0) caiu = true;
+    if (an()) rolou = an().dist;
+  }
+  assert.ok(caiu, 'a anilha não chegou no chão');
+  assert.ok(rolou > 2 || p.hp < hp, `a anilha não rolou (${rolou.toFixed(1)} m) nem acertou`);
+  assert.ok(N.arteRaioM >= 0.9, 'a anilha rolando ficou menor que a das mãos');
+});

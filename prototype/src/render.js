@@ -14,7 +14,7 @@ import { drawMinimap } from './minimapa.js';
 import { caosDoTrecho } from './carreira.js';
 import { drawCriseChao, drawCriseCeu, escondidoDeDia } from './render_crises.js';
 import { drawAvisosChao, monstraoNaLista, drawMonstraoObj, drawCarroErguido } from './render_monstrao.js';
-import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado } from './render_carreira.js';
+import { drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado } from './render_carreira.js';
 import { drawCenaFundo, drawCenaFrente, drawFaixaCena, drawGolaco, drawBatidao, drawOndasBatidao, drawNotaDanca, drawFachoReliquia } from './render_super.js';
 import { alturaNaCena, zoomNaCena } from './super.js';
 import { drawPalestras, drawMarcaAgiota, drawCurasPastor, drawCurados, drawBilhetes, drawAposta } from './render_elenco.js';
@@ -214,8 +214,7 @@ export class Renderer {
     drawCurasPastor(ctx, game, cam, ppu); // a cura do Pastor (D77)
     drawBilhetes(ctx, game, cam, ppu, game.t); // a banca do Bicheiro (D80)
     if (game.world) {
-      // carreira (D39): sem seta nem placa; a obra do Especulador e o holofote da TV sobre o covil aberto
-      drawObraChao(ctx, game.world, cam, ppu);
+      // carreira (D39): sem seta nem placa; o holofote da TV sobre o covil aberto
       drawHolofoteChao(ctx, game, cam, ppu, game.t);
       cam.visibleWorldBounds(3, bounds);
       drawCriseChao(ctx, game, cam, ppu, game.t, bounds); // Baile, Curto (a Ressaca vem com o mar)
@@ -280,10 +279,6 @@ export class Renderer {
       for (const a of game.achados || []) {
         if (a.aberto || a.y > bounds.maxY + 2 || a.y < bounds.minY - 2) continue;
         list.push({ d: a.plat ? cam.depth(a.x, a.plat.y1) + 0.002 : cam.depth(a.x, a.y), k: 'achado', o: a, z: a.plat ? a.plat.h : 0 });
-      }
-      if (w.obra && w.obra.y0 < bounds.maxY + 4 && w.obra.y1 > bounds.minY - 4) {
-        list.push({ d: cam.depth(w.obra.x0, w.obra.y0 + 0.2), k: 'obraFundo', o: w });
-        list.push({ d: cam.depth(w.obra.x0, w.obra.y1), k: 'obraFrente', o: w });
       }
     }
     for (const c of game.traffic || []) list.push({ d: cam.depth(c.x, c.y + c.len / 2), k: 'trafego', o: c, x: c.x, y: c.y + c.len / 2 });
@@ -433,12 +428,6 @@ export class Renderer {
         }
         case 'achado':
           if (!escondidoDeDia(game, o)) drawAchado(ctx, game, o, pt, ppu, t, playerPx);
-          break;
-        case 'obraFundo':
-          drawObraFundo(ctx, o, cam, ppu, t);
-          break;
-        case 'obraFrente':
-          drawObraFrente(ctx, o, cam, ppu, t);
           break;
         case 'obj': {
           // objeto solto: sombra e o objeto; pulsa de leve para mostrar que dá para pegar

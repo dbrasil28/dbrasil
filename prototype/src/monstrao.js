@@ -223,9 +223,10 @@ function socoNoChao(game, e, D, f) {
 }
 
 function lancarAnilha(game, e) {
+  // sai das mãos lá no alto, cai na frente dele com um baque e então rola (D85)
   objs(game).push({
     tipo: 'anilha', x: e.x + e.dirX * e.r, y: e.y + e.dirY * e.r, dx: e.dirX, dy: e.dirY,
-    dist: 0, giro: 0, hit: new Set(),
+    dist: 0, giro: 0, hit: new Set(), queda: ENEMIES.monstrao.anilha.quedaS,
   });
   game.word(e.x, e.y - 1.5, 'UH!', '#d8d0c2');
   game.som('anilha', e.x, e.y);
@@ -250,7 +251,17 @@ function atualizarObjs(game, D, dt) {
       o.x += o.dx * s;
       o.y += o.dy * s;
       o.dist += s;
-      o.giro += (s / N.raioM) * (o.dx >= 0 ? 1 : -1);
+      o.giro += (s / N.arteRaioM) * (o.dx >= 0 ? 1 : -1);
+      if (o.queda > 0) {
+        // ainda caindo das mãos dele: só machuca quando bate no chão
+        o.queda -= dt;
+        if (o.queda <= 0) {
+          game.shake(0.25);
+          game.burst(o.x, o.y, 8, 'poeira');
+          game.som('soco_chao', o.x, o.y);
+        }
+        continue;
+      }
       if (!o.feriu && ferirFigurantes(game, o.x, o.y, N.raioM, N.dano)) o.feriu = true; // a anilha atropela um só
       if (Math.hypot(p.x - o.x, p.y - o.y) < N.raioM + (p.r || 0.3)) {
         game.hurtPlayer(N.dano, 'monstrao');

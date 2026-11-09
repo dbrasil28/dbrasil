@@ -46,8 +46,8 @@ Nada de seta, distância ou nome antes de o jogador descobrir. Ninguém diz "mor
 
 | Momento | O que o jogador percebe |
 | --- | --- |
-| Desde o começo | O cenário sugere. No fim da Orla tem uma obra cercada de tapume com um barulho estranho atrás, e o morro aparece ao fundo. Quem explora acha o lugar cedo, mas ele está fechado |
-| Caos chega a 100% | A TV dá uma pista do lugar, sem nome: "PLANTÃO: MOVIMENTAÇÃO ESTRANHA NA OBRA DO FIM DA PRAIA". O helicóptero da TV Caos passa a circular sobre o lugar com o holofote, visível de longe |
+| Desde o começo | O cenário sugere. No fim da Orla, a avenida segue para longe, a escadaria fechada por tapume e o morro ao fundo (a obra saiu do mapa no D84). Quem explora acha o lugar cedo, mas a escadaria está fechada |
+| Caos chega a 100% | A TV dá uma pista do lugar, sem nome: "PLANTÃO: ALGO ENORME SE MEXE NO FIM DA AVENIDA". O helicóptero da TV Caos passa a circular sobre o lugar com o holofote, visível de longe |
 | Se o jogador demorar | A pista cresce: a horda inteira começa a andar para lá, como se fosse chamada, e a sirene fica mais alta quanto mais perto ele está |
 | Chegando perto | Na Orla (D82): o lugar vai ficando em silêncio, a música para, o tapume cai, a horda forma uma roda em volta da arena na frente da obra e o Monstrão chega a pé pela avenida. A roda fecha devagar até ele cair; aí a torcida se espalha e a escadaria do Morro fica logo ali. No Morro: o chefão aparece no fundo da laje do topo |
 
