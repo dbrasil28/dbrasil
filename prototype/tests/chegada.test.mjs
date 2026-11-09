@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
 import { CHEGADA } from '../src/config.js';
-import { silencioDoCovil, centroDaArena } from '../src/chegada.js';
+import { silencioDoCovil, centroDaArena, prepararTesteDoChefe } from '../src/chegada.js';
 
 const DT = 1 / 30;
 const parado = { x: 0, y: 0 };
@@ -98,4 +98,23 @@ test('chegada do Monstrão: a horda vira o cerco, ele entra pela avenida, a roda
   for (let i = 0; i < 30 * (CHEGADA.cerco.dispersaS + 0.2); i++) g.update(DT, parado);
   assert.equal(g.cerco, null, 'a torcida não foi embora');
   assert.ok(w.gateOpen, 'a passagem para o Morro não abriu');
+});
+
+test('atalho "Testar o Monstrão": fim da Orla com build, covil aberto e o Juninho a caminho da arena', () => {
+  const g = new Game({ ...defaultSettings(), elenco: false, aberta: false }, { seed: 3, meta: { trecho: 'orla', teste: true } });
+  prepararTesteDoChefe(g);
+  const p = g.player;
+  assert.ok(p.level >= 20, `build fraca: nível ${p.level}`);
+  assert.equal(p.reliquia, CHEGADA.teste.reliquia);
+  assert.equal(p.superCarga, 1);
+  g.update(DT, parado);
+  assert.ok(g.covil.aberto, 'o covil não abriu');
+  assert.ok(!g.boss, 'o chefão saiu antes de o Juninho chegar');
+  const a = centroDaArena(g);
+  assert.ok(Math.abs(Math.hypot(p.x - a.x, p.y - a.y) - Math.hypot(4, CHEGADA.teste.distM)) < 1, 'não ficou a caminho da arena');
+  // anda até a arena: o Monstrão chega
+  p.x = a.x;
+  p.y = a.y + 2;
+  g.update(DT, parado);
+  assert.ok(g.cerco && g.boss && g.boss.type === 'monstrao', 'o Monstrão não chegou');
 });

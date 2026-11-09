@@ -8,12 +8,13 @@ import { loadSettings, saveSettings, defaultSettings } from './settings.js';
 import { ENEMIES, FAVELA, SOM, RELIQUIAS } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
-import { loadImages, images, prewarm, carregarMorro, prewarmMorro, carregarHordaOrla, prewarmHordaOrla, arteSumiu, refazerArte } from './sprites.js';
+import { loadImages, images, prewarm, carregarMorro, prewarmMorro, carregarHordaOrla, prewarmHordaOrla, arteSumiu, refazerArte, carregarMonstrao } from './sprites.js';
 import { loadProgress, applyRun, buyUpgrade } from './progresso.js';
 import { loadRanking, registrarPartida } from './ranking.js';
 import { desafioDaSemana } from './horda.js';
 import { Musica } from './musica.js';
 import { Sons } from './sons.js';
+import { prepararTesteDoChefe } from './chegada.js';
 
 const $ = (id) => document.getElementById(id);
 const STEP = 1 / 60;
@@ -143,7 +144,7 @@ function newGame() {
   const meta = {
     melhorias: runModo === 'desafio' ? {} : progress.melhorias, // no desafio, todo mundo igual
     trecho: desafio ? desafio.trecho : runTrecho,
-    abertura: runModo === 'carreira' && runTrecho === 'orla',
+    abertura: runModo === 'carreira' && runTrecho === 'orla' && !testeChefe,
     modo: runModo,
     desafio,
     teste: runModo === 'carreira' && trechoTeste === runTrecho, // "Testar a Favela": não libera trecho no Mapa da Rota
@@ -164,7 +165,10 @@ function start() {
   sons.liberar();
   sons.setVolume(Number(settings.efeitos ?? 70));
   newGame();
-  game.fastForward(Number(settings.startAt));
+  if (testeChefe) {
+    prepararTesteDoChefe(game); // "Testar o Monstrão": já no fim da Orla (D82)
+    carregarMonstrao();
+  } else game.fastForward(Number(settings.startAt));
   state = 'playing';
   ui.show(null);
   perfReset();
@@ -384,10 +388,12 @@ function applySetting(id, value) {
 
 // ---------- eventos da interface ----------
 let trechoTeste = null; // "Testar a Favela": recomeçar continua no Morro até voltar para o início
+let testeChefe = false; // "Testar o Monstrão": recomeçar volta para o fim da Orla, com o covil aberto
 ui.on('start', () => {
   if (state === 'title') {
     runModo = 'carreira'; // "Começar turno" é a Carreira; "Recomeçar" repete o modo
     trechoTeste = null;
+    testeChefe = false;
   }
   if (state !== 'paused' && runModo === 'carreira') runTrecho = trechoTeste || (settings.trecho === 'morro' ? 'morro' : 'orla');
   start();
@@ -396,8 +402,18 @@ ui.on('start', () => {
 // atalho de teste da tela de início: a Carreira começa no pé do Morro, com a escadaria já aberta
 ui.on('favela', () => {
   runModo = 'carreira';
+  testeChefe = false;
   trechoTeste = 'morro';
   runTrecho = 'morro';
+  start();
+  updateBanner();
+});
+// atalho de teste da tela de início: só a luta com o Monstrão, a partir do fim da Orla (D82)
+ui.on('chefe', () => {
+  runModo = 'carreira';
+  trechoTeste = 'orla';
+  runTrecho = 'orla';
+  testeChefe = true;
   start();
   updateBanner();
 });

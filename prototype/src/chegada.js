@@ -297,6 +297,23 @@ export function deslocaCamera(game, dt) {
   return o;
 }
 
+/** Atalho de teste: o fim da Orla com a build de quem chegou lá, o covil aberto e o Juninho a caminho da arena. */
+export function prepararTesteDoChefe(game) {
+  const T = CHEGADA.teste;
+  game.fastForward(T.tempoS); // as cartas de ~10 min e a horda com a força desse tempo
+  const p = game.player;
+  const a = centroDaArena(game);
+  p.x = a.x + 4;
+  p.y = a.y + T.distM;
+  game.enemies.length = 0;
+  game.spawnAcc = 0;
+  if (T.reliquia) {
+    p.reliquia = T.reliquia; // a super cheia, para testar o Golaço na luta
+    p.superCarga = 1;
+  }
+  game.metrics.testeChefe = true;
+}
+
 /** O Monstrão caiu: a torcida se espalha e a Orla volta a fazer barulho. */
 export function fimDoCerco(game) {
   const K = game.cerco;

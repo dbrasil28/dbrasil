@@ -698,6 +698,9 @@ export const CHEGADA = {
     dano: 9, cdS: 0.6, empurra: 9, juntaS: 2.4, dispersaS: 2.2, brechaRad: 0.42,
     centro: { dxObra: 1.2, dyObra: -1.5 },
   },
+  // atalho "Testar o Monstrão" (tela de início): a Orla aos tempoS (build e horda de quem chegou lá), o covil
+  // aberto, a super da relíquia cheia e o Juninho a distM da arena, para sentir o silêncio chegando
+  teste: { tempoS: 600, distM: 34, reliquia: 'altinha' },
 };
 
 export const SUPER = {
