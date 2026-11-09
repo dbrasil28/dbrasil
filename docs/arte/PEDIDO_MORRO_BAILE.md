@@ -13,13 +13,9 @@ O jogo já roda tudo isso. Enquanto a arte nova não chega:
 
 ## Como pedir
 
-- **Onde:** Figma (modelo GPT Image) ou ChatGPT. Uma imagem por pedido.
-- **Cole sempre o bloco BASE** do personagem e, logo depois, o bloco da imagem.
-- **Anexe as referências** das folhas que já estão no jogo, só para câmera, grade, ordem das direções e passada:
-  - caminhada e poses do Funkeiro (`prototype/assets/personagens/funkeiro/`);
-  - Chefe do Tráfico (`prototype/assets/personagens/chefe_trafico/`);
-  - cidadão A (`prototype/assets/personagens/cidadao_a/`).
-- **Fundo verde chapado (#00FF00).** O recorte tira o verde, então nada no personagem ou no objeto pode ser verde.
+- **Onde:** os personagens no ChatGPT, pelo método da seção "Personagens no ChatGPT" (editar uma folha que já está no jogo). Os objetos no Figma. Uma imagem por pedido.
+- **Anexe a folha base** que cada pedido indica: o GPT edita em cima dela (troca a pessoa ou a ação e mantém grade, câmera, direções e pés).
+- **Fundo:** nos personagens (ChatGPT), transparente de verdade. Nos objetos (Figma), verde chapado (#00FF00), porque o recorte tira o verde; nada no objeto pode ser verde.
 - **Ângulo:** a mesma câmera das folhas de referência, de cima, uns 50° acima do chão, sem perspectiva. É o ângulo do Juninho e da horda no jogo. Antes de pôr no jogo, a arte é medida contra o chão.
 - **Nomes e marcas:** tudo fictício. Nada de logo, marca, time, partido ou rosto de pessoa real.
 
@@ -37,7 +33,7 @@ O jogo já roda tudo isso. Enquanto a arte nova não chega:
 | 1–4 | `dj_plantao_caminhada_1..4.png` | DJ Plantão: caminhada, 16 direções, 6 quadros | Andando pelo palco |
 | 5 | `dj_plantao_grave.png` | Braços para cima, mãos abertas, soltando o grave (16 direções) | Aviso e anéis do grave |
 | 6 | `dj_plantao_drop.png` | Debruçado, punhos no alto, pronto para soltar o drop (16 direções) | Subindo no som (a hora de bater) |
-| 34 | `dj_plantao_tocando.png` | Tocando nos toca-discos, 6 quadros em laço, 4 direções (0, 22,5, 337,5 e 45) | Atrás da mesa, da festa até ele entrar na luta (D94) |
+| 34 | `dj_plantao_tocando.png` | Tocando nos toca-discos, 6 quadros em laço, as 4 direções da folha 1 (0, 22,5, 45 e 67,5) | Atrás da mesa, da festa até ele entrar na luta (D94) |
 | 35 | `dj_plantao_olhando.png` | Braços cruzados, sorriso de canto, olhando a pancadaria (16 direções) | Na pancadaria, só olhando o Juninho (D94) |
 | 7–10 | `chefe_gigante_caminhada_1..4.png` | Chefe do Tráfico com uma metralhadora em cada mão, 16 direções, 6 quadros | Andando na laje do topo |
 | 11 | `chefe_gigante_dupla.png` | Atirando com as duas, braços à frente (16 direções) | Rajada dupla |
@@ -47,7 +43,7 @@ O jogo já roda tudo isso. Enquanto a arte nova não chega:
 | 15 | `chefe_gigante_radio.png` | Gritando no rádio, a outra arma para o alto (16 direções) | Chamando a firma |
 | 16–19 | `funkeiro_loiro_caminhada_1..4.png` | Funkeiro de cabelo loiro platinado, 16 direções, 6 quadros | O povo do baile e a horda que ele vira |
 | 20a, 20b | `funkeiro_loiro_ataque.png`, `funkeiro_loiro_furia.png` | Ataque e fúria do Funkeiro loiro (16 direções cada) | Igual ao Funkeiro de hoje |
-| 21–26 | `danca_<pessoa>.png` | Dançando no lugar, 6 quadros, 4 direções (0, 22,5, 337,5 e 45) | O povo da festa antes do sinal |
+| 21–26 | `danca_<pessoa>.png` | Dançando no lugar, 6 quadros, as 4 direções da folha 1 (0, 22,5, 45 e 67,5) | O povo da festa antes do sinal |
 | 27 | `baile_trelica.png` | Torre de treliça de alumínio e um pedaço de viga com refletores | As estruturas de iluminação (**feito, D93**) |
 | 28 | `baile_globo.png` | Globo espelhado pendurado, 6 quadros girando | O globo do meio da pista (**feito, D93**, um quadro; o giro é do jogo) |
 | 29 | `baile_mesa_dj.png` | Case preto com dois toca-discos e notebook | O palco do DJ |
@@ -62,29 +58,132 @@ Medidas no jogo:
 - o DJ aparece com 1,5 vez a altura do Juninho, e o Chefe gigante com 2,4 vezes;
 - nas folhas, todos têm o mesmo tamanho dos outros personagens nas células, e o jogo aumenta.
 
-## BASE do DJ Plantão
+## Personagens no ChatGPT: o método que funciona
 
+**Por que o GPT errava.** Os prompts antigos daqui pediam a folha inteira do zero (a grade, as 16 direções e os quadros só descritos em texto). O GPT não segura isso: erra a câmera (fica na altura dos olhos), as direções das linhas e a grade. Os personagens que deram certo no jogo (o Funkeiro v2, a garota, os moradores) saíram de outro jeito: **anexando uma folha que já está no jogo e pedindo para EDITAR**, trocando só a pessoa ou só a ação, e mantendo grade, câmera, direções e pés. É isso que os pedidos abaixo fazem.
+
+**Passo a passo:**
+1. Abra uma conversa nova só para o baile e cole a **mensagem de abertura** (abaixo) uma vez.
+2. Para cada imagem: **anexe a folha base** indicada e cole o prompt dela. Uma imagem por mensagem.
+3. **Fundo transparente** (alpha 0), não verde. O verde era só para o Figma.
+4. Confira com o **checklist** (no fim desta seção). Se errar, peça de novo só o que errou, com as frases da tabela "Se o GPT errar".
+
+As folhas base estão no repositório:
+- Funkeiro: `prototype/assets/personagens/funkeiro/folha_1.png` a `folha_4.png`, `ataque_16_angulos.png` e `furia_16_angulos.png`;
+- Traficante: `prototype/assets/personagens/traficante/folha_1.png`;
+- cidadão A, B e C e a garota: `docs/arte/referencias_baile/<pessoa>_folha_1.png` (montadas da arte do jogo, no mesmo formato das outras).
+
+### Mensagem de abertura (cole uma vez, no começo da conversa)
+
+```text
+Vou te pedir folhas de sprites do jogo de celular BRASIL: ESTADO DE CAOS. Em TODOS os pedidos eu anexo uma folha que já está no jogo, e você EDITA essa folha: troca só o que eu pedir (a pessoa ou a ação) e mantém EXATAMENTE o tamanho da imagem, a grade, o tamanho das células, a câmera, a luz, a escala, a direção de cada linha (ou de cada célula) e a posição dos pés.
+
+Estilo de todos: personagem "digitalizado" de fliperama dos anos 90, quase fotográfico, texturas reais de pele e roupa, cores saturadas, levemente caricato, NUNCA cartoon, anime ou 3D de plástico. Câmera alta, olhando DE CIMA, uns 50 graus acima do chão, vista 3/4 de jogo, NUNCA na altura dos olhos. Luz quente vindo do alto à esquerda. Adulto com 7 cabeças de altura. Fundo transparente de verdade (alpha 0): sem chão, sem sombra, sem névoa, sem cor de fundo, sem texto, sem números, sem linhas de grade. Nada de marcas, logos, times, partidos ou rosto de pessoa real. Nunca espelhe uma pose para inventar outra direção. Ninguém cortado: corpo inteiro com folga em todas as células.
+
+Responda só "entendi" e espere o primeiro pedido.
 ```
-Production game sprite sheet for the mobile game BRASIL: ESTADO DE CAOS. Character: DJ PLANTÃO, a fictional Brazilian baile funk DJ who broadcasts a hypnotic TV signal through his sound. Young man, lean, cocky. Bleached platinum-blond buzz cut, mirrored purple sunglasses, oversized GOLD headphones around the neck, open NEON PURPLE tracksuit jacket over a white tank top, thick gold chains, black cargo shorts, white high-top sneakers. A small old TV screen glowing blue is sewn on the back of the jacket (no image on it). NOTHING green on the character, no logos, no brands, no text.
-Style: 90s digitized arcade fighter look, near-photographic textures, saturated colors, slightly caricatural but not cartoon, warm light from the upper left.
-Camera: elevated orthographic 3/4 view, about 50 degrees above the ground, no perspective distortion. EXACTLY the same camera, scale, grid and foot baseline as the attached reference sheets. Use the references ONLY for camera, grid, row/cell direction order and gait. Do NOT copy the reference character.
-Direction angles: 0 = facing the camera, 90 = facing screen right, 180 = back to the camera, 270 = facing screen left (clockwise).
-Background: flat pure green #00FF00 everywhere. No floor, no cast shadow, no glow, no light effects, no motion lines, no text. Whole body inside each cell with padding, no overlap between cells, no mirroring, same person and size in every cell.
+
+### Quem é quem (cole a descrição no lugar de [DJ] ou [LOIRO])
+
+- **[DJ]:** `DJ PLANTÃO, a fictional young Brazilian baile funk DJ, lean and cocky: bleached platinum-blond buzz cut, mirrored purple sunglasses, oversized GOLD headphones around the neck, open NEON PURPLE tracksuit jacket over a white tank top, thick gold chains, black cargo shorts, white high-top sneakers, a small old TV screen glowing blue sewn on the back of the jacket (blank screen, no image). Nothing green.`
+- **[LOIRO]:** `a fictional young Brazilian baile funk dancer from the favela, lean and wiry, cocky: bleached platinum-blond "nevou" hair, short on the sides with a shaved line design, thin mustache, white ribbed tank top, long red-and-black basketball shorts, thin gold chain, white socks pulled up, black slide sandals, a few simple tattoos on the arms. No sunglasses, no headphones, no jacket (he is NOT the DJ). Nothing green.`
+
+### DJ Plantão (8 imagens)
+
+**1 a 4. Caminhada.** Anexe `funkeiro/folha_1.png` (depois `folha_2`, `folha_3`, `folha_4`, uma por vez) e cole:
+
+```text
+Identity-replace edit of the attached game walking sprite sheet. KEEP EXACTLY: the 1536x1024 size, the 6 columns x 4 rows grid of 256x256 cells, the camera (high elevated orthographic view looking DOWN at 50 degrees, three-quarter top-down game view, NOT eye level), the warm upper-left light, the body scale, the facing direction of every row, the 6 walking phases of every row, the root at cell x128 and the feet on the same baseline as the attached sheet.
+REPLACE ONLY the person in all 24 cells with: [DJ]
+His walk: confident cocky swagger, shoulders loose, chin slightly up, arms swinging relaxed (no fists). Back views show the back of the jacket with the small TV screen; never turn the face around in back views. Same person and size in every cell, no mirroring, no direction changes, no extra people.
+Opaque character, fully transparent alpha 0 background, NO floor, NO shadow, NO haze, NO backdrop color, NO text, NO numbers, NO grid lines, nothing cropped.
 ```
 
-## BASE do Funkeiro loiro
+**34. Tocando** (atrás da mesa, da festa até ele entrar na luta). Anexe `funkeiro/folha_1.png`:
 
-O Funkeiro de hoje é o grandão de camiseta roxa. O loiro é outro, mais magro e mais novo, para a pista ter variedade. Não confundir com o DJ: o DJ tem óculos roxos espelhados, fone dourado e jaqueta roxa; o loiro não.
-
+```text
+Identity-replace AND action edit of the attached game walking sprite sheet. KEEP EXACTLY: the 1536x1024 size, the 6 columns x 4 rows grid of 256x256 cells, the camera (high elevated orthographic view looking DOWN at 50 degrees, NOT eye level), the light, the body scale, the facing direction of every row and the feet baseline.
+REPLACE the person with: [DJ]
+REPLACE the walk with a DJ PLAYING LOOP IN PLACE (no walking, no displacement, feet planted). The 6 columns are 6 consecutive frames:
+1 both hands at waist height in front of him over an invisible turntable, head down looking at the decks;
+2 head nods down hard on the beat, right hand scratching a record (hand moves sideways), left hand on the mixer;
+3 left hand pressing one headphone cup to the ear, shoulders bounce up, head tilted;
+4 head up, mouth open hyping the crowd, right hand still scratching;
+5 head nods down hard again, both hands back on the decks;
+6 returning to frame 1.
+The turntables and the table are NOT drawn, only the hand poses. Big readable head and shoulder motion between frames.
+Opaque character, fully transparent alpha 0 background, NO floor, NO shadow, NO text, NO grid lines, nothing cropped.
 ```
-Production game sprite sheet for the mobile game BRASIL: ESTADO DE CAOS. Character: a fictional young Brazilian baile funk dancer from the favela, lean and wiry, cocky grin. Bleached platinum-blond "nevou" hair, short on the sides with a shaved line design, thin mustache. White ribbed tank top, long red-and-black basketball shorts, thin gold chain, white socks pulled up, black slide sandals. Bare arms with a few simple tattoos. NOTHING green on the character, no logos, no brands, no team crests, no text.
-Style: 90s digitized arcade fighter look, near-photographic textures, saturated colors, slightly caricatural but not cartoon, warm light from the upper left.
-Camera: elevated orthographic 3/4 view, about 50 degrees above the ground, no perspective distortion. EXACTLY the same camera, scale, grid and foot baseline as the attached reference sheets. Use the references ONLY for camera, grid, row/cell direction order and gait. Do NOT copy the reference character.
-Direction angles: 0 = facing the camera, 90 = facing screen right, 180 = back to the camera, 270 = facing screen left (clockwise).
-Background: flat pure green #00FF00 everywhere. No floor, no cast shadow, no glow, no light effects, no motion lines, no text. Whole body inside each cell with padding, no overlap between cells, no mirroring, same person and size in every cell.
+
+**5, 6 e 35. Grave, drop e olhando** (poses paradas em 16 direções). Anexe `funkeiro/furia_16_angulos.png` e cole, trocando só a última linha:
+
+```text
+Identity-replace AND pose edit of the attached 16-direction game pose sheet. KEEP EXACTLY: the 1536x1024 size, the 4 columns x 4 rows grid of 384x256 cells, the facing direction of EVERY cell (the 16 directions stay in the same cells as in the attached sheet), the camera (high elevated orthographic view looking DOWN at 50 degrees, NOT eye level), the light, the body scale and the feet baseline.
+REPLACE the person with: [DJ]
+REPLACE the pose in all 16 cells with the pose below, turned to the facing of each cell. Back views show the back of the jacket with the TV screen.
+Opaque character, fully transparent alpha 0 background, NO floor, NO shadow, NO effects, NO text, NO grid lines, nothing cropped.
+POSE: <linha da pose>
 ```
 
-## BASE do Chefe do Tráfico gigante
+Linha da pose:
+- 5, grave: `arms raised high above the head, palms open, chest pushed forward, mouth open shouting, as if releasing a bass wave.`
+- 6, drop: `crouched slightly forward, both fists raised high, knees bent, about to jump, intense grin.`
+- 35, olhando: `standing still, arms crossed over the chest, chin up, smug half smile, watching a fight as a spectator, headphones on one ear.`
+
+### Funkeiro loiro (6 imagens)
+
+**16 a 19. Caminhada.** Anexe `funkeiro/folha_1.png` (depois 2, 3 e 4) e cole o pedido da caminhada do DJ, trocando a linha `REPLACE ONLY the person` por `REPLACE ONLY the person in all 24 cells with: [LOIRO]` e o jeito de andar por `His walk: angry and ready to fight, exactly like the walk in the attached sheet (clenched fists, leaning forward).`
+
+**20a e 20b. Ataque e fúria.** Anexe `funkeiro/ataque_16_angulos.png` (depois `furia_16_angulos.png`) e cole:
+
+```text
+Identity-replace edit of the attached 16-direction game pose sheet. KEEP EVERYTHING EXACTLY as in the attached sheet: size, 4x4 grid of 384x256 cells, the pose, the facing of every cell, the camera (looking DOWN at 50 degrees, NOT eye level), the light, the scale and the feet baseline.
+REPLACE ONLY the person in all 16 cells with: [LOIRO]
+Opaque character, fully transparent alpha 0 background, NO floor, NO shadow, NO text, NO grid lines, nothing cropped.
+```
+
+### A dança (6 imagens, uma por pessoa)
+
+Anexe a folha 1 da pessoa: `docs/arte/referencias_baile/cidadao_a_folha_1.png` (depois `cidadao_b`, `cidadao_c` e `garota_programa`), `traficante/folha_1.png` e, para o Funkeiro loiro, a folha 1 dele depois de pronta. Cole:
+
+```text
+Action edit of the attached game walking sprite sheet. KEEP EXACTLY: the same person (face, hair, clothes, body), the 1536x1024 size, the 6 columns x 4 rows grid of 256x256 cells, the camera (high elevated orthographic view looking DOWN at 50 degrees, NOT eye level), the light, the body scale, the facing direction of every row, the root at cell x128 and the feet baseline.
+REPLACE ONLY the walk with a BAILE FUNK DANCE LOOP IN PLACE (no walking forward, no displacement). The 6 columns are 6 consecutive frames:
+1 knees bent, hips pushed to the right, arms low;
+2 hips swing to the left, one arm comes up;
+3 bounce down on bent knees, on the beat;
+4 hips to the right, both arms up waving;
+5 hips to the left, arms coming down;
+6 returning to frame 1.
+Big readable hip, knee and arm motion between frames; the feet stay on the baseline (tiny steps in place are fine).
+Opaque character, fully transparent alpha 0 background, NO floor, NO shadow, NO text, NO grid lines, nothing cropped.
+```
+
+Para o traficante, acrescente: `He keeps the rifle slung across his back in every frame, both hands free, dancing.`
+
+### Checklist (cada imagem)
+
+- [ ] A grade é a mesma da folha anexada (6×4, ou 4×4 nas poses) e não tem linha desenhada.
+- [ ] Cada linha (ou célula) olha para o mesmo lado da folha anexada. Na folha 3 da caminhada, as linhas olham para a ESQUERDA da tela.
+- [ ] A câmera está de cima (dá para ver o alto da cabeça e os ombros por cima), não na altura dos olhos.
+- [ ] Fundo transparente de verdade: abra sobre fundo escuro e sobre fundo claro.
+- [ ] Mesma pessoa e mesmo tamanho em todas as células; nada cortado.
+- [ ] Nada verde no personagem, sem marca, sem texto.
+
+### Se o GPT errar
+
+| O que saiu errado | O que mandar |
+| --- | --- |
+| Câmera na altura dos olhos | `The camera is wrong: redo it looking DOWN from above at 50 degrees, like the attached sheet. Keep everything else.` |
+| Direções trocadas ou espelhadas | `Keep the facing direction of every row exactly as in the attached sheet. Do not mirror.` |
+| Grade diferente, células fora do lugar | `Keep the exact 6x4 grid of 256x256 cells of the attached sheet, one figure centered in each cell.` |
+| Fundo colorido ou com chão | `Make the background fully transparent (alpha 0): no floor, no shadow, no color.` |
+| Virou desenho animado | `Keep the near-photographic digitized 90s arcade look of the attached sheet, not cartoon.` |
+| Mudou a pessoa (na dança) | `Keep the exact same person and clothes as the attached sheet. Change only the movement.` |
+
+**O Chefe do Tráfico gigante** (7–15) fica para depois do baile. Quando for a vez dele, monto as folhas base dele do mesmo jeito e reescrevo os pedidos neste formato; os textos antigos dele, abaixo, ficam só como descrição.
+
+## BASE do Chefe do Tráfico gigante (descrição; o pedido no formato novo vem depois)
 
 ```
 Production game sprite sheet for the mobile game BRASIL: ESTADO DE CAOS. Character: the fictional CHEFE DO TRÁFICO, the final boss of the Rio favela level, now huge and holding TWO MACHINE GUNS, one in each hand. Keep his identity from the attached reference sheets (face, build, clothes and colors) but heavier and more imposing: broad shoulders, thick arms, gold chains, sunglasses pushed up on the head, a two-way radio clipped to the chest strap. Both guns are generic fictional black machine guns with long magazines, held low at the hips while walking. NOTHING green on the character, no logos, no brands, no text.
@@ -94,56 +193,12 @@ Direction angles: 0 = facing the camera, 90 = facing screen right, 180 = back to
 Background: flat pure green #00FF00 everywhere. No floor, no cast shadow, no muzzle flash, no bullets, no smoke, no motion lines, no text. Whole body and both guns inside each cell with padding, no overlap between cells, no mirroring, same person and size in every cell.
 ```
 
-## Caminhada (DJ, Chefe gigante e Funkeiro loiro, 4 imagens cada)
-
-Anexe a folha de caminhada de mesmo número do Funkeiro (ou do Chefe do Tráfico, para o Chefe gigante).
-
-```
-WALK CYCLE sheet. EXACT 1536x1024 image, 6 columns x 4 rows, 256x256 cells. Each ROW is one facing direction; the 6 COLUMNS are consecutive frames of one walk cycle. Feet on cell line y=240, body centered on x=128, figure about 215 px tall in every cell.
-Rows from top to bottom: SHEET 1 = 0, 22.5, 45, 67.5.
-```
-
-Nas folhas 2, 3 e 4, troque só a última linha (`SHEET 2 = 90, 112.5, 135, 157.5`, `SHEET 3 = 180, 202.5, 225, 247.5`, `SHEET 4 = 270, 292.5, 315, 337.5`).
-
-## Poses em 16 ângulos (DJ, Chefe gigante e Funkeiro loiro)
-
-Anexe a folha de poses em 16 ângulos do Funkeiro (ou do Chefe do Tráfico). Cole a BASE, o bloco abaixo e a linha da pose.
-
-```
-POSE SHEET. EXACT 1536x1024 image, 4 columns x 4 rows, 384x256 cells, ONE still pose per cell. The 16 cells are the 16 facing directions in reading order: 0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180, 202.5, 225, 247.5, 270, 292.5, 315, 337.5. Same scale as the walk sheets, feet on cell line y=240, body centered in the cell, the whole pose turned toward the listed direction.
-```
-
-Linha da pose (uma por imagem):
-- DJ, grave: `POSE: arms raised high above the head, palms open, chest pushed forward, mouth open shouting, as if releasing a bass wave.`
-- DJ, drop: `POSE: crouched slightly forward, both fists raised high, knees bent, about to jump, intense grin.`
+Poses do Chefe gigante (para o pedido no formato novo):
 - Chefe, dupla: `POSE: firing both machine guns forward at waist height, arms extended, legs apart, recoil in the shoulders.`
 - Chefe, varre: `POSE: arms spread wide to the sides, one machine gun pointing left and the other right, torso twisting.`
 - Chefe, juntas: `POSE: both machine guns held together in front of the chest, pointing straight ahead, leaning forward.`
 - Chefe, recarga: `POSE: one machine gun under the arm, the other hand pulling out the empty magazine and pushing a new one in, head down looking at the gun.`
 - Chefe, rádio: `POSE: shouting into the radio held in one hand, the other machine gun raised high toward the sky.`
-- DJ, olhando (35): `POSE: standing still behind the DJ decks, arms crossed over the chest, chin up, smug half smile, watching a fight below as a spectator, headphones on one ear.`
-- Funkeiro loiro, ataque (20a, com a BASE dele): `POSE: throwing a wide hooking punch, weight on the front foot, teeth clenched.`
-- Funkeiro loiro, fúria (20b, com a BASE dele): `POSE: fury, arms spread wide, chest out, shouting, about to charge.`
-
-## O DJ tocando (34)
-
-Anexe a folha de caminhada 1 do Funkeiro (só para câmera e grade). Cole a BASE do DJ e este bloco. Desenhe o corpo inteiro: no jogo a mesa cobre as pernas.
-
-```
-DJ PLAYING LOOP sheet. EXACT 1536x1024 image, 6 columns x 4 rows, 256x256 cells. Each ROW is one facing direction; the 6 COLUMNS are consecutive frames of one loop IN PLACE: one hand pressing a headphone cup to the ear, the other hand scratching a vinyl record at waist height in front of him (the turntable itself is NOT drawn, only the hand pose), head nodding hard to the beat, shoulders bouncing; frame 6 flows back into frame 1. Feet on cell line y=240, body centered on x=128, same scale as the walk sheets.
-Rows from top to bottom: 0, 22.5, 337.5, 45.
-```
-
-## A dança (6 imagens, uma por pessoa)
-
-Pessoas: o cidadão A, o B e o C (as roupas de hoje), a mulher de roupa curta (a garota da esquina), o Funkeiro loiro (a BASE dele, acima) e o traficante (o de hoje, com o fuzil atravessado nas costas). Quando o Acordão aparece, o jogo vira cada um para o Juninho e acende o olho: a dança só precisa das 4 direções de frente.
-
-Anexe a folha de caminhada 1 da pessoa (para o cidadão, a do cidadão A; para a mulher, a da garota da esquina). Descreva a pessoa no lugar da BASE, com a mesma câmera e o mesmo fundo.
-
-```
-DANCE CYCLE sheet. EXACT 1536x1024 image, 6 columns x 4 rows, 256x256 cells. Each ROW is one facing direction; the 6 COLUMNS are consecutive frames of one baile funk dance loop IN PLACE (no walking forward): hips swinging, knees bending to the beat, arms moving, frame 6 flows back into frame 1. Feet on cell line y=240, body centered on x=128, same scale as the walk sheets.
-Rows from top to bottom: 0, 22.5, 337.5, 45.
-```
 
 ## Peças do baile (objetos, uma imagem cada)
 
