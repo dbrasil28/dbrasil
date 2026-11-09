@@ -248,8 +248,9 @@ export const WALK_ATLAS = {
   mtz: { atlas: 'morador_tiozinho_walk_atlas', prefix: 'mtz', figureH: 158, escala: 0.7 },
   cq: { atlas: 'cracudo_walk_atlas', prefix: 'cq', figureH: 158, escala: 0.7 },
   // DJ Plantão (Figma, 09/11/2026): a caminhada e, atrás da mesa, tocando (6 quadros nas 4 direções da folha 1)
-  djw: { atlas: 'dj_walk_atlas', prefix: 'djw', figureH: 157 },
-  djt: { atlas: 'dj_tocando_atlas', prefix: 'djt', figureH: 140, rows: 4 },
+  // (escala 0.75, como o Funkeiro: no celular, a memória de imagem do Morro estourava e as casas sumiam)
+  djw: { atlas: 'dj_walk_atlas', prefix: 'djw', figureH: 157, escala: 0.75 },
+  djt: { atlas: 'dj_tocando_atlas', prefix: 'djt', figureH: 140, rows: 4, escala: 0.75 },
   tr: { atlas: 'trombadinha_walk_atlas', prefix: 'tr', figureH: 158, escala: 0.7 },
   // figurantes (D55): cortados em 60% (são de fundo e não lutam)
   gp: { atlas: 'garota_programa_walk_atlas', prefix: 'gp', figureH: 157, escala: 0.6 },
@@ -290,7 +291,7 @@ export const POSE_ATLAS = {
   mtzp: { atlas: 'morador_tiozinho_poses_atlas', prefix: 'mtzp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   cqp: { atlas: 'cracudo_poses_atlas', prefix: 'cqp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { agachado: 0 }, escala: 0.7 },
   // DJ Plantão: ataque é o grave (braços para cima), furia é o drop, ofuscado pelos holofotes e olhando a briga
-  djp: { atlas: 'dj_poses_atlas', prefix: 'djp', cols: 4, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1, ofuscado: 2, olhando: 3 } },
+  djp: { atlas: 'dj_poses_atlas', prefix: 'djp', cols: 4, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1, ofuscado: 2, olhando: 3 }, escala: 0.75 },
   trp: { atlas: 'trombadinha_poses_atlas', prefix: 'trp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { correndo: 0 }, escala: 0.7 },
   hbqp: { atlas: 'horda_biquini_poses_atlas', prefix: 'hbqp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   htsp: { atlas: 'horda_sunga_poses_atlas', prefix: 'htsp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
@@ -479,9 +480,6 @@ export const IMAGES_MORRO = {
   morador_senhora_poses_atlas: 'assets/personagens/morador_senhora/poses_atlas.webp',
   morador_tiozinho_walk_atlas: 'assets/personagens/morador_tiozinho/caminhada_atlas.webp',
   morador_tiozinho_poses_atlas: 'assets/personagens/morador_tiozinho/poses_atlas.webp',
-  dj_walk_atlas: 'assets/personagens/dj_plantao/caminhada_atlas.webp', // DJ Plantão (Figma)
-  dj_poses_atlas: 'assets/personagens/dj_plantao/poses_atlas.webp',
-  dj_tocando_atlas: 'assets/personagens/dj_plantao/tocando_atlas.webp',
   cracudo_walk_atlas: 'assets/personagens/cracudo/caminhada_atlas.webp',
   cracudo_poses_atlas: 'assets/personagens/cracudo/poses_atlas.webp',
   trombadinha_walk_atlas: 'assets/personagens/trombadinha/caminhada_atlas.webp',
@@ -637,6 +635,23 @@ export function prewarmHordaOrla(cache, enemyPx) {
   return jobs;
 }
 
+// DJ Plantão (Figma): fora do pacote do Morro (no celular, a memória de imagem estourava e as casas não carregavam);
+// carrega só no último corredor antes do baile (carregarDJ, main.js). Até lá, o DJ atrás da mesa é o Funkeiro em roxo
+export const IMAGES_DJ = {
+  dj_walk_atlas: 'assets/personagens/dj_plantao/caminhada_atlas.webp',
+  dj_poses_atlas: 'assets/personagens/dj_plantao/poses_atlas.webp',
+  dj_tocando_atlas: 'assets/personagens/dj_plantao/tocando_atlas.webp',
+};
+let djPedido = null;
+/** Carrega a arte do DJ uma vez só. */
+export function carregarDJ() {
+  if (djPedido || typeof Image === 'undefined') return djPedido;
+  const entries = Object.entries(IMAGES_DJ);
+  pending += entries.length;
+  djPedido = Promise.all(entries.map(([id, src]) => carregar(id, src)));
+  return djPedido;
+}
+
 export function carregarMorro() {
   if (morroPedido || typeof Image === 'undefined') return morroPedido;
   const entries = Object.entries(IMAGES_MORRO);
@@ -748,7 +763,7 @@ export function prewarmMorro(cache, enemyPx, sizeOf) {
       for (let c = 0; c < a.poses.cols; c++) jobs.push(() => cache.get(`${a.poses.prefix}_${r}_${c}`, enemyPx * (a.poses.ch / a.poses.figureH), POSE_OPTS));
     }
   }
-  for (const type of ['cracudo', 'trombadinha', 'dj_plantao']) {
+  for (const type of ['cracudo', 'trombadinha']) {
     const art = ENEMY_ART[type];
     const h = enemyPx * sizeOf(type);
     for (let r = 0; r < ATLAS.rows; r++) {

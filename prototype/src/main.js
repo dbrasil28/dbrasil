@@ -8,7 +8,7 @@ import { loadSettings, saveSettings, defaultSettings } from './settings.js';
 import { ENEMIES, FAVELA, SOM, RELIQUIAS, BAILE } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
-import { loadImages, images, prewarm, carregarMorro, prewarmMorro, carregarHordaOrla, prewarmHordaOrla, arteSumiu, refazerArte, carregarMonstrao, falhasDeArquivo } from './sprites.js';
+import { loadImages, images, prewarm, carregarMorro, prewarmMorro, carregarHordaOrla, prewarmHordaOrla, arteSumiu, refazerArte, carregarMonstrao, falhasDeArquivo, carregarDJ } from './sprites.js';
 import { loadProgress, applyRun, buyUpgrade } from './progresso.js';
 import { loadRanking, registrarPartida } from './ranking.js';
 import { desafioDaSemana } from './horda.js';
@@ -666,7 +666,7 @@ loadImages(() => {
   ui.last.slots = null;
 }).then(() => {
   // imagem que não chegou: o aviso na tela diz quantas e qual, para o print mostrar o endereço que falhou
-  if (falhasDeArquivo.n) avisarErro(`${falhasDeArquivo.n} imagens não carregaram. A primeira: ${falhasDeArquivo.primeira} (página em ${document.baseURI})`, 'arquivos');
+  avisarFalhas();
   applyHudArt();
   warmSprites();
   // as roupas novas da horda da Orla (elenco v2) vêm depois: o jogo abre sem esperar por elas
@@ -676,6 +676,14 @@ loadImages(() => {
     warmJobs.push(...prewarmHordaOrla(renderer.cache, playerPx * (settings.enemyPct / 100) * ENEMIES.telespectador.size));
   });
 });
+
+/** Imagem que não chegou: o aviso na tela diz quantas e qual, para o print mostrar o endereço que falhou. */
+let falhasAvisadas = 0;
+function avisarFalhas() {
+  if (falhasDeArquivo.n <= falhasAvisadas) return;
+  falhasAvisadas = falhasDeArquivo.n;
+  avisarErro(`${falhasDeArquivo.n} imagens não carregaram. A primeira: ${falhasDeArquivo.primeira} (página em ${document.baseURI})`, 'arquivos');
+}
 
 /** Prepara os sprites no tamanho atual da tela antes de jogar (evita travadas na partida). */
 let warmJobs = [];
@@ -692,6 +700,7 @@ function prepararMorro() {
   if (morroPedido || !w || !(w.gateOpen || game.segment === 'morro')) return;
   morroPedido = true;
   carregarMorro()?.then(() => {
+    avisarFalhas();
     const cam = game.camera;
     const playerPx = (settings.playerPct / 100) * (cam.playBottom - cam.playTop);
     warmJobs.push(...prewarmMorro(renderer.cache, playerPx * (settings.enemyPct / 100), (type) => ENEMIES[type].size));
@@ -701,6 +710,8 @@ function prepararMorro() {
 /** Faz um pouco da preparação dos sprites por quadro: mais nos menus, pouco durante a partida. */
 function runWarmJobs() {
   prepararMorro();
+  // a arte do DJ só no último corredor antes do baile (memória do celular)
+  if (game && game.segment === 'morro' && (game.baileVazio || (game.chegadaBaile || 0) > 0)) carregarDJ();
   if (!warmJobs.length) return;
   const budgetMs = state === 'playing' ? 2 : 10;
   const t0 = performance.now();
