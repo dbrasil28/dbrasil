@@ -67,7 +67,8 @@ function luta(game, f, e) {
   const mul = game.stats.dmgMul || 1;
   vira(f, e.x, e.y);
   f.pose = 'ataque';
-  f.poseT = 0.35;
+  f.poseT = A.golpeS || 0.35; // a garota: o tempo da bolsada animada
+  f.poseDur = f.poseT;
   f.cd = A.cadaS;
   if (f.tipo === 'pm' || f.tipo === 'tropa') {
     game.clarao(f, f.dirX, f.dirY);

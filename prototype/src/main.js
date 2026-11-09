@@ -8,7 +8,7 @@ import { loadSettings, saveSettings, defaultSettings } from './settings.js';
 import { ENEMIES, FAVELA, SOM, RELIQUIAS } from './config.js';
 import { fmt } from './math.js';
 import { Ads, createMockProvider } from './ads.js';
-import { loadImages, images, prewarm, carregarMorro, prewarmMorro, arteSumiu, refazerArte } from './sprites.js';
+import { loadImages, images, prewarm, carregarMorro, prewarmMorro, carregarHordaOrla, prewarmHordaOrla, arteSumiu, refazerArte } from './sprites.js';
 import { loadProgress, applyRun, buyUpgrade } from './progresso.js';
 import { loadRanking, registrarPartida } from './ranking.js';
 import { desafioDaSemana } from './horda.js';
@@ -643,6 +643,12 @@ loadImages(() => {
 }).then(() => {
   applyHudArt();
   warmSprites();
+  // as roupas novas da horda da Orla (elenco v2) vêm depois: o jogo abre sem esperar por elas
+  carregarHordaOrla()?.then(() => {
+    const cam = game.camera;
+    const playerPx = (settings.playerPct / 100) * (cam.playBottom - cam.playTop);
+    warmJobs.push(...prewarmHordaOrla(renderer.cache, playerPx * (settings.enemyPct / 100) * ENEMIES.telespectador.size));
+  });
 });
 
 /** Prepara os sprites no tamanho atual da tela antes de jogar (evita travadas na partida). */

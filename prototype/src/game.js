@@ -5,7 +5,7 @@ import { makeRng, hash2, weightedPick, clamp } from './math.js';
 import {
   ENEMY_POSE,
   SESSION, PLAYER, ENEMIES, WEAPONS, DIRECTOR, EVENTS, TV, ADS, WAKE, MAPS, xpToNext, caosBand,
-  ROUTE, INTERACT, THROWABLES, FIGURANTES, DERRUBADO, NIVEL_MAXIMO, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO,
+  ROUTE, INTERACT, THROWABLES, FIGURANTES, DERRUBADO, NIVEL_MAXIMO, HEALS, HEAL_RESPAWN_S, ACAI_BUFF, GORJETAS, MELHORIAS, GORE, AVENIDA, CENARIO, CARREIRA, ABERTURA, HORDA, WEAPON_FX, LAJE, HORDA_MORRO, HORDA_ORLA,
   SOM_GOLPE, SOM_ARMA,
 } from './config.js';
 import { sortearAchados, updateAchados, fecharCofre } from './achados.js';
@@ -106,7 +106,7 @@ export class Game {
       weapons: [{ id: 'capacete', level: 1, cd: 0.4 }], passives: [],
       faceX: 1, faceY: 0, moving: false, slowT: 0, paperT: 0, acaiT: 0, hurtT: 0, invulnT: 0, bonusDmg: 0, vx: 0, vy: 0,
       // animação do arremesso (atlas de teste): tempo desde o disparo / desde a pegada, capacetes em voo e mira
-      throwT: 9, catchT: 9, helmetsOut: 0, aimX: 1, aimY: 0, walkPhase: 0, superCarga: 0,
+      throwT: 9, catchT: 9, lancouT: 9, helmetsOut: 0, aimX: 1, aimY: 0, walkPhase: 0, superCarga: 0,
       // mundo da rota: laje em que está (e nível 0/1 e altura z em m), pedaço da rota e objeto carregado
       plat: null, lvl: 0, z: 0, ri: 0, carry: null,
     };
@@ -497,6 +497,8 @@ export class Game {
   /** Roupa da pessoa da horda (tint): no Morro, os moradores (100 em diante); na Orla, os telespectadores. */
   roupa(type, r) {
     if (type === 'telespectador' && this.segment === 'morro') return 100 + Math.floor(r * HORDA_MORRO.roupas);
+    // na Orla, parte da horda sai com as roupas novas do elenco v2 (200 em diante); o resto, os telespectadores
+    if (type === 'telespectador' && r < HORDA_ORLA.novas) return 200 + Math.floor((r / HORDA_ORLA.novas) * HORDA_ORLA.roupasNovas);
     return Math.floor(r * 8);
   }
 
@@ -1165,6 +1167,7 @@ export class Game {
       if (p.paperT > 0) p.paperT -= dt;
       p.throwT += dt;
       p.catchT += dt;
+      p.lancouT += dt;
       return;
     }
     const mag = Math.min(1, Math.hypot(input.x, input.y));
@@ -1195,6 +1198,7 @@ export class Game {
     if (p.invulnT > 0) p.invulnT -= dt;
     p.throwT += dt;
     p.catchT += dt;
+    p.lancouT += dt;
 
     // dano por contato
     this.hash.query(p.x, p.y, p.r + 1.2, tmp);
@@ -1937,6 +1941,7 @@ export class Game {
     p.aimX = (target.x - p.x) / l;
     p.aimY = (target.y - p.y) / l;
     p.throwT = 0;
+    p.lancouT = 0; // a animação de lançar com as duas mãos
     p.carry = null;
     this.som('arremesso');
     this.metrics.objetos = (this.metrics.objetos || 0) + 1;

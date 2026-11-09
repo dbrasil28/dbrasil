@@ -41,6 +41,8 @@ export const IMAGES = {
   // figurantes da Orla (pacotes GPT, D55): a garota da esquina, o policial do pé do morro e o picolezeiro da areia
   garota_programa_walk_atlas: 'assets/personagens/garota_programa/caminhada_atlas.webp',
   garota_programa_poses_atlas: 'assets/personagens/garota_programa/poses_atlas.webp',
+  garota_bolsada_atlas: 'assets/personagens/garota_programa/bolsada_atlas.webp', // a bolsada (elenco v2): 16 direções × 6 quadros
+  juninho_arremesso_atlas: 'assets/personagens/juninho_arremesso/arremesso_atlas.webp', // pega e lança o objeto com as duas mãos
   policial_militar_walk_atlas: 'assets/personagens/policial_militar/caminhada_atlas.webp',
   policial_militar_poses_atlas: 'assets/personagens/policial_militar/poses_atlas.webp',
   vendedor_picole_walk_atlas: 'assets/personagens/vendedor_picole/caminhada_atlas.webp',
@@ -232,7 +234,16 @@ export const WALK_ATLAS = {
   // Juninho carregando cadeira, mesa ou botijão acima da cabeça: a figura inteira (com os braços) tem 158 px, mas
   // o corpo, da cabeça aos pés, tem 1,17 vez menos; figureH é o do corpo, para ele sair do tamanho do Juninho andando
   jc: { atlas: 'juninho_carregando_atlas', prefix: 'jc', figureH: 133, escala: 0.8 },
-  jat: { atlas: 'juninho_atropelado_atlas', prefix: 'jat', figureH: 158 }, // linha = (direção ÷ 2) × 4 + (direção % 2) × 2 + (quadro ≥ 6)
+  jat: { atlas: 'juninho_atropelado_atlas', prefix: 'jat', figureH: 158 },
+  // Juninho pegando e lançando o objeto com as duas mãos (elenco v2): mesmo recorte do carregando; corpo pela caminhada
+  jd: { atlas: 'juninho_arremesso_atlas', prefix: 'jd', figureH: 128, escala: 0.8 },
+  // horda da Orla, roupas novas (elenco v2): carregadas logo depois do começo (IMAGES_ORLA_HORDA)
+  hbq: { atlas: 'horda_biquini_walk_atlas', prefix: 'hbq', figureH: 157, escala: 0.7 },
+  hts: { atlas: 'horda_sunga_walk_atlas', prefix: 'hts', figureH: 157, escala: 0.7 },
+  htp: { atlas: 'horda_pochete_walk_atlas', prefix: 'htp', figureH: 157, escala: 0.7 },
+  hsc: { atlas: 'horda_controle_walk_atlas', prefix: 'hsc', figureH: 157, escala: 0.7 },
+  hat: { atlas: 'horda_telemarketing_walk_atlas', prefix: 'hat', figureH: 157, escala: 0.7 },
+  hpo: { atlas: 'horda_peao_walk_atlas', prefix: 'hpo', figureH: 157, escala: 0.7 }, // linha = (direção ÷ 2) × 4 + (direção % 2) × 2 + (quadro ≥ 6)
   mo: { atlas: 'monstrao_walk_atlas', prefix: 'mo', figureH: 157 },
   mo12a: { atlas: 'monstrao_cam12a_atlas', prefix: 'moa', figureH: 157 },
   mo12b: { atlas: 'monstrao_cam12b_atlas', prefix: 'mob', figureH: 157 },
@@ -250,6 +261,8 @@ export const WALK_ATLAS = {
   tr: { atlas: 'trombadinha_walk_atlas', prefix: 'tr', figureH: 158, escala: 0.7 },
   // figurantes (D55): cortados em 60% (são de fundo e não lutam)
   gp: { atlas: 'garota_programa_walk_atlas', prefix: 'gp', figureH: 157, escala: 0.6 },
+  // a bolsada da garota (elenco v2): o recorte reserva espaço para a bolsa no alto; figureH acerta o corpo com a caminhada
+  gbo: { atlas: 'garota_bolsada_atlas', prefix: 'gbo', figureH: 140, escala: 0.6 },
   pm: { atlas: 'policial_militar_walk_atlas', prefix: 'pm', figureH: 157, escala: 0.6 },
   pt: { atlas: 'policial_tropa_walk_atlas', prefix: 'pt', figureH: 158, escala: 0.6 },
   vp: { atlas: 'vendedor_picole_walk_atlas', prefix: 'vp', figureH: 157, escala: 0.6 },
@@ -280,6 +293,12 @@ export const POSE_ATLAS = {
   mtzp: { atlas: 'morador_tiozinho_poses_atlas', prefix: 'mtzp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   cqp: { atlas: 'cracudo_poses_atlas', prefix: 'cqp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { agachado: 0 }, escala: 0.7 },
   trp: { atlas: 'trombadinha_poses_atlas', prefix: 'trp', cols: 1, rows: 16, cw: 320, ch: 200, figureH: 158, col: { correndo: 0 }, escala: 0.7 },
+  hbqp: { atlas: 'horda_biquini_poses_atlas', prefix: 'hbqp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  htsp: { atlas: 'horda_sunga_poses_atlas', prefix: 'htsp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  htpp: { atlas: 'horda_pochete_poses_atlas', prefix: 'htpp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  hscp: { atlas: 'horda_controle_poses_atlas', prefix: 'hscp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  hatp: { atlas: 'horda_telemarketing_poses_atlas', prefix: 'hatp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
+  hpop: { atlas: 'horda_peao_poses_atlas', prefix: 'hpop', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   gpp: { atlas: 'garota_programa_poses_atlas', prefix: 'gpp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
   pmp: { atlas: 'policial_militar_poses_atlas', prefix: 'pmp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
   ptp: { atlas: 'policial_tropa_poses_atlas', prefix: 'ptp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
@@ -294,7 +313,7 @@ export const walkReady = (w) => (w && images[`${w.prefix}_0_0`] ? w : null);
 
 /** Figurantes (D55): caminhada e as poses de ataque e raiva de cada um (figurantes.js diz quando). */
 export const FIGURANTE_ART = {
-  garota: { walk: WALK_ATLAS.gp, poses: POSE_ATLAS.gpp },
+  garota: { walk: WALK_ATLAS.gp, poses: POSE_ATLAS.gpp, golpe: WALK_ATLAS.gbo }, // golpe: a bolsada animada (6 quadros)
   pm: { walk: WALK_ATLAS.pm, poses: POSE_ATLAS.pmp },
   tropa: { walk: WALK_ATLAS.pt, poses: POSE_ATLAS.ptp },
   picole: { walk: WALK_ATLAS.vp, poses: POSE_ATLAS.vpp },
@@ -310,9 +329,18 @@ export const CROWD_ANIM = {
 /** Horda do Morro (D37): uma roupa por morador (tint 100 em diante), com caminhada e as poses de ataque e raiva. */
 export const CROWD_ANIM_MORRO = ['mli', 'mmc', 'mmq', 'msr', 'msa', 'mtz'].map((k) => ({ walk: WALK_ATLAS[k], poses: POSE_ATLAS[`${k}p`], morro: true }));
 
+/**
+ * Horda da Orla, roupas novas (elenco v2, tint 200 em diante): Mulher de Biquíni, Tiozão de Sunga, Tiozão de Pochete,
+ * Senhora do Controle Remoto, Atendente de Telemarketing e Peão de Obra. Hipnotizados pela TV como os telespectadores;
+ * acordados, vão embora andando com a própria caminhada.
+ */
+export const CROWD_ANIM_ORLA = ['hbq', 'hts', 'htp', 'hsc', 'hat', 'hpo'].map((k) => ({ walk: WALK_ATLAS[k], poses: POSE_ATLAS[`${k}p`], acordaAndando: true }));
+
 /** Atlas animado da roupa (tint), quando ela tem um e ele já carregou; senão null (usa o recorte). */
 export function crowdAnim(tint) {
-  const a = tint >= 100 ? CROWD_ANIM_MORRO[(tint - 100) % CROWD_ANIM_MORRO.length] : CROWD_ANIM[CROWD_SETS[tint % CROWD_SETS.length].anim];
+  const a = tint >= 200
+    ? CROWD_ANIM_ORLA[(tint - 200) % CROWD_ANIM_ORLA.length]
+    : tint >= 100 ? CROWD_ANIM_MORRO[(tint - 100) % CROWD_ANIM_MORRO.length] : CROWD_ANIM[CROWD_SETS[tint % CROWD_SETS.length].anim];
   return a && walkReady(a.walk) ? a : null;
 }
 
@@ -469,6 +497,42 @@ export function carregarMonstrao() {
 
 let morroPedido = null;
 /** Carrega os atlas do Morro uma vez só (a horda de moradores, o Cracudo e o Trombadinha). */
+// Horda da Orla, roupas novas (elenco v2): carregam logo depois do começo; até lá, a horda usa as roupas de antes
+export const IMAGES_ORLA_HORDA = {
+  horda_biquini_walk_atlas: 'assets/personagens/horda_biquini/caminhada_atlas.webp',
+  horda_biquini_poses_atlas: 'assets/personagens/horda_biquini/poses_atlas.webp',
+  horda_sunga_walk_atlas: 'assets/personagens/horda_sunga/caminhada_atlas.webp',
+  horda_sunga_poses_atlas: 'assets/personagens/horda_sunga/poses_atlas.webp',
+  horda_pochete_walk_atlas: 'assets/personagens/horda_pochete/caminhada_atlas.webp',
+  horda_pochete_poses_atlas: 'assets/personagens/horda_pochete/poses_atlas.webp',
+  horda_controle_walk_atlas: 'assets/personagens/horda_controle/caminhada_atlas.webp',
+  horda_controle_poses_atlas: 'assets/personagens/horda_controle/poses_atlas.webp',
+  horda_telemarketing_walk_atlas: 'assets/personagens/horda_telemarketing/caminhada_atlas.webp',
+  horda_telemarketing_poses_atlas: 'assets/personagens/horda_telemarketing/poses_atlas.webp',
+  horda_peao_walk_atlas: 'assets/personagens/horda_peao/caminhada_atlas.webp',
+  horda_peao_poses_atlas: 'assets/personagens/horda_peao/poses_atlas.webp',
+};
+let orlaHordaPedido = null;
+/** Carrega as roupas novas da horda da Orla uma vez só. */
+export function carregarHordaOrla() {
+  if (orlaHordaPedido || typeof Image === 'undefined') return orlaHordaPedido;
+  const entries = Object.entries(IMAGES_ORLA_HORDA);
+  pending += entries.length;
+  orlaHordaPedido = Promise.all(entries.map(([id, src]) => carregar(id, src)));
+  return orlaHordaPedido;
+}
+/** Prepara as figuras das roupas novas da horda da Orla aos poucos (como prewarmMorro). */
+export function prewarmHordaOrla(cache, enemyPx) {
+  const jobs = [];
+  for (const a of CROWD_ANIM_ORLA) {
+    for (let r = 0; r < ATLAS.rows; r++) {
+      for (let f = 0; f < ATLAS.cols; f++) jobs.push(() => cache.get(`${a.walk.prefix}_${r}_${f}`, enemyPx * (ATLAS.ch / a.walk.figureH), CROWD_WALK_OPTS));
+      for (let c = 0; c < a.poses.cols; c++) jobs.push(() => cache.get(`${a.poses.prefix}_${r}_${c}`, enemyPx * (a.poses.ch / a.poses.figureH), POSE_OPTS));
+    }
+  }
+  return jobs;
+}
+
 export function carregarMorro() {
   if (morroPedido || typeof Image === 'undefined') return morroPedido;
   const entries = Object.entries(IMAGES_MORRO);

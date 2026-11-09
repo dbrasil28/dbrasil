@@ -381,7 +381,7 @@ export const DERRUBADO = {
 };
 
 export const LAJE = { subirChance: 0.12, maxSubindo: 3, sorteioS: [3, 6], vaoM: 1.6, chegouM: 0.35 };
-export const INTERACT = { pickR: 1.0, arrancaM: 0.55, holdS: 0.25, throwRange: 8, flightS: 0.5, arcM: 2.4, respawnS: 35, respawnMinDistM: 14 }; // arrancaM: distância da borda de uma lixeira, guarda-sol ou isopor para arrancar
+export const INTERACT = { pickR: 1.0, arrancaM: 0.55, holdS: 0.25, throwRange: 8, flightS: 0.5, arcM: 2.4, respawnS: 35, respawnMinDistM: 14, pegaAnimS: 0.25, lancaAnimS: 0.4 }; // arrancaM: distância da borda de uma lixeira, guarda-sol ou isopor para arrancar; pegaAnimS e lancaAnimS: o arremesso com as duas mãos (pegar: prepara, ergue, acima da cabeça; lançar: lança, solta, recupera)
 export const THROWABLES = {
   cadeira: { name: 'Cadeira de plástico', dmg: 28, radius: 1.3, som: 'quebra_plastico' },
   mesa: { name: 'Mesa de plástico', dmg: 45, radius: 1.8, som: 'quebra_plastico' },
@@ -674,6 +674,9 @@ export const DIRECTOR = {
 // Horda do Morro (D37): moradores hipnotizados com roupa de favela (listrado, moça, moleque, senhor, senhora,
 // tiozinho), cada um com caminhada, ataque e raiva (sprites.js, CROWD_ANIM_MORRO)
 export const HORDA_MORRO = { roupas: 6 };
+// horda da Orla: além dos três telespectadores, as roupas novas do elenco v2 (biquíni, sunga, pochete, controle
+// remoto, telemarketing, peão); `novas`: a parte da horda que sai com elas
+export const HORDA_ORLA = { roupasNovas: 6, novas: 0.5 };
 
 // Armas: `levels[0]` é a base; os demais são incrementos. Nível máximo = levels.length.
 export const WEAPONS = {
@@ -1107,7 +1110,7 @@ export const FIGURANTES = {
   arma: {
     pm: { alcanceM: 7, cadaS: 0.9, dano: 12, empurra: 0.6 }, // pistola
     tropa: { alcanceM: 9, cadaS: 0.7, dano: 14, empurra: 0.8 }, // fuzil
-    garota: { alcanceM: 1.4, cadaS: 0.8, dano: 18, empurra: 2.5 }, // bolsada em quem chega colado
+    garota: { alcanceM: 1.4, cadaS: 0.8, dano: 18, empurra: 2.5, golpeS: 0.4 }, // bolsada em quem chega colado (golpeS: a animação)
     picole: { alcanceM: 5, cadaS: 2.4, dano: 6, congelaS: 1.6 }, // picolé que congela
   },
   voltaS: 40, // quem caiu volta para o lugar dele depois disso

@@ -19,6 +19,10 @@ Pacote do autor em 33 partes: 35 personagens do elenco (cada um com caminhada em
 - **Mulher de Biquíni** (raiva de costas) e a garota: conferir a classificação etária antes da loja (D21).
 - **Playboy** (conversível) e **2 Caras numa Moto** são veículos: a escala deles é a do veículo, maior que a de uma pessoa.
 
+## No jogo
+
+- **Parte 1 (D72):** as 6 roupas da horda na Orla, a bolsada da garota e o Juninho pegando e lançando com as duas mãos. Atlas em `prototype/assets/personagens/horda_*/`, `garota_programa/bolsada_atlas.webp` e `juninho_arremesso/`.
+
 ## Onde cada um entra (pelo `docs/design/ELENCO_v0.3_BRASIL.md`)
 
 - **Roupas da horda:** Mulher de Biquíni, Tiozão de Sunga, Tiozão de Pochete, Senhora do Controle Remoto, Atendente de Telemarketing, Peão de Obra.

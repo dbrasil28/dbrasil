@@ -1,6 +1,6 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
-import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA, WEAPONS } from './config.js';
+import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA, WEAPONS, INTERACT } from './config.js';
 import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS, FIGURANTE_ART, carregarMonstrao } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto, drawEscuroPontas } from './mapa.js';
 import { drawMar } from './render_mar.js';
@@ -389,7 +389,13 @@ export class Renderer {
           }
           let spr = null;
           const fl = o.hurtT > 0;
-          if (o.pose && images[`${FA.poses.prefix}_0_0`]) {
+          const golpe = o.pose === 'ataque' && FA.golpe && walkReady(FA.golpe);
+          if (golpe) {
+            // a bolsada da garota (elenco v2): os 6 quadros ao longo do golpe
+            const q = Math.min(5, Math.floor((1 - o.poseT / (o.poseDur || 0.4)) * 6));
+            spr = this.cache.get(`${golpe.prefix}_${row}_${Math.max(0, q)}`, h * (ATLAS.ch / golpe.figureH), fl ? CIVIL_FLASH : CIVIL_OPTS, true);
+          }
+          if (!spr && o.pose && images[`${FA.poses.prefix}_0_0`]) {
             spr = this.cache.get(`${FA.poses.prefix}_${row}_${FA.poses.col[o.pose]}`, h * (FA.poses.ch / FA.poses.figureH), fl ? POSE_FLASH : POSE_OPTS, true);
           }
           if (!spr) {
@@ -693,7 +699,8 @@ export class Renderer {
           if (o.paperT > 0) drawStuckPapers(ctx, pt, playerPx, o.paperT, game.t);
           if (o.carry) {
             // carregando acima da cabeça: nas mãos erguidas (caminhada de carregar); sem ela, sobre a cabeça
-            const naMao = walkReady(WALK_ATLAS.jc) ? 1.04 : 0.95;
+            let naMao = walkReady(WALK_ATLAS.jc) ? 1.04 : 0.95;
+            if (walkReady(WALK_ATLAS.jd) && o.carry.t < INTERACT.pegaAnimS) naMao = 0.55 + (naMao - 0.55) * (o.carry.t / INTERACT.pegaAnimS); // subindo nas mãos
             drawObject(ctx, o.carry.kind, pt.x, pt.y - playerPx * naMao, playerPx * 0.4, Math.sin(t * 9) * 0.04, 's', o.carry.v);
           }
           break;
@@ -798,6 +805,10 @@ export class Renderer {
       let id;
       let fig = ATLAS.figureH;
       const jc = p.carry ? walkReady(WALK_ATLAS.jc) : null;
+      // pegando ou lançando o objeto com as duas mãos (elenco v2): prepara, ergue e põe acima da cabeça; lança, solta, recupera
+      const jd = walkReady(WALK_ATLAS.jd);
+      const pegando = jd && p.carry && p.carry.t < INTERACT.pegaAnimS;
+      const lancando = jd && !p.carry && p.lancouT < INTERACT.lancaAnimS;
       const D = p.derrubado;
       const jat = D ? walkReady(WALK_ATLAS.jat) : null;
       const noAr = game.cena ? alturaNaCena(game) : 0; // na cena da relíquia (D67): no ar, de frente
@@ -808,6 +819,12 @@ export class Renderer {
         const f = D.quadro;
         id = `jat_${(D.k >> 1) * 4 + (D.k & 1) * 2 + (f >= 6 ? 1 : 0)}_${f % 6}`;
         fig = jat.figureH;
+      } else if (pegando) {
+        id = `jd_${row}_${Math.min(2, Math.floor((p.carry.t / INTERACT.pegaAnimS) * 3))}`;
+        fig = jd.figureH;
+      } else if (lancando) {
+        id = `jd_${row}_${Math.min(5, 3 + Math.floor((p.lancouT / INTERACT.lancaAnimS) * 3))}`;
+        fig = jd.figureH;
       } else if (jc) {
         // carregando o objeto acima da cabeça: braços erguidos, andando ou parado
         id = `jc_${row}_${p.moving ? Math.floor((p.walkPhase / (Math.PI * 2)) * 6) % 6 : 0}`;
@@ -1230,8 +1247,8 @@ export class Renderer {
       cam.toScreen(w.x, w.y, pt);
       const anim = crowdAnim(w.tint || 0);
       let fig = null;
-      if (anim && anim.morro) {
-        // morador acordado: a própria caminhada, indo embora
+      if (anim && (anim.morro || anim.acordaAndando)) {
+        // morador (ou roupa nova da Orla) acordado: a própria caminhada, indo embora
         cam.toScreen(w.x + w.vx, w.y + w.vy, pt2);
         const row = atlasRow(pt2.x - pt.x, pt2.y - pt.y);
         fig = this.cache.get(`${anim.walk.prefix}_${row}_${Math.floor((w.walk / (Math.PI * 2)) * 6) % 6}`, enemyH * (ATLAS.ch / anim.walk.figureH), CIVIL_OPTS);
