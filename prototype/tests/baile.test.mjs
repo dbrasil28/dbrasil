@@ -110,8 +110,9 @@ test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acord
   g.update(DT, parado);
   const S = g.baile;
   assert.ok(S && S.fase === 'festa', 'o baile não começou na chegada');
-  const povo = Object.values(BAILE.povo).reduce((a, b) => a + b, 0);
-  assert.ok(povo >= 50 && S.pessoas.length >= povo * 0.8, `pouca gente: ${S.pessoas.length}`);
+  assert.ok(S.pessoas.length >= 150, `a pista não está lotada: ${S.pessoas.length}`);
+  const p = g.player;
+  assert.ok(S.pessoas.every((c) => Math.hypot(c.x - p.x, c.y - p.y) >= BAILE.lotacao.entradaM - 0.6), 'nasceu gente em cima do Juninho');
   for (const tipo of Object.keys(BAILE.povo)) assert.ok(S.pessoas.some((c) => c.tipo === tipo), `sem ${tipo} na festa`);
   assert.ok(S.noPalco && S.noPalco.dj && S.noPalco.y < w.baile.y0 + 1.5, 'o DJ não está tocando no palco');
   assert.equal(g.boss, null, 'o DJ já entrou na luta');
@@ -134,16 +135,31 @@ test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acord
   assert.ok(S.caosDJ > g.caos, 'a marca do DJ não ficou acima do Caos');
   assert.ok(g.caosMarca && g.caosMarca.v === S.caosDJ, 'sem a marca do DJ na barra');
   rodar(g, BAILE.transfS + BAILE.viraS + 0.3);
-  assert.ok(S.pessoas.every((c) => c.virou), 'sobrou gente sem virar');
+  // a primeira leva: os mais perto, até briga.max; o resto da pista segue dançando, de olho aceso, encarando
   const festa = g.enemies.filter((e) => !e.dead && e.doBaile);
-  assert.ok(festa.length >= S.pessoas.length, 'a pista não virou horda');
-  assert.ok(festa.some((e) => e.type === 'traficante') && festa.some((e) => e.type === 'funkeiro'), 'a firma da festa não virou inimigo');
+  const naPista = () => S.pessoas.filter((c) => !c.virou && c.viraT < 0);
+  assert.ok(festa.length >= BAILE.briga.max - 2 && festa.length <= BAILE.briga.max + 1, `a leva não veio do tamanho certo: ${festa.length}`);
+  assert.ok(naPista().length > 100 && naPista().every((c) => c.olho > 0), 'a pista não ficou olhando');
+  assert.ok(festa.some((e) => e.type === 'funkeiro'), 'o funkeiro da festa não virou inimigo');
   assert.ok(festa.some((e) => e.type === 'telespectador' && e.tint === 200), 'as mulheres da festa não viraram a horda delas');
   assert.equal(S.fase, 'briga');
   assert.ok(S.noPalco && !g.boss, 'o DJ devia seguir só olhando');
+  // cada um que cai, outro da pista vem (o DJ esperando, para dar para ver as levas)
+  const marca = S.caosDJ;
+  S.caosDJ = 999;
+  const antes = naPista().length;
+  let traficante = false;
+  for (let i = 0; i < 12 && !traficante; i++) {
+    for (const e of g.enemies.filter((o) => !o.dead && o.doBaile).slice(0, 10)) g.damageEnemy(e, 1e9, 'teste');
+    rodar(g, BAILE.transfS + BAILE.viraS + 0.6);
+    traficante = g.enemies.some((e) => e.type === 'traficante' && e.doBaile);
+  }
+  assert.ok(naPista().length < antes, 'a pista não mandou a próxima leva');
+  assert.ok(traficante, 'o traficante da festa não virou inimigo');
+  S.caosDJ = marca;
   // cada um da festa que cai sobe o Caos; na marca, o DJ entra
   const bonus = g.caosBonus;
-  for (const e of festa.slice(0, 10)) g.damageEnemy(e, 1e9, 'teste');
+  for (const e of g.enemies.filter((o) => !o.dead && o.doBaile).slice(0, 10)) g.damageEnemy(e, 1e9, 'teste');
   g.update(DT, parado);
   assert.ok(g.caosBonus >= bonus + 10 * BAILE.caos.porAbate - 1e-9, 'os abates da pancadaria não subiram o Caos');
   g.caosBonus += S.caosDJ; // o resto até a marca

@@ -820,19 +820,24 @@ export const CHEGADA = {
 export const BAILE = {
   entraM: 2, chegaM: 40, noiteS: 1.5, noite: 0.62, pistaLuz: 0.45, // pistaLuz: a luz geral da pista (o povo aparece)
   musica: { faseS: 0.265, plantaoMul: 0.35, voltaS: 0.6 },
-  // o povo da festa (pedido do autor: lotado): cidadãos, mulheres de roupa curta, funkeiros e traficantes. Na
-  // pancadaria, cada um vira horda: o cidadão com a transformação dele, a mulher vira a Mulher de Biquíni da horda e
-  // o funkeiro e o traficante viram o inimigo deles (a firma). A arte dos funkeiros loiros está pedida
-  // (PEDIDO_MORRO_BAILE.md).
-  povo: { cidadao: 24, garota: 16, funkeiro: 10, traficante: 3 },
-  palcoM: 3.6, beiraM: 1.0, djAtrasM: 0.75,
+  // o povo da festa (pedido do autor: lotado, quase sem espaço): cidadãos, mulheres de roupa curta, funkeiros e
+  // traficantes, um a cada passoM (com folgaM de sobra para não ficar em fila), até max; povo é o peso de cada um.
+  // Ninguém nasce em cima do Juninho (entradaM) nem no palco (palcoM). Na pancadaria, cada um vira horda: o cidadão
+  // com a transformação dele, a mulher vira a Mulher de Biquíni da horda e o funkeiro e o traficante viram o
+  // inimigo deles (a firma). A arte dos funkeiros loiros está pedida (PEDIDO_MORRO_BAILE.md).
+  povo: { cidadao: 46, garota: 31, funkeiro: 19, traficante: 4 },
+  lotacao: { passoM: 1.2, folgaM: 0.35, max: 210, entradaM: 2.6 },
+  palcoM: 3.6, beiraM: 0.8, djAtrasM: 0.75,
   hordaMax: 6, hordaLonge: 40,
   plantaoS: 6, olhosS: 2.6, encaraS: 1.2, viraS: 1.8, transfS: 1.2, acordaM: 18, fimS: 3,
   telaGrandeS: 2, // a TV grande do Plantão na tela: só no começo dele (depois, a pista e os olhos)
   caos: { sobe: 20, max: 95, porAbate: 0.2 },
-  // na pancadaria, o resto do baile vai chegando pelas beiradas da esplanada (ritmo por segundo, até max da festa
-  // em pé, longe longeM do Juninho), até o DJ entrar; povo: o peso de cada um
-  briga: { ritmo: 2.5, max: 36, longeM: 7, povo: { cidadao: 6, garota: 4, funkeiro: 2 } },
+  // na pancadaria, a pista toda encara o Juninho, mas parte para cima aos poucos: no máximo max da festa brigando
+  // de uma vez, o mais perto primeiro (viraS entre o primeiro e o último de cada leva); cada um que cai, outro da
+  // pista vem. Acabando a pista, o resto do baile chega pelas beiradas (ritmo por segundo, longe longeM do Juninho;
+  // povo: o peso de cada um), até o DJ entrar. Com o DJ na luta, quem não brigou fica olhando; com ele no chão, vai
+  // embora.
+  briga: { max: 36, ritmo: 2.5, longeM: 7, povo: { cidadao: 6, garota: 4, funkeiro: 2 } },
   postoM: 2.5,
   // luzes do baile: refletores de néon girando (cores, raio no chão), as TVs (largura e altura, m) e o brilho
   luzes: { n: 7, raioM: 4.2, giroS: 5.5, cores: ['255,60,200', '60,220,255', '170,90,255', '60,255,140', '255,170,40'], brilho: 0.3 },

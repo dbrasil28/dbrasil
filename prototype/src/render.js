@@ -524,7 +524,9 @@ export class Renderer {
             if (frame >= 2 || (!tr && o.viraT < S * 0.6)) opts = CROWD_WALK_OPTS; // o brilho da TV a partir do 3º quadro
           }
           const spr = this.cache.get(`${A.prefix}_${o.row}_${frame}`, h * (ATLAS.ch / A.figureH), opts);
+          if (o.some != null) ctx.globalAlpha = o.some; // o DJ caiu: quem só olhava vai sumindo (D94)
           if (spr) blit(ctx, spr, pt.x, pt.y - pula, false);
+          ctx.globalAlpha = 1;
           break;
         }
         case 'mobj':

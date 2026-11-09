@@ -67,13 +67,11 @@ export function updateBaile(game, dt) {
     case 'plantao':
       if (S.faseT >= B.olhosS + B.encaraS) briga(game, S);
       break;
-    case 'briga': {
-      // o resto do baile vai chegando; o DJ só olha e entra quando o Caos chega na marca
-      if (!S.pessoas.every((c) => c.virou)) break;
+    case 'briga':
+      // a pista vem em levas (e depois o resto do baile); o DJ só olha e entra quando o Caos chega na marca
       chegaMaisGente(game, S, dt);
       if (game.caos >= S.caosDJ) soltarDJ(game, S);
       break;
-    }
     default:
       break;
   }
@@ -116,19 +114,27 @@ function iniciar(game) {
   const pc = palcoDoBaile(w);
   const rng = makeRng((game.seed ^ 0xba11e) >>> 0);
   const pessoas = [];
-  const fila = Object.entries(B.povo).flatMap(([tipo, n]) => Array(n).fill(tipo));
-  for (let i = fila.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [fila[i], fila[j]] = [fila[j], fila[i]];
+  const p0 = game.player;
+  // a pista lotada: um a cada passoM, com uma folga sorteada (sem fila), fora do palco, dos móveis e do Juninho
+  const L = B.lotacao;
+  const pesos = Object.entries(B.povo);
+  const total = pesos.reduce((a, [, n]) => a + n, 0);
+  const lugares = [];
+  for (let y = k.y0 + B.beiraM + L.passoM / 2; y < k.y1 - B.beiraM; y += L.passoM) {
+    for (let x = k.x0 + B.beiraM + L.passoM / 2; x < k.x1 - B.beiraM; x += L.passoM) {
+      lugares.push({ x: x + (rng() - 0.5) * 2 * L.folgaM, y: y + (rng() - 0.5) * 2 * L.folgaM, o: rng() });
+    }
   }
-  let tent = 0;
-  while (pessoas.length < fila.length && tent++ < fila.length * 20) {
-    const x = k.x0 + B.beiraM + rng() * (k.x1 - k.x0 - 2 * B.beiraM);
-    const y = k.y0 + B.beiraM + rng() * (k.y1 - k.y0 - 2 * B.beiraM);
+  lugares.sort((a, b) => a.o - b.o); // passando do máximo, quem fica de fora é sorteado (não um canto inteiro)
+  for (const { x, y } of lugares) {
+    if (pessoas.length >= L.max) break;
     if (Math.hypot(x - pc.x, y - pc.y) < B.palcoM) continue; // o palco fica livre para o DJ
+    if (Math.hypot(x - p0.x, y - p0.y) < L.entradaM) continue; // ninguém em cima do Juninho na chegada
     const s = game.fitSpawn({ x, y });
-    if (Math.hypot(s.x - x, s.y - y) > 0.6) continue;
-    const tipo = fila[pessoas.length];
+    if (Math.hypot(s.x - x, s.y - y) > 0.5) continue;
+    let r = rng() * total;
+    let tipo = pesos[0][0];
+    for (const [t, n] of pesos) if ((r -= n) < 0) { tipo = t; break; }
     pessoas.push({
       x: s.x, y: s.y, vx: 0, vy: 0, tipo, arte: ARTE_DO_POVO[tipo], tam: TAM_DO_POVO[tipo], tint: Math.floor(rng() * 3),
       walk: rng() * 10, ritmo: rng(), danca: true, viraT: -1, virou: false, id: 950000 + pessoas.length, olho: 0, olhoEm: -1,
@@ -157,6 +163,14 @@ function iniciar(game) {
 /** A pessoa dançando no lugar; no Plantão o olho acende; na pancadaria ela trava, transforma e vira horda. */
 function atualizarPessoa(game, S, c, dt) {
   if (c.virou) return;
+  if (c.acorda) {
+    // o DJ caiu: quem não brigou acorda (o olho apaga) e vai sumindo
+    c.danca = false;
+    c.olho = 0;
+    c.some = Math.max(0, (c.some ?? 1) - dt / BAILE.fimS);
+    if (c.some <= 0) c.virou = true;
+    return;
+  }
   c.walk += dt * 9; // o passo no batidão (o desenho também pula no pulso)
   if (c.olhoEm >= 0 && S.fase === 'plantao') c.olho = clamp01((S.faseT - c.olhoEm) / 0.4);
   if (c.viraT < 0) return;
@@ -189,9 +203,7 @@ function briga(game, S) {
   game.tv('baileSinal');
   game.emit('flash', {});
   game.shake(0.25);
-  const p = game.player;
-  const ord = [...S.pessoas].sort((a, b) => Math.hypot(b.x - p.x, b.y - p.y) - Math.hypot(a.x - p.x, a.y - p.y));
-  ord.forEach((c, i) => { c.viraT = B.transfS + (i / Math.max(1, ord.length)) * B.viraS; });
+  soltarLeva(game, S);
   for (const e of game.enemies) {
     if (e.dancaT > 0) {
       e.dancaT = 0;
@@ -204,16 +216,46 @@ function briga(game, S) {
   game.metrics.brigaS = Math.round(game.t);
 }
 
-/** Na pancadaria, o resto do baile chega pelas beiradas da esplanada (longe do Juninho), até o DJ entrar. */
+/** Quantos da festa estão brigando agora (os que já viraram horda e os que estão virando). */
+function brigando(game, S) {
+  let n = 0;
+  for (const e of game.enemies) if (!e.dead && e.doBaile) n++;
+  for (const c of S.pessoas) if (!c.virou && c.viraT >= 0) n++;
+  return n;
+}
+
+/**
+ * Uma leva da pista parte para cima: até completar briga.max brigando, os mais perto do Juninho (o primeiro já, o
+ * último em viraS). Os outros seguem dançando, de olho aceso, encarando ele.
+ */
+function soltarLeva(game, S) {
+  const B = BAILE;
+  const vagas = B.briga.max - brigando(game, S);
+  if (vagas <= 0) return 0;
+  const p = game.player;
+  const fila = S.pessoas.filter((c) => !c.virou && c.viraT < 0 && !c.acorda);
+  if (!fila.length) return 0;
+  fila.sort((a, b) => (a.x - p.x) ** 2 + (a.y - p.y) ** 2 - ((b.x - p.x) ** 2 + (b.y - p.y) ** 2));
+  const n = Math.min(vagas, fila.length);
+  for (let i = 0; i < n; i++) fila[i].viraT = B.transfS + (n > 1 ? (i / (n - 1)) * B.viraS : 0);
+  return n;
+}
+
+/** Na pancadaria: cada um que cai, outro da pista vem; acabando a pista, o resto do baile chega pelas beiradas. */
 function chegaMaisGente(game, S, dt) {
   const R = BAILE.briga;
   const w = game.world;
   const k = w.baile;
   const p = game.player;
+  S.levaT = (S.levaT || 0) - dt;
+  if (S.levaT <= 0) {
+    S.levaT = 0.5;
+    if (soltarLeva(game, S) || S.pessoas.some((c) => !c.virou && !c.acorda)) return;
+  }
+  if (S.pessoas.some((c) => !c.virou && !c.acorda)) return;
   S.chegaAcc = (S.chegaAcc || 0) + R.ritmo * dt;
   if (S.chegaAcc < 1) return;
-  let emPe = 0;
-  for (const e of game.enemies) if (!e.dead && e.doBaile) emPe++;
+  let emPe = brigando(game, S);
   const rng = game.fxRng;
   const pesos = Object.entries(R.povo);
   const total = pesos.reduce((a, [, n]) => a + n, 0);
@@ -274,6 +316,7 @@ export function djCaiu(game, e) {
     S.fase = 'fim';
     S.faseT = 0;
     S.dj = null;
+    for (const c of S.pessoas) if (!c.virou) c.acorda = true; // quem só olhava (ou ia virando) acorda e vai embora
   }
   if (game.boss === e) game.boss = null;
   w.portaoAberto = true;
