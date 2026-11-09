@@ -252,6 +252,9 @@ export const WALK_ATLAS = {
   gp: { atlas: 'garota_programa_walk_atlas', prefix: 'gp', figureH: 157, escala: 0.6 },
   // a bolsada da garota (elenco v2): o recorte reserva espaço para a bolsa no alto; figureH acerta o corpo com a caminhada
   gbo: { atlas: 'garota_bolsada_atlas', prefix: 'gbo', figureH: 140, escala: 0.6 },
+  // a dança da garota no baile: só as 4 primeiras direções (0 a 67,5°); figureH acerta o corpo com a caminhada
+  // (o short tem a mesma largura; de joelho dobrado ela fica mais baixa que andando)
+  gpd: { atlas: 'garota_danca_atlas', prefix: 'gpd', figureH: 144, escala: 0.6, rows: 4 },
   pm: { atlas: 'policial_militar_walk_atlas', prefix: 'pm', figureH: 157, escala: 0.6 },
   pt: { atlas: 'policial_tropa_walk_atlas', prefix: 'pt', figureH: 158, escala: 0.6 },
   vp: { atlas: 'vendedor_picole_walk_atlas', prefix: 'vp', figureH: 157, escala: 0.6 },
@@ -308,6 +311,9 @@ export const POSE_ATLAS = {
 export const POSE_OPTS = { shadowScale: 0.4 };
 
 /** O atlas, se já carregou; senão null (o jogo usa o recorte de pose única). */
+/** A dança de cada um do povo do baile, pela arte da caminhada dele (quem não tem segue no passo no lugar). */
+export const DANCA_ATLAS = { gp: WALK_ATLAS.gpd };
+
 export const walkReady = (w) => (w && images[`${w.prefix}_0_0`] ? w : null);
 
 /** Figurantes (D55): caminhada e as poses de ataque e raiva de cada um (figurantes.js diz quando). */
@@ -438,6 +444,8 @@ export const IMAGES_MORRO = {
   baile_globo: 'assets/cenario/favela/baile_globo.webp',
   baile_tv: 'assets/cenario/favela/baile_tv.webp',
   baile_canhao: 'assets/cenario/favela/baile_canhao.webp',
+  // a dança do povo do baile (folhas 6×4 de frente a 67,5°, tools/montar-danca.py; DANCA_ATLAS)
+  garota_danca_atlas: 'assets/personagens/garota_programa/danca_atlas.webp', // Canva, com o braço a mais tirado à mão
   funkeiro_walk_atlas: 'assets/personagens/funkeiro/caminhada_atlas.webp', // Funkeiro Raivoso (Morro)
   traficante_walk_atlas: 'assets/personagens/traficante/caminhada_atlas.webp', // Traficante do Morro (Figma)
   chefe_trafico_walk_atlas: 'assets/personagens/chefe_trafico/caminhada_atlas.webp', // Chefe do Tráfico (Figma)
@@ -637,7 +645,7 @@ function carregar(id, src, onEach) {
       }
       for (const w of Object.values(WALK_ATLAS)) {
         if (id !== w.atlas) continue;
-        sliceAtlas(im, w.prefix, w.escala ? { ...ATLAS, escala: w.escala } : ATLAS);
+        sliceAtlas(im, w.prefix, w.escala || w.rows ? { ...ATLAS, escala: w.escala || 1, rows: w.rows || ATLAS.rows } : ATLAS);
         cortado = true;
       }
       if (id === WALK_ATLAS.cl.atlas) images.caramelo_icone = cropAlpha(images[`${WALK_ATLAS.cl.prefix}_2_3`]); // latindo, de 3/4

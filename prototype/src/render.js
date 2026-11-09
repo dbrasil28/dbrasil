@@ -1,7 +1,7 @@
 // Renderização em Canvas 2D. "Arena cinza" da Fase 0: formas simples, mas com
 // silhuetas distintas por família, para testar leitura em tela pequena.
 import { ENEMIES, WAKE, GORE, CENARIO, SOMBRA, AVENIDA, WEAPON_FX, CARREIRA, ABERTURA, FAVELA, WEAPONS, INTERACT, CHEGADA, BAILE } from './config.js';
-import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS, FIGURANTE_ART, carregarMonstrao } from './sprites.js';
+import { ARTE, images, FIGURAS_DPR_MAX, SpriteCache, crowdImage, crowdAnim, walkReady, CROWD_WALK_OPTS, MORRO_WALK_OPTS, enemyWalkOpts, attackOpts, POSE_OPTS, ENEMY_ART, ICON_ART, drawFit, ATLAS, atlasRow, WALK_ATLAS, POSE_ATLAS, FIGURANTE_ART, carregarMonstrao, DANCA_ATLAS } from './sprites.js';
 import { OrlaLayer, drawImageProp, drawTallDecor, decorAlto, drawEscuroPontas } from './mapa.js';
 import { drawMar } from './render_mar.js';
 import { drawCenario, cenarioInRange } from './render_cenario.js';
@@ -515,6 +515,16 @@ export class Renderer {
             else o.row = DANCA_ROWS[(Math.floor(t * 1.3 + o.ritmo * 7) + (o.id % 5)) % DANCA_ROWS.length];
             const batida = ((((tb * BAILE.pulsoBpm) / 60 + o.ritmo * 0.12) % 1) + 1) % 1;
             pula = Math.sin(Math.PI * batida) * h * (o.dj ? 0.03 : 0.06);
+            // com a arte da dança (a garota): os 6 quadros dela na batida, virando só entre 0 e 67,5° (as direções
+            // da folha; a arte não se espelha), sem o pulo, que a dança já tem. De olho aceso, volta para a
+            // caminhada, encarando o Juninho de qualquer lado.
+            const DA = !o.dj && !(o.olho > 0) && o.arte ? walkReady(DANCA_ATLAS[o.arte]) : null;
+            if (DA) {
+              A = DA;
+              o.row = DANCA_ROWS_ARTE[(Math.floor(t * 1.3 + o.ritmo * 7) + (o.id % 5)) % DANCA_ROWS_ARTE.length];
+              frame = Math.floor(((tb * BAILE.pulsoBpm) / 60 / BAILE.danca.batidasPorVolta + o.ritmo) * 6) % 6;
+              pula = 0;
+            }
             if (o.dj) opts = DJ_OPTS;
           }
           if (o.viraT >= 0 && o.viraT <= S) {
@@ -2243,6 +2253,7 @@ const criseTmp = [];
 const CIVIL_OPTS = { shadowScale: 0.6 };
 // para onde o povo do baile vira dançando (D91): de frente e meio de lado, para a câmera
 const DANCA_ROWS = [0, 1, 15, 2, 14, 0, 3, 13];
+const DANCA_ROWS_ARTE = [0, 1, 2, 1, 0, 3, 2, 1]; // com a arte da dança: só as 4 direções da folha
 const DJ_ROWS = [0, 1, 0, 15]; // o DJ tocando: de frente, virando pouco
 const DJ_OPTS = { ...CIVIL_OPTS, tint: ENEMY_ART.dj_plantao.tint }; // o DJ com o roxo dele (sprites.js)
 const CIVIL_FLASH = { ...CIVIL_OPTS, flash: true }; // figurante levando dano

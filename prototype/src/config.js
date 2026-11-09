@@ -872,6 +872,7 @@ export const BAILE = {
     mesaDj: { larg: 2.4, prof: 0.9, alt: 1.05, dy: 1.5 },
   },
   pulsoBpm: 130, // o batidão: pulso das luzes e o passo da dança
+  danca: { batidasPorVolta: 2 }, // quem tem a arte da dança (DANCA_ATLAS): os 6 quadros duram 2 batidas
   // canhões de luz apontados para o céu (pedido do autor), saindo da lente de cada canhão: varrem ±varreRad e se veem de longe
   // (de pertoM para cá; acima da tela, a claridade colorida na beira de cima avisa onde é o baile)
   canhoes: { varreRad: 0.42, giroS: 3.2, forca: 0.3, pertoM: 70, cores: ['200,230,255', '255,80,210', '90,220,255', '200,140,255'] },
