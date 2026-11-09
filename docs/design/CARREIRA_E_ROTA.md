@@ -81,6 +81,8 @@ Fase 2: três investidas seguidas, mirando de novo entre elas. Fase 3: vermelho 
 ## 5. Recomeço a cada trecho
 
 - **Ao passar pela porta**, o Juninho volta ao nível 1, só com o Capacete. A TV explica, em sátira: "ATUALIZAÇÃO OBRIGATÓRIA DO APLICATIVO: SEUS ITENS EXPIRARAM".
+  - **Aviso antes (D90):** quando o chefão cai, a TV adianta ("APP AVISA: ACIMA DA ORLA, SEUS ITENS PERDEM A VALIDADE"). Perto da porta aberta, uma faixa fixa do app diz o que vai acontecer: nível 1, só o Capacete, e a relíquia fica.
+  - **A atualização em cena (D90):** ao passar, o tempo para por uns 4 s. O celular do Juninho aparece no meio da tela: a barra "Atualização obrigatória" enche, cada arma e passivo leva o carimbo EXPIROU, o nível cai até 1, a relíquia "não é do app: fica com você", e entra o letreiro do trecho. Quem tem a Bolsa de ferramentas vê "+1 arma" e escolhe depois da cena. A TV fala no fim, e ele volta com um instante sem levar dano.
 - **Morreu:** volta ao começo do trecho em que estava, no nível 1, com as melhorias. Trecho já descoberto pode ser escolhido no Mapa da Rota.
 - **Gorjetas:** toda partida dá gorjeta, mesmo perdendo. Elas compram as melhorias permanentes.
 - **Melhorias permanentes bem pequenas**, para o jogo continuar difícil:
@@ -259,7 +261,7 @@ Feito, com testes (`prototype/tests/mundo.test.mjs`, `achados.test.mjs`, `crises
 | Caos por trecho (tempo, abates com teto de 30 pontos, propostas); a horda segue só o tempo e as propostas, na escala de antes | `carreira.js`, `CARREIRA` |
 | Obra do Especulador com tapume (arte de tapume inteira), barulho e tremor no sinal, holofote do helicóptero no chamado (fora da tela, o facho entra pela beira), horda chamada se o Juninho demora | `carreira.js`, `render_carreira.js` |
 | Monstrão (D47) no lugar do Especulador: investida de ombro com faixa de aviso, soco no chão com círculo, anilha rolando e, da fase 2, carro arremessado; investidas em sequência na fase 2; na fase 3 vermelho e mais rápido, investida que quica e anel de choque com brecha. Depois da investida faz pose de fisiculturista; batendo em carro, poste ou barraca fica tonto: nos dois leva o dobro de dano. Derrubado, cai o sinal, zera o Caos, cai o tapume do fundo da obra e o da escadaria; solta um cofre | `monstrao.js`, `render_monstrao.js`, `ENEMIES.monstrao` |
-| Recomeço a cada trecho ("atualização obrigatória do aplicativo") | `carreira.js` |
+| Recomeço a cada trecho ("atualização obrigatória do aplicativo") | `carreira.js`; o aviso e a cena (D90) em `atualizacao.js` e `ui.js` |
 | Chefe do Tráfico na laje do topo, chamado pelo Caos do Morro; entrega só com ele no chão | `carreira.js` |
 | Sem setas, sem marcador de destino, sem objetivo escrito; mapa da favela só com o que foi andado | `render.js`, `minimapa.js` |
 | Achados (isopor, cofre com a abertura, relíquia Bola da Altinha, faro do Caramelo) | `achados.js`, `render_carreira.js`, `ui.js` |

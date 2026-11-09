@@ -1,5 +1,6 @@
 // Interface em DOM: HUD enxuto, TV Caos, cartas de melhoria, propostas e telas.
-import { WEAPONS, PASSIVES, SLOTS, ENEMIES, verdictFor, TRECHOS, MELHORIAS, RELIQUIAS, ACHADOS } from './config.js';
+import { WEAPONS, PASSIVES, SLOTS, ENEMIES, verdictFor, TRECHOS, MELHORIAS, RELIQUIAS, ACHADOS, ATUALIZACAO } from './config.js';
+import { carimbados, nivelNaCena } from './atualizacao.js';
 import { efeitoAgoraEDepois, numerosDoJuninho } from './upgrades.js';
 import { upgradeLevel, upgradeCost } from './progresso.js';
 import { SETTINGS_SCHEMA } from './settings.js';
@@ -22,6 +23,9 @@ export class UI {
     this.last = {};
     this.tickerQueue = [];
     this.tickerUntil = 0;
+    this.toastQueue = []; // avisos chegando juntos saem um depois do outro (D90)
+    this.toastAtual = null;
+    this.atz = null; // a cena da atualização que está montada na tela
     this.modalArmedAt = 0;
     this.iconCache = new Map();
     this.handlers = {};
@@ -195,6 +199,7 @@ export class UI {
     }
 
     this.updateSuper(game);
+    this.updateSubida(game);
     // marcado pelo Agiota (D76): a barra de XP sangra em vermelho
     const juros = game.jurosT != null && game.t - game.jurosT < 0.25;
     if (this.last.juros !== juros) {
@@ -311,21 +316,125 @@ export class UI {
     this.warnUntil = now + durMs;
   }
 
+  /** Aviso rápido no pé da tela. Se já tem um no ar, entra na fila (no máximo 3, sem repetir). */
   toast(text, now) {
+    if (this.toastUntil && now < this.toastUntil) {
+      if (text !== this.toastAtual && !this.toastQueue.includes(text) && this.toastQueue.length < 3) this.toastQueue.push(text);
+      return;
+    }
+    this.mostrarToast(text, now);
+  }
+
+  mostrarToast(text, now) {
     const el = $('toast');
     el.textContent = text;
     el.hidden = false;
     el.classList.remove('is-in');
     void el.offsetWidth;
     el.classList.add('is-in');
-    this.toastUntil = now + 1400;
+    this.toastAtual = text;
+    this.toastUntil = now + Math.min(3200, 1100 + text.length * 30); // o comprido fica o bastante para ler
   }
 
   tickToast(now) {
     if (this.toastUntil && now > this.toastUntil) {
+      const next = this.toastQueue.shift();
+      if (next) {
+        this.mostrarToast(next, now);
+        return;
+      }
       $('toast').hidden = true;
       this.toastUntil = 0;
+      this.toastAtual = null;
     }
+  }
+
+  // ---------- subida do Morro (D90) ----------
+  /** A faixa do aviso perto da escadaria e a cena da atualização do app (game.atualizacao). */
+  updateSubida(game) {
+    const T = ATUALIZACAO.texto;
+    const U = game.atualizacao;
+    const aviso = !!game.avisoPorta && !U && !game.over;
+    const reliq = !!game.player.reliquia;
+    const chave = aviso ? `1${reliq ? 1 : 0}` : '0';
+    if (this.last.avisoPorta !== chave) {
+      this.last.avisoPorta = chave;
+      $('aviso-porta').hidden = !aviso;
+      if (aviso) {
+        this.setText('ap-app', T.app);
+        this.setText('ap-titulo', T.aviso);
+        this.setText('ap-sub', reliq ? `${T.avisoSub} ${T.avisoReliquia}` : T.avisoSub);
+      }
+    }
+    if (!U) {
+      if (this.atz) {
+        this.atz = null;
+        $('atualizacao').hidden = true;
+      }
+      return;
+    }
+    if (this.atz !== U) this.montarAtualizacao(U);
+    const A = ATUALIZACAO;
+    const k = Math.min(1, U.t / A.barraS);
+    this.setWidth('atz-fill', k);
+    this.setText('atz-pct', `${Math.round(k * 100)}%`);
+    const n = carimbados(U);
+    if (this.atzCarimbos !== n) {
+      this.atzCarimbos = n;
+      this.atzItens.forEach((el, i) => el.classList.toggle('is-expirou', i < n));
+    }
+    this.setText('atz-nivel', String(nivelNaCena(U)));
+    const fica = U.t >= U.reliquiaT;
+    if (U.reliquia) $('atz-reliquia').hidden = !fica;
+    if (U.bolsa) $('atz-bolsa').hidden = !fica;
+    $('atz-trecho').hidden = U.t < U.tituloT;
+    $('atualizacao').classList.toggle('is-saindo', U.t > U.durS - 0.3);
+  }
+
+  montarAtualizacao(U) {
+    const T = ATUALIZACAO.texto;
+    this.atz = U;
+    this.atzCarimbos = -1;
+    const root = $('atualizacao');
+    root.hidden = false;
+    root.classList.remove('is-saindo');
+    $('atz-app').textContent = T.app;
+    $('atz-titulo').textContent = T.titulo;
+    const wrap = $('atz-itens');
+    wrap.textContent = '';
+    this.atzItens = U.itens.map((it) => {
+      const el = document.createElement('div');
+      el.className = 'atz-item';
+      el.title = it.kind === 'w' ? WEAPONS[it.id].name : PASSIVES[it.id].name;
+      el.appendChild(this.icon(it.id, 30));
+      const b = document.createElement('b');
+      b.textContent = T.expirou;
+      el.appendChild(b);
+      wrap.appendChild(el);
+      return el;
+    });
+    const rel = $('atz-reliquia');
+    rel.hidden = true;
+    if (U.reliquia) {
+      const ic = $('atz-rel-icone');
+      ic.textContent = '';
+      ic.appendChild(this.icon(U.reliquia, 30));
+      const tx = $('atz-rel-texto');
+      tx.textContent = '';
+      const nome = document.createElement('b');
+      nome.textContent = RELIQUIAS[U.reliquia].nome;
+      tx.append(nome, document.createElement('br'), T.reliquia);
+    }
+    $('atz-bolsa').hidden = true;
+    $('atz-bolsa').textContent = T.bolsa;
+    const tr = TRECHOS.find((x) => x.id === U.trecho);
+    $('atz-trecho').textContent = (tr ? tr.nome : U.trecho).toUpperCase();
+    $('atz-trecho').hidden = true;
+    // o toast e a faixa não ficam por cima da cena
+    $('toast').hidden = true;
+    this.toastUntil = 0;
+    this.toastQueue.length = 0;
+    this.toastAtual = null;
   }
 
   tickWarn(now) {

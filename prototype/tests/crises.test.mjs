@@ -64,6 +64,7 @@ test('Morro: no Baile a horda em volta para para dançar e chegam Funkeiros; no 
   g.player.x = (g.world.gate.x0 + g.world.gate.x1) / 2;
   g.player.y = g.world.orlaTop - 2;
   g.updateRoute();
+  g.atualizacao = null; // a cena da atualização do app (D90) para o tempo; aqui só interessa o Morro
   g.player.hp = 1e6;
   g.stats.maxHp = 1e6;
   assert.equal(g.segment, 'morro');

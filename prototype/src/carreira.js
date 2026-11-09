@@ -189,6 +189,7 @@ export function chefaoCaiu(game, e) {
     game.metrics.portaoAberto = Math.round(game.t);
     game.emit('unlock', {});
     game.tv('unlock');
+    game.tv('avisoItens'); // D90: o que acontece ao subir (a faixa repete perto da escadaria)
   } else {
     game.metrics.chefaoMorroS = Math.round(game.t);
     game.chefe = null;
@@ -199,8 +200,11 @@ export function chefaoCaiu(game, e) {
   }
 }
 
-/** Passou pela porta: o aplicativo "atualiza" e o Juninho recomeça do nível 1, só com o Capacete. */
-export function recomecar(game, trecho) {
+/**
+ * Passou pela porta: o aplicativo "atualiza" e o Juninho recomeça do nível 1, só com o Capacete.
+ * calado: sem a TV e o aviso na tela (a cena da atualização, D90, mostra e a TV fala no fim dela).
+ */
+export function recomecar(game, trecho, { calado = false } = {}) {
   const p = game.player;
   p.level = 1;
   p.xp = 0;
@@ -211,7 +215,7 @@ export function recomecar(game, trecho) {
   p.auraR = 0;
   p.helmetsOut = 0;
   // a relíquia não é do aplicativo: segue com ele, com a carga que tinha (D67)
-  if (p.reliquia) game.tv('reliquia_leva');
+  if (p.reliquia && !calado) game.tv('reliquia_leva');
   game.dogs.length = 0;
   game.projectiles = game.projectiles.filter((o) => o.kind === 'thrown');
   game.superT = 0; // a super que estava no ar acaba com a porta
@@ -230,6 +234,7 @@ export function recomecar(game, trecho) {
   game.crise = null;
   game.crisesFeitas = new Set();
   if (game.meta.melhorias && game.meta.melhorias.armaInicial) game.pendingInicial = true; // "Bolsa de ferramentas"
+  if (calado) return;
   game.tv('recomeco');
   game.emit('recomeco', { text: CARREIRA.recomeco });
 }

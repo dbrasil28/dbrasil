@@ -582,6 +582,28 @@ export const CARREIRA = {
   trechoHpMul: { orla: 1, morro: 1.25 }, // cada trecho começa mais duro que o anterior
 };
 
+// Subida do Morro (D90): passar pela escadaria recomeça o trecho (o app "atualiza": nível 1, só o Capacete).
+// Antes, com a escadaria aberta e o Juninho a avisoM dela, uma faixa fixa diz o que vai acontecer. Ao passar,
+// a atualização vira uma cena curta com o tempo parado: a barra enche (barraS), cada arma e passivo leva o
+// carimbo EXPIROU (um a cada passoS, todos em no máximo itensS) enquanto o nível cai, a relíquia "fica com você"
+// (reliquiaS depois do último carimbo), o letreiro do trecho entra (tituloS depois) e a tela some em fimS.
+// De volta ao jogo, invulnS sem levar dano.
+export const ATUALIZACAO = {
+  avisoM: 6,
+  barraS: 0.9, passoS: 0.16, itensS: 1.3, reliquiaS: 0.35, tituloS: 0.5, fimS: 1.0,
+  invulnS: 1.2,
+  texto: {
+    aviso: 'FIM DA ÁREA DE COBERTURA DO APP',
+    avisoSub: 'Subindo, o app atualiza: você volta ao nível 1, só com o Capacete.',
+    avisoReliquia: 'A relíquia fica com você.',
+    app: 'APP DE ENTREGA',
+    titulo: 'Atualização obrigatória',
+    expirou: 'EXPIROU',
+    reliquia: 'A relíquia não é do app: fica com você',
+    bolsa: 'Bolsa de ferramentas: +1 arma',
+  },
+};
+
 // Modo Horda (D44, docs/design/MODOS_E_RANKING.md): um mapa já conquistado, sobreviver o máximo que der.
 export const HORDA = {
   chefaoVoltaS: 300, // derrubado, o chefão volta depois desse tempo...
@@ -1102,6 +1124,7 @@ export const TV = {
   bicheiro: ['BICHEIRO ABRE A BANCA NO CALÇADÃO. POLÍCIA DIZ QUE NÃO VIU', 'APONTADORES CORREM NA ORLA. A BANCA ACEITA PIX E FIADO'],
   bicheiroPaga: ['ENTREGADOR ACERTA NO BICHO E LEVA O COFRE. BANCA PEDE RECONTAGEM'],
   unlock: ['O TAPUME CAIU. NO FIM DA PRAIA, UMA ESCADARIA QUE NINGUÉM TINHA VISTO', 'O FIM DA PRAIA ABRIU UMA PASSAGEM. GPS NÃO RECONHECE O CAMINHO'],
+  avisoItens: ['APP AVISA: ACIMA DA ORLA, SEUS ITENS PERDEM A VALIDADE', 'TERMOS DE USO MUDARAM: QUEM SUBIR O MORRO COMEÇA DO ZERO'], // D90
   morro: ['ENTREGADOR COMEÇA A SUBIDA. APP CALCULA 3 MINUTOS (MENTIRA)'],
   recomeco: ['ATUALIZAÇÃO OBRIGATÓRIA DO APLICATIVO: SEUS ITENS EXPIRARAM', 'APP ATUALIZOU: NOVO TURNO, NOVA ENTREGA, ZERO BENEFÍCIOS'],
   // o Caos do trecho chama o chefão (D39): sinal na Calamidade e o chamado em 100%, sem dizer o nome

@@ -22,6 +22,7 @@ import { updateAgiota, updateCoach, agiotaCaiu, updatePastor, updateEncostado, a
 import { updateCerco, silencioDoCovil, fimDoCerco, deslocaCamera } from './chegada.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
+import { pertoDaPorta, iniciarAtualizacao, updateAtualizacao } from './atualizacao.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, stairOut, inside, routeRemaining } from './mundo.js';
 import { fireWeapon, updateProjectiles, updateZones, updateDogs } from './weapons.js';
 import { rollOptions, rollNewWeapons, applyOption, playerStats, resumoMelhorias } from './upgrades.js';
@@ -193,6 +194,8 @@ export class Game {
     this.covil = covilDe(this, 'orla'); // a obra do fim da praia (Monstrão); no Morro, a laje do topo
     this.achados = this.world ? sortearAchados(this) : []; // isopores, cofres e a relíquia (D40)
     this.abertura = null;
+    this.atualizacao = null; // a cena da atualização do app na subida do Morro (D90)
+    this.avisoPorta = false; // a faixa do aviso perto da escadaria aberta
     // modo: 'carreira' (a viagem), 'horda' (um mapa, sobreviver) ou 'desafio' (a Horda da semana)
     this.modo = this.meta.modo || 'carreira';
     this.teste = !!this.meta.teste; // atalho de teste (Testar a Favela): rende gorjeta, mas não libera trecho nem estrela
@@ -887,7 +890,7 @@ export class Game {
 
   // ---------- escolhas ----------
   openModalIfNeeded() {
-    if (this.modal || this.over || this.cena) return; // a cena da relíquia termina antes da carta
+    if (this.modal || this.over || this.cena || this.atualizacao) return; // as cenas terminam antes da carta
     const tt = this.world ? tempoNoTrecho(this) : this.t; // propostas pelo tempo no trecho (a abertura não conta)
     if (this.eventIndex < SESSION.eventTimes.length && tt >= SESSION.eventTimes[this.eventIndex]) {
       const ev = EVENTS[this.eventIndex];
@@ -1092,6 +1095,11 @@ export class Game {
     const dt = rawDt * this.timeScale;
     if (this.cena && updateCena(this, dt)) {
       // achou a relíquia (D67): o tempo para enquanto ela voa e entra no Juninho; só os efeitos andam
+      this.updateFx(dt);
+      return;
+    }
+    if (this.atualizacao && updateAtualizacao(this, dt)) {
+      // subiu o morro (D90): o tempo para enquanto o app "atualiza" e os itens expiram
       this.updateFx(dt);
       return;
     }
@@ -2226,10 +2234,15 @@ export class Game {
     if (this.segment === 'orla' && p.y < w.orlaTop - 1) {
       this.segment = 'morro';
       this.metrics.morroAt = Math.round(this.t);
-      this.emit('segment', { name: 'SUBIDA DO MORRO' });
-      this.tv('morro');
-      recomecar(this, 'morro'); // "atualização obrigatória do aplicativo"
+      if (this.startTrecho === 'orla') iniciarAtualizacao(this, 'morro'); // "atualização obrigatória do aplicativo", em cena (D90)
+      else {
+        // começou no pé do Morro (ponto de controle, Testar a Favela): não tem nada a perder, só o letreiro
+        this.emit('segment', { name: 'SUBIDA DO MORRO' });
+        this.tv('morro');
+        recomecar(this, 'morro');
+      }
     }
+    this.avisoPorta = pertoDaPorta(this);
     if (this.segment !== 'morro') return;
     if (p.ri >= 0) w.visto.add(p.ri);
     if (this.horda) return; // Modo Horda: não há entrega, é sobreviver
