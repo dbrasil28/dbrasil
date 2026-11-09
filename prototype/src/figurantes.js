@@ -4,9 +4,8 @@
 // Quando o Juninho passa perto, entram no grupo dele (até grupoMax) e vão atrás, lutando junto. A horda que
 // encosta tira vida deles; sem vida, viram telespectador e entram na horda. Um tempo depois, outro aparece no
 // lugar, fora da tela. Na abertura, antes de a horda atacar, ninguém entra no grupo. Sem DOM.
-import { FIGURANTES } from './config.js';
+import { FIGURANTES, BAILE } from './config.js';
 import { emAbertura } from './abertura.js';
-import { postoDaPolicia, policiaDeFora } from './baile.js';
 
 const tmp = [];
 const sorteio = (game, [a, b]) => a + game.fxRng() * (b - a);
@@ -261,4 +260,32 @@ function passeia(game, f, dt) {
   f.dirY = dy / l;
   f.walk += passo * 4.4; // um ciclo de 6 quadros a cada ~1,4 m
   f.anda = true;
+}
+
+// ---------- a polícia não entra no baile (D91) ----------
+// (aqui e não em baile.js: baile.js usa cenario.js, que usa este arquivo; o ciclo quebraria a página de teste)
+
+/** O policial do grupo está de guarda embaixo do baile (o Juninho da beira de baixo da esplanada para cima). */
+function policiaDeFora(game, f) {
+  const w = game.world;
+  return !!(w && w.baile && !game.horda && (f.tipo === 'pm' || f.tipo === 'tropa') && game.player.y <= w.baile.y1 + 0.5);
+}
+
+/**
+ * A polícia não entra no baile (D91): com o Juninho da beira de baixo da esplanada para cima, o policial do grupo
+ * fica de guarda ali (a vaga dele lado a lado). Devolve o ponto, ou null se ele pode seguir.
+ */
+function postoDaPolicia(game, f, vaga) {
+  const w = game.world;
+  if (!policiaDeFora(game, f)) return null;
+  const k = w.baile;
+  const j = w.joints[w.baileI - 1];
+  if (!j) return null;
+  if (!game.policiaParou) {
+    game.policiaParou = true;
+    game.tv('policiaBaile');
+  }
+  const baixo = w.path[w.baileI - 1];
+  const x = Math.max(baixo.x0 + 0.4, Math.min(baixo.x1 - 0.4, j.x + ((vaga % 3) - 1) * 1.2));
+  return { x, y: k.y1 + BAILE.postoM + Math.floor(vaga / 3) * 1.0 };
 }

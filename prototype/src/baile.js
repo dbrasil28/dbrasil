@@ -203,28 +203,3 @@ export function silencioDoBaile(game) {
   if (S.fase === 'sinal') return 1 - clamp01((S.faseT - 1.5) / 1.5);
   return 0;
 }
-
-/** O policial do grupo está de guarda embaixo do baile (o Juninho da beira de baixo da esplanada para cima). */
-export function policiaDeFora(game, f) {
-  const w = game.world;
-  return !!(w && w.baile && !game.horda && (f.tipo === 'pm' || f.tipo === 'tropa') && game.player.y <= w.baile.y1 + 0.5);
-}
-
-/**
- * A polícia não entra no baile (D91): com o Juninho da beira de baixo da esplanada para cima, o policial do grupo
- * fica de guarda ali (a vaga dele lado a lado). Devolve o ponto, ou null se ele pode seguir.
- */
-export function postoDaPolicia(game, f, vaga) {
-  const w = game.world;
-  if (!policiaDeFora(game, f)) return null;
-  const k = w.baile;
-  const j = w.joints[w.baileI - 1];
-  if (!j) return null;
-  if (!game.policiaParou) {
-    game.policiaParou = true;
-    game.tv('policiaBaile');
-  }
-  const baixo = w.path[w.baileI - 1];
-  const x = Math.max(baixo.x0 + 0.4, Math.min(baixo.x1 - 0.4, j.x + ((vaga % 3) - 1) * 1.2));
-  return { x, y: k.y1 + BAILE.postoM + Math.floor(vaga / 3) * 1.0 };
-}

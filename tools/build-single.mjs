@@ -21,15 +21,22 @@ const out = path.resolve(args.find((a) => !a.startsWith('--')) || path.join(root
 const order = [];
 const seen = new Set();
 const sources = new Map();
+const caminho = []; // os módulos sendo visitados agora: achar um deles de novo é um círculo
 
 async function visit(rel) {
   const id = path.posix.normalize(rel);
+  if (caminho.includes(id)) {
+    // no arquivo único um módulo roda de cada vez: no círculo, um roda antes do outro existir (a página fica preta)
+    throw new Error(`Módulos em círculo: ${[...caminho.slice(caminho.indexOf(id)), id].join(' → ')}`);
+  }
   if (seen.has(id)) return;
   seen.add(id);
+  caminho.push(id);
   const code = await readFile(path.join(proto, id), 'utf8');
   for (const m of code.matchAll(/^import\s+[^;]*?from\s+'(\.[^']+)';/gm)) {
     await visit(path.posix.join(path.posix.dirname(id), m[1]));
   }
+  caminho.pop();
   sources.set(id, await inlineAssets(code));
   order.push(id);
 }
