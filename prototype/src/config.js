@@ -826,17 +826,21 @@ export const BAILE = {
   luzes: { n: 7, raioM: 4.2, giroS: 5.5, cores: ['255,60,200', '60,220,255', '170,90,255', '60,255,140', '255,170,40'], brilho: 0.3 },
   tv: { larg: 2.3, alt: 1.3, altura: 2.43 }, // a tela (m) e a altura da beirada de baixo dela: as da arte do Figma
   // o cenário da festa (pedido do autor): palco com a mesa do DJ entre os paredões e o néon no muro, treliças de
-  // iluminação (a do palco emoldura a mesa do DJ; duas nos cantos da frente da pista), canhões de luz no chão, o
+  // iluminação (a do palco emoldura a mesa do DJ; duas de lado, nos cantos da frente), canhões de luz no chão, o
   // globo espelhado no meio da pista, dois bares (com engradados, mesas e cadeiras para arremessar), sinuca, sofá,
   // isopor e a churrasqueira do espetinho. Treliça, globo, TVs e canhões têm arte do Figma (D93), desenhada na escala
   // dela: a largura (ou a altura) daqui decide o tamanho. Mesa do DJ e néon ainda são desenho de código.
   cenario: {
-    // treliças: largura da arte inteira (m) e onde ficam (dy: m a partir do fundo; frenteDy: fração da esplanada);
-    // altM só vale para o desenho de código, se a arte não carregar
-    trelica: { palcoLargM: 4.6, palcoDy: 1.0, cantoLargM: 4.0, frenteDy: 0.62, beiraM: 1.5, altM: 4.4 },
+    // a treliça do palco: largura da arte inteira (m) e a distância do fundo; altM só vale para o desenho de código
+    trelica: { palcoLargM: 4.6, palcoDy: 1.0, altM: 4.4 },
     refletores: 5,
-    // canhões de luz no chão (altura da arte, m): dois por fora dos paredões e dois por dentro das treliças da frente
-    canhao: { altM: 1.3, palcoDx: 4.8, palcoDy: 1.4, frenteDx: 6.2, frenteDy: 0.3 },
+    // as treliças de lado (pedido do autor: nos cantos, fora do meio da pista): uma junto de cada muro, nos cantos da
+    // frente, correndo para o fundo, com os refletores virados para a pista. altM: a torre (escala da arte); compM:
+    // a viga; beiraM: do muro; frenteM: da beirada da frente até a torre de perto
+    trelicaLado: { altM: 4.3, compM: 4.2, beiraM: 1.3, frenteM: 1.6, luzes: 3 },
+    // canhões de luz no chão (altura da arte, m): dois por fora dos paredões e dois nos cantos da frente, junto das
+    // treliças de lado (frenteDx: do muro; frenteM: da beirada da frente)
+    canhao: { altM: 1.3, palcoDx: 4.8, palcoDy: 1.4, frenteDx: 2.0, frenteM: 1.0 },
     globoAltM: 4.9, globoDy: 0.45, globoRaioM: 0.6, reflexos: 46, brilhosGlobo: 7,
     neonAltM: 4.5, neonTexto: 'BAILE DA ESPLANADA',
     mesaDj: { larg: 2.4, prof: 0.9, alt: 1.05, dy: 1.5 },

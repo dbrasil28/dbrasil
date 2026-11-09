@@ -396,13 +396,23 @@ export const ENEMY_ART = {
 /**
  * Onde fica cada parte nas peças do baile (px da própria arte, medidos no recorte): base = o pé no chão (meio de
  * baixo); a treliça tem as lentes dos refletores (com a cor de cada uma); a TV, o retângulo da tela; o canhão, a lente
- * e o topo; o globo, o centro e o raio da bola e o topo da corrente. O jogo desenha na escala da arte, sem espremer.
+ * e o topo; o globo, o centro e o raio da bola e o topo da corrente. O jogo desenha na escala da arte, sem espremer
+ * nem girar: na treliça de lado, as torres e os refletores são recortes da arte e só a viga, que corre para o fundo,
+ * é desenhada em código, na projeção do jogo.
  */
 export const ARTE_BAILE = {
   trelica: {
     base: [342, 746], raioLente: 18,
     lentes: [[159, 138], [252, 139], [344, 139], [434, 139], [526, 138]],
     cores: ['255,170,40', '255,60,170', '60,150,255', '240,60,230', '255,170,40'],
+    // para a treliça de lado: cada torre recortada sozinha (em cima, sem a ponta da viga; embaixo, a chapa mais
+    // larga) com o pé, o topo das torres, as linhas da viga e o recorte de cada refletor (o gancho no meio de cima)
+    torres: [
+      { cima: [42, 0, 108, 700], baixo: [0, 700, 160, 753], pe: [77, 746] },
+      { cima: [577, 0, 644, 700], baixo: [526, 700, 686, 753], pe: [607, 746] },
+    ],
+    topoTorre: 6, viga: [8, 65],
+    luzes: [[127, 66, 194, 166], [218, 66, 286, 166], [310, 66, 377, 166], [400, 66, 468, 166], [492, 66, 559, 166]],
   },
   tv: { base: [204, 622], tela: [17, 17, 390, 228] },
   canhao: { base: [114, 503], topo: 7, lente: [115, 64] },

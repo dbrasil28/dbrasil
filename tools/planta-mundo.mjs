@@ -36,7 +36,7 @@ const NOME = {
   cadeira_praia: 'Cadeira de praia', engradado: 'Engradado', botijao: 'Botijão', banquinho: 'Banquinho', pneu: 'Pneu solto',
   coco: 'Coco', marmita: 'Marmita', pastel: 'Pastel', milho_cura: 'Milho', acai_cura: 'Açaí',
   paredao: 'Paredão de som', sofa: 'Sofá velho', cadeiras: 'Cadeiras empilhadas', barraca_boteco: 'Bar',
-  mesaDj: 'Mesa do DJ (palco)', trelica: 'Treliça de iluminação, com refletores', canhao: 'Canhão de luz para o céu', globo: 'Globo espelhado', neon: 'Néon "BAILE DA ESPLANADA"',
+  mesaDj: 'Mesa do DJ (palco)', trelica: 'Treliça do palco, com refletores', torre: 'Torre da treliça de lado', viga: 'Viga da treliça de lado, com refletores', canhao: 'Canhão de luz para o céu', globo: 'Globo espelhado', neon: 'Néon "BAILE DA ESPLANADA"',
 };
 
 const data = {

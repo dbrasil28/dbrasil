@@ -417,7 +417,7 @@ export function palcoDoBaile(w) {
 /**
  * A esplanada do baile (D91, pedido do autor: "bem rica"): o palco no fundo (dois paredões, a mesa do DJ no meio
  * emoldurada pela treliça de iluminação, o néon no muro e um canhão de luz de cada lado), a pista no meio com o
- * globo espelhado, as duas treliças dos cantos da frente com os outros dois canhões, um bar de cada lado
+ * globo espelhado, as duas treliças de lado nos cantos da frente com os outros dois canhões, um bar de cada lado
  * (engradados, mesas e cadeiras que dá para arremessar), sinuca, sofá, isopores, a churrasqueira do espetinho e os
  * cordões de bandeirinha. A pista do meio fica livre para a dança e a luta.
  */
@@ -429,27 +429,39 @@ function baile(w, k, len, sd) {
   for (const dx of [-3.1, 3.1]) prop(w, 'paredao', pc.x + dx - 1.0, k.y0 + 0.4, pc.x + dx + 1.0, k.y0 + 1.2, 1.8, sd(7 + dx), { piece: k });
   const M = C.mesaDj;
   const T = C.trelica;
-  const yFrente = k.y0 + len * T.frenteDy;
-  // a treliça (x0..x1 é a largura da arte inteira; o desenho de código põe as torres nas pontas)
+  // a treliça do palco (x0..x1 é a largura da arte inteira; o desenho de código põe as torres nas pontas)
   const trelica = (x, y, larg) => ({ tipo: 'trelica', x0: x - larg / 2, x1: x + larg / 2, x, y, h: T.altM });
   const Q = C.canhao;
   const canhao = (x, y) => ({ tipo: 'canhao', x, y, h: Q.altM });
+  // as treliças de lado: duas torres junto do muro e a viga correndo para o fundo, cada uma na sua profundidade
+  // (a viga entra logo antes da torre de perto, que cobre a ponta dela)
+  const L = C.trelicaLado;
+  const yPerto = k.y1 - L.frenteM;
+  const yLonge = yPerto - L.compM;
+  const deLado = [];
+  for (const lado of [-1, 1]) {
+    const x = lado < 0 ? k.x0 + L.beiraM : k.x1 - L.beiraM;
+    deLado.push(
+      { tipo: 'torre', x, y: yLonge, h: L.altM, lado },
+      { tipo: 'viga', x, x0: x - 0.2, x1: x + 0.2, y0: yLonge, y1: yPerto, y: yPerto - 0.01, h: L.altM, lado },
+      { tipo: 'torre', x, y: yPerto, h: L.altM, lado },
+    );
+  }
   w.baileDeco = [
     { tipo: 'mesaDj', x0: pc.x - M.larg / 2, y0: k.y0 + M.dy - M.prof / 2, x1: pc.x + M.larg / 2, y1: k.y0 + M.dy + M.prof / 2, h: M.alt, x: pc.x, y: k.y0 + M.dy + M.prof / 2 },
     { tipo: 'neon', x: pc.x, y: k.y0 + 0.05, h: C.neonAltM, texto: C.neonTexto },
     trelica(pc.x, k.y0 + T.palcoDy, T.palcoLargM),
-    trelica(k.x0 + T.beiraM + T.cantoLargM / 2, yFrente, T.cantoLargM),
-    trelica(k.x1 - T.beiraM - T.cantoLargM / 2, yFrente, T.cantoLargM),
+    ...deLado,
     canhao(pc.x - Q.palcoDx, k.y0 + Q.palcoDy),
     canhao(pc.x + Q.palcoDx, k.y0 + Q.palcoDy),
-    canhao(k.x0 + Q.frenteDx, yFrente + Q.frenteDy),
-    canhao(k.x1 - Q.frenteDx, yFrente + Q.frenteDy),
+    canhao(k.x0 + Q.frenteDx, k.y1 - Q.frenteM),
+    canhao(k.x1 - Q.frenteDx, k.y1 - Q.frenteM),
     { tipo: 'globo', x: cx, y: k.y0 + len * C.globoDy, h: C.globoAltM },
   ];
   // os bares: o da direita perto do fundo, o da esquerda na frente da pista
   const bares = [
     { x0: k.x1 - 3.8, y: k.y0 + 6.8, lado: -1 },
-    { x0: k.x0 + 0.4, y: k.y0 + len * 0.72, lado: 1 },
+    { x0: k.x0 + 1.6, y: k.y0 + len * 0.72, lado: 1 }, // longe do muro: a treliça de lado fica na frente dele
   ];
   for (const [i, b] of bares.entries()) {
     if (!prop(w, 'barraca_boteco', b.x0, b.y - 1.3, b.x0 + 3.4, b.y, 1.1, sd(60 + i), { piece: k })) continue;
@@ -465,7 +477,7 @@ function baile(w, k, len, sd) {
   prop(w, 'sinuca', k.x0 + 0.8, k.y0 + len * 0.36, k.x0 + 3.2, k.y0 + len * 0.36 + 1.3, 0.85, sd(70), { piece: k });
   prop(w, 'sofa', k.x0 + 0.5, k.y0 + 3.6, k.x0 + 2.3, k.y0 + 4.4, 0.8, sd(71), { piece: k });
   prop(w, 'churrasqueira', k.x1 - 1.4, k.y0 + len * 0.5, k.x1 - 0.6, k.y0 + len * 0.5 + 0.8, 0.95, sd(72), { piece: k });
-  prop(w, 'cadeiras', k.x1 - 1.3, k.y1 - 2.2, k.x1 - 0.7, k.y1 - 1.6, 1.4, sd(73), { piece: k });
+  prop(w, 'cadeiras', k.x1 - 1.3, k.y0 + len * 0.36, k.x1 - 0.7, k.y0 + len * 0.36 + 0.6, 1.4, sd(73), { piece: k });
   // os cordões de bandeirinha cruzando a pista
   for (const f of [0.32, 0.58, 0.82]) prop(w, 'bandeirinhas', k.x0, k.y0 + len * f - 0.2, k.x1, k.y0 + len * f, 4.2, sd(12 + f * 10), { solid: false, extra: { favela: true } });
 }

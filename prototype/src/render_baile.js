@@ -371,6 +371,8 @@ export function drawDecoBaile(ctx, game, cam, ppu, t, o) {
   if (o.tipo === 'mesaDj') mesaDj(ctx, cam, ppu, t, o, noite);
   else if (o.tipo === 'neon') neon(ctx, cam, ppu, t, o, noite);
   else if (o.tipo === 'trelica') trelica(ctx, cam, ppu, t, o, noite);
+  else if (o.tipo === 'torre') torre(ctx, cam, ppu, o);
+  else if (o.tipo === 'viga') viga(ctx, cam, ppu, t, o, noite);
   else if (o.tipo === 'canhao') canhao(ctx, cam, ppu, o);
   else if (o.tipo === 'globo') globo(ctx, cam, ppu, t, o, noite);
 }
@@ -492,34 +494,155 @@ function trelica(ctx, cam, ppu, t, o, noite) {
   else trelicaDeCodigo(ctx, cam, ppu, t, o, noite);
 }
 
+// ---------- a treliça de lado (junto do muro, correndo para o fundo) ----------
+
+/** Quais refletores da arte vão em cada treliça de lado (a do muro da esquerda e a da direita). */
+const LUZES_DE_LADO = [[0, 1, 2], [2, 3, 4]];
+
+/** Metros por pixel da arte na treliça de lado (a torre tem a altura do config). */
+const mPorPxLado = () => BAILE.cenario.trelicaLado.altM / (ARTE_BAILE.trelica.base[1] - ARTE_BAILE.trelica.topoTorre);
+
+/** Um ponto no ar (x, y no chão, z de altura) na tela. */
+function noAr(cam, ppu, x, y, z, out) {
+  cam.toScreen(x, y, out);
+  out.y -= z * ppu;
+  return out;
+}
+
+/** Uma torre da treliça de lado: a torre da arte recortada sozinha, em pé no lugar dela (escala da arte). */
+function torre(ctx, cam, ppu, o) {
+  const im = images.baile_trelica;
+  cam.toScreen(o.x, o.y, c0);
+  if (!im) {
+    torreDeCodigo(ctx, ppu, c0.x, c0.y, o.h * ppu, Math.max(1, ppu * 0.05), Math.max(3, Math.round(o.h * 2)));
+    return;
+  }
+  const T = ARTE_BAILE.trelica.torres[o.lado < 0 ? 0 : 1];
+  const s = mPorPxLado() * ppu;
+  const ox = c0.x - T.pe[0] * s;
+  const oy = c0.y - T.pe[1] * s;
+  for (const [x0, y0, x1, y1] of [T.cima, T.baixo]) ctx.drawImage(im, x0, y0, x1 - x0, y1 - y0, ox + x0 * s, oy + y0 * s, (x1 - x0) * s, (y1 - y0) * s);
+}
+
+/** Onde cada refletor da viga de lado fica na tela: chama fn(recorte, x, y, escala, cor, lente x, lente y, chão y). */
+function luzesDaViga(cam, ppu, o, fn) {
+  const L = BAILE.cenario.trelicaLado;
+  const A = ARTE_BAILE.trelica;
+  const m = mPorPxLado();
+  const sp = m * ppu;
+  const baixo = o.h - (A.viga[1] - A.topoTorre) * m;
+  const quais = LUZES_DE_LADO[o.lado < 0 ? 0 : 1];
+  for (let i = 0; i < L.luzes; i++) {
+    const y = o.y1 - (L.compM * (i + 1)) / (L.luzes + 1);
+    const j = quais[i % quais.length];
+    const r = A.luzes[j];
+    noAr(cam, ppu, o.x, y, baixo, c1);
+    const x = c1.x - ((r[2] - r[0]) / 2) * sp;
+    const top = c1.y;
+    cam.toScreen(o.x, y, c2);
+    fn(r, x, top, sp, A.cores[j], x + (A.lentes[j][0] - r[0]) * sp, top + (A.lentes[j][1] - r[1]) * sp, c2.y);
+  }
+}
+
+/**
+ * A viga da treliça de lado: corre junto do muro, do topo da torre de perto ao da torre de longe. Desenhada em
+ * código, na projeção do jogo (a arte é de frente e não se gira); os refletores pendurados são recortes da arte.
+ */
+function viga(ctx, cam, ppu, t, o, noite) {
+  const A = ARTE_BAILE.trelica;
+  const m = mPorPxLado();
+  const topo = o.h - (A.viga[0] - A.topoTorre) * m;
+  const baixo = o.h - (A.viga[1] - A.topoTorre) * m;
+  const hw = 0.16;
+  const comp = o.y1 - o.y0;
+  const n = Math.max(2, Math.round(comp / 0.36));
+  const lw = Math.max(1, ppu * 0.045);
+  ctx.save();
+  ctx.lineCap = 'round';
+  // as duas faces (a de trás mais escura) com as barras, um contorno escuro para não sumir no chão, e o
+  // zigue-zague; por cima, as travessas do topo
+  for (const [dx, cor] of [[-hw, '#86848c'], [hw, '#d2d0d6']]) {
+    ctx.beginPath();
+    for (const z of [topo, baixo]) {
+      noAr(cam, ppu, o.x + dx, o.y1, z, c0);
+      noAr(cam, ppu, o.x + dx, o.y0, z, c1);
+      ctx.moveTo(c0.x, c0.y);
+      ctx.lineTo(c1.x, c1.y);
+    }
+    ctx.strokeStyle = 'rgba(20,18,24,0.75)';
+    ctx.lineWidth = lw * 3;
+    ctx.stroke();
+    ctx.strokeStyle = cor;
+    ctx.lineWidth = lw * 1.8;
+    ctx.stroke();
+    ctx.lineWidth = lw * 1.1;
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const ya = o.y1 - (comp * i) / n;
+      const yb = o.y1 - (comp * (i + 1)) / n;
+      noAr(cam, ppu, o.x + dx, ya, i % 2 ? topo : baixo, c0);
+      noAr(cam, ppu, o.x + dx, yb, i % 2 ? baixo : topo, c1);
+      ctx.moveTo(c0.x, c0.y);
+      ctx.lineTo(c1.x, c1.y);
+    }
+    ctx.stroke();
+  }
+  ctx.strokeStyle = '#a3a1a8';
+  ctx.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const y = o.y1 - (comp * i) / n;
+    noAr(cam, ppu, o.x - hw, y, topo, c0);
+    noAr(cam, ppu, o.x + hw, y, topo, c1);
+    ctx.moveTo(c0.x, c0.y);
+    ctx.lineTo(c1.x, c1.y);
+  }
+  ctx.stroke();
+  ctx.restore();
+  // os refletores pendurados (recortes da arte; sem ela, uma caixinha com a lente colorida)
+  const im = images.baile_trelica;
+  luzesDaViga(cam, ppu, o, (r, x, y, sp, cor, lx, ly) => {
+    if (im) ctx.drawImage(im, r[0], r[1], r[2] - r[0], r[3] - r[1], x, y, (r[2] - r[0]) * sp, (r[3] - r[1]) * sp);
+    else {
+      ctx.fillStyle = '#18161b';
+      ctx.fillRect(lx - ppu * 0.15, ly - ppu * 0.15, ppu * 0.3, ppu * 0.3);
+      ctx.fillStyle = `rgba(${cor},${(0.45 + 0.55 * noite).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.arc(lx, ly, ppu * 0.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+}
+
+/** Uma torre de ferro em código (sem a arte): duas barras e o X entre elas. */
+function torreDeCodigo(ctx, ppu, x, y, H, lw, n) {
+  const L = ppu * 0.22;
+  ctx.strokeStyle = '#8d8a92';
+  ctx.lineWidth = lw;
+  ctx.beginPath();
+  ctx.moveTo(x - L, y);
+  ctx.lineTo(x - L, y - H);
+  ctx.moveTo(x + L, y);
+  ctx.lineTo(x + L, y - H);
+  for (let i = 0; i < n; i++) {
+    const y0 = y - (H * i) / n;
+    const y1 = y - (H * (i + 1)) / n;
+    ctx.moveTo(x - L, y0);
+    ctx.lineTo(x + L, y1);
+    ctx.moveTo(x + L, y0);
+    ctx.lineTo(x - L, y1);
+  }
+  ctx.stroke();
+}
+
 /** Sem a arte: duas torres de ferro e a viga por cima, com os refletores coloridos. */
 function trelicaDeCodigo(ctx, cam, ppu, t, o, noite) {
   const H = o.h * ppu;
   cam.toScreen(o.x0, o.y, c0);
   cam.toScreen(o.x1, o.y, c1);
   const lw = Math.max(1, ppu * 0.05);
-  const torre = (x, y) => {
-    const L = ppu * 0.22;
-    ctx.strokeStyle = '#8d8a92';
-    ctx.lineWidth = lw;
-    ctx.beginPath();
-    ctx.moveTo(x - L, y);
-    ctx.lineTo(x - L, y - H);
-    ctx.moveTo(x + L, y);
-    ctx.lineTo(x + L, y - H);
-    const n = Math.max(3, Math.round(o.h * 2));
-    for (let i = 0; i < n; i++) {
-      const y0 = y - (H * i) / n;
-      const y1 = y - (H * (i + 1)) / n;
-      ctx.moveTo(x - L, y0);
-      ctx.lineTo(x + L, y1);
-      ctx.moveTo(x + L, y0);
-      ctx.lineTo(x - L, y1);
-    }
-    ctx.stroke();
-  };
-  torre(c0.x, c0.y);
-  torre(c1.x, c1.y);
+  const nx = Math.max(3, Math.round(o.h * 2));
+  torreDeCodigo(ctx, ppu, c0.x, c0.y, H, lw, nx);
+  torreDeCodigo(ctx, ppu, c1.x, c1.y, H, lw, nx);
   // a viga
   ctx.strokeStyle = '#a6a3ab';
   ctx.lineWidth = lw * 1.4;
@@ -599,40 +722,44 @@ function globo(ctx, cam, ppu, t, o, noite) {
 /** De noite, os refletores das treliças acesos: o brilho na lente, na cor dela, e o cone fraco até o chão. */
 function refletoresAcesos(ctx, game, cam, ppu, t, noite) {
   const A = ARTE_BAILE.trelica;
+  if (!images.baile_trelica) return;
   for (const o of game.world.baileDeco || []) {
+    if (o.tipo === 'viga') {
+      let i = 0;
+      luzesDaViga(cam, ppu, o, (r, x, y, sp, cor, lx, ly, chao) => luzAcesa(ctx, ppu, t, noite, lx, ly, A.raioLente * sp, cor, chao, i++ + (o.lado > 0 ? 3 : 0)));
+      continue;
+    }
     if (o.tipo !== 'trelica') continue;
     const r = trelicaNaTela(cam, ppu, o, pos);
-    if (!r) return;
     const chao = r.y + A.base[1] * r.s;
-    A.lentes.forEach(([lx, ly], i) => {
-      const x = r.x + lx * r.s;
-      const y = r.y + ly * r.s;
-      const cor = A.cores[i];
-      const al = noite * (0.5 + 0.4 * pulso(t + i * 0.13));
-      const R = A.raioLente * r.s * 3.4;
-      const g = ctx.createRadialGradient(x, y, 0, x, y, R);
-      g.addColorStop(0, `rgba(255,255,255,${(al * 0.9).toFixed(3)})`);
-      g.addColorStop(0.28, `rgba(${cor},${(al * 0.75).toFixed(3)})`);
-      g.addColorStop(1, `rgba(${cor},0)`);
-      ctx.fillStyle = g;
-      ctx.fillRect(x - R, y - R, R * 2, R * 2);
-      // o cone de luz descendo (balança um pouco, cada um no seu tempo)
-      const lado = Math.sin(t * 1.1 + i * 1.7) * ppu * 0.6;
-      const L0 = A.raioLente * r.s;
-      const L1 = ppu * 0.9;
-      const c = ctx.createLinearGradient(x, y, x, chao);
-      c.addColorStop(0, `rgba(${cor},${(al * 0.22).toFixed(3)})`);
-      c.addColorStop(1, `rgba(${cor},0)`);
-      ctx.fillStyle = c;
-      ctx.beginPath();
-      ctx.moveTo(x - L0, y);
-      ctx.lineTo(x + L0, y);
-      ctx.lineTo(x + lado + L1, chao);
-      ctx.lineTo(x + lado - L1, chao);
-      ctx.closePath();
-      ctx.fill();
-    });
+    A.lentes.forEach(([lx, ly], i) => luzAcesa(ctx, ppu, t, noite, r.x + lx * r.s, r.y + ly * r.s, A.raioLente * r.s, A.cores[i], chao, i));
   }
+}
+
+/** Um refletor aceso: o brilho na lente (raio rl, na tela) e o cone até o chão (chao: y da tela). */
+function luzAcesa(ctx, ppu, t, noite, x, y, rl, cor, chao, i) {
+  const al = noite * (0.5 + 0.4 * pulso(t + i * 0.13));
+  const R = rl * 3.4;
+  const g = ctx.createRadialGradient(x, y, 0, x, y, R);
+  g.addColorStop(0, `rgba(255,255,255,${(al * 0.9).toFixed(3)})`);
+  g.addColorStop(0.28, `rgba(${cor},${(al * 0.75).toFixed(3)})`);
+  g.addColorStop(1, `rgba(${cor},0)`);
+  ctx.fillStyle = g;
+  ctx.fillRect(x - R, y - R, R * 2, R * 2);
+  // o cone de luz descendo (balança um pouco, cada um no seu tempo)
+  const lado = Math.sin(t * 1.1 + i * 1.7) * ppu * 0.6;
+  const L1 = ppu * 0.9;
+  const c = ctx.createLinearGradient(x, y, x, chao);
+  c.addColorStop(0, `rgba(${cor},${(al * 0.22).toFixed(3)})`);
+  c.addColorStop(1, `rgba(${cor},0)`);
+  ctx.fillStyle = c;
+  ctx.beginPath();
+  ctx.moveTo(x - rl, y);
+  ctx.lineTo(x + rl, y);
+  ctx.lineTo(x + lado + L1, chao);
+  ctx.lineTo(x + lado - L1, chao);
+  ctx.closePath();
+  ctx.fill();
 }
 
 /** Os reflexos do globo correndo pelo chão da pista e os brilhos na bola girando (de noite). */
