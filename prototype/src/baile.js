@@ -46,17 +46,22 @@ export function updateBaile(game, dt) {
   const p = game.player;
   let S = game.baile;
   const d = distEsplanada(w, p.x, p.y);
+  // o último corredor (pedido do autor): o caminho fica vazio de uma vez, a música do jogo para e começa a anoitecer
+  if (!S && !w.portaoAberto && !game.baileVazio && d <= B.chegaM) esvaziarCorredor(game);
+  else if (!S && game.baileVazio && d > B.chegaM + B.soltaM) game.baileVazio = false; // voltou para trás
   if (!S && !w.portaoAberto && !game.over && d <= B.entraM) S = iniciar(game);
   // a chegada: de chegaM até a beira (0 longe, 1 na entrada); depois do DJ, nada
   const perto = w.portaoAberto ? 0 : 1 - clamp01((d - B.entraM) / (B.chegaM - B.entraM));
-  game.chegadaBaile = S ? (S.fase === 'fim' ? 0 : 1) : perto;
-  if (!S && perto > 0) esvaziarCorredores(game, perto, dt);
-  // a noite cai com a chegada (cheia na entrada) e vai embora depois do DJ
-  const alvo = (S && S.fase === 'fim') || (!S && w.portaoAberto) ? 0 : S ? 1 : perto;
+  const vazio = !!game.baileVazio && !(S && S.fase === 'fim') && !w.portaoAberto;
+  game.semMusicaJogo = vazio ? 1 : 0;
+  if (vazio && !S) for (const e of game.enemies) if (!e.dead && !e.boss && !e.debanda) { e.debanda = true; e.dancaT = 0; } // quem aparecer também vai embora
+  game.chegadaBaile = S ? (S.fase === 'fim' ? 0 : 1) : vazio ? 1 : perto;
+  // a noite começa a cair com o corredor vazio, mais escura conforme chega (cheia na festa), e vai embora depois do DJ
+  const alvo = (S && S.fase === 'fim') || (!S && w.portaoAberto) ? 0 : S ? 1 : vazio ? B.noiteVazio + (1 - B.noiteVazio) * perto : 0;
   const passo = dt / (S && S.fase === 'fim' ? B.fimS : B.noiteS);
   const n = game.noiteBaile || 0;
   game.noiteBaile = alvo > n ? Math.min(alvo, n + passo) : Math.max(alvo, n - passo);
-  game.somDoBaile = somDoBaile(S, perto);
+  game.somDoBaile = somDoBaile(S, vazio ? perto : 0);
   game.caosMarca = S && S.fase === 'briga' ? { v: S.caosDJ, nome: 'DJ' } : null;
   if (!S) return;
   S.t += dt;
@@ -82,19 +87,24 @@ export function updateBaile(game, dt) {
 /** O som do baile (0 a 1): sobe na chegada, cheio na festa, baixa no Plantão (a TV fala), some no fim. */
 function somDoBaile(S, perto) {
   const B = BAILE;
-  if (!S) return perto * perto; // de longe, só um eco; perto da entrada, alto
+  if (!S) return perto > 0 ? B.musica.longe + (1 - B.musica.longe) * perto * perto : 0; // de longe, baixinho; perto, alto
   if (S.fase === 'plantao') return 1 - (1 - B.musica.plantaoMul) * clamp01(S.faseT / 0.5);
   if (S.fase === 'briga') return B.musica.plantaoMul + (1 - B.musica.plantaoMul) * clamp01(S.faseT / B.musica.voltaS);
   if (S.fase === 'fim') return 1 - clamp01(S.faseT / B.fimS);
   return 1;
 }
 
-/** Chegando no baile, os corredores esvaziam: a horda de fora da tela vai embora, até sobrar hordaMax. */
-function esvaziarCorredores(game, perto, dt) {
-  game.esvaziaT = (game.esvaziaT || 0) - dt;
-  if (game.esvaziaT > 0) return;
-  game.esvaziaT = 0.5;
-  game.aliviarHorda(Math.round(BAILE.hordaMax + (1 - perto) * BAILE.hordaLonge));
+/**
+ * O último corredor antes do baile (pedido do autor): o caminho fica vazio de uma vez. A horda dá as costas e vai
+ * embora (game.js: fora da tela, some sem contar abate) e não nasce mais ninguém até o DJ cair.
+ */
+function esvaziarCorredor(game) {
+  game.baileVazio = true;
+  for (const e of game.enemies) {
+    if (e.dead || e.boss) continue;
+    e.debanda = true;
+    e.dancaT = 0;
+  }
 }
 
 /** As TVs entram no Plantão com O Acordão; os olhos do povo vão acendendo, um por um, e todos encaram o Juninho. */
@@ -154,7 +164,7 @@ function iniciar(game) {
   const p = game.player;
   for (const e of game.enemies) {
     if (e.dead || e.boss) continue;
-    if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 < 18 * 18) e.dancaT = 1e9;
+    if (!e.debanda && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 < 18 * 18) e.dancaT = 1e9;
   }
   game.metrics.baileS = Math.round(game.t);
   game.tv('baileComeca');

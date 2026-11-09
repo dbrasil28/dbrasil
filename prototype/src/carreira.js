@@ -233,6 +233,8 @@ export function recomecar(game, trecho, { calado = false } = {}) {
   game.covil = covilDe(game, trecho);
   game.cerco = null;
   game.baile = null;
+  game.baileVazio = false; // o último corredor antes do baile (D94) volta a ter horda e música
+  game.rodaDJ = null;
   game.crise = null;
   game.crisesFeitas = new Set();
   if (game.meta.melhorias && game.meta.melhorias.armaInicial) game.pendingInicial = true; // "Bolsa de ferramentas"

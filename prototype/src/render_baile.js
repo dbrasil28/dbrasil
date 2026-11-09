@@ -409,6 +409,7 @@ export function drawPlantaoTela(ctx, game, cam, t) {
   // D94: só no começo do Plantão; depois sai, para a pista aparecer com os olhos acendendo (as TVs seguem no ar)
   if (!S || S.fase !== 'plantao') return;
   const sai = BAILE.telaGrandeS;
+  if (!(sai > 0)) return;
   const entra = Math.min(clamp01(S.faseT / 0.25), 1 - clamp01((S.faseT - sai) / 0.4));
   if (entra <= 0) return;
   const wd = Math.min(cam.viewW - 48, 300);

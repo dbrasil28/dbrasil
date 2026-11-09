@@ -79,23 +79,31 @@ function ateABriga(g) {
   rodar(g, BAILE.transfS + BAILE.viraS + 0.3);
 }
 
-test('a chegada no baile (D94): os corredores esvaziam, a música do Morro dá lugar à do baile e a noite cai', () => {
+test('a chegada no baile (D94, pedido do autor): no último corredor o caminho fica vazio, a música do jogo para, a do baile vem de longe e anoitece', () => {
   const g = noMorro();
+  // antes do último corredor: horda, música do jogo, sem a do baile, de dia
+  aDistancia(g, BAILE.chegaM + 8);
+  for (let i = 0; i < 6; i++) g.spawnEnemy('telespectador', g.player.x + (i - 3) * 1.5, g.player.y + 3);
+  g.update(DT, parado);
+  assert.ok(!g.semMusicaJogo && g.somDoBaile === 0 && !(g.noiteBaile > 0), 'a chegada começou antes do último corredor');
+  // entrou no último corredor: a horda dá as costas e vai embora, a música do jogo para, a do baile vem baixinha
   const longe = aDistancia(g, 30);
   g.update(DT, parado);
-  const somLonge = g.somDoBaile;
-  const noiteLonge = g.chegadaBaile;
   assert.ok(longe > BAILE.entraM * 4 && longe < BAILE.chegaM, `longe demais ou perto demais: ${longe}`);
-  assert.ok(somLonge > 0 && somLonge < 0.5, `a música do baile já devia aparecer, baixinha: ${somLonge}`);
-  // a horda de fora da tela vai embora e a nova quase não nasce
-  const perto = aDistancia(g, 4);
-  rodar(g, 2); // a câmera chega junto
+  assert.equal(g.semMusicaJogo, 1, 'a música do jogo não parou');
+  assert.ok(g.somDoBaile > 0 && g.somDoBaile < 0.5, `a música do baile devia vir de longe, baixinha: ${g.somDoBaile}`);
+  assert.ok(g.enemies.filter((e) => !e.dead).every((e) => e.debanda), 'a horda não foi embora');
+  const somLonge = g.somDoBaile;
+  rodar(g, 6);
+  assert.ok(g.noiteBaile >= BAILE.noiteVazio * 0.9, `não começou a anoitecer com o corredor vazio: ${g.noiteBaile}`);
+  // quem aparecer também vai embora; o caminho fica vazio até a entrada
   for (let i = 0; i < 30; i++) g.spawnEnemy('telespectador', g.player.x + (i % 2 ? 30 : -30), g.player.y + 30 + i);
-  rodar(g, 3);
-  const vivos = g.enemies.filter((e) => !e.dead).length;
+  const perto = aDistancia(g, 4);
+  rodar(g, 4);
+  const vivos = g.enemies.filter((e) => !e.dead && !e.debanda).length;
   assert.ok(perto < BAILE.entraM * 3, `não chegou perto: ${perto}`);
-  assert.ok(vivos <= BAILE.hordaMax + 3, `o corredor não esvaziou: ${vivos} vivos`);
-  assert.ok(g.chegadaBaile > noiteLonge && g.somDoBaile > somLonge, 'a chegada não avançou');
+  assert.equal(vivos, 0, `o caminho não ficou vazio: ${vivos} vivos`);
+  assert.ok(g.somDoBaile > somLonge, 'a música do baile não subiu');
   assert.ok(g.noiteBaile > 0.8, `a noite não caiu na chegada: ${g.noiteBaile}`);
   assert.equal(g.baile, null, 'a festa começou antes da entrada');
 });
@@ -116,11 +124,11 @@ test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acord
   for (const tipo of Object.keys(BAILE.povo)) assert.ok(S.pessoas.some((c) => c.tipo === tipo), `sem ${tipo} na festa`);
   assert.ok(S.noPalco && S.noPalco.dj && S.noPalco.y < w.baile.y0 + 1.5, 'o DJ não está tocando no palco');
   assert.equal(g.boss, null, 'o DJ já entrou na luta');
-  assert.ok(vem.dancaT > 0, 'a horda que vinha atrás não entrou na dança');
+  assert.ok(vem.debanda || vem.dead, 'a horda que vinha atrás não foi embora (o caminho fica vazio)');
   assert.ok(tv(g, 'baileComeca'));
   assert.ok(g.somDoBaile > 0.95, 'a música do baile não está no alto');
   rodar(g, BAILE.plantaoS * 0.8);
-  assert.equal(g.enemies.filter((e) => !e.dead).length, 1, 'a horda nasceu na festa');
+  assert.equal(g.enemies.filter((e) => !e.dead && !e.debanda).length, 0, 'a horda nasceu na festa (ou atacou na chegada)');
   rodar(g, BAILE.plantaoS * 0.2 + 0.2);
   assert.equal(S.fase, 'plantao');
   assert.ok(tv(g, 'baileAcordao'), 'a TV não entrou com O Acordão');

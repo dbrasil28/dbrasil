@@ -1323,7 +1323,7 @@ export class Game {
     let worst = null;
     let worstDmg = 0;
     for (const e of tmp) {
-      if (e.dead || e.dmg <= 0 || e.bailaT > 0) continue; // dançando o Batidão (D67) não bate
+      if (e.dead || e.dmg <= 0 || e.bailaT > 0 || e.debanda) continue; // dançando o Batidão (D67) não bate; indo embora (baile), também não
       if (Math.abs((e.z || 0) - p.z) > 1) continue; // um em cima da laje, outro no chão: não encosta
       const rr = p.r + e.r + 0.05;
       if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 > rr * rr) continue;
@@ -1822,6 +1822,15 @@ export class Game {
         // chegou no lugar dele em volta da casa: para, sem empurrar a parede
         mx = 0;
         my = 0;
+      }
+      if (e.debanda) {
+        // chegando no baile (D94): a horda dá as costas e vai embora; fora da tela, some (sem contar abate)
+        mx = -dpx / d;
+        my = -dpy / d;
+        if (!this.onScreen(e.x, e.y)) {
+          e.dead = true;
+          continue;
+        }
       }
       if (e.dancaT > 0) {
         // baile na laje: dançando, não anda

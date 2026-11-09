@@ -320,7 +320,7 @@ function quadro(now) {
   // música: a do trecho em que o Juninho está; mais baixa fora da partida (pausa, menus, resultado)
   if (state !== 'title') musica.tocar(game.segment === 'morro' ? 'morro' : 'orla');
   musica.abafar(state !== 'playing' || !!game.modal);
-  musica.silenciar(game.silencio); // perto do Monstrão a Orla fica em silêncio (D82)
+  musica.silenciar(Math.max(game.silencio || 0, game.semMusicaJogo || 0)); // perto do Monstrão (D82) e no último corredor antes do baile (D94), sem a música do jogo
   musica.misturar('baile', state === 'title' ? 0 : game.somDoBaile); // chegando no baile, a música dele sobe (D94)
   sons.silenciar(Math.max(game.silencio, game.somDoBaile || 0)); // e o ambiente da favela some
   musica.update(dtReal);

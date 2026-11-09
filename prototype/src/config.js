@@ -820,9 +820,9 @@ export const CHEGADA = {
 // se abre logo antes de a relíquia entrar (7 a 9), estica no estouro (10 a 12), o laço aberto ('laco': 13 a 18,
 // lacoFps), desce (19, 20) e pousa (21 a 24). Depois de pousar, se o jogador anda, volta a caminhada.
 // O baile da esplanada (D91; a chegada no roteiro do autor, D94): o chefe do meio do Morro.
-// A chegada: de chegaM até entraM da esplanada, os corredores esvaziam (a horda para de nascer e a de fora da tela
-// vai embora até sobrar hordaMax; mais longe, hordaMax + hordaLonge), a música do Morro some e a do baile sobe, e a
-// noite cai (cheia na entrada). Na entrada, a festa: a pista lotada (povo, longe palcoM do palco), o DJ tocando
+// A chegada: a chegaM da esplanada (o último corredor), o caminho fica vazio de uma vez (a horda vai embora e não
+// nasce mais), a música do Morro para, a do baile começa de longe e sobe, e a noite começa a cair (cheia na
+// entrada); entrando, a de fora da tela que sobrou vai embora até sobrar hordaMax. Na entrada, a festa: a pista lotada (povo, longe palcoM do palco), o DJ tocando
 // atrás da mesa (djAtrasM do fundo) e a horda que vinha atrás dança junto. Em plantaoS as TVs entram no Plantão com
 // O Acordão (em silhueta, D21), o som baixa (musica.plantaoMul) e os olhos de todos acendem, um por um, em olhosS;
 // encaraS depois, a pancadaria: cada um vira horda (viraS, a transformação em transfS), o mais perto do Juninho por
@@ -833,8 +833,12 @@ export const CHEGADA = {
 // portão do fundo abre e a noite vai embora em fimS. A música do baile é "Ela Não Vale Nada" (do autor, 130 BPM;
 // musica.faseS é a primeira batida, para a dança e as luzes baterem com ela).
 export const BAILE = {
-  entraM: 2, chegaM: 40, noiteS: 1.5, noite: 0.62, pistaLuz: 0.45, // pistaLuz: a luz geral da pista (o povo aparece)
-  musica: { faseS: 0.265, plantaoMul: 0.35, voltaS: 0.6 },
+  entraM: 2, chegaM: 40, noiteS: 4, noite: 0.62, pistaLuz: 0.45, // pistaLuz: a luz geral da pista (o povo aparece)
+  // pedido do autor: a chegaM do baile (o último corredor) o caminho fica vazio de uma vez (a horda vai embora), a música
+  // do jogo para e começa a anoitecer (noiteVazio, mais escuro conforme chega); a do baile começa de longe (musica.longe)
+  // e sobe até a entrada. Quem volta para trás mais que soltaM depois da chegaM desfaz isso.
+  noiteVazio: 0.4, soltaM: 25,
+  musica: { faseS: 0.265, plantaoMul: 0.35, voltaS: 0.6, longe: 0.12 },
   // o povo da festa (pedido do autor: lotado, quase sem espaço): moradores do Morro, mulheres de roupa curta,
   // funkeiros e traficantes, um a cada passoM (com folgaM de sobra para não ficar em fila), até max; povo é o peso
   // de cada um. Ninguém nasce em cima do Juninho (entradaM) nem no palco (palcoM). Na pancadaria, cada um vira horda:
@@ -847,9 +851,11 @@ export const BAILE = {
   moradoresReforco: ['listrado', 'moca', 'moleque', 'tiozinho'], // nos reforços da pancadaria (já horda), todos
   lotacao: { passoM: 1.2, folgaM: 0.35, max: 210, entradaM: 2.6 },
   palcoM: 3.6, beiraM: 0.8, djAtrasM: 0.75,
-  hordaMax: 6, hordaLonge: 40,
-  plantaoS: 6, olhosS: 2.6, encaraS: 1.2, viraS: 1.8, transfS: 1.2, acordaM: 18, fimS: 3,
-  telaGrandeS: 2, // a TV grande do Plantão na tela: só no começo dele (depois, a pista e os olhos)
+  hordaMax: 6,
+  // plantaoS: a festa antes do Plantão (pedido do autor: chegar, ficar um tempo vendo a festa, a vida acontecendo; só
+  // depois o vagabundo aparece nas TVs do palco e o povo muda)
+  plantaoS: 20, olhosS: 2.6, encaraS: 1.2, viraS: 1.8, transfS: 1.2, acordaM: 18, fimS: 3,
+  telaGrandeS: 0, // a TV grande do Plantão no meio da tela (pedido do autor: não; só as TVs do palco). 0 = sem ela
   caos: { sobe: 20, max: 95, porAbate: 0.2 },
   // na pancadaria, a pista toda encara o Juninho, mas parte para cima aos poucos: no máximo max da festa brigando
   // de uma vez, o mais perto primeiro (viraS entre o primeiro e o último de cada leva); cada um que cai, outro da
