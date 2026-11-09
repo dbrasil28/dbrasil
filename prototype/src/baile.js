@@ -6,14 +6,16 @@
 // a pancadaria: todo mundo para cima do Juninho, e a polícia que tinha ficado na entrada entra para ajudar. O DJ
 // segue tocando, só olhando; quando o Caos sobe o bastante, ele entra na luta (dj.js). Com ele no chão, o som cai,
 // a pista acorda e o portão do fundo abre o resto do morro. Números em config.js (BAILE). Sem DOM.
-import { BAILE, ENEMIES } from './config.js';
+import { BAILE, ENEMIES, HORDA_MORRO } from './config.js';
 import { makeRng } from './math.js';
 import { palcoDoBaile } from './cenario.js';
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
-// a arte de cada um do povo (WALK_ATLAS; o cidadão usa a da horda da Orla, com a transformação) e o tamanho
-const ARTE_DO_POVO = { cidadao: null, garota: 'gp', funkeiro: 'fk', traficante: 'tf' };
-const TAM_DO_POVO = { cidadao: null, garota: 1.0, funkeiro: ENEMIES.funkeiro.size, traficante: ENEMIES.traficante.size };
+// a arte de cada um do povo (WALK_ATLAS; o morador usa a da horda do Morro, pelo tint) e o tamanho
+const ARTE_DO_POVO = { morador: null, garota: 'gp', funkeiro: 'fk', traficante: 'tf' };
+const TAM_DO_POVO = { morador: null, garota: 1.0, funkeiro: ENEMIES.funkeiro.size, traficante: ENEMIES.traficante.size };
+/** O tint de um morador do Morro sorteado entre os que vão ao baile (BAILE.moradores): a roupa n da horda do Morro. */
+const tintMorador = (rng) => 100 + HORDA_MORRO.nomes.indexOf(BAILE.moradores[Math.floor(rng() * BAILE.moradores.length)]);
 
 /** Distância de (x, y) até a esplanada (0 dentro dela). */
 export function distEsplanada(w, x, y) {
@@ -136,7 +138,7 @@ function iniciar(game) {
     let tipo = pesos[0][0];
     for (const [t, n] of pesos) if ((r -= n) < 0) { tipo = t; break; }
     pessoas.push({
-      x: s.x, y: s.y, vx: 0, vy: 0, tipo, arte: ARTE_DO_POVO[tipo], tam: TAM_DO_POVO[tipo], tint: Math.floor(rng() * 3),
+      x: s.x, y: s.y, vx: 0, vy: 0, tipo, arte: ARTE_DO_POVO[tipo], tam: TAM_DO_POVO[tipo], tint: tipo === 'morador' ? tintMorador(rng) : 0,
       walk: rng() * 10, ritmo: rng(), danca: true, viraT: -1, virou: false, id: 950000 + pessoas.length, olho: 0, olhoEm: -1,
     });
   }
@@ -273,7 +275,7 @@ function chegaMaisGente(game, S, dt) {
     let r = rng() * total;
     let tipo = pesos[0][0];
     for (const [t, n] of pesos) if ((r -= n) < 0) { tipo = t; break; }
-    const e = tipo === 'funkeiro' ? game.spawnEnemy('funkeiro', s.x, s.y) : game.spawnEnemy('telespectador', s.x, s.y, { tint: tipo === 'garota' ? 200 : Math.floor(rng() * 3) });
+    const e = tipo === 'funkeiro' ? game.spawnEnemy('funkeiro', s.x, s.y) : game.spawnEnemy('telespectador', s.x, s.y, { tint: tipo === 'garota' ? 200 : tintMorador(rng) });
     e.doBaile = true;
     game.burst(s.x, s.y, 4, 'static');
     S.chegaAcc -= 1;

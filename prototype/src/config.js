@@ -827,12 +827,15 @@ export const CHEGADA = {
 export const BAILE = {
   entraM: 2, chegaM: 40, noiteS: 1.5, noite: 0.62, pistaLuz: 0.45, // pistaLuz: a luz geral da pista (o povo aparece)
   musica: { faseS: 0.265, plantaoMul: 0.35, voltaS: 0.6 },
-  // o povo da festa (pedido do autor: lotado, quase sem espaço): cidadãos, mulheres de roupa curta, funkeiros e
-  // traficantes, um a cada passoM (com folgaM de sobra para não ficar em fila), até max; povo é o peso de cada um.
-  // Ninguém nasce em cima do Juninho (entradaM) nem no palco (palcoM). Na pancadaria, cada um vira horda: o cidadão
-  // com a transformação dele, a mulher vira a Mulher de Biquíni da horda e o funkeiro e o traficante viram o
+  // o povo da festa (pedido do autor: lotado, quase sem espaço): moradores do Morro, mulheres de roupa curta,
+  // funkeiros e traficantes, um a cada passoM (com folgaM de sobra para não ficar em fila), até max; povo é o peso
+  // de cada um. Ninguém nasce em cima do Juninho (entradaM) nem no palco (palcoM). Na pancadaria, cada um vira horda:
+  // o morador vira a horda do Morro, a mulher vira a Mulher de Biquíni da horda e o funkeiro e o traficante viram o
   // inimigo deles (a firma). A arte dos funkeiros loiros está pedida (PEDIDO_MORRO_BAILE.md).
-  povo: { cidadao: 46, garota: 31, funkeiro: 19, traficante: 4 },
+  // moradores: quais moradores do Morro vão ao baile (pedido do autor: os cidadãos da Orla não têm nada a ver com
+  // a favela), pelo nome da roupa da horda do Morro (HORDA_MORRO)
+  povo: { garota: 50, funkeiro: 30, traficante: 4 }, // morador: entra quando tiver a arte da dança (hoje só a horda)
+  moradores: ['listrado', 'moca', 'moleque', 'tiozinho'],
   lotacao: { passoM: 1.2, folgaM: 0.35, max: 210, entradaM: 2.6 },
   palcoM: 3.6, beiraM: 0.8, djAtrasM: 0.75,
   hordaMax: 6, hordaLonge: 40,
@@ -844,7 +847,7 @@ export const BAILE = {
   // pista vem. Acabando a pista, o resto do baile chega pelas beiradas (ritmo por segundo, longe longeM do Juninho;
   // povo: o peso de cada um), até o DJ entrar. Com o DJ na luta, quem não brigou fica olhando; com ele no chão, vai
   // embora.
-  briga: { max: 36, ritmo: 2.5, longeM: 7, povo: { cidadao: 6, garota: 4, funkeiro: 2 } },
+  briga: { max: 36, ritmo: 2.5, longeM: 7, povo: { morador: 6, garota: 4, funkeiro: 2 } },
   postoM: 2.5,
   // luzes do baile: refletores de néon girando (cores, raio no chão), as TVs (largura e altura, m) e o brilho
   luzes: { n: 7, raioM: 4.2, giroS: 5.5, cores: ['255,60,200', '60,220,255', '170,90,255', '60,255,140', '255,170,40'], brilho: 0.3 },
@@ -957,7 +960,8 @@ export const DIRECTOR = {
 
 // Horda do Morro (D37): moradores hipnotizados com roupa de favela (listrado, moça, moleque, senhor, senhora,
 // tiozinho), cada um com caminhada, ataque e raiva (sprites.js, CROWD_ANIM_MORRO)
-export const HORDA_MORRO = { roupas: 6 };
+// roupas da horda do Morro, na ordem das artes (CROWD_ANIM_MORRO em sprites.js): a roupa n é o tint 100 + n
+export const HORDA_MORRO = { roupas: 6, nomes: ['listrado', 'moca', 'moleque', 'senhor', 'senhora', 'tiozinho'] };
 // horda da Orla: além dos três telespectadores, as roupas novas do elenco v2 (biquíni, sunga, pochete, controle
 // remoto, telemarketing, peão); `novas`: a parte da horda que sai com elas
 export const HORDA_ORLA = { roupasNovas: 4, novas: 0.5 }; // D78: Telemarketing e Peão de Obra são da horda de São Paulo
