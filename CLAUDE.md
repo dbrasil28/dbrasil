@@ -17,6 +17,7 @@ Responda e escreva documentos em **português do Brasil**.
 | Arte: guia de produção, mapas, prompts e recortes de referência | `docs/arte/` (página gerada por `node tools/guia-para-html.mjs`) |
 | Sons: lista de todos os sons, prompts e formato; créditos dos gravados | `docs/som/PEDIDO_SONS.md`, `docs/som/CREDITOS_SONS.md` (motor em `prototype/src/sons.js`, arquivos em `prototype/assets/sons/`) |
 | Protótipo (HTML + JS, sem dependências) | `prototype/` |
+| App Android (Capacitor): projeto, fontes embutidas e como gerar o APK | `app/` (`app/LEIA-ME.md`) |
 | Conteúdo e todos os números de balanceamento | `prototype/src/config.js` |
 | Simulação (sem DOM, roda no Node) | `prototype/src/game.js` |
 
@@ -30,6 +31,7 @@ node tools/build-single.mjs                # gera dist/brasil-estado-de-caos.htm
 node tools/build-single.mjs <saida.html> --fragment --separado
                                            # para a página de teste: HTML só com o código e as imagens em assets/ ao lado
 node tools/planta-mundo.mjs <saida.html>   # planta da rota vista de cima, com cada objeto no lugar (a partir do jogo)
+cd app && npm run apk                      # app Android (Capacitor): o jogo inteiro dentro do APK (ver app/LEIA-ME.md)
 python3 -I tools/montar-atlas.py <pacote> prototype/assets/personagens/<pasta> <pasta-nova> x
                                            # atlas 16×6 de caminhada (+ pose de acordado na horda); Pillow, numpy, opencv
 python3 -I tools/montar-poses.py <pacote> prototype/assets/personagens/<pasta> <pasta-nova> x ataque furia

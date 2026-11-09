@@ -1,0 +1,18 @@
+{
+  "name": "brasil-estado-de-caos-app",
+  "private": true,
+  "version": "0.1.0",
+  "description": "BRASIL: ESTADO DE CAOS como app Android (Capacitor): o jogo inteiro dentro do APK, sem depender de página na nuvem.",
+  "scripts": {
+    "www": "node montar-www.mjs",
+    "sync": "npm run www && npx cap sync android",
+    "apk": "npm run sync && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0"
+  }
+}

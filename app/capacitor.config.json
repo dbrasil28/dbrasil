@@ -1,0 +1,10 @@
+{
+  "appId": "br.estadodecaos.jogo",
+  "appName": "Brasil: Estado de Caos",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#141117",
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": true
+  }
+}
