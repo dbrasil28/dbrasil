@@ -218,8 +218,11 @@ const CHAO_MORRO = {
 };
 const padroes = new WeakMap();
 
-/** Pedaço da rota coberto pela textura (deitada no chão com a conta da câmera), mais escuro no fim de tarde. */
-function chaoComTextura(ctx, cam, im, T, r, x, y, wd, ht) {
+/**
+ * Pedaço da rota coberto pela textura (deitada no chão com a conta da câmera), mais escuro no fim de tarde.
+ * bordas: a sombra das paredes nos dois lados (o chão entre as casas não tem: ele passa por baixo delas).
+ */
+function chaoComTextura(ctx, cam, im, T, r, x, y, wd, ht, bordas = true) {
   let pat = padroes.get(ctx)?.get(im);
   if (!pat) {
     if (!padroes.has(ctx)) padroes.set(ctx, new Map());
@@ -251,6 +254,7 @@ function chaoComTextura(ctx, cam, im, T, r, x, y, wd, ht) {
   // fim de tarde no morro: mais escuro que a arte, para a horda aparecer; sombra das paredes nas bordas
   ctx.fillStyle = 'rgba(34,24,18,0.34)';
   ctx.fillRect(x, y, wd, ht);
+  if (!bordas) return;
   const sw = Math.min(wd * 0.25, cam.ppu * 0.7);
   for (const [x0, x1] of [[x, x + sw], [x + wd, x + wd - sw]]) {
     const g = ctx.createLinearGradient(x0, 0, x1, 0);
@@ -263,13 +267,29 @@ function chaoComTextura(ctx, cam, im, T, r, x, y, wd, ht) {
 
 /** Subida do Morro: paredes de casas com janelas acesas pela TV e, por cima, as vielas, escadarias e lajes. */
 function drawMorroGround(ctx, cam, w, b) {
-  const ppu = cam.ppu;
-  const k = cam.k;
   cam.toScreen(b.minX - 6, b.minY, pt);
   cam.toScreen(b.maxX + 6, b.maxY, pt2);
   ctx.fillStyle = '#3a2f29';
   ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
-  // casas vistas de cima: lajes e telhados de cores gastas, com janelas azuladas de TV
+  // o chão entre as casas (pedido do autor): piso de cimento, mais escuro que o caminho (ali não se anda).
+  // Os ladrilhos começam em múltiplos do tamanho deles, para emendar de um bloco do chão para o outro.
+  if (images.chao_laje) {
+    const T = CHAO_MORRO.laje;
+    const r = { x0: Math.floor((b.minX - 6) / T.larg) * T.larg, y0: Math.floor(b.minY / T.larg) * T.larg, x1: b.maxX + 6, y1: b.maxY };
+    chaoComTextura(ctx, cam, images.chao_laje, T, r, pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y, false);
+    ctx.fillStyle = 'rgba(28,20,14,0.38)';
+    ctx.fillRect(pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y);
+    dirt(ctx, pt.x, pt.y, pt2.x - pt.x, pt2.y - pt.y, 0.6);
+  } else drawTelhadosDeCima(ctx, cam, b);
+  // os quintais atrás da mureta dos becos (D92): concreto gasto e terra, mais escuros que o caminho (ali não se anda)
+  quintaisDoMorro(ctx, cam, w, b);
+  caminhosDoMorro(ctx, cam, w, b);
+}
+
+/** Sem a arte do cimento: casas vistas de cima, lajes e telhados de cores gastas, com janelas azuladas de TV. */
+function drawTelhadosDeCima(ctx, cam, b) {
+  const ppu = cam.ppu;
+  const k = cam.k;
   const C = 3.2;
   for (let gy = Math.floor(b.minY / C); gy <= Math.ceil(b.maxY / C); gy++) {
     for (let gx = Math.floor((b.minX - 6) / C); gx <= Math.ceil((b.maxX + 6) / C); gx++) {
@@ -290,7 +310,10 @@ function drawMorroGround(ctx, cam, w, b) {
       }
     }
   }
-  // os quintais atrás da mureta dos becos (D92): concreto gasto e terra, mais escuros que o caminho (ali não se anda)
+}
+
+/** Os quintais atrás da mureta dos becos (D92): concreto gasto e terra, mais escuros que o caminho. */
+function quintaisDoMorro(ctx, cam, w, b) {
   for (const r of w.quintais || []) {
     if (r.y1 < b.minY - 1 || r.y0 > b.maxY + 1) continue;
     cam.toScreen(r.x0, r.y0, pt);
@@ -308,7 +331,11 @@ function drawMorroGround(ctx, cam, w, b) {
     ctx.fillRect(x, y, wd, ht);
     dirt(ctx, x, y, wd, ht, 0.6);
   }
-  // caminhos: viela (cimento), escadaria (degraus) e laje (concreto claro)
+}
+
+/** Os caminhos: viela (cimento), escadaria (degraus) e laje (concreto claro); o vão do portão fechado. */
+function caminhosDoMorro(ctx, cam, w, b) {
+  const ppu = cam.ppu;
   for (const r of w.path) {
     if (r.kind === 'orla' || r.y1 < b.minY - 1 || r.y0 > b.maxY + 1) continue;
     cam.toScreen(r.x0, r.y0, pt);
