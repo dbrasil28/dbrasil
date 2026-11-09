@@ -60,6 +60,10 @@ Antes de entregar, confira:
 - nada está cortado.
 ````
 
+## Situação (09/11/2026): no jogo (D89)
+
+A folha chegou só como imagem no chat, em 1125×750 (`docs/arte/juninho_aura/folha_1_recebida.webp`), e entrou no jogo montada por `tools/montar-aura.py` (atlas em `prototype/assets/personagens/juninho_aura/`). Se vier o PNG de 1536×1024, é só rodar a ferramenta de novo com ele: o desenho fica mais nítido.
+
 ## Quando o pacote chegar (proposta de jogo)
 
 1. Monto o atlas e confiro o ângulo e a escala contra o chão do jogo e contra a pose parada do Juninho.

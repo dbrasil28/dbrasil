@@ -12,6 +12,7 @@ export const IMAGES = {
   juninho_walk_atlas: 'assets/personagens/juninho_caminhada_atlas.webp',
   juninho_carregando_atlas: 'assets/personagens/juninho_carregando/caminhada_atlas.webp', // braços erguidos com o objeto (Figma)
   juninho_atropelado_atlas: 'assets/personagens/juninho_atropelado/atropelado_atlas.webp', // derrubado: 8 direções × 12 quadros (2 linhas de 6 cada)
+  juninho_aura_atlas: 'assets/personagens/juninho_aura/aura_atlas.webp', // recebendo a aura na cena da relíquia (D89): 24 quadros de frente
   // Caminhada em 16 direções × 6 quadros (atlas montados por tools/montar-atlas.py; ver WALK_ATLAS)
   // Telespectadores Hipnotizados, com pose de acordado
   tele_a_walk_atlas: 'assets/personagens/telespectador_a/caminhada_atlas.webp', // A: camisa amarela
@@ -298,6 +299,9 @@ export const POSE_ATLAS = {
   pmp: { atlas: 'policial_militar_poses_atlas', prefix: 'pmp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
   ptp: { atlas: 'policial_tropa_poses_atlas', prefix: 'ptp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
   vpp: { atlas: 'vendedor_picole_poses_atlas', prefix: 'vpp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
+  // Juninho recebendo a aura (D89, tools/montar-aura.py): 24 quadros de frente em 6×4; célula 200×176 com o chão a pe px
+  // (sobra embaixo para a ponta do pé no ar); em pé ele tem figureH px, como na caminhada
+  jau: { atlas: 'juninho_aura_atlas', prefix: 'jau', cols: 6, rows: 4, cw: 200, ch: 176, pe: 168, figureH: 155 },
   // Mototaxista (pacote 360 v3, tools/montar-veiculo.py): pilotando em 16 direções × 6 quadros; figureH: a maior figura
   mtx: { atlas: 'mototaxista_atlas', prefix: 'mtx', cols: 6, rows: 16, cw: 220, ch: 170, figureH: 120, escala: 0.8 },
 };

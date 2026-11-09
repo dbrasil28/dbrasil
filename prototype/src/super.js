@@ -43,6 +43,12 @@ export function updateCena(game, dt) {
     C.estourou = true;
     estouro(game, C);
   }
+  if (!C.pousou && C.t >= S.pousaS) {
+    // pousou (D89): o chão treme um pouco e levanta poeira
+    C.pousou = true;
+    game.shake(0.2);
+    game.burst(game.player.x, game.player.y, 8, 'poeira');
+  }
   if (C.t >= S.durS) {
     game.cena = null;
     return false;
@@ -78,15 +84,37 @@ function estouro(game, C) {
   }
 }
 
-/** Altura do Juninho no ar durante a cena (m): sobe, flutua, e desce depois do estouro. */
+/** Altura do Juninho no ar durante a cena (m): sobe, flutua (também aberto, depois do estouro), desce e pousa. */
 export function alturaNaCena(game) {
   const C = game.cena;
   if (!C) return 0;
   const S = SUPER.cena;
   const t = C.t;
+  const flutua = (tt) => S.alturaM + Math.sin((tt - S.sobeS) * 5) * 0.06;
   if (t < S.sobeS) return ease(t / S.sobeS) * S.alturaM;
-  if (t < S.chegaS) return S.alturaM + Math.sin((t - S.sobeS) * 5) * 0.06;
-  return S.alturaM * (1 - ease(Math.min(1, (t - S.chegaS) / (S.durS - S.chegaS))));
+  if (t < S.desceS) return flutua(t);
+  if (t >= S.pousaS) return 0;
+  const k = (t - S.desceS) / (S.pousaS - S.desceS);
+  return flutua(S.desceS) * (1 - k * k); // cai cada vez mais rápido e encosta no chão no quadro do pouso
+}
+
+/**
+ * Quadro da folha do Juninho recebendo a aura (1 a 24) nesta hora da cena; 0 fora da cena (D89).
+ * Só desenho, mas fica aqui (sem DOM) para os testes conferirem a ordem.
+ */
+export function quadroDaAura(game) {
+  const C = game.cena;
+  if (!C) return 0;
+  const A = SUPER.aura;
+  let at = A.quadros[0];
+  for (const q of A.quadros) {
+    if (q[0] > C.t) break;
+    at = q;
+  }
+  const d = C.t - at[0];
+  if (at[1] === 'treme') return Math.floor(d / A.tremeS) % 2 ? 5 : 6;
+  if (at[1] === 'laco') return 13 + (Math.floor(d * A.lacoFps) % 6);
+  return at[1];
 }
 
 /** Zoom da câmera na cena (só desenho, D69): chega perto enquanto ele sobe, tranco no estouro, volta na descida. */

@@ -16,7 +16,7 @@ import { drawCriseChao, drawCriseCeu, escondidoDeDia } from './render_crises.js'
 import { drawAvisosChao, monstraoNaLista, drawMonstraoObj, drawCarroErguido } from './render_monstrao.js';
 import { drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado } from './render_carreira.js';
 import { drawCenaFundo, drawCenaFrente, drawFaixaCena, drawGolaco, drawBatidao, drawOndasBatidao, drawNotaDanca, drawFachoReliquia } from './render_super.js';
-import { alturaNaCena, zoomNaCena } from './super.js';
+import { alturaNaCena, zoomNaCena, quadroDaAura } from './super.js';
 import { drawPalestras, drawMarcaAgiota, drawCurasPastor, drawCurados, drawBilhetes, drawAposta } from './render_elenco.js';
 import { posDoMembro } from './chegada.js';
 import {
@@ -843,7 +843,17 @@ export class Renderer {
       const D = p.derrubado;
       const jat = D ? walkReady(WALK_ATLAS.jat) : null;
       const noAr = game.cena ? alturaNaCena(game) : 0; // na cena da relíquia (D67): no ar, de frente
-      if (noAr > 0 && !jat) {
+      // recebendo a aura (D89): a folha de 24 quadros de frente; já no chão, se ele anda, volta a caminhada
+      const qa = game.cena && !jat ? quadroDaAura(game) : 0;
+      const aura = qa && images.jau_0_0 && !(qa >= 21 && p.moving) ? POSE_ATLAS.jau : null;
+      let celH = ATLAS.ch;
+      let soltaPx = 0; // a célula da aura tem sobra embaixo do chão (a ponta do pé no ar): desce o desenho isso
+      if (aura) {
+        id = `jau_${Math.floor((qa - 1) / aura.cols)}_${(qa - 1) % aura.cols}`;
+        fig = aura.figureH;
+        celH = aura.ch;
+        soltaPx = ((aura.ch - aura.pe) / aura.figureH) * playerPx;
+      } else if (noAr > 0 && !jat) {
         id = 'ja_0_0';
       } else if (jat) {
         // derrubado (D64): 8 direções de voo, 12 quadros em duas linhas de 6 no atlas
@@ -867,13 +877,13 @@ export class Renderer {
       else if (p.moving && images.jw_0_0) id = `jw_${row}_${Math.floor((p.walkPhase / (Math.PI * 2)) * 6) % 6}`; // caminhada (fase mantida ao virar)
       else if (p.helmetsOut > 0) id = `ja_${row}_3`; // parado, capacete em voo
       else id = `ja_${row}_0`; // parado, capacete na mão
-      img = this.cache.get(id, playerPx * (ATLAS.ch / fig), {
+      img = this.cache.get(id, playerPx * (celH / fig), {
         mode: hurtBlink ? 'hurt' : '', tint: game.corruption >= 50 ? [232, 182, 44, 0.22] : null, noShadow: true,
       });
       if (img) {
         const invulnBlink = p.invulnT > 0 && !D && Math.floor(game.t * 12) % 2 === 0 ? 0.45 : 1;
         ctx.globalAlpha = alpha * invulnBlink;
-        this.drawPlayerAtlas(ctx, img, pt, playerPx * (ATLAS.ch / ATLAS.figureH), p, row, game, (jat ? D.z : noAr) * game.camera.ppu);
+        this.drawPlayerAtlas(ctx, img, pt, playerPx * (ATLAS.ch / ATLAS.figureH), p, row, game, (jat ? D.z : noAr) * game.camera.ppu - soltaPx);
         ctx.globalAlpha = 1;
         return;
       }

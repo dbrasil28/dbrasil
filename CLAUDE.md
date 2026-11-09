@@ -34,6 +34,8 @@ python3 -I tools/montar-atlas.py <pacote> prototype/assets/personagens/<pasta> <
                                            # atlas 16×6 de caminhada (+ pose de acordado na horda); Pillow, numpy, opencv
 python3 -I tools/montar-poses.py <pacote> prototype/assets/personagens/<pasta> <pasta-nova> x ataque furia
                                            # poses paradas em 16 direções (folhas 4×4), na escala da caminhada
+python3 -I tools/montar-aura.py docs/arte/juninho_aura/folha_1_recebida.webp prototype/assets/personagens/juninho_aura
+                                           # Juninho recebendo a aura (folha 6×4 de frente) no atlas da cena da relíquia
 python3 -I tools/render-bola.py docs/arte/objetos_figma/bola_texturas_figma.webp <saida>
                                            # Bola da Altinha em 3D (girando e rolando em 8 direções); numpy, Pillow
 ```

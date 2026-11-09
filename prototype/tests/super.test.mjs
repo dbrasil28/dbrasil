@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { Game } from '../src/game.js';
 import { defaultSettings } from '../src/settings.js';
 import { RELIQUIAS, SUPER } from '../src/config.js';
-import { alturaNaCena } from '../src/super.js';
+import { alturaNaCena, quadroDaAura } from '../src/super.js';
 import { recomecar } from '../src/carreira.js';
 
 const DT = 1 / 30;
@@ -79,6 +79,39 @@ test('achar a relíquia: o tempo para, o Juninho sobe, ela entra nele e a carta 
   assert.equal(g.cena, null);
   assert.equal(alturaNaCena(g), 0, 'ficou no ar');
   assert.ok(g.superPronta(), 'a carta não ficou pronta');
+});
+
+test('recebendo a aura (D89): sobe, se encolhe e treme com o tempo parado, se abre no estouro, fica aberto, desce e pousa', () => {
+  const g = jogo();
+  const a = g.achados.find((x) => x.reliquia === 'altinha');
+  chegar(g, a);
+  g.update(DT, parado);
+  assert.ok(g.cena, 'a cena não começou');
+  const S = SUPER.cena;
+  const vistos = [];
+  const alturas = [];
+  let estouro = 0;
+  while (g.cena) {
+    const q = quadroDaAura(g);
+    if (vistos[vistos.length - 1] !== q) vistos.push(q);
+    alturas.push([g.cena.t, alturaNaCena(g)]);
+    if (!estouro && g.cena.estourou) estouro = q;
+    g.update(DT, parado);
+  }
+  const ordem = vistos.filter((q, i) => vistos.indexOf(q) === i);
+  for (let q = 1; q <= 24; q++) assert.ok(ordem.includes(q), `o quadro ${q} não apareceu`);
+  // fora o tremor (5 e 6) e o laço (13 a 18), a folha anda sempre para a frente
+  const sem = ordem.filter((q) => q !== 6 && (q < 14 || q > 18));
+  assert.deepEqual(sem, [...sem].sort((x, y) => x - y), `fora de ordem: ${ordem}`);
+  assert.ok(vistos.filter((q) => q === 6).length >= 2, 'não tremeu encolhido');
+  assert.ok(estouro >= 9 && estouro <= 10, `não estava aberto no estouro (quadro ${estouro})`);
+  assert.equal(vistos[vistos.length - 1], 24, 'não terminou de pé');
+  // no ar do começo até pousaS, no chão dali em diante
+  for (const [t, h] of alturas) {
+    if (t > 0.1 && t < S.pousaS - 0.05) assert.ok(h > 0.05, `desceu antes da hora (t ${t.toFixed(2)})`);
+    if (t >= S.pousaS) assert.equal(h, 0, 'não pousou');
+  }
+  assert.ok(alturas.some(([t, h]) => t > S.chegaS + 0.3 && t < S.desceS && h > S.alturaM * 0.9), 'não ficou no ar aberto depois do estouro');
 });
 
 test('Golaço: a bola gigante atravessa a horda várias vezes, bate em quase todos e some no fim', () => {

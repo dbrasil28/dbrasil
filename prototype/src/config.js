@@ -720,9 +720,20 @@ export const CHEGADA = {
   teste: { tempoS: 600, distM: 34, reliquia: 'altinha' },
 };
 
+// D89: depois do estouro ele fica no ar, aberto recebendo a luz, até desceS; desce até pousaS e pousa agachado
+// (a cena acaba em durS, já de pé). aura.quadros: a folha do Juninho recebendo a aura (tools/montar-aura.py),
+// pela hora da cena: [desde (s), quadro]. Sobe (1, 2), se encolhe (3 a 5), treme ('treme': 5 e 6 a cada tremeS),
+// se abre logo antes de a relíquia entrar (7 a 9), estica no estouro (10 a 12), o laço aberto ('laco': 13 a 18,
+// lacoFps), desce (19, 20) e pousa (21 a 24). Depois de pousar, se o jogador anda, volta a caminhada.
 export const SUPER = {
   cargaS: 75, abateS: 0.04, eliteS: 3, chefeS: 15,
-  cena: { durS: 3.0, sobeS: 0.55, voaS: 0.3, chegaS: 1.55, alturaM: 1.3, raioM: 8, dano: 60, empurra: 18, zoom: 1.6, zoomS: 0.9, tranco: 0.14, trancoS: 0.25 },
+  cena: { durS: 3.35, sobeS: 0.55, voaS: 0.3, chegaS: 1.55, desceS: 2.45, pousaS: 2.85, alturaM: 1.3, raioM: 8, dano: 60, empurra: 18, zoom: 1.6, zoomS: 0.9, tranco: 0.14, trancoS: 0.25 },
+  aura: {
+    quadros: [[0, 1], [0.25, 2], [0.55, 3], [0.65, 4], [0.77, 5], [0.9, 'treme'], [1.25, 7], [1.35, 8], [1.45, 9],
+      [1.55, 10], [1.67, 11], [1.77, 12], [1.89, 'laco'], [2.45, 19], [2.65, 20], [2.85, 21], [2.95, 22], [3.12, 23], [3.22, 24]],
+    tremeS: 0.06,
+    lacoFps: 10,
+  },
 };
 // pista da relíquia (D67): o facho de luz dourado que sobe do esconderijo, visto até fachoM; fora da tela,
 // a claridade dourada na beira da tela, do lado dela
