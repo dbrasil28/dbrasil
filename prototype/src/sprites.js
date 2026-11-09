@@ -246,7 +246,9 @@ export const WALK_ATLAS = {
   hpo: { atlas: 'horda_peao_walk_atlas', prefix: 'hpo', figureH: 157, escala: 0.7 },
   // inimigos do elenco v2 (D73): Laranja e Rato de Academia (carregam com as roupas novas da Orla)
   lj: { atlas: 'laranja_walk_atlas', prefix: 'lj', figureH: 157, escala: 0.8 },
-  ra: { atlas: 'rato_walk_atlas', prefix: 'ra', figureH: 157 }, // o dobro do Juninho (D74): célula inteira // linha = (direção ÷ 2) × 4 + (direção % 2) × 2 + (quadro ≥ 6)
+  ra: { atlas: 'rato_walk_atlas', prefix: 'ra', figureH: 157 }, // o dobro do Juninho (D74): célula inteira
+  ag: { atlas: 'agiota_walk_atlas', prefix: 'ag', figureH: 157, escala: 0.8 }, // D76
+  co: { atlas: 'coach_walk_atlas', prefix: 'co', figureH: 157, escala: 0.8 }, // linha = (direção ÷ 2) × 4 + (direção % 2) × 2 + (quadro ≥ 6)
   mo: { atlas: 'monstrao_walk_atlas', prefix: 'mo', figureH: 157 },
   mo12a: { atlas: 'monstrao_cam12a_atlas', prefix: 'moa', figureH: 157 },
   mo12b: { atlas: 'monstrao_cam12b_atlas', prefix: 'mob', figureH: 157 },
@@ -303,6 +305,8 @@ export const POSE_ATLAS = {
   hatp: { atlas: 'horda_telemarketing_poses_atlas', prefix: 'hatp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   ljp: { atlas: 'laranja_poses_atlas', prefix: 'ljp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
   rap: { atlas: 'rato_poses_atlas', prefix: 'rap', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 } },
+  agp: { atlas: 'agiota_poses_atlas', prefix: 'agp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
+  cop: { atlas: 'coach_poses_atlas', prefix: 'cop', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.8 },
   hpop: { atlas: 'horda_peao_poses_atlas', prefix: 'hpop', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, furia: 1 }, escala: 0.7 },
   gpp: { atlas: 'garota_programa_poses_atlas', prefix: 'gpp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
   pmp: { atlas: 'policial_militar_poses_atlas', prefix: 'pmp', cols: 2, rows: 16, cw: 320, ch: 200, figureH: 158, col: { ataque: 0, raiva: 1 }, escala: 0.6 },
@@ -369,6 +373,8 @@ export const ENEMY_ART = {
   funkeiro: { img: 'funkeiro', walk: WALK_ATLAS.fk, poses: POSE_ATLAS.fkp, fury: true, dash: 'ataque' },
   laranja: { walk: WALK_ATLAS.lj, poses: POSE_ATLAS.ljp }, // elenco v2 (D73)
   rato: { walk: WALK_ATLAS.ra, poses: POSE_ATLAS.rap, fury: true, dash: 'ataque' },
+  agiota: { walk: WALK_ATLAS.ag, poses: POSE_ATLAS.agp }, // D76: aponta (ataque) quando marca e cobra
+  coach: { walk: WALK_ATLAS.co, poses: POSE_ATLAS.cop, fury: true }, // a palestra: pose de quem prega (raiva)
   // aim: pose de mira (fuzil no ombro) virada para o ponto travado, enquanto mira e logo depois do tiro
   traficante: { img: 'traficante', walk: WALK_ATLAS.tf, poses: POSE_ATLAS.tfp, aim: 'ataque', fury: true },
   // chefe: ataque (rajada) enquanto mira e atira; raiva (grito no rádio) enquanto chama reforço
@@ -522,6 +528,10 @@ export const IMAGES_ORLA_HORDA = {
   laranja_poses_atlas: 'assets/personagens/laranja/poses_atlas.webp',
   rato_walk_atlas: 'assets/personagens/rato_academia/caminhada_atlas.webp',
   rato_poses_atlas: 'assets/personagens/rato_academia/poses_atlas.webp',
+  agiota_walk_atlas: 'assets/personagens/agiota/caminhada_atlas.webp',
+  agiota_poses_atlas: 'assets/personagens/agiota/poses_atlas.webp',
+  coach_walk_atlas: 'assets/personagens/coach/caminhada_atlas.webp',
+  coach_poses_atlas: 'assets/personagens/coach/poses_atlas.webp',
 };
 let orlaHordaPedido = null;
 /** Carrega as roupas novas da horda da Orla uma vez só. */

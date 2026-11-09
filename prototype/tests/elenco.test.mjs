@@ -103,3 +103,56 @@ test('luta com o Monstrão: a horda abre espaço na chegada dele e fica no máxi
   for (let i = 0; i < 300; i++) g.update(DT, parado);
   assert.ok(vivos() <= CARREIRA.chefaoHorda.max + CARREIRA.chefaoHorda.faseHorda + 20, `a horda voltou a ${vivos()} na luta`);
 });
+
+test('Agiota: marca o Juninho, cobra juros que crescem e, derrubado, devolve a dívida como XP', () => {
+  const g = jogo();
+  const p = g.player;
+  p.xp = 50;
+  p.xpNext = 1e9;
+  const a = g.spawnEnemy('agiota', p.x + 5, p.y);
+  a.speed = 0;
+  a.hp = a.maxHp = 1e9;
+  for (let i = 0; i < 30; i++) g.update(DT, parado);
+  assert.ok(a.marcou, 'não marcou');
+  const xp1 = p.xp;
+  assert.ok(xp1 < 50, 'não cobrou');
+  for (let i = 0; i < 150; i++) g.update(DT, parado);
+  const xp2 = p.xp;
+  const taxaInicio = 50 - xp1; // no primeiro segundo
+  const taxaFim = xp1 - xp2 - (150 / 30 - 1) * taxaInicio; // o que passou da taxa do começo nos 5 s seguintes
+  assert.ok(taxaFim > 0, 'os juros não cresceram');
+  const divida = a.divida;
+  assert.ok(Math.abs(divida - (50 - xp2)) < 1e-6, 'a dívida não bate com o XP tirado');
+  const gemas = g.gems.length;
+  a.hp = 1;
+  g.damageEnemy(a, 10, 'teste');
+  assert.ok(g.gems.length > gemas, 'a dívida não voltou ao chão');
+  const xp3 = p.xp;
+  for (let i = 0; i < 30; i++) g.update(DT, parado);
+  assert.ok(p.xp >= xp3, 'continuou cobrando depois de cair');
+});
+
+test('Coach Picareta: prepara com aviso no chão e a palestra deixa lento quem está na roda', () => {
+  const g = jogo();
+  const p = g.player;
+  const C = ENEMIES.coach;
+  const c = g.spawnEnemy('coach', p.x + 3, p.y);
+  c.hp = c.maxHp = 1e9;
+  c.cdT = 0;
+  let aviso = false;
+  let palestra = false;
+  for (let i = 0; i < 90 && !palestra; i++) {
+    g.update(DT, parado);
+    if (g.avisosChao && g.avisosChao.some((q) => q.tipo === 'circulo' && Math.abs(q.r - C.raioM) < 1e-6)) aviso = true;
+    if (c.palestraT > 0) palestra = true;
+  }
+  assert.ok(aviso, 'sem o aviso no chão antes da palestra');
+  assert.ok(palestra, 'não deu a palestra');
+  g.update(DT, parado);
+  assert.ok(p.slowT > 0, 'na roda e não ficou lento');
+  // longe da roda: não fica lento
+  p.slowT = 0;
+  p.x = c.x + C.raioM + 3;
+  g.update(DT, parado);
+  assert.ok(!(p.slowT > 0.3), 'fora da roda e ficou lento');
+});

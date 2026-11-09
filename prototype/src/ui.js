@@ -194,6 +194,12 @@ export class UI {
     }
 
     this.updateSuper(game);
+    // marcado pelo Agiota (D76): a barra de XP sangra em vermelho
+    const juros = game.jurosT != null && game.t - game.jurosT < 0.25;
+    if (this.last.juros !== juros) {
+      this.last.juros = juros;
+      document.querySelector('.bar-xp')?.classList.toggle('juros', juros);
+    }
     this.updateTicker(game, now);
   }
 

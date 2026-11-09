@@ -18,6 +18,7 @@ import { updateCracudo, updateTrombadinha, trombada, devolveXp } from './morro_i
 import { updateFigurantes, ferirFigurantes } from './figurantes.js';
 import { arrancavelPerto, arrancar, updateArrancados } from './arrancar.js';
 import { updateCena, updateSuper, cargaPorAbate, usarSuper, superPronta } from './super.js';
+import { updateAgiota, updateCoach, agiotaCaiu } from './elenco.js';
 import { iniciarAbertura, updateAbertura, pularAbertura, emAbertura, comecoLento } from './abertura.js';
 import { covilDe, caosDoTrecho, pressaoDoTrecho, tempoNoTrecho, updateCovil, checkFase, chefaoCaiu, recomecar } from './carreira.js';
 import { buildWorld, constrain, routeTarget, slowAt, applyLevels, collideSolids, stairFoot, stairOut, inside, routeRemaining } from './mundo.js';
@@ -704,6 +705,7 @@ export class Game {
     if (this.kills === 1) this.tv('firstKill');
 
     if (def.xp) this.dropGem(e.x, e.y, def.xp);
+    if (e.type === 'agiota') agiotaCaiu(this, e); // a dívida volta ao chão como XP (D76)
     if (e.type === 'laranja') {
       // cai e espalha o dinheiro do chefe: uma Propina no chão (pegar continua sendo escolha do jogador)
       this.pickups.push({ kind: 'propina', x: e.x, y: e.y, t: 0 });
@@ -1707,6 +1709,14 @@ export class Game {
             e.dashY = dpy / d;
           }
         }
+      } else if (e.behavior === 'agiota') {
+        const r = updateAgiota(this, e, dt, d, ux, uy); // elenco v2 (D76)
+        mx = r.x;
+        my = r.y;
+      } else if (e.behavior === 'coach') {
+        const r = updateCoach(this, e, dt, d, ux, uy);
+        mx = r.x;
+        my = r.y;
       } else if (e.behavior === 'laranja') {
         // Laranja (D73): fica entre o Político e o Juninho, do lado dele; colado no Juninho, vai nele
         const dono = e.dono;

@@ -103,6 +103,23 @@ export const ENEMIES = {
     guarda: { frenteM: 1.3, ladoM: 0.9, bateM: 1.6 },
     escudo: { raioM: 3.2, parte: 0.7 },
   },
+  // Agiota (D76): fica a distM e marca o Juninho a até marcaM; marcado, ele perde XP por segundo (taxa, crescendo
+  // `juros` por segundo, composto) até o Agiota cair (a dívida volta ao chão como XP) ou ele se afastar soltaM
+  agiota: {
+    name: 'Agiota',
+    hp: 110, speed: 1.55, dmg: 10, radius: 0.36, size: 1.05, xp: 10,
+    behavior: 'agiota',
+    distM: 5, marcaM: 7, soltaM: 13, taxa: 1.0, juros: 0.12, cobraS: 1.5,
+  },
+  // Coach Picareta (D76): chega a comecaM, prepara windupS (aviso no chão) e dá a palestra por duracaoS: quem está
+  // a até raioM fica lento; depois espera cadaS
+  coach: {
+    name: 'Coach Picareta',
+    hp: 90, speed: 1.7, dmg: 8, radius: 0.34, size: 1.0, xp: 8,
+    behavior: 'coach',
+    comecaM: 5, raioM: 3.6, windupS: 0.9, duracaoS: 3, cadaS: 6, fraseS: 1.1,
+    frases: ['ACORDA PRA VIDA, CAMPEÃO!', 'SAI DA ZONA DE CONFORTO!', 'MINDSET!', 'VOCÊ É O CEO DA SUA VIDA!', 'GRATIDÃO!'],
+  },
   // Rato de Academia: investida em linha reta (como o Funkeiro), mais pesado; se pega o Juninho na corrida,
   // empurra (empurra: m/s, perde rápido). Na Orla com o Caos alto e na turma de reforço do Monstrão.
   // Pedido do autor (D74): o dobro da altura do Juninho, com o porte do Político (size é sobre a escala dos
@@ -676,6 +693,8 @@ export const DIRECTOR = {
     if (caos >= 28) list.push({ type: 'burocrata', w: 0.14 });
     if (caos >= 45) list.push({ type: 'fiscal', w: 0.1 });
     if (caos >= 30) list.push({ type: 'rato', w: 0.035 }); // Rato de Academia (D73; grandão desde o D74, mais raro)
+    if (caos >= 25) list.push({ type: 'coach', w: 0.02 }); // Coach Picareta (D76)
+    if (caos >= 40) list.push({ type: 'agiota', w: 0.012 }); // Agiota (D76)
     return list;
   },
   // ajuste "Elenco completo" (ligado por padrão enquanto a arte entra): todos os inimigos desde 00:00
@@ -685,6 +704,8 @@ export const DIRECTOR = {
     { type: 'burocrata', w: 0.25 },
     { type: 'fiscal', w: 0.25 },
     { type: 'rato', w: 0.12 },
+    { type: 'coach', w: 0.08 },
+    { type: 'agiota', w: 0.06 },
   ],
   castTestFirstElite: 12, // com o elenco completo, o primeiro Político chega aos 12 s
   castTestEliteEvery: 35,
@@ -1021,6 +1042,8 @@ export const TV = {
   crise_curto: ['GATO DE LUZ EM CURTO! FAÍSCA PARA TODO LADO, OLHE ONDE PISA'],
   cofre: ['ENTREGADOR ACHA COFRE NA ORLA. RECEITA DIZ QUE NÃO VIU NADA', 'COFRE ABERTO AO VIVO. DONO AINDA NÃO SE APRESENTOU'],
   cofre5: ['DEU BICHO! ENTREGADOR TIRA A SORTE GRANDE. BANCA PEDE RECONTAGEM'],
+  agiota: ['AGIOTA COBRA O ENTREGADOR NO MEIO DA RUA: JUROS DE 30% AO DIA', 'DEVEDOR É MARCADO NO CALÇADÃO. ESPECIALISTA: "É SÓ NÃO PEGAR EMPRESTADO"'],
+  coach: ['COACH DÁ PALESTRA GRÁTIS NO CALÇADÃO E A HORDA SAI MOTIVADA', 'PALESTRA MOTIVACIONAL PARA O TRÂNSITO NA ORLA. INGRESSO: SUA ALMA'],
   laranja: ['LARANJA CAI E ESPALHA O DINHEIRO DO CHEFE NA CALÇADA', 'O LARANJA APANHOU PELO POLÍTICO. A ASSESSORIA NEGA QUALQUER LIGAÇÃO'],
   reliquia_altinha: ['ENTREGADOR ACHA A BOLA DA ALTINHA. A PRAIA INTEIRA PARA PARA OLHAR'],
   reliquia_paredao: ['ENTREGADOR ACHA UM PAREDÃO NA LAJE. O MORRO INTEIRO SENTE O GRAVE'],

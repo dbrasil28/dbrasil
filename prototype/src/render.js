@@ -17,6 +17,7 @@ import { drawAvisosChao, monstraoNaLista, drawMonstraoObj, drawCarroErguido } fr
 import { drawObraChao, drawObraFundo, drawObraFrente, drawPortaEscadaria, drawHolofoteChao, drawHolofoteCeu, drawAchado } from './render_carreira.js';
 import { drawCenaFundo, drawCenaFrente, drawFaixaCena, drawGolaco, drawBatidao, drawOndasBatidao, drawNotaDanca, drawFachoReliquia } from './render_super.js';
 import { alturaNaCena, zoomNaCena } from './super.js';
+import { drawPalestras, drawMarcaAgiota } from './render_elenco.js';
 import {
   entityDepth, drawPlatform, drawStair, drawObject, GIRO, drawPlace,
   drawAim, drawBullet, drawHeal,
@@ -208,6 +209,7 @@ export class Renderer {
     drawOndasBatidao(ctx, game, cam, ppu); // o grave do Solta o Batidão no chão (super do Paredão, D67)
     this.drawZones(ctx, game, ppu, playerPx);
     drawAvisosChao(ctx, game, cam, game.t); // golpes do Monstrão: aviso no chão e o anel de choque
+    drawPalestras(ctx, game, cam, ppu, game.t); // a roda da palestra do Coach (D76)
     if (game.world) {
       // carreira (D39): sem seta nem placa; a obra do Especulador e o holofote da TV sobre o covil aberto
       drawObraChao(ctx, game.world, cam, ppu);
@@ -740,6 +742,7 @@ export class Renderer {
 
     this.drawSky(ctx, game, ppu, playerPx);
     this.drawFx(ctx, game, ppu, playerPx);
+    drawMarcaAgiota(ctx, game, cam, ppu, playerPx, game.t); // a cobrança do Agiota (D76)
     if (game.map.bounded) this.drawAtmosfera(ctx, cam);
     if (game.world) {
       if (game.crise) drawCriseCeu(ctx, game, cam, ppu, game.t, playerPx, cenarioInRange(game.world, bounds.minY - 3, bounds.maxY + 7, criseTmp));
