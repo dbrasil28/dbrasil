@@ -28,6 +28,12 @@ Pedido do autor em 10/11/2026: "quando eles aparecerem na TV, faz um som de risa
 
 No jogo, as duas tocam juntas quando O Acordão aparece na TV do Plantão: o Barbudo um pouco à esquerda e o Capitão um pouco à direita.
 
+## Feito em código
+
+| Arquivo | Origem | Licença |
+| --- | --- | --- |
+| `duum_tv_1` | O DUUUUMM do zoom nas TVs do Plantão (10/11/2026), feito por `tools/duum.py` (modo `metal`): uma nota grave de metal de cinema com eco de sala | Do projeto; não tem terceiros |
+
 ## Adobe Firefly
 
 | Arquivos | Origem | Licença |

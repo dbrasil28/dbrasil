@@ -67,6 +67,7 @@ export const RECEITAS = {
   // "ha, ha, ha" grave (o provisório da risada de cada cabeça do Acordão)
   risada_barbudo: [0, 0.3, 0.6, 0.9].map((ini) => tom('saw', 150, 120, 0.2, { ini, lp: 1300, am: 14, amP: 0.5, q: 0.09, v: 0.45 })),
   risada_capitao: [0.1, 0.38, 0.66, 0.94].map((ini) => tom('saw', 190, 150, 0.18, { ini, lp: 1500, am: 16, amP: 0.5, q: 0.08, v: 0.45 })),
+  duum_tv: [tom('saw', 49, 49, 2.6, { lp: 900, a: 0.03, q: 1.1, v: 0.5 }), tom('sine', 49, 45, 2.6, { a: 0.03, q: 1.2, v: 0.6 })], // o DUUUUMM
   crise: [0, 0.25, 0.5, 0.75].map((ini, i) => tom('square', i % 2 ? 660 : 880, i % 2 ? 660 : 880, 0.24, { ini, lp: 3000, v: 0.25 })),
   onda: [ruido(1.6, { lp: 350, lp1: 1600, a: 0.6, q: 0.6, v: 0.8 })],
   apagao: [tom('saw', 130, 38, 0.85, { lp: 700, q: 0.4, v: 0.5 }), ruido(0.03, { hp: 2000, q: 0.01, v: 0.6 })],
@@ -135,6 +136,8 @@ export const ARQUIVOS = {
   // feitas pelo autor no Suno (10/11/2026): O Acordão rindo na TV do Plantão, uma risada por cabeça
   risada_barbudo: ['assets/sons/risada_barbudo_1.mp3'],
   risada_capitao: ['assets/sons/risada_capitao_1.mp3'],
+  // feito em código (tools/duum.py, 10/11/2026): o DUUUUMM do zoom nas TVs do Plantão
+  duum_tv: ['assets/sons/duum_tv_1.mp3'],
 };
 
 /** Amostras do som (Float32Array, pico em 0,9). Sem navegador: dá para conferir nos testes. */

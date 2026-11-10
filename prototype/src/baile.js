@@ -78,6 +78,11 @@ export function updateBaile(game, dt) {
       if (S.faseT >= B.plantaoS) plantao(game, S);
       break;
     case 'plantao':
+      if (!S.duum && S.faseT >= B.cenaTv.duumS) {
+        // o DUUUUMM junto com o zoom nas TVs; O Acordão só aparece nelas quando a câmera chega (render_baile.js)
+        S.duum = true;
+        game.som('duum_tv');
+      }
       if (!S.risada && S.faseT >= B.cenaTv.risadaS) {
         // O Acordão aparece na TV e as duas cabeças riem juntas, cada uma com a sua risada (pedido do autor)
         S.risada = true;
@@ -145,7 +150,13 @@ function povoDoBaile(S, perto) {
 function somDoBaile(S, perto) {
   const B = BAILE;
   if (!S) return perto > 0 ? B.musica.longe + (1 - B.musica.longe) * perto * perto : 0; // de longe, baixinho; perto, alto
-  if (S.fase === 'plantao') return 1 - (1 - B.musica.plantaoMul) * clamp01(S.faseT / 0.5);
+  if (S.fase === 'plantao') {
+    // baixa no clímax (a câmera nas TVs) e volta um pouco quando a câmera volta para o Juninho
+    const M = B.musica;
+    const C = B.cenaTv;
+    const volta = clamp01((S.faseT - C.vaiS - C.ficaS) / C.voltaS);
+    return 1 - (1 - M.climaxMul) * clamp01(S.faseT / M.climaxS) + (M.plantaoMul - M.climaxMul) * volta;
+  }
   if (S.fase === 'briga') return B.musica.plantaoMul + (1 - B.musica.plantaoMul) * clamp01(S.faseT / B.musica.voltaS);
   if (S.fase === 'fim') return 1 - clamp01(S.faseT / B.fimS);
   return 1;

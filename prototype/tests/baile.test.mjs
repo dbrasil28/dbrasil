@@ -155,13 +155,23 @@ test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acord
   rodar(g, BAILE.plantaoS * 0.2 + 0.2);
   assert.equal(S.fase, 'plantao');
   assert.ok(tv(g, 'baileAcordao'), 'a TV não entrou com O Acordão');
-  // as duas cabeças riem juntas quando aparecem na TV (pedido do autor), uma vez só
-  for (const id of ['risada_barbudo', 'risada_capitao']) assert.equal(g.sons.filter((s) => s.id === id).length, 1, `sem a ${id} no Plantão`);
-  rodar(g, 0.6);
+  // a ordem da cena (pedido do autor): o DUUUUMM junto com o zoom; O Acordão aparece na TV quando a câmera chega e só
+  // então as duas cabeças riem (juntas, uma vez só); os olhos acendem no MWAHAHA, com a câmera ainda lá
+  const C0 = BAILE.cenaTv;
+  assert.ok(C0.duumS < C0.apareceS && C0.apareceS <= C0.vaiS + 0.01 && C0.apareceS < C0.risadaS && C0.risadaS < C0.olhosTvS, 'a ordem da cena mudou');
+  assert.ok(C0.olhosTvS < C0.vaiS + C0.ficaS, 'os olhos da TV acendem com a câmera já voltando');
+  const conta = (id) => g.sons.filter((s) => s.id === id).length;
+  assert.equal(conta('duum_tv'), 1, 'o DUUUUMM não veio com o zoom');
+  assert.equal(conta('risada_barbudo') + conta('risada_capitao'), 0, 'a risada veio antes de eles aparecerem na TV');
+  rodar(g, C0.risadaS - S.faseT + 0.05);
+  for (const id of ['risada_barbudo', 'risada_capitao']) assert.equal(conta(id), 1, `sem a ${id} no Plantão`);
+  assert.equal(conta('duum_tv'), 1, 'o DUUUUMM tocou duas vezes');
+  // o funk baixa no clímax (pedido do autor) e volta um pouco quando a câmera volta
+  assert.ok(Math.abs(g.somDoBaile - BAILE.musica.climaxMul) < 0.02, `o funk não baixou no clímax: ${g.somDoBaile.toFixed(2)}`);
   assert.ok(g.somDoBaile < 0.5, 'o som não baixou para a TV falar');
   // a câmera vai às TVs do palco (pedido do autor), dá zoom, fica e volta; os olhos só acendem depois
   const C = BAILE.cenaTv;
-  rodar(g, C.vaiS + C.ficaS * 0.5 - 0.6);
+  rodar(g, C.vaiS + C.ficaS * 0.5 - S.faseT);
   assert.ok(g.focoBaile && g.focoBaile.k === 1, 'a câmera não foi às TVs');
   const palco = g.world.baile.y0;
   assert.ok(Math.abs(g.camera.y - g.player.y) > 5 && g.camera.y < palco, `a câmera não está no palco (y ${g.camera.y.toFixed(1)}, palco ${palco.toFixed(1)})`);
@@ -173,6 +183,7 @@ test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acord
   assert.ok(g.focoBaile && g.focoBaile.k === 1, 'os olhos da TV acenderam com a câmera fora das TVs');
   rodar(g, C.ficaS * 0.5 + C.voltaS + 0.05);
   assert.equal(g.focoBaile, null, 'a câmera não voltou para o Juninho');
+  assert.ok(Math.abs(g.somDoBaile - BAILE.musica.plantaoMul) < 0.02, `o funk não voltou depois do clímax: ${g.somDoBaile.toFixed(2)}`);
   assert.ok(Math.abs(g.camera.y - g.player.y) < 0.5, 'a câmera não voltou para o Juninho');
   rodar(g, BAILE.olhosS);
   assert.ok(S.pessoas.every((c) => c.olho > 0), 'sobrou olho apagado no Plantão');

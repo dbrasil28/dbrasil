@@ -66,8 +66,9 @@ function telaDaTv(ctx, x, y, wd, ht, game, t) {
   ctx.beginPath();
   ctx.rect(x, y, wd, ht);
   ctx.clip();
-  if (fase === 'festa' || !S) {
-    // clipe: faixas de cor andando no batidão
+  const C = BAILE.cenaTv;
+  if (fase === 'festa' || !S || (fase === 'plantao' && S.faseT < C.apareceS)) {
+    // clipe: faixas de cor andando no batidão (no Plantão, até a câmera chegar nas TVs: aí O Acordão entra)
     const n = 5;
     for (let i = 0; i < n; i++) {
       const cor = BAILE.luzes.cores[(i + Math.floor(t * 2)) % BAILE.luzes.cores.length];
@@ -79,7 +80,10 @@ function telaDaTv(ctx, x, y, wd, ht, game, t) {
     ctx.fillRect(x, y, wd, ht);
     chiado(ctx, x, y, wd, ht, t, 0.35);
   } else {
+    // O Acordão entra com o sinal pegando (chiado forte que some em chiadoS)
+    const pega = fase === 'plantao' ? 1 - clamp01((S.faseT - C.apareceS) / C.chiadoS) : 0;
     plantao(ctx, x, y, wd, ht, t, fase !== 'plantao', olhosDaTv(S));
+    if (pega > 0) chiado(ctx, x, y, wd, ht, t, 0.2 + 0.8 * pega);
   }
   ctx.restore();
 }
