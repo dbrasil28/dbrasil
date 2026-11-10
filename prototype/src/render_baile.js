@@ -91,18 +91,30 @@ function olhosDaTv(S) {
   return S.fase === 'briga' || S.fase === 'luta' ? 1 : 0;
 }
 
-/** A tela do Plantão: fundo azul de estúdio, faixa vermelha e O Acordão em silhueta (duas cabeças, um terno). */
+/** A tela do Plantão: O Acordão (o busto aprovado; sem a arte, em silhueta) e a faixa vermelha do PLANTÃO. */
 function plantao(ctx, x, y, wd, ht, t, comChiado, olhos = 0) {
   const im = images.baile_acordao_tv;
   if (im) {
-    // O Acordão (arte do Figma): a imagem cobre a tela; os olhos acendem no azul da TV por cima dela
-    const s = Math.max(wd / im.width, ht / im.height);
-    const iw = im.width * s;
+    // O Acordão (o busto aprovado): quadro 0 de olhos normais, quadro 1 de olhos acesos, as mesmas caras; a imagem
+    // cobre a tela e, quando a zoeira começa, o quadro aceso entra por cima
+    const qw = im.width / BAILE.tv.acordao.quadros;
+    const s = Math.max(wd / qw, ht / im.height);
+    const iw = qw * s;
     const ih = im.height * s;
     const ix = x + (wd - iw) / 2;
     const iy = y + (ht - ih) / 2;
-    ctx.drawImage(im, ix, iy, iw, ih);
-    if (olhos > 0) olhosNaTv(ctx, ix, iy, iw, ih, t, olhos);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, wd, ht);
+    ctx.clip();
+    ctx.drawImage(im, 0, 0, qw, im.height, ix, iy, iw, ih);
+    if (olhos > 0) {
+      ctx.globalAlpha = olhos;
+      ctx.drawImage(im, qw, 0, qw, im.height, ix, iy, iw, ih);
+      ctx.globalAlpha = 1;
+      olhosNaTv(ctx, ix, iy, iw, ih, t, olhos * BAILE.tv.acordao.pulso);
+    }
+    ctx.restore();
   } else {
     const g = ctx.createLinearGradient(x, y, x, y + ht);
     g.addColorStop(0, '#2a5fa8');
@@ -124,7 +136,7 @@ function plantao(ctx, x, y, wd, ht, t, comChiado, olhos = 0) {
   if (comChiado) chiado(ctx, x, y, wd, ht, t, 0.18);
 }
 
-/** Os olhos do Acordão acesos na TV: o brilho azul do sinal (o mesmo da horda hipnotizada), pulsando. */
+/** Pulso por cima dos olhos já acesos do Acordão na TV: o brilho azul do sinal (o mesmo da horda hipnotizada). */
 function olhosNaTv(ctx, ix, iy, iw, ih, t, k) {
   const A = BAILE.tv.acordao;
   const R = iw * A.raio * (0.9 + 0.12 * Math.sin(t * 9));

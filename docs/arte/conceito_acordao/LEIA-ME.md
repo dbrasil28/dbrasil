@@ -46,4 +46,16 @@ Pedido do autor: "faz agora só do busto deles". `bustos_viloes.png`: os três d
 
 ## O Acordão na TV do Plantão (no jogo, 10/11/2026)
 
-Pedido do autor: "eles aparecem na TV, mas os olhos não estão brilhando; quando os olhos brilham, começa a zoeira". `acordao_tv_figma.png` (16:9, olhos normais, pronunciamento oficial no fundo azul de estúdio) entrou no jogo como `prototype/assets/cenario/favela/baile_acordao_tv.webp`. O brilho dos olhos é desenhado pelo jogo por cima da imagem, na posição de cada olho (`BAILE.tv.acordao.olhos`), quando o sinal pega.
+Pedido do autor: "eles aparecem na TV, mas os olhos não estão brilhando; quando os olhos brilham, começa a zoeira".
+
+- **Recusada:** `acordao_tv_figma.png` (uma geração nova, de olhos normais, no fundo azul de estúdio). As caras saíram
+  diferentes das aprovadas e a imagem ficou com cara de propaganda de governo. Fica aqui só como registro e não vai ao jogo.
+- **No jogo:** `prototype/assets/cenario/favela/baile_acordao_tv.webp` é uma folha de 2 quadros tirada do busto aprovado
+  (`bustos_viloes.png`, o do meio) por `tools/acordao-tv.py`. O quadro 0 tem os olhos normais, com o brilho apagado no
+  próprio desenho. O quadro 1 tem os olhos acesos, como foi aprovado. As caras são as mesmas nos dois. O jogo mostra o
+  quadro 0 quando o Plantão entra e passa para o 1 quando os olhos acendem (`BAILE.cenaTv.olhosTvS`), com um pulso leve
+  do azul por cima.
+
+Regra (pedido do autor, D102): toda variação de um personagem aprovado sai da mesma imagem, numa folha de quadros, e
+nunca de uma geração nova, porque o gerador muda as caras. Se precisar de outra expressão dos três chefões, ela é feita
+a partir de `bustos_viloes.png`.

@@ -455,7 +455,7 @@ export const IMAGES_MORRO = {
   baile_trelica: 'assets/cenario/favela/baile_trelica.webp',
   baile_globo: 'assets/cenario/favela/baile_globo.webp',
   baile_tv: 'assets/cenario/favela/baile_tv.webp',
-  baile_acordao_tv: 'assets/cenario/favela/baile_acordao_tv.webp', // O Acordão no Plantão (Figma), de olhos normais
+  baile_acordao_tv: 'assets/cenario/favela/baile_acordao_tv.webp', // O Acordão no Plantão: olhos normais | acesos
   baile_canhao: 'assets/cenario/favela/baile_canhao.webp',
   // a dança do povo do baile (folhas 6×4 de frente a 67,5°, tools/montar-danca.py; DANCA_ATLAS)
   garota_danca_atlas: 'assets/personagens/garota_programa/danca_atlas.webp', // Canva, com o braço a mais tirado à mão

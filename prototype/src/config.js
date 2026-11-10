@@ -904,10 +904,12 @@ export const BAILE = {
   // as duas TVs, uma de cada lado do palco (palcoDx do meio dele, em cima dos paredões): a tela (m) e a altura da
   // beirada de baixo dela, as da arte do Figma
   tv: { larg: 2.3, alt: 1.3, altura: 2.43, palcoDx: 3.1,
-    // O Acordão no Plantão (arte do Figma, baile_acordao_tv): onde ficam os 4 olhos na imagem (0 a 1), o raio do brilho
-    // (fração da largura) e quanto ele leva para acender (pedido do autor: aparece de olhos normais; quando os olhos
-    // acendem, começa a zoeira)
-    acordao: { olhos: [[0.3236, 0.2708], [0.4049, 0.2488], [0.599, 0.2836], [0.6712, 0.2975]], raio: 0.03, acendeS: 0.35 } },
+    // O Acordão no Plantão (baile_acordao_tv, tirada do busto aprovado, docs/arte/conceito_acordao/bustos_viloes.png,
+    // por tools/acordao-tv.py): folha de 2 quadros das MESMAS caras, olhos normais e olhos acesos. Pedido do autor:
+    // aparece de olhos normais; quando os olhos acendem, começa a zoeira. acendeS: quanto leva a passagem de um quadro
+    // para o outro; olhos (0 a 1 no quadro) e raio (fração da largura): um pulso leve por cima dos olhos já acesos
+    acordao: { quadros: 2, olhos: [[0.3102, 0.5372], [0.4346, 0.4791], [0.589, 0.5116], [0.712, 0.5535]], raio: 0.022,
+      pulso: 0.45, acendeS: 0.35 } },
   // o cenário da festa (pedido do autor): palco com a mesa do DJ entre os paredões e o néon no muro, treliças de
   // iluminação (a do palco emoldura a mesa do DJ; duas de lado, nos cantos da frente), canhões de luz no chão, o
   // globo espelhado no meio da pista, dois bares (com engradados, mesas e cadeiras para arremessar), sinuca, sofá,
