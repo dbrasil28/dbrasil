@@ -6,7 +6,9 @@
   "scripts": {
     "www": "node montar-www.mjs",
     "sync": "npm run www && npx cap sync android",
-    "apk": "npm run sync && cd android && ./gradlew assembleDebug"
+    "apk": "npm run sync && node compilar.mjs",
+    "instalar": "node instalar-celular.mjs",
+    "celular": "npm run apk && npm run instalar"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.0",

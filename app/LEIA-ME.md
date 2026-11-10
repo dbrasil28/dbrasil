@@ -10,7 +10,7 @@ Precisa de Node 20+, Java 21 e o Android SDK (plataforma 35 e build-tools 35). C
 cd app
 npm install                      # a primeira vez
 echo "sdk.dir=/opt/android-sdk" > android/local.properties
-npm run apk                      # monta app/www, copia para o projeto Android e compila
+npm run apk                      # monta app/www, copia para o projeto Android e compila (Windows, Mac ou Linux)
 ```
 
 O APK sai em `app/android/app/build/outputs/apk/debug/app-debug.apk`.
@@ -18,6 +18,38 @@ O APK sai em `app/android/app/build/outputs/apk/debug/app-debug.apk`.
 - `npm run www` monta só `app/www` (o jogo de `tools/build-single.mjs --separado` e as fontes de `app/fontes/`).
 - `npm run sync` monta e copia para `app/android` (sem compilar).
 - Na primeira vez, `montar-www.mjs` baixa as fontes do Google Fonts (Anton e Barlow Semi Condensed, licença OFL) para `app/fontes/`; depois usa as de lá.
+
+## No seu computador, com o celular no cabo
+
+Mais rápido que a nuvem: um comando monta o jogo, compila, instala no celular por cima da versão anterior e abre.
+
+Uma vez só:
+
+1. Instale o Git, o Node.js 20 ou mais novo e o Android Studio (ele traz o Java e o Android SDK). No Android Studio, em More Actions → SDK Manager, marque a plataforma Android 15 (API 35).
+2. Defina a variável `ANDROID_HOME` com a pasta do SDK. No Windows é `%LOCALAPPDATA%\Android\Sdk`, e no Mac é `~/Library/Android/sdk`.
+3. Baixe o projeto e as dependências:
+
+   ```bash
+   git clone https://github.com/dbrasil28/dbrasil.git
+   cd dbrasil
+   git checkout ccr-78bf25c0-ckp1pr
+   cd app
+   npm install
+   ```
+
+4. No celular, ligue as Opções do desenvolvedor e a Depuração USB. Ligue o celular no cabo e aceite o aviso "Permitir depuração USB?".
+
+A cada versão nova:
+
+```bash
+cd app
+npm run celular      # monta, compila, instala no celular e abre o jogo
+npm run instalar     # só instala o último APK (sem compilar de novo)
+```
+
+Para testar mais rápido ainda, sem gerar APK: na raiz do projeto, `npm start` mostra um endereço. Abra esse endereço no Chrome do celular, ligado na mesma rede Wi-Fi do computador. Cada mudança aparece ao recarregar a página.
+
+Para trabalhar com o Claude no computador, abra a pasta `dbrasil` no app Claude Desktop (aba Code) ou rode `claude` no terminal dentro dela. Ele lê o `CLAUDE.md` e o `docs/DECISOES.md` e continua de onde parou.
 
 ## Instalar no celular
 

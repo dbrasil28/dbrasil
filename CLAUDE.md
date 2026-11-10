@@ -32,6 +32,7 @@ node tools/build-single.mjs <saida.html> --fragment --separado
                                            # para a página de teste: HTML só com o código e as imagens em assets/ ao lado
 node tools/planta-mundo.mjs <saida.html>   # planta da rota vista de cima, com cada objeto no lugar (a partir do jogo)
 cd app && npm run apk                      # app Android (Capacitor): o jogo inteiro dentro do APK (ver app/LEIA-ME.md)
+cd app && npm run celular                  # no computador do autor: compila, instala no celular do cabo (adb) e abre
 python3 -I tools/montar-atlas.py <pacote> prototype/assets/personagens/<pasta> <pasta-nova> x
                                            # atlas 16×6 de caminhada (+ pose de acordado na horda); Pillow, numpy, opencv
 python3 -I tools/montar-poses.py <pacote> prototype/assets/personagens/<pasta> <pasta-nova> x ataque furia
