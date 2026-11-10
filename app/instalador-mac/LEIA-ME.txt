@@ -1,0 +1,31 @@
+BRASIL: ESTADO DE CAOS — instalador para Mac
+
+1. Descompacte este arquivo (dois cliques no .zip).
+
+2. Dê dois cliques em "Instalar.command".
+   Se o Mac disser que não pode abrir (desenvolvedor não identificado):
+   abra Ajustes do Sistema > Privacidade e Segurança, desça até o aviso
+   do Instalar.command e clique em "Abrir Mesmo Assim".
+   Outro jeito: abra o Terminal, arraste o Instalar.command para a janela
+   e aperte Enter.
+
+3. Na janela que abrir, escolha a pasta do jogo (por exemplo,
+   "Brasil Caos" no One Touch) e clique em Escolher.
+
+4. Espere aparecer "Pronto". Na primeira vez leva alguns minutos.
+
+O que ele faz:
+- usa o Node, o Java e o Android SDK que já estão no Mac e só instala o
+  que faltar (não mexe nos outros projetos);
+- baixa o projeto inteiro na pasta escolhida;
+- gera o primeiro APK;
+- cria na Mesa o atalho "Atualizar jogo no celular".
+
+Para pôr o jogo no celular: ligue o celular no cabo (Opções do
+desenvolvedor > Depuração USB) e dê dois cliques em "Atualizar jogo no
+celular", na Mesa. Na primeira vez, aceite "Permitir depuração USB?" no
+celular.
+
+Para trabalhar com o Claude no Mac: abra a pasta do jogo no app Claude
+(aba Code). Ele começa pelo CLAUDE.md e pelo docs/COMO_TRABALHAR.md, que
+explicam o projeto e de onde continuar.

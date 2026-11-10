@@ -4,6 +4,8 @@ Survival roguelite para celular (Android/iOS), em retrato, com câmera 2.5D e at
 
 Responda e escreva documentos em **português do Brasil**.
 
+**Sessão nova?** Leia `docs/COMO_TRABALHAR.md` antes de começar: como o autor trabalha, as regras que ele já pediu e de onde continuar.
+
 ## Onde fica cada coisa
 
 | O quê | Onde |
@@ -11,6 +13,7 @@ Responda e escreva documentos em **português do Brasil**.
 | Conceito original (GDD, sistemas, conteúdo, arte, MVP, decisões) | `docs/concept-v0.1/` |
 | Análise, riscos e respostas às perguntas abertas | `docs/ANALISE_CONCEITO_v0.1.md` |
 | Decisões tomadas (registro único) | `docs/DECISOES.md` |
+| Como trabalhar aqui (para uma sessão nova) | `docs/COMO_TRABALHAR.md` |
 | Publicidade: pontos de anúncio, regras, políticas | `docs/MONETIZACAO_ANUNCIOS.md` |
 | Roteiro de playtest | `docs/PLAYTEST_FASE0.md` |
 | Specs de mecânica (MECH-xxx) e elenco/nomes | `docs/design/` |

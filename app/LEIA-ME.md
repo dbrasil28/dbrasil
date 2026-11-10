@@ -31,6 +31,8 @@ curl -fsSL https://raw.githubusercontent.com/dbrasil28/dbrasil/main/app/preparar
 
 Ele usa o Node, o Java e o Android SDK que já estão instalados (de outros projetos, do Android Studio, do Homebrew ou do Unity) e só instala o que faltar. Baixa o projeto em `~/dbrasil`, gera o primeiro APK e cria na Mesa o atalho **Atualizar jogo no celular**. Depois, é só ligar o celular no cabo e dar dois cliques no atalho: ele baixa a versão nova, compila, instala e abre o jogo. Não muda a configuração dos outros projetos.
 
+Ou baixe o instalador de dois cliques: `dist/Instalar Brasil Caos.zip`, montado por `python3 -I tools/montar-instalador-mac.py`. Ele traz o `Instalar.command` (o mesmo `app/preparar-mac.sh`, que abre uma janela para escolher a pasta) e um `LEIA-ME.txt`.
+
 Sem o instalador, à mão:
 
 Uma vez só:
