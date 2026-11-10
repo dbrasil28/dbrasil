@@ -16,6 +16,9 @@ if (!existsSync(props) && !sdk) {
   process.exit(1);
 }
 const windows = process.platform === 'win32';
-const r = spawnSync(windows ? 'gradlew.bat' : './gradlew', ['assembleDebug'], { cwd: pasta, stdio: 'inherit', shell: windows });
+// no Mac e no Linux, pelo sh: num disco exFAT o gradlew perde a marca de executável
+const r = windows
+  ? spawnSync('gradlew.bat', ['assembleDebug'], { cwd: pasta, stdio: 'inherit', shell: true })
+  : spawnSync('sh', ['gradlew', 'assembleDebug'], { cwd: pasta, stdio: 'inherit' });
 if (r.status !== 0) process.exit(r.status ?? 1);
 console.log('APK pronto: app/android/app/build/outputs/apk/debug/app-debug.apk');

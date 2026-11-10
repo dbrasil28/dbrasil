@@ -5,7 +5,7 @@
   "description": "BRASIL: ESTADO DE CAOS como app Android (Capacitor): o jogo inteiro dentro do APK, sem depender de página na nuvem.",
   "scripts": {
     "www": "node montar-www.mjs",
-    "sync": "npm run www && npx cap sync android",
+    "sync": "npm run www && node node_modules/@capacitor/cli/bin/capacitor sync android",
     "apk": "npm run sync && node compilar.mjs",
     "instalar": "node instalar-celular.mjs",
     "celular": "npm run apk && npm run instalar"
