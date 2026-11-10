@@ -889,11 +889,14 @@ export const BAILE = {
   // ficaS e volta em voltaS; só então os olhos acendem (olhosS) e o povo encara (encaraS)
   // A ordem da cena (pedido do autor: "primeiro vem o zoom e aí eles aparecem na TV e dão a risada; o duum vem antes
   // e a risada depois, bem sincronizado com a TV e o zoom"), contada do começo do Plantão: duumS, o DUUUUMM junto com
-  // o zoom; apareceS, O Acordão entra nas TVs quando a câmera chega (até lá, o clipe da festa), com chiadoS de sinal
-  // pegando; risadaS, as duas cabeças começam a rir; olhosTvS, os olhos acendem no "MWAHAHA" da risada (uns 3,1 s
-  // depois de ela começar); a câmera fica até um pouco depois disso (ficaS) e volta
-  cenaTv: { vaiS: 0.9, ficaS: 4.5, voltaS: 0.9, zoomMax: 1.8, margemM: 0.4, duumS: 0, apareceS: 0.9, chiadoS: 0.25, risadaS: 1.1,
-    olhosTvS: 4.2 },
+  // o zoom; foraS, a TV sai do clipe da festa e fica fora de sintonia, só chiado (pedido do autor: "um pouquinho mais
+  // de tempo antes das cabeças entrarem, pra mostrar que eles estão entrando no sinal"); apareceS, as cabeças surgem no
+  // meio do chiado e o sinal pega em chiadoS; risadaS, as duas cabeças começam a rir; olhosTvS, os olhos acendem no
+  // "MWAHAHA" da risada (uns 3,1 s depois de ela começar); a câmera fica até um pouco depois disso (ficaS) e volta
+  // O zoom (pedido do autor: "não teve zoom"): numa TV só, a do lado do Juninho (as duas mostram o mesmo), até zoomMax
+  // ou até a tela dela, com margemM de folga de cada lado, encher a largura
+  cenaTv: { vaiS: 0.9, ficaS: 5.4, voltaS: 0.9, zoomMax: 3.4, margemM: 0.3, duumS: 0, foraS: 0.5, apareceS: 1.6, chiadoS: 0.6,
+    risadaS: 2, olhosTvS: 5.1 },
   // o DJ entra quando o Caos chega na marca: sobe pontos acima do de quando a pancadaria começa, e pelo menos min
   // (pedido do autor: chegava rápido demais no DJ e o Caos mal subia); cada um da festa que cai soma porAbate
   caos: { sobe: 40, min: 70, max: 95, porAbate: 0.25 },

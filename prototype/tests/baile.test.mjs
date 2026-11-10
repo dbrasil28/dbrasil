@@ -158,7 +158,7 @@ test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acord
   // a ordem da cena (pedido do autor): o DUUUUMM junto com o zoom; O Acordão aparece na TV quando a câmera chega e só
   // então as duas cabeças riem (juntas, uma vez só); os olhos acendem no MWAHAHA, com a câmera ainda lá
   const C0 = BAILE.cenaTv;
-  assert.ok(C0.duumS < C0.apareceS && C0.apareceS <= C0.vaiS + 0.01 && C0.apareceS < C0.risadaS && C0.risadaS < C0.olhosTvS, 'a ordem da cena mudou');
+  assert.ok(C0.duumS < C0.foraS && C0.foraS < C0.apareceS && C0.apareceS >= C0.vaiS && C0.apareceS < C0.risadaS && C0.risadaS < C0.olhosTvS, 'a ordem da cena mudou');
   assert.ok(C0.olhosTvS < C0.vaiS + C0.ficaS, 'os olhos da TV acendem com a câmera já voltando');
   const conta = (id) => g.sons.filter((s) => s.id === id).length;
   assert.equal(conta('duum_tv'), 1, 'o DUUUUMM não veio com o zoom');

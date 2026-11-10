@@ -66,7 +66,7 @@ export function updateBaile(game, dt) {
   game.noiteBaile = alvo > n ? Math.min(alvo, n + passo) : Math.max(alvo, n - passo);
   game.somDoBaile = somDoBaile(S, vazio ? perto : 0);
   game.pertoBaile = S ? 1 : vazio ? perto : 0; // o filtro do som ao vivo: de longe, só o grave (musica.js)
-  game.focoBaile = S && S.fase === 'plantao' ? focoNasTvs(game, S.faseT) : null;
+  game.focoBaile = S && S.fase === 'plantao' ? focoNasTvs(game, S) : null;
   game.povoBaile = povoDoBaile(S, vazio ? perto : 0);
   game.caosMarca = S && S.fase === 'briga' ? { v: S.caosDJ, nome: 'DJ' } : null;
   if (!S) return;
@@ -119,10 +119,12 @@ export function plantaoDuraS() {
 }
 
 /**
- * Para onde a câmera olha no começo do Plantão (pedido do autor): o meio das duas TVs do palco, no alto delas.
+ * Para onde a câmera olha no começo do Plantão (pedido do autor): a TV do palco do lado do Juninho, no meio da tela
+ * dela (as duas passam a mesma coisa; com as duas na tela, quase não dava zoom).
  * k vai de 0 (no Juninho) a 1 (nas TVs, com o zoom), suave na ida e na volta. Sem a cena, null.
  */
-function focoNasTvs(game, t) {
+function focoNasTvs(game, S) {
+  const t = S.faseT;
   const C = BAILE.cenaTv;
   const suave = (u) => u * u * (3 - 2 * u);
   let k = 0;
@@ -132,7 +134,7 @@ function focoNasTvs(game, t) {
   if (k <= 0) return null;
   const w = game.world;
   const pc = palcoDoBaile(w);
-  return { x: pc.x, y: w.baile.y0 + 0.15, h: BAILE.tv.altura + BAILE.tv.alt / 2, k };
+  return { x: pc.x + (S.tvLado || -1) * BAILE.tv.palcoDx, y: w.baile.y0 + 0.15, h: BAILE.tv.altura + BAILE.tv.alt / 2, k };
 }
 
 /** O povo da festa (0 a 1, sons.js): de longe, baixinho; cheio na festa; cala no Plantão; grita na briga e na roda. */
@@ -179,6 +181,7 @@ function esvaziarCorredor(game) {
 function plantao(game, S) {
   S.fase = 'plantao';
   S.faseT = 0;
+  S.tvLado = game.player.x < palcoDoBaile(game.world).x ? -1 : 1; // a câmera vai à TV do lado do Juninho
   const rng = makeRng((game.seed ^ 0x01d05) >>> 0);
   // os olhos acendem depois que a câmera volta das TVs (cenaTv)
   const t0 = cenaTvS();

@@ -67,8 +67,11 @@ function telaDaTv(ctx, x, y, wd, ht, game, t) {
   ctx.rect(x, y, wd, ht);
   ctx.clip();
   const C = BAILE.cenaTv;
-  if (fase === 'festa' || !S || (fase === 'plantao' && S.faseT < C.apareceS)) {
-    // clipe: faixas de cor andando no batidão (no Plantão, até a câmera chegar nas TVs: aí O Acordão entra)
+  if (fase === 'plantao' && S.faseT >= C.foraS && S.faseT < C.apareceS) {
+    // fora de sintonia: só chiado, antes de O Acordão entrar no sinal (pedido do autor)
+    estatica(ctx, x, y, wd, ht, t, 1);
+  } else if (fase === 'festa' || !S || (fase === 'plantao' && S.faseT < C.foraS)) {
+    // clipe: faixas de cor andando no batidão (no Plantão, até a TV sair de sintonia)
     const n = 5;
     for (let i = 0; i < n; i++) {
       const cor = BAILE.luzes.cores[(i + Math.floor(t * 2)) % BAILE.luzes.cores.length];
@@ -80,10 +83,18 @@ function telaDaTv(ctx, x, y, wd, ht, game, t) {
     ctx.fillRect(x, y, wd, ht);
     chiado(ctx, x, y, wd, ht, t, 0.35);
   } else {
-    // O Acordão entra com o sinal pegando (chiado forte que some em chiadoS)
+    // O Acordão entra no sinal: as cabeças surgem no meio do chiado, piscando e rolando, até o sinal pegar (chiadoS)
     const pega = fase === 'plantao' ? 1 - clamp01((S.faseT - C.apareceS) / C.chiadoS) : 0;
-    plantao(ctx, x, y, wd, ht, t, fase !== 'plantao', olhosDaTv(S));
-    if (pega > 0) chiado(ctx, x, y, wd, ht, t, 0.2 + 0.8 * pega);
+    if (pega > 0) {
+      estatica(ctx, x, y, wd, ht, t, 1);
+      const pisca = Math.floor(t * 20) % 3 === 0 ? 0.45 : 1;
+      ctx.save();
+      ctx.globalAlpha = (1 - pega) * pisca;
+      ctx.translate(0, pega * pega * ht * 0.35 * Math.sin(t * 13)); // a imagem rolando antes de firmar
+      plantao(ctx, x, y, wd, ht, t, false, olhosDaTv(S));
+      ctx.restore();
+      estatica(ctx, x, y, wd, ht, t, pega * 0.85);
+    } else plantao(ctx, x, y, wd, ht, t, fase !== 'plantao', olhosDaTv(S));
   }
   ctx.restore();
 }
@@ -190,6 +201,44 @@ export function silhueta(ctx, cx, base, alt, t) {
   ctx.lineTo(cx - u * 0.5, base - u * 1.2);
   ctx.closePath();
   ctx.fill();
+}
+
+/** A TV fora de sintonia: neve de chiado cobrindo a tela (forca 0 a 1), com a faixa escura que rola. */
+const NEVE = [];
+function estatica(ctx, x, y, wd, ht, t, forca) {
+  if (forca <= 0) return;
+  if (!NEVE.length && typeof document !== 'undefined') {
+    // uns quadros de neve pequenos, feitos uma vez (sorteados), esticados na tela sem suavizar
+    for (let q = 0; q < 6; q++) {
+      const c = document.createElement('canvas');
+      c.width = 96;
+      c.height = 54;
+      const g = c.getContext('2d');
+      const im = g.createImageData(96, 54);
+      for (let i = 0; i < im.data.length; i += 4) {
+        const v = Math.random() ** 1.6 * 255;
+        im.data[i] = im.data[i + 1] = im.data[i + 2] = v;
+        im.data[i + 3] = 255;
+      }
+      g.putImageData(im, 0, 0);
+      NEVE.push(c);
+    }
+  }
+  ctx.save();
+  ctx.globalAlpha = forca;
+  if (NEVE.length) {
+    const lisa = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(NEVE[Math.floor(t * 24) % NEVE.length], x, y, wd, ht);
+    ctx.imageSmoothingEnabled = lisa;
+  } else {
+    ctx.fillStyle = '#777';
+    ctx.fillRect(x, y, wd, ht);
+  }
+  const faixa = ((t * 0.6) % 1) * (ht * 1.3) - ht * 0.15;
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillRect(x, y + faixa, wd, ht * 0.14);
+  ctx.restore();
 }
 
 function chiado(ctx, x, y, wd, ht, t, forca) {
