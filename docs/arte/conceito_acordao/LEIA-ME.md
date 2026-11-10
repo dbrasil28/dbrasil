@@ -25,3 +25,13 @@ Pedido do autor: "algo mais ressonante para o público brasileiro" e "faça uma 
 - **O Acordão, o Responsável por Tudo**: os dois num corpo só, de terno azul brilhante amassado e gravata vinho frouxa, a faixa verde e amarela no peito, as duas cabeças sorrindo uma para a outra, o corpo apertando a própria mão, a mala estourando de dinheiro, a caixa de pizza ("tudo acaba em pizza") e notas saindo dos bolsos.
 
 Os rostos são inventados: a identificação vem do tipo (cor, roupa, jeito de palanque), não da cara de ninguém. Uma primeira geração saiu com o Capitão parecido com um ator e lutador americano famoso e foi descartada (sem arquivo). O risco de loja de D21 continua: decidir antes de publicar se fica assim ou se suaviza.
+
+## A versão com cara de poder (10/11/2026)
+
+O autor achou que a versão acima tinha "cara de indigente". `elite_conceito.png`: os três como a elite intocável da capital, ricos, bem cuidados e satisfeitos, no estilo do jogo.
+
+- **O Barbudo:** grandão, sessentão, barba escura aparada com fios prateados, cabelo grisalho penteado para trás, terno grafite sob medida, gravata e lenço vermelhos de seda, relógio e anel de ouro, sorriso de campanha e braços abertos, microfone na mão.
+- **O Capitão:** alto e largo, cabelo escuro curto grisalho nos lados, sobrancelhas grossas, bigode aparado, terno verde sob medida, gravata amarela de seda, broche de bandeira, óculos de aviador no bolso, abotoaduras de ouro, continência de queixo erguido.
+- **O Acordão:** os dois num corpo só, de terno risca de giz azul-marinho, gravata vinho de seda, faixa verde e amarela, a mala de couro transbordando de dinheiro e a caixa de pizza, relógio de ouro e sapatos lustrosos.
+
+Esta é a referência para as próximas artes deles.
