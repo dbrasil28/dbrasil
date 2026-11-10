@@ -79,19 +79,38 @@ function telaDaTv(ctx, x, y, wd, ht, game, t) {
     ctx.fillRect(x, y, wd, ht);
     chiado(ctx, x, y, wd, ht, t, 0.35);
   } else {
-    plantao(ctx, x, y, wd, ht, t, fase !== 'plantao');
+    plantao(ctx, x, y, wd, ht, t, fase !== 'plantao', olhosDaTv(S));
   }
   ctx.restore();
 }
 
+/** O quanto os olhos do Acordão na TV estão acesos (0 a 1): acendem no meio do Plantão e ficam (pedido do autor). */
+function olhosDaTv(S) {
+  if (!S) return 0;
+  if (S.fase === 'plantao') return clamp01((S.faseT - BAILE.cenaTv.olhosTvS) / BAILE.tv.acordao.acendeS);
+  return S.fase === 'briga' || S.fase === 'luta' ? 1 : 0;
+}
+
 /** A tela do Plantão: fundo azul de estúdio, faixa vermelha e O Acordão em silhueta (duas cabeças, um terno). */
-function plantao(ctx, x, y, wd, ht, t, comChiado) {
-  const g = ctx.createLinearGradient(x, y, x, y + ht);
-  g.addColorStop(0, '#2a5fa8');
-  g.addColorStop(1, '#0e2a55');
-  ctx.fillStyle = g;
-  ctx.fillRect(x, y, wd, ht);
-  silhueta(ctx, x + wd / 2, y + ht * 0.98, ht * 0.78, t);
+function plantao(ctx, x, y, wd, ht, t, comChiado, olhos = 0) {
+  const im = images.baile_acordao_tv;
+  if (im) {
+    // O Acordão (arte do Figma): a imagem cobre a tela; os olhos acendem no azul da TV por cima dela
+    const s = Math.max(wd / im.width, ht / im.height);
+    const iw = im.width * s;
+    const ih = im.height * s;
+    const ix = x + (wd - iw) / 2;
+    const iy = y + (ht - ih) / 2;
+    ctx.drawImage(im, ix, iy, iw, ih);
+    if (olhos > 0) olhosNaTv(ctx, ix, iy, iw, ih, t, olhos);
+  } else {
+    const g = ctx.createLinearGradient(x, y, x, y + ht);
+    g.addColorStop(0, '#2a5fa8');
+    g.addColorStop(1, '#0e2a55');
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, wd, ht);
+    silhueta(ctx, x + wd / 2, y + ht * 0.98, ht * 0.78, t);
+  }
   ctx.fillStyle = '#d91a24';
   ctx.fillRect(x, y + ht * 0.78, wd, ht * 0.22);
   ctx.fillStyle = '#fff';
@@ -105,7 +124,26 @@ function plantao(ctx, x, y, wd, ht, t, comChiado) {
   if (comChiado) chiado(ctx, x, y, wd, ht, t, 0.18);
 }
 
-/** O Acordão em silhueta: ombros largos de terno e duas cabeças, mexendo um pouco cada uma. */
+/** Os olhos do Acordão acesos na TV: o brilho azul do sinal (o mesmo da horda hipnotizada), pulsando. */
+function olhosNaTv(ctx, ix, iy, iw, ih, t, k) {
+  const A = BAILE.tv.acordao;
+  const R = iw * A.raio * (0.9 + 0.12 * Math.sin(t * 9));
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const [ox, oy] of A.olhos) {
+    const ex = ix + ox * iw;
+    const ey = iy + oy * ih;
+    const g = ctx.createRadialGradient(ex, ey, 0, ex, ey, R);
+    g.addColorStop(0, `rgba(235,255,255,${(0.95 * k).toFixed(3)})`);
+    g.addColorStop(0.25, `rgba(120,230,255,${(0.85 * k).toFixed(3)})`);
+    g.addColorStop(1, 'rgba(60,170,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(ex - R, ey - R, R * 2, R * 2);
+  }
+  ctx.restore();
+}
+
+/** O Acordão em silhueta (sem a arte carregada): ombros largos de terno e duas cabeças, mexendo um pouco cada uma. */
 export function silhueta(ctx, cx, base, alt, t) {
   const u = alt / 10;
   ctx.fillStyle = '#05060a';
@@ -431,7 +469,7 @@ export function drawPlantaoTela(ctx, game, cam, t) {
   ctx.strokeStyle = '#3a3242';
   ctx.lineWidth = 3;
   ctx.strokeRect(x - 8, y - 8, wd + 16, ht + 16);
-  plantao(ctx, x, y, wd, ht, t, S.faseT > sai - 0.4);
+  plantao(ctx, x, y, wd, ht, t, S.faseT > sai - 0.4, olhosDaTv(S));
   ctx.fillStyle = '#fff';
   ctx.font = `700 ${Math.round(ht * 0.075)}px "Barlow Semi Condensed", "Arial Narrow", sans-serif`;
   ctx.textAlign = 'center';

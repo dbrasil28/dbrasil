@@ -78,6 +78,12 @@ export function updateBaile(game, dt) {
       if (S.faseT >= B.plantaoS) plantao(game, S);
       break;
     case 'plantao':
+      if (!S.olhosTv && S.faseT >= B.cenaTv.olhosTvS) {
+        // na TV, os olhos do Acordão acendem no azul (o brilho do jogo desenha por cima da arte): o sinal pegou
+        S.olhosTv = true;
+        game.som('acorda');
+        game.shake(0.18);
+      }
       if (S.faseT >= plantaoDuraS()) briga(game, S);
       break;
     case 'briga':

@@ -163,6 +163,11 @@ test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acord
   const palco = g.world.baile.y0;
   assert.ok(Math.abs(g.camera.y - g.player.y) > 5 && g.camera.y < palco, `a câmera não está no palco (y ${g.camera.y.toFixed(1)}, palco ${palco.toFixed(1)})`);
   assert.ok(S.pessoas.every((c) => !(c.olho > 0)), 'os olhos acenderam com a câmera nas TVs');
+  // na TV, o Acordão aparece de olhos normais; com a câmera ainda lá, os olhos dele acendem (pedido do autor)
+  assert.ok(S.faseT < C.olhosTvS ? !S.olhosTv : true, 'os olhos da TV acenderam antes da hora');
+  rodar(g, Math.max(0, C.olhosTvS + 0.1 - S.faseT));
+  assert.ok(S.olhosTv, 'os olhos do Acordão na TV não acenderam');
+  assert.ok(g.focoBaile && g.focoBaile.k === 1, 'os olhos da TV acenderam com a câmera fora das TVs');
   rodar(g, C.ficaS * 0.5 + C.voltaS + 0.05);
   assert.equal(g.focoBaile, null, 'a câmera não voltou para o Juninho');
   assert.ok(Math.abs(g.camera.y - g.player.y) < 0.5, 'a câmera não voltou para o Juninho');

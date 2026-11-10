@@ -884,7 +884,8 @@ export const BAILE = {
   // a câmera vai às TVs (pedido do autor: com a câmera no Juninho, ninguém via o Plantão nas TVs do palco): quando o
   // sinal entra, ela vai até o palco em vaiS, dá zoom nas duas TVs (até zoomMax, com margemM de folga dos lados), fica
   // ficaS e volta em voltaS; só então os olhos acendem (olhosS) e o povo encara (encaraS)
-  cenaTv: { vaiS: 0.9, ficaS: 3, voltaS: 0.9, zoomMax: 1.8, margemM: 0.4 },
+  // olhosTvS: com a câmera nas TVs, quando os olhos do Acordão acendem (contado do começo do Plantão)
+  cenaTv: { vaiS: 0.9, ficaS: 3, voltaS: 0.9, zoomMax: 1.8, margemM: 0.4, olhosTvS: 2.4 },
   // o DJ entra quando o Caos chega na marca: sobe pontos acima do de quando a pancadaria começa, e pelo menos min
   // (pedido do autor: chegava rápido demais no DJ e o Caos mal subia); cada um da festa que cai soma porAbate
   caos: { sobe: 40, min: 70, max: 95, porAbate: 0.25 },
@@ -902,7 +903,11 @@ export const BAILE = {
   luzes: { n: 7, raioM: 4.2, giroS: 5.5, cores: ['255,60,200', '60,220,255', '170,90,255', '60,255,140', '255,170,40'], brilho: 0.3 },
   // as duas TVs, uma de cada lado do palco (palcoDx do meio dele, em cima dos paredões): a tela (m) e a altura da
   // beirada de baixo dela, as da arte do Figma
-  tv: { larg: 2.3, alt: 1.3, altura: 2.43, palcoDx: 3.1 },
+  tv: { larg: 2.3, alt: 1.3, altura: 2.43, palcoDx: 3.1,
+    // O Acordão no Plantão (arte do Figma, baile_acordao_tv): onde ficam os 4 olhos na imagem (0 a 1), o raio do brilho
+    // (fração da largura) e quanto ele leva para acender (pedido do autor: aparece de olhos normais; quando os olhos
+    // acendem, começa a zoeira)
+    acordao: { olhos: [[0.3236, 0.2708], [0.4049, 0.2488], [0.599, 0.2836], [0.6712, 0.2975]], raio: 0.03, acendeS: 0.35 } },
   // o cenário da festa (pedido do autor): palco com a mesa do DJ entre os paredões e o néon no muro, treliças de
   // iluminação (a do palco emoldura a mesa do DJ; duas de lado, nos cantos da frente), canhões de luz no chão, o
   // globo espelhado no meio da pista, dois bares (com engradados, mesas e cadeiras para arremessar), sinuca, sofá,

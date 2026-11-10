@@ -43,3 +43,7 @@ Pedido do autor: "eles são chefões do mal e estão dominando mentes e corpos; 
 ## Os bustos (10/11/2026)
 
 Pedido do autor: "faz agora só do busto deles". `bustos_viloes.png`: os três da versão diabólica, da cabeça ao meio do peito, lado a lado (Barbudo, Acordão, Capitão), olhos acesos no azul da TV e luz de baixo. Serve de base para a TV do Plantão (o Acordão) e para retratos de apresentação dos chefões.
+
+## O Acordão na TV do Plantão (no jogo, 10/11/2026)
+
+Pedido do autor: "eles aparecem na TV, mas os olhos não estão brilhando; quando os olhos brilham, começa a zoeira". `acordao_tv_figma.png` (16:9, olhos normais, pronunciamento oficial no fundo azul de estúdio) entrou no jogo como `prototype/assets/cenario/favela/baile_acordao_tv.webp`. O brilho dos olhos é desenhado pelo jogo por cima da imagem, na posição de cada olho (`BAILE.tv.acordao.olhos`), quando o sinal pega.
