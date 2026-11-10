@@ -23,6 +23,16 @@ O APK sai em `app/android/app/build/outputs/apk/debug/app-debug.apk`.
 
 Mais rápido que a nuvem: um comando monta o jogo, compila, instala no celular por cima da versão anterior e abre.
 
+**No Mac, um comando prepara tudo.** Abra o Terminal e cole:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dbrasil28/dbrasil/ccr-78bf25c0-ckp1pr/app/preparar-mac.sh | bash
+```
+
+Ele usa o Node, o Java e o Android SDK que já estão instalados (de outros projetos, do Android Studio, do Homebrew ou do Unity) e só instala o que faltar. Baixa o projeto em `~/dbrasil`, gera o primeiro APK e cria na Mesa o atalho **Atualizar jogo no celular**. Depois, é só ligar o celular no cabo e dar dois cliques no atalho: ele baixa a versão nova, compila, instala e abre o jogo. Não muda a configuração dos outros projetos.
+
+Sem o instalador, à mão:
+
 Uma vez só:
 
 1. Instale o Git, o Node.js 20 ou mais novo e o Android Studio (ele traz o Java e o Android SDK). No Android Studio, em More Actions → SDK Manager, marque a plataforma Android 15 (API 35).
