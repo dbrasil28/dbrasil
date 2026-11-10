@@ -884,8 +884,9 @@ export const BAILE = {
   // a câmera vai às TVs (pedido do autor: com a câmera no Juninho, ninguém via o Plantão nas TVs do palco): quando o
   // sinal entra, ela vai até o palco em vaiS, dá zoom nas duas TVs (até zoomMax, com margemM de folga dos lados), fica
   // ficaS e volta em voltaS; só então os olhos acendem (olhosS) e o povo encara (encaraS)
-  // olhosTvS: com a câmera nas TVs, quando os olhos do Acordão acendem (contado do começo do Plantão)
-  cenaTv: { vaiS: 0.9, ficaS: 3, voltaS: 0.9, zoomMax: 1.8, margemM: 0.4, olhosTvS: 2.4 },
+  // olhosTvS: com a câmera nas TVs, quando os olhos do Acordão acendem (contado do começo do Plantão); risadaS: quando
+  // as duas cabeças começam a rir (pedido do autor: "quando eles aparecerem na TV")
+  cenaTv: { vaiS: 0.9, ficaS: 3, voltaS: 0.9, zoomMax: 1.8, margemM: 0.4, olhosTvS: 2.4, risadaS: 0 },
   // o DJ entra quando o Caos chega na marca: sobe pontos acima do de quando a pancadaria começa, e pelo menos min
   // (pedido do autor: chegava rápido demais no DJ e o Caos mal subia); cada um da festa que cai soma porAbate
   caos: { sobe: 40, min: 70, max: 95, porAbate: 0.25 },
@@ -1442,6 +1443,9 @@ export const SONS = {
   carro_cai: S(0.9, 1, 0.3, 3), cata: S(0.35, 2, 0.2, 1), roubo: S(0.6, 1, 0.3, 3), multa: S(0.5, 1, 0.5, 2),
   // avisos, crises e chefão
   aviso_chao: S(0.4, 2, 0.15, 3), holofote: S(0.7, 2, 0.1, 2), // o canhão de luz girando (pedido do autor: "mais mecânico, de dobradiça")
+  // O Acordão rindo na TV do Plantão (pedido do autor: "risada diabólica de ambos, duas, sobrepostas"): uma risada por
+  // cabeça, as duas juntas, o Barbudo à esquerda e o Capitão à direita (pan: lado fixo, de −1 a 1), sem variar o tom
+  risada_barbudo: S(1, 1, 5, 3, { ...FIXO, pan: -0.35, varia: 0 }), risada_capitao: S(1, 1, 5, 3, { ...FIXO, pan: 0.35, varia: 0 }),
   crise: S(0.55, 1, 1, 3, FIXO), onda: S(0.7, 1, 1, 2, FIXO), apagao: S(0.7, 1, 1, 3, FIXO),
   faisca: S(0.5, 3, 0.08, 2), chefe: S(0.75, 1, 2, 3, FIXO), fase: S(0.7, 1, 1, 3, FIXO),
   // interface e TV

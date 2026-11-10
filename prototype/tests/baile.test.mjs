@@ -151,9 +151,12 @@ test('o baile (D94): lotado, o DJ tocando no palco, os olhos acendem com O Acord
   assert.ok(g.somDoBaile > 0.95, 'a música do baile não está no alto');
   rodar(g, BAILE.plantaoS * 0.8);
   assert.equal(g.enemies.filter((e) => !e.dead && !e.debanda).length, 0, 'a horda nasceu na festa (ou atacou na chegada)');
+  g.sons.length = 0; // nos testes ninguém esvazia a fila de sons
   rodar(g, BAILE.plantaoS * 0.2 + 0.2);
   assert.equal(S.fase, 'plantao');
   assert.ok(tv(g, 'baileAcordao'), 'a TV não entrou com O Acordão');
+  // as duas cabeças riem juntas quando aparecem na TV (pedido do autor), uma vez só
+  for (const id of ['risada_barbudo', 'risada_capitao']) assert.equal(g.sons.filter((s) => s.id === id).length, 1, `sem a ${id} no Plantão`);
   rodar(g, 0.6);
   assert.ok(g.somDoBaile < 0.5, 'o som não baixou para a TV falar');
   // a câmera vai às TVs do palco (pedido do autor), dá zoom, fica e volta; os olhos só acendem depois

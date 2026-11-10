@@ -78,6 +78,12 @@ export function updateBaile(game, dt) {
       if (S.faseT >= B.plantaoS) plantao(game, S);
       break;
     case 'plantao':
+      if (!S.risada && S.faseT >= B.cenaTv.risadaS) {
+        // O Acordão aparece na TV e as duas cabeças riem juntas, cada uma com a sua risada (pedido do autor)
+        S.risada = true;
+        game.som('risada_barbudo');
+        game.som('risada_capitao');
+      }
       if (!S.olhosTv && S.faseT >= B.cenaTv.olhosTvS) {
         // na TV, os olhos do Acordão acendem no azul (o brilho do jogo desenha por cima da arte): o sinal pegou
         S.olhosTv = true;

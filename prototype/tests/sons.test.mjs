@@ -57,7 +57,8 @@ test('todo som gravado listado existe, é de um som da tabela e não pesa demais
       const f = new URL(src, raiz);
       assert.ok(existsSync(f), `falta o arquivo ${src}`);
       const kb = statSync(f).size / 1024;
-      assert.ok(kb > 1 && kb < (id.startsWith('amb_') ? 600 : 80), `${src}: ${kb.toFixed(0)} KB`);
+      // o ambiente (laço de 30 s) e as risadas do Acordão (10 s cada) são os longos
+      assert.ok(kb > 1 && kb < (id.startsWith('amb_') ? 600 : id.startsWith('risada_') ? 160 : 80), `${src}: ${kb.toFixed(0)} KB`);
     }
   }
 });

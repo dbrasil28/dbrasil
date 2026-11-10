@@ -17,6 +17,17 @@ O volume no jogo fica em `config.js` (`SONS`).
 | --- | --- | --- |
 | `prototype/assets/musica/baile_ela_nao_vale_nada.mp3` | "Ela Não Vale Nada", feita no Suno pelo autor (09/11/2026), a música do baile do Morro (D94). Tirada a capa embutida; o áudio é o original | Para vender o jogo, a conta do Suno do autor precisa ser de um plano que permite uso comercial (no plano grátis, não pode). A letra tem palavrão: entra na classificação etária da loja |
 
+## Suno (feito pelo autor)
+
+Pedido do autor em 10/11/2026: "quando eles aparecerem na TV, faz um som de risada diabólica de ambos, duas, sobrepostas". Ele recusou duas rodadas de risadas gratuitas (7 do OpenGameArt e 8 do Freesound, todas CC0) e fez as duas no Suno.
+
+| Arquivo | Origem | Licença |
+| --- | --- | --- |
+| `risada_barbudo_1` | "Manic Cackle" (1ª), feita no Suno pelo autor. Original em `docs/som/originais/risada_acordao_suno_1.mp3`. Tirada a capa embutida, em mono | Para vender o jogo, a conta do Suno do autor precisa ser de um plano que permite uso comercial (no plano grátis, não pode) |
+| `risada_capitao_1` | "Manic Cackle" (2ª), feita no Suno pelo autor. Original em `docs/som/originais/risada_acordao_suno_2.mp3`. Cortado o estalo do começo (0,18 s), em mono | A mesma |
+
+No jogo, as duas tocam juntas quando O Acordão aparece na TV do Plantão: o Barbudo um pouco à esquerda e o Capitão um pouco à direita.
+
 ## Adobe Firefly
 
 | Arquivos | Origem | Licença |

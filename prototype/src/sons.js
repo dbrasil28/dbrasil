@@ -64,6 +64,9 @@ export const RECEITAS = {
   multa: [tom('square', 2600, 2700, 0.32, { lp: 4000, am: 30, amP: 0.5, v: 0.25 })],
   aviso_chao: [tom('tri', 720, 500, 0.26, { q: 0.12, v: 0.5 })],
   holofote: [tom('saw', 620, 980, 0.38, { lp: 2600, am: 26, amP: 0.7, q: 0.25, v: 0.45 }), ruido(0.05, { ini: 0.4, lp: 5000, hp: 900, q: 0.02, v: 0.7 })], // range e trava
+  // "ha, ha, ha" grave (o provisório da risada de cada cabeça do Acordão)
+  risada_barbudo: [0, 0.3, 0.6, 0.9].map((ini) => tom('saw', 150, 120, 0.2, { ini, lp: 1300, am: 14, amP: 0.5, q: 0.09, v: 0.45 })),
+  risada_capitao: [0.1, 0.38, 0.66, 0.94].map((ini) => tom('saw', 190, 150, 0.18, { ini, lp: 1500, am: 16, amP: 0.5, q: 0.08, v: 0.45 })),
   crise: [0, 0.25, 0.5, 0.75].map((ini, i) => tom('square', i % 2 ? 660 : 880, i % 2 ? 660 : 880, 0.24, { ini, lp: 3000, v: 0.25 })),
   onda: [ruido(1.6, { lp: 350, lp1: 1600, a: 0.6, q: 0.6, v: 0.8 })],
   apagao: [tom('saw', 130, 38, 0.85, { lp: 700, q: 0.4, v: 0.5 }), ruido(0.03, { hp: 2000, q: 0.01, v: 0.6 })],
@@ -129,6 +132,9 @@ export const ARQUIVOS = {
   lataria: ['assets/sons/lataria_1.mp3', 'assets/sons/lataria_2.mp3'],
   // CC0 (OpenGameArt, Kenney), 09/11/2026: o rangido de dobradiça e a trava do canhão de luz do baile
   holofote: ['assets/sons/holofote_1.mp3'],
+  // feitas pelo autor no Suno (10/11/2026): O Acordão rindo na TV do Plantão, uma risada por cabeça
+  risada_barbudo: ['assets/sons/risada_barbudo_1.mp3'],
+  risada_capitao: ['assets/sons/risada_capitao_1.mp3'],
 };
 
 /** Amostras do som (Float32Array, pico em 0,9). Sem navegador: dá para conferir nos testes. */
@@ -556,9 +562,10 @@ export class Sons {
     const g = this.ctx.createGain();
     g.gain.value = D.vol * longe * (this.abafado && D.perto ? 0.3 : 1);
     let saida = g;
-    if (D.perto && this.ctx.createStereoPanner) {
+    if ((D.perto || D.pan) && this.ctx.createStereoPanner) {
+      // o lado pelo lugar; um som sem lugar (perto: false) pode ter um lado fixo (pan)
       const pan = this.ctx.createStereoPanner();
-      pan.pan.value = Math.max(-SOM.panMax, Math.min(SOM.panMax, dx / SOM.panM));
+      pan.pan.value = D.perto ? Math.max(-SOM.panMax, Math.min(SOM.panMax, dx / SOM.panM)) : D.pan;
       g.connect(pan);
       saida = pan;
     }
