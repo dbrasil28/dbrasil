@@ -49,7 +49,7 @@ NODE_DIR="$(dirname "$NODE")"
 export PATH="$NODE_DIR:$PATH"
 ok "Node: $("$NODE" -v) ($NODE_DIR)"
 
-# --- Java 21+ (o Android Studio traz o dele) ---
+# --- Java 21 a 23 (o Gradle 8.11 do projeto não roda no 24 em diante; o Android Studio novo traz o 25) ---
 java_maior() { "$1/bin/java" -version 2>&1 | grep -m1 ' version "' | sed -E 's/.*version "([0-9]+).*/\1/'; }
 JAVA=""
 CANDIDATOS="${JAVA_HOME:-}
@@ -59,18 +59,29 @@ $HOME/Applications/Android Studio.app/Contents/jbr/Contents/Home
 /usr/local/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
 /opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home
 $(ls -d /Library/Java/JavaVirtualMachines/*/Contents/Home 2>/dev/null)
-$(ls -d "$HOME"/Library/Java/JavaVirtualMachines/*/Contents/Home 2>/dev/null)"
+$(ls -d "$HOME"/Library/Java/JavaVirtualMachines/*/Contents/Home 2>/dev/null)
+$(ls -d /usr/lib/jvm/* 2>/dev/null)"
 while IFS= read -r j; do
   [ -n "$j" ] && [ -x "$j/bin/java" ] || continue
   v=$(java_maior "$j"); case "$v" in ''|*[!0-9]*) continue;; esac
-  [ "$v" -ge 21 ] && JAVA="$j" && break
+  # o 21 primeiro; se não tiver, o 22 ou o 23
+  if [ "$v" -eq 21 ]; then JAVA="$j"; break; fi
+  [ -z "$JAVA" ] && [ "$v" -ge 22 ] && [ "$v" -le 23 ] && JAVA="$j"
 done <<EOF
 $CANDIDATOS
 EOF
 if [ -z "$JAVA" ]; then
-  [ -n "$BREW" ] || erro "falta o Java 21 (e não achei o Homebrew). Abra o Android Studio uma vez (ele traz o Java) e rode de novo."
-  falta "Java 21: instalando"; "$BREW" install openjdk@21 || erro "não consegui instalar o Java 21"
-  JAVA="$("$BREW" --prefix)/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
+  # baixa o Java 21 (Temurin, de graça) para a pasta do usuário: sem senha e sem mexer no Android Studio
+  falta "Java 21: baixando (o que está instalado é mais novo do que o projeto aceita)"
+  case "$(uname -m)" in arm64|aarch64) ARQ=aarch64 ;; *) ARQ=x64 ;; esac
+  DEST="$HOME/Library/Java/JavaVirtualMachines"
+  mkdir -p "$DEST"
+  TMP="$(mktemp -d)"
+  curl -fsSL "https://api.adoptium.net/v3/binary/latest/21/ga/mac/$ARQ/jdk/hotspot/normal/eclipse" -o "$TMP/jdk.tar.gz" || erro "não consegui baixar o Java 21"
+  tar -xzf "$TMP/jdk.tar.gz" -C "$DEST" || erro "não consegui abrir o Java 21"
+  rm -rf "$TMP"
+  JAVA="$(ls -d "$DEST"/jdk-21*/Contents/Home 2>/dev/null | sort -rV | head -1)"
+  [ -n "$JAVA" ] && [ -x "$JAVA/bin/java" ] || erro "o Java 21 baixado não abriu"
 fi
 export JAVA_HOME="$JAVA"
 ok "Java: $(java_maior "$JAVA") ($JAVA)"
@@ -109,7 +120,8 @@ if [ -d "$PASTA/.git" ]; then
   ok "Projeto atualizado em $PASTA"
 else
   [ -e "$PASTA" ] && erro "já existe $PASTA e não é o projeto. Renomeie essa pasta e rode de novo."
-  git clone -q -b "$RAMO" "$REPO" "$PASTA" || erro "não consegui baixar o projeto"
+  echo "  … baixando o projeto (uns minutos na primeira vez)"
+  git clone -q --depth 1 --single-branch -b "$RAMO" "$REPO" "$PASTA" || erro "não consegui baixar o projeto"
   ok "Projeto baixado em $PASTA"
 fi
 cd "$PASTA/app" || erro "não achei $PASTA/app"
