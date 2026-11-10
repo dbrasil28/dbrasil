@@ -6,10 +6,10 @@
 # cria na Mesa o atalho "Atualizar jogo no celular" (dois cliques: baixa a versão nova, compila, instala e abre).
 # Não mexe na configuração dos outros projetos: os caminhos achados ficam só dentro do atalho.
 #
-# No Terminal:  curl -fsSL https://raw.githubusercontent.com/dbrasil28/dbrasil/ccr-78bf25c0-ckp1pr/app/preparar-mac.sh | bash
+# No Terminal:  curl -fsSL https://raw.githubusercontent.com/dbrasil28/dbrasil/main/app/preparar-mac.sh | bash
 set -u
 REPO="https://github.com/dbrasil28/dbrasil.git"
-RAMO="ccr-78bf25c0-ckp1pr"
+RAMO="main"
 PASTA="$HOME/dbrasil"
 ATALHO="$HOME/Desktop/Atualizar jogo no celular.command"
 
@@ -116,7 +116,10 @@ ok "Android SDK: $SDK"
 
 # --- O projeto ---
 if [ -d "$PASTA/.git" ]; then
-  (cd "$PASTA" && git fetch -q origin "$RAMO" && git checkout -q "$RAMO" && git pull -q --ff-only origin "$RAMO") || erro "não consegui atualizar $PASTA"
+  # também serve para a cópia baixada antes, de outro ramo (só aquele ramo, sem o histórico todo)
+  (cd "$PASTA" && git remote set-branches --add origin "$RAMO" && git fetch -q origin "$RAMO" \
+    && { git checkout -q "$RAMO" 2>/dev/null || git checkout -q -b "$RAMO" --track "origin/$RAMO"; } \
+    && git pull -q --ff-only origin "$RAMO") || erro "não consegui atualizar $PASTA"
   ok "Projeto atualizado em $PASTA"
 else
   [ -e "$PASTA" ] && erro "já existe $PASTA e não é o projeto. Renomeie essa pasta e rode de novo."

@@ -26,7 +26,7 @@ Mais rápido que a nuvem: um comando monta o jogo, compila, instala no celular p
 **No Mac, um comando prepara tudo.** Abra o Terminal e cole:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/dbrasil28/dbrasil/ccr-78bf25c0-ckp1pr/app/preparar-mac.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dbrasil28/dbrasil/main/app/preparar-mac.sh | bash
 ```
 
 Ele usa o Node, o Java e o Android SDK que já estão instalados (de outros projetos, do Android Studio, do Homebrew ou do Unity) e só instala o que faltar. Baixa o projeto em `~/dbrasil`, gera o primeiro APK e cria na Mesa o atalho **Atualizar jogo no celular**. Depois, é só ligar o celular no cabo e dar dois cliques no atalho: ele baixa a versão nova, compila, instala e abre o jogo. Não muda a configuração dos outros projetos.
@@ -42,7 +42,6 @@ Uma vez só:
    ```bash
    git clone https://github.com/dbrasil28/dbrasil.git
    cd dbrasil
-   git checkout ccr-78bf25c0-ckp1pr
    cd app
    npm install
    ```
