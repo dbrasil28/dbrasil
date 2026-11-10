@@ -39,3 +39,7 @@ Esta é a referência para as próximas artes deles.
 ## A versão diabólica (10/11/2026)
 
 Pedido do autor: "eles são chefões do mal e estão dominando mentes e corpos; precisam ter feições mais diabólicas, sem escrúpulos". `viloes_conceito.png`: o mesmo visual de poder da versão anterior (ternos sob medida, seda, ouro, a faixa, a mala e a pizza), agora com olhar frio, sorriso de predador, sombras fundas de luz vinda de baixo, os **olhos acesos no azul da TV** (o mesmo brilho da horda hipnotizada) e **fios de marionete** azuis saindo dos dedos, puxando o povo. Fundo escuro com névoa azul. Esta passa a ser a referência dos três.
+
+## Os bustos (10/11/2026)
+
+Pedido do autor: "faz agora só do busto deles". `bustos_viloes.png`: os três da versão diabólica, da cabeça ao meio do peito, lado a lado (Barbudo, Acordão, Capitão), olhos acesos no azul da TV e luz de baixo. Serve de base para a TV do Plantão (o Acordão) e para retratos de apresentação dos chefões.
