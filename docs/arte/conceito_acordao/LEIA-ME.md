@@ -35,3 +35,7 @@ O autor achou que a versão acima tinha "cara de indigente". `elite_conceito.png
 - **O Acordão:** os dois num corpo só, de terno risca de giz azul-marinho, gravata vinho de seda, faixa verde e amarela, a mala de couro transbordando de dinheiro e a caixa de pizza, relógio de ouro e sapatos lustrosos.
 
 Esta é a referência para as próximas artes deles.
+
+## A versão diabólica (10/11/2026)
+
+Pedido do autor: "eles são chefões do mal e estão dominando mentes e corpos; precisam ter feições mais diabólicas, sem escrúpulos". `viloes_conceito.png`: o mesmo visual de poder da versão anterior (ternos sob medida, seda, ouro, a faixa, a mala e a pizza), agora com olhar frio, sorriso de predador, sombras fundas de luz vinda de baixo, os **olhos acesos no azul da TV** (o mesmo brilho da horda hipnotizada) e **fios de marionete** azuis saindo dos dedos, puxando o povo. Fundo escuro com névoa azul. Esta passa a ser a referência dos três.
