@@ -21,7 +21,7 @@ O APK sai em `app/android/app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Instalar no celular
 
-É um APK de teste (assinado com a chave de depuração). No Android: abrir o arquivo, permitir "instalar apps desconhecidos" para o app que abriu o arquivo e instalar. Para a loja, falta gerar o pacote de publicação (AAB) com uma chave própria.
+É um APK de teste, assinado com a chave de teste guardada em `app/android/app/teste.keystore` (a padrão do Android, senha `android`): assim o APK gerado em qualquer máquina instala por cima do anterior, sem apagar o progresso. A cada APK novo, suba `versionCode` e `versionName` em `app/android/app/build.gradle`. No Android: abrir o arquivo, permitir "instalar apps desconhecidos" para o app que abriu o arquivo e instalar. Para a loja, falta gerar o pacote de publicação (AAB) com uma chave própria.
 
 ## O que o app faz diferente da página
 
